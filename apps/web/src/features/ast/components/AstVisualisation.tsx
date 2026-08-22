@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState} from "react";
+import type {ChangeEvent} from "react";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {cn} from "@/shared/lib/utils.ts";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {motion} from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
-import {Maximize2, Minimize2, Copy, ClipboardPaste, Download, Network} from "lucide-react";
+import {Maximize2, Minimize2, Copy, ClipboardPaste, Download, Upload, Network} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Ast} from "@/features/ast/components/ast/Ast.tsx";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
@@ -25,6 +26,8 @@ import {useMapAstToFlow} from "@/features/ast/hooks/mapAstToFlow.ts";
 import {layoutAstFlow} from "@/features/ast/hooks/layoutAstFlow.ts";
 import {ReactFlowProvider} from "@xyflow/react";
 import {env} from "@/shared/lib/env.ts";
+import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
+import {toast} from "sonner";
 
 export interface AstVisualisationProps {
   className?: string;
@@ -85,6 +88,39 @@ export function AstVisualisation({
     const newGraph = mapAstToFlow(viewerAst);
     newGraph.nodes.forEach((node) => {node.data.editable = true;});
     setGraph(layoutAstFlow(newGraph.nodes, newGraph.edges));
+  };
+
+  const loadEditorAst = (program: Program) => {
+    setEditorAst(program);
+    const newGraph = mapAstToFlow(program);
+    newGraph.nodes.forEach((node) => {node.data.editable = true;});
+    setGraph(layoutAstFlow(newGraph.nodes, newGraph.edges));
+  };
+
+  const downloadEditorAst = () => {
+    downloadTextFile("ast.json", JSON.stringify(editorAst, null, 2), "application/json");
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadEditorAst = () => fileInputRef.current?.click();
+
+  const handleAstFileSelected = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      if (parsed?.kind !== "Program" || !Array.isArray(parsed.globals)) {
+        throw new Error("Not a Program AST");
+      }
+      loadEditorAst(parsed as Program);
+      toast.success("AST loaded from file");
+    } catch (err) {
+      console.error("Failed to load AST JSON", err);
+      toast.error("Invalid AST JSON file");
+    }
   };
 
   return (
@@ -156,6 +192,38 @@ export function AstVisualisation({
                         <TooltipContent side="bottom">Load the Viewer tab's current AST in here for editing</TooltipContent>
                       </Tooltip>
                     </ButtonGroup>
+
+                    <ButtonGroupSeparator className="h-6" />
+
+                    <ButtonGroup>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1.5" onClick={downloadEditorAst}>
+                            <Download className="h-3.5 w-3.5" />
+                            Download JSON
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Download the edited AST as a JSON file</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-1.5" onClick={uploadEditorAst}>
+                            <Upload className="h-3.5 w-3.5" />
+                            Upload JSON
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Load an AST from a JSON file</TooltipContent>
+                      </Tooltip>
+                    </ButtonGroup>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="application/json,.json"
+                      className="hidden"
+                      onChange={handleAstFileSelected}
+                    />
 
                     <Tooltip>
                       <TooltipTrigger asChild>
