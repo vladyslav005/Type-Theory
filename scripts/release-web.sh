@@ -23,3 +23,14 @@ git commit -m "chore(web): release $TAG"
 git tag "$TAG"
 
 echo "Tagged $TAG"
+
+read -r -p "Push now? [y/N] " reply
+if [[ "$reply" =~ ^[Yy]$ ]]; then
+  git push origin main
+  git push origin "$TAG"
+  echo "Pushed."
+else
+  echo "Not pushed. When ready:"
+  echo "  git push origin main"
+  echo "  git push origin $TAG"
+fi
