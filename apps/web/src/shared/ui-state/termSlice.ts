@@ -40,6 +40,8 @@ export interface TermState {
   // When on, editor changes auto-trigger parse/type-check/evaluate — see TextEditor's
   // "Auto-build" switch, which also disables the manual Parse & Evaluate buttons.
   autoBuild: boolean;
+  // Monaco editor font size in px — see TextEditor's font size selector.
+  fontSize: number;
 }
 
 export const initialTermState: TermState = {
@@ -55,6 +57,7 @@ export const initialTermState: TermState = {
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
   buildMode: {active: false},
   autoBuild: false,
+  fontSize: 14,
 };
 
 const counterSlice = createSlice({
@@ -71,6 +74,10 @@ const counterSlice = createSlice({
 
     setAutoBuild: (state, action: { payload: boolean }) => {
       state.autoBuild = action.payload;
+    },
+
+    setFontSize: (state, action: { payload: number }) => {
+      state.fontSize = action.payload;
     },
 
     setProof: (state, action: { payload: { proof: ProofTree | undefined; theories?: TypeTheoryConfig } }) => {
@@ -189,6 +196,7 @@ export const {
   setTermText,
   setEvaluationStrategy,
   setAutoBuild,
+  setFontSize,
   setProof,
   setTypeAliases,
   setAst,

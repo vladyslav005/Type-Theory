@@ -10,17 +10,21 @@ import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Maximize2, Minimize2} from "lucide-react";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {setAutoBuild, setTermText} from "@/shared/ui-state/termSlice.ts";
+import {setAutoBuild, setFontSize, setTermText} from "@/shared/ui-state/termSlice.ts";
 import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import type {SourcePosition} from "@vladyslav005/tt-core";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/shared/components/ui/select.tsx";
+import {Separator} from "@/shared/components/ui/separator.tsx";
 
 // Auto-build debounce: how long to wait after the last keystroke before parsing —
 // short enough to feel immediate, long enough not to re-parse on every keystroke.
 const AUTO_BUILD_DEBOUNCE_MS = 400;
+
+const FONT_SIZES = [12, 13, 14, 16, 18, 20, 24];
 
 export interface TextEditorProps {
   defaultValue?: string;
@@ -73,6 +77,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   // Gate auto-evaluate on `proof`, not `ast` — matches the Evaluate button's own disabled
   // condition, so auto-build doesn't try to evaluate declarations with no final term yet.
   const proof = useAppSelector((state) => state.term.proof);
+  const fontSize = useAppSelector((state) => state.term.fontSize);
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const monacoTheme = useMemo(() => {
@@ -191,7 +196,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   }, [monaco, errorMarkers]);
 
   const editorOptions = useMemo(() => ({
-    fontSize: 14,
+    fontSize,
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
     lineNumbers: "on" as const,
     roundedSelection: true,
@@ -207,7 +212,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     automaticLayout: true,
     accessibilitySupport: "off" as const,
     ...options,
-  }), [readOnly, options]);
+  }), [readOnly, options, fontSize]);
 
   useImperativeHandle(ref, () => ({
     setValue: (text: string) => {
@@ -256,33 +261,61 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
         )}
       >
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap flex-1 min-w-0">
               {!hideActions && (
-                <>
+                <div className="flex items-center gap-2">
                   <TypeCheckButton />
                   <EvaluateButton />
-                </>
+                </div>
               )}
 
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        id="auto-build"
-                        checked={autoBuild}
-                        onCheckedChange={handleAutoBuildToggle}
-                      />
-                      <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
-                        Auto-build
-                      </Label>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    Automatically parse, type-check, and evaluate as you type — disables the Parse &amp; Evaluate buttons
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="auto-build"
+                          checked={autoBuild}
+                          onCheckedChange={handleAutoBuildToggle}
+                        />
+                        <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
+                          Auto-build
+                        </Label>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      Automatically parse, type-check, and evaluate as you type — disables the Parse &amp; Evaluate buttons
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Separator orientation="vertical" className="h-5" />
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="editor-font-size" className="text-sm text-muted-foreground whitespace-nowrap">
+                          Font
+                        </Label>
+                        <Select
+                          value={String(fontSize)}
+                          onValueChange={(value) => dispatch(setFontSize(Number(value)))}
+                        >
+                          <SelectTrigger id="editor-font-size" size="sm" className="w-[5.5rem]" aria-label="Font size">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FONT_SIZES.map((size) => (
+                              <SelectItem key={size} value={String(size)}>{size}px</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Editor font size</TooltipContent>
+                  </Tooltip>
+                </div>
               </TooltipProvider>
             </div>
             <Button

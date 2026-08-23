@@ -10,6 +10,7 @@ export interface PersistedTermState {
   termText: string | undefined;
   enabledTheories: TypeTheoryConfig;
   evaluationStrategy: EvaluationStrategy;
+  fontSize: number;
 }
 
 export function loadPersistedTermState(): PersistedTermState | undefined {
@@ -31,6 +32,9 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       // shows up even for a browser with an older persisted blob.
       enabledTheories: {...DEFAULT_TYPE_THEORY_CONFIG, ...parsed.enabledTheories},
       evaluationStrategy,
+      fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)
+        ? parsed.fontSize
+        : 14,
     };
   } catch {
     return undefined;
@@ -42,6 +46,7 @@ export function persistTermState(state: TermState): void {
     termText: state.termText,
     enabledTheories: state.enabledTheories,
     evaluationStrategy: state.evaluationStrategy,
+    fontSize: state.fontSize,
   };
 
   try {
