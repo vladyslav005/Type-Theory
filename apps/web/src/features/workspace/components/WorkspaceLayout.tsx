@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useRef} from "react";
+import {useTranslation} from "react-i18next";
 import {useOutletContext} from "react-router-dom";
 import type {AppOutletContext} from "@/app/layout/AppLayout.tsx";
 import {
@@ -54,8 +55,17 @@ export interface WorkspaceLayoutProps {
   className?: string;
 }
 
+const PANEL_TITLE_KEYS = {
+  editor: "panels.editor",
+  errorOutput: "panels.errors",
+  evaluation: "panels.evaluation",
+  proofTree: "panels.proofTree",
+  ast: "panels.ast",
+} as const;
+
 export function WorkspaceLayout({className}: WorkspaceLayoutProps) {
   const {editorRef} = useOutletContext<AppOutletContext>();
+  const {t, i18n} = useTranslation();
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const apiRef = useRef<DockviewApi | null>(null);
   const {resolvedTheme} = useTheme();
@@ -99,6 +109,14 @@ export function WorkspaceLayout({className}: WorkspaceLayoutProps) {
       persistTimeout = setTimeout(() => persistWorkspaceLayout(api.toJSON()), 300);
     });
   };
+
+  useEffect(() => {
+    const api = apiRef.current;
+    if (!api) return;
+    for (const [id, key] of Object.entries(PANEL_TITLE_KEYS)) {
+      api.getPanel(id)?.api.setTitle(t(key));
+    }
+  }, [t, i18n.language]);
 
   useEffect(() => {
     const api = apiRef.current;

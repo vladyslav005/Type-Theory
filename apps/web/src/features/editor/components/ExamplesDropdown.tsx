@@ -1,4 +1,5 @@
 import { BookOpen, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -409,7 +410,11 @@ interface ExamplesDropdownProps {
   disabled?: boolean;
 }
 
+const exampleSlug = (label: string) =>
+  label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
 export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdownProps) {
+  const { t } = useTranslation();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -418,10 +423,10 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
           size="sm"
           className="gap-1"
           disabled={disabled}
-          title={disabled ? "Only available on the Editor page" : undefined}
+          title={disabled ? t("topbar.onlyOnEditor") : undefined}
         >
           <BookOpen className="h-3.5 w-3.5" />
-          Examples
+          {t("examples.trigger")}
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
@@ -429,15 +434,18 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
         {EXAMPLE_GROUPS.map((group, groupIndex) => (
           <div key={group.title}>
             {groupIndex > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel>{group.title}</DropdownMenuLabel>
-            {group.items.map((ex) => (
+            <DropdownMenuLabel>{t(`examples.groups.${group.title}`, group.title)}</DropdownMenuLabel>
+            {group.items.map((ex) => {
+              const slug = exampleSlug(ex.label);
+              return (
               <DropdownMenuItem key={ex.label} onClick={() => onSelect(ex.code)}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{ex.label}</span>
-                  <span className="text-xs text-muted-foreground">{ex.description}</span>
+                  <span className="font-medium">{t(`examples.items.${slug}.label`, ex.label)}</span>
+                  <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, ex.description)}</span>
                 </div>
               </DropdownMenuItem>
-            ))}
+              );
+            })}
           </div>
         ))}
       </DropdownMenuContent>

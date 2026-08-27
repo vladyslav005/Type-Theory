@@ -1,4 +1,5 @@
 import { TYPE_THEORIES, type TypeTheoryId } from "@vladyslav005/tt-core";
+import { useTranslation } from "react-i18next";
 import { useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { cn } from "@/shared/lib/utils.ts";
 
@@ -14,6 +15,7 @@ const SWATCH: Record<TypeTheoryId, string> = {
 const STLC_SWATCH = "border-border bg-muted text-muted-foreground";
 
 export function ActiveExtensionsBadges({className}: {className?: string}) {
+  const {t} = useTranslation();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const enabled = TYPE_THEORIES.filter((theory) => enabledTheories[theory.id]);
 
@@ -27,7 +29,7 @@ export function ActiveExtensionsBadges({className}: {className?: string}) {
           key={theory.id}
           className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none ${SWATCH[theory.id]}`}
         >
-          {theory.shortLabel}
+          {t(`extensions.theories.${theory.id}.shortLabel`, theory.shortLabel)}
         </span>
       ))}
     </div>

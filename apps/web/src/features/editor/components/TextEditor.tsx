@@ -1,5 +1,6 @@
 import Editor, {type OnChange, type OnMount, useMonaco} from '@monaco-editor/react';
 import {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from "react";
+import {useTranslation} from "react-i18next";
 import {useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
 import {useTheme} from "next-themes";
 import {cn} from "@/shared/lib/utils.ts";
@@ -62,6 +63,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   }: TextEditorProps,
   ref,
 ) {
+  const {t} = useTranslation();
   const monaco = useMonaco();
   const { setUpMonacoLanguage } = useSetUpEditor();
   const { theme: appTheme } = useTheme();
@@ -281,12 +283,12 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                           onCheckedChange={handleAutoBuildToggle}
                         />
                         <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
-                          Auto-build
+                          {t("editor.autoBuild")}
                         </Label>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
-                      Automatically parse, type-check, and evaluate as you type — disables the Parse &amp; Evaluate buttons
+                      {t("editor.autoBuildTooltip")}
                     </TooltipContent>
                   </Tooltip>
 
@@ -296,13 +298,13 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                     <TooltipTrigger asChild>
                       <div className="flex items-center gap-2">
                         <Label htmlFor="editor-font-size" className="text-sm text-muted-foreground whitespace-nowrap">
-                          Font
+                          {t("editor.font")}
                         </Label>
                         <Select
                           value={String(fontSize)}
                           onValueChange={(value) => dispatch(setFontSize(Number(value)))}
                         >
-                          <SelectTrigger id="editor-font-size" size="sm" className="w-[5.5rem]" aria-label="Font size">
+                          <SelectTrigger id="editor-font-size" size="sm" className="w-[5.5rem]" aria-label={t("editor.fontSize")}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -313,7 +315,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                         </Select>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">Editor font size</TooltipContent>
+                    <TooltipContent side="bottom">{t("editor.fontSizeTooltip")}</TooltipContent>
                   </Tooltip>
                 </div>
               </TooltipProvider>
@@ -322,8 +324,8 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
               variant="ghost"
               size="icon"
               onClick={() => setIsFullscreen((v) => !v)}
-              title={isFullscreen ? "Exit full screen" : "Full screen"}
-              aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+              title={isFullscreen ? t("fullscreen.exit") : t("fullscreen.enter")}
+              aria-label={isFullscreen ? t("fullscreen.exit") : t("fullscreen.enter")}
               className="shrink-0"
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}

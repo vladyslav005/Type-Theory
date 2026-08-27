@@ -1,5 +1,6 @@
 import type {Program} from "@vladyslav005/tt-core";
 import {useCallback, useState, useEffect, useRef, forwardRef, useImperativeHandle} from "react";
+import {useTranslation} from "react-i18next";
 import {
   applyEdgeChanges,
   applyNodeChanges,
@@ -594,6 +595,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   graph,
   setGraph,
 }, ref) {
+  const {t} = useTranslation();
   const rf = useReactFlow();
   const {resolvedTheme} = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -1402,7 +1404,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
           className="absolute z-50 rounded-md border bg-background p-2 shadow-md"
           style={{ left: dropPopupPos.x, top: dropPopupPos.y }}
         >
-          <div className="text-xs text-muted-foreground mb-2">Insert node</div>
+          <div className="text-xs text-muted-foreground mb-2">{t("astEditor.insertNode")}</div>
           <Select
             value={addOnDropChoice ?? undefined}
             open={addOnDropOpen}
@@ -1413,7 +1415,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
             }}
           >
             <SelectTrigger ref={addOnDropTriggerRef as any} className="w-44">
-              <SelectValue placeholder="Select node" />
+              <SelectValue placeholder={t("astEditor.selectNode")} />
             </SelectTrigger>
             <SelectContent>
               {connectDraft && VALID_NODE_TYPES_BY_KIND[connectDraft.kind].map((t) => (
@@ -1432,7 +1434,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
                 setAddOnDropOpen(false);
               }}
             >
-              Cancel
+              {t("astEditor.cancel")}
             </Button>
           </div>
         </div>
@@ -1448,14 +1450,14 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
             className="w-full px-3 py-1.5 text-sm text-left hover:bg-accent hover:text-accent-foreground"
             onClick={() => { duplicateNode(nodeCtxMenu.nodeId); setNodeCtxMenu(null); }}
           >
-            Duplicate
+            {t("astEditor.duplicate")}
           </button>
           <div className="h-px bg-border my-1" />
           <button
             className="w-full px-3 py-1.5 text-sm text-left text-destructive hover:bg-accent"
             onClick={() => { deleteNode(nodeCtxMenu.nodeId); setNodeCtxMenu(null); }}
           >
-            Delete
+            {t("astEditor.delete")}
           </button>
         </div>
       )}
@@ -1493,15 +1495,15 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
       >
         <Panel position="top-right">
           <div className="flex gap-2">
-            <Button size="icon" variant="secondary" onClick={undo} title="Undo (Ctrl+Z)"
+            <Button size="icon" variant="secondary" onClick={undo} title={t("astEditor.undo")}
               className="shadow-lg hover:shadow-xl transition-shadow">
               <Undo2 className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="secondary" onClick={redo} title="Redo (Ctrl+Y)"
+            <Button size="icon" variant="secondary" onClick={redo} title={t("astEditor.redo")}
               className="shadow-lg hover:shadow-xl transition-shadow">
               <Redo2 className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="secondary" onClick={autoLayout} title="Auto Layout"
+            <Button size="icon" variant="secondary" onClick={autoLayout} title={t("astEditor.autoLayout")}
               className="shadow-lg hover:shadow-xl transition-shadow">
               <LayoutGrid className="h-4 w-4" />
             </Button>
@@ -1511,7 +1513,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
               className="shadow-lg hover:shadow-xl transition-shadow">
               <BoxSelect className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="secondary" onClick={() => rf.fitView()} title="Center View"
+            <Button size="icon" variant="secondary" onClick={() => rf.fitView()} title={t("astEditor.centerView")}
               className="shadow-lg hover:shadow-xl transition-shadow">
               <Crosshair className="h-4 w-4" />
             </Button>
@@ -1521,7 +1523,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
               <Trash2 className="h-4 w-4" />
             </Button>
             <Button size="icon" variant="secondary" onClick={clearAll}
-              title="Clear all nodes and edges"
+              title={t("astEditor.clearAll")}
               className="shadow-lg hover:shadow-xl transition-shadow hover:text-destructive">
               <Eraser className="h-4 w-4" />
             </Button>

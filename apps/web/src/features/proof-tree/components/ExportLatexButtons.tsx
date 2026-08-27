@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import {Copy, Download, Eye, FileText} from "lucide-react";
 import {toast} from "sonner";
 import type {TexTree} from "@vladyslav005/tt-core";
@@ -34,6 +35,7 @@ interface ExportLatexButtonsProps {
 // Must render inside the TexRefExpansionProvider that scopes the tree being
 // exported, so its expand/collapse snapshot matches what's on screen.
 export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProps) {
+  const {t} = useTranslation();
   const {expandedKeys} = useTexRefExpansion();
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -42,10 +44,10 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(buildDocument());
-      toast.success("LaTeX copied to clipboard");
+      toast.success(t("latexExport.toastCopied"));
     } catch (e) {
       console.error("Failed to copy LaTeX", e);
-      toast.error("Couldn't copy to clipboard");
+      toast.error(t("latexExport.toastCopyFailed"));
     }
   };
 
@@ -61,25 +63,25 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
             size="icon"
             variant="secondary"
             className="shadow-lg hover:shadow-xl transition-shadow"
-            title="Export LaTeX"
+            title={t("latexExport.trigger")}
           >
             <FileText className="h-4 w-4"/>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Export LaTeX (ebproof)</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("latexExport.menuLabel")}</DropdownMenuLabel>
           <DropdownMenuSeparator/>
           <DropdownMenuItem onSelect={() => setPreviewOpen(true)}>
             <Eye className="h-4 w-4"/>
-            Preview
+            {t("latexExport.preview")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={copy}>
             <Copy className="h-4 w-4"/>
-            Copy
+            {t("latexExport.copy")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={download}>
             <Download className="h-4 w-4"/>
-            Download .tex
+            {t("latexExport.downloadTex")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -87,9 +89,9 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>LaTeX export preview</DialogTitle>
+            <DialogTitle>{t("latexExport.previewTitle")}</DialogTitle>
             <DialogDescription>
-              Standalone document using the ebproof package — matches exactly what's expanded or collapsed on screen right now.
+              {t("latexExport.previewDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -100,11 +102,11 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
           <DialogFooter>
             <Button variant="outline" onClick={copy}>
               <Copy className="h-4 w-4"/>
-              Copy
+              {t("latexExport.copy")}
             </Button>
             <Button onClick={download}>
               <Download className="h-4 w-4"/>
-              Download .tex
+              {t("latexExport.downloadTex")}
             </Button>
           </DialogFooter>
         </DialogContent>

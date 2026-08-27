@@ -1,4 +1,5 @@
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
+import {useTranslation} from "react-i18next";
 import {ZoomIn, ZoomOut, Crosshair, ChevronLeft, ChevronRight, RotateCcw} from "lucide-react";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {ProofTreeComponentUsingCss} from "@/features/proof-tree/components/proof-tree-using-css/ProofTreeTex.tsx";
@@ -19,6 +20,7 @@ interface ProofTreeCanvasProps {
 
 // The pan/zoom viewport shared by every read-only proof tree tab (type-theory, logic, ...).
 export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFilename = "proof-tree.tex", onNodeHover}: ProofTreeCanvasProps) {
+  const {t} = useTranslation();
   const {isRevealed, step, total, canGoNext, canGoPrev, goNext, goPrev, reset} =
     useStepBuild(texTree, treeKey, stepByStep);
 
@@ -43,7 +45,7 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                 variant="secondary"
                 onClick={() => zoomIn()}
                 className="shadow-lg hover:shadow-xl transition-shadow"
-                title="Zoom In"
+                title={t("proofTreeCanvas.zoomIn")}
               >
                 <ZoomIn className="h-4 w-4"/>
               </Button>
@@ -52,7 +54,7 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                 variant="secondary"
                 onClick={() => zoomOut()}
                 className="shadow-lg hover:shadow-xl transition-shadow"
-                title="Zoom Out"
+                title={t("proofTreeCanvas.zoomOut")}
               >
                 <ZoomOut className="h-4 w-4"/>
               </Button>
@@ -61,7 +63,7 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                 variant="secondary"
                 onClick={() => centerView()}
                 className="shadow-lg hover:shadow-xl transition-shadow"
-                title="Center View"
+                title={t("proofTreeCanvas.centerView")}
               >
                 <Crosshair className="h-4 w-4"/>
               </Button>
@@ -75,12 +77,12 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                   onClick={goPrev}
                   disabled={!canGoPrev}
                   className="h-8 w-8"
-                  title="Previous step"
+                  title={t("proofTreeCanvas.prevStep")}
                 >
                   <ChevronLeft className="h-4 w-4"/>
                 </Button>
                 <span className="text-sm text-muted-foreground tabular-nums whitespace-nowrap px-1">
-                  Step {step} / {total}
+                  {t("proofTreeCanvas.stepCount", {step, total})}
                 </span>
                 <Button
                   size="icon"
@@ -88,7 +90,7 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                   onClick={goNext}
                   disabled={!canGoNext}
                   className="h-8 w-8"
-                  title="Next step"
+                  title={t("proofTreeCanvas.nextStep")}
                 >
                   <ChevronRight className="h-4 w-4"/>
                 </Button>
@@ -98,7 +100,7 @@ export function ProofTreeCanvas({texTree, treeKey, stepByStep = false, exportFil
                   onClick={reset}
                   disabled={!canGoPrev}
                   className="h-8 w-8"
-                  title="Restart from the goal judgement"
+                  title={t("proofTreeCanvas.restart")}
                 >
                   <RotateCcw className="h-4 w-4"/>
                 </Button>

@@ -1,4 +1,5 @@
 import {useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {checkProof, enterBuildMode, exitBuildMode} from "@/shared/ui-state/termSlice.ts";
 import {countProofErrors, summarizeStudentTree} from "@/shared/ui-state/studentProof.ts";
@@ -18,6 +19,7 @@ import {env} from "@/shared/lib/env.ts";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 
 export function ProofTreeBuilder() {
+  const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const {studentTree, answerKey} = useAppSelector((state) => state.term.buildMode);
   const proof = useAppSelector((state) => state.term.proof);
@@ -33,10 +35,10 @@ export function ProofTreeBuilder() {
           icon={Hammer}
           message={
             !proof
-              ? "Type a valid expression first — Build & Check needs a term that already type-checks."
+              ? t("proofBuilder.emptyNeedsTerm")
               : hasErrors
-                ? "This term doesn't type-check yet — fix the errors first, then come back to build its proof yourself."
-                : "Construct the typing derivation for the current term yourself, then check it against the real one."
+                ? t("proofBuilder.emptyHasErrors")
+                : t("proofBuilder.emptyInstructions")
           }
         >
           <Button
@@ -44,7 +46,7 @@ export function ProofTreeBuilder() {
             disabled={hasErrors}
             onClick={() => dispatch(enterBuildMode())}
           >
-            Start Building
+            {t("proofBuilder.startBuilding")}
           </Button>
         </EmptyState>
       </div>
@@ -57,14 +59,14 @@ export function ProofTreeBuilder() {
     <div className="w-full h-full flex flex-col space-y-4">
       <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
         <p className="text-sm text-muted-foreground">
-          {summary.filled}/{summary.total} node{summary.total !== 1 ? "s" : ""} filled
+          {t("proofBuilder.nodesFilled", {filled: summary.filled, total: summary.total})}
           {summary.filled > 0 && (
             <>
               {" — "}
               <span className={cn(summary.invalid === 0 && "text-emerald-600 dark:text-emerald-400")}>
-                {summary.valid} valid
+                {t("proofBuilder.valid", {count: summary.valid})}
               </span>
-              {summary.invalid > 0 && <span className="text-destructive">, {summary.invalid} invalid</span>}
+              {summary.invalid > 0 && <span className="text-destructive">, {t("proofBuilder.invalid", {count: summary.invalid})}</span>}
             </>
           )}
         </p>
@@ -72,11 +74,11 @@ export function ProofTreeBuilder() {
           <div className="flex items-center gap-2">
             <Switch id="highlight-mistakes" checked={highlightMistakes} onCheckedChange={setHighlightMistakes}/>
             <Label htmlFor="highlight-mistakes" className="text-sm text-muted-foreground cursor-pointer">
-              Highlight mistakes
+              {t("proofBuilder.highlightMistakes")}
             </Label>
           </div>
-          <Button size="sm" onClick={() => dispatch(checkProof())}>Check Proof</Button>
-          <Button size="sm" variant="ghost" onClick={() => dispatch(exitBuildMode())}>Exit</Button>
+          <Button size="sm" onClick={() => dispatch(checkProof())}>{t("proofBuilder.checkProof")}</Button>
+          <Button size="sm" variant="ghost" onClick={() => dispatch(exitBuildMode())}>{t("proofBuilder.exit")}</Button>
         </div>
       </div>
 
@@ -109,7 +111,7 @@ export function ProofTreeBuilder() {
                   variant="secondary"
                   onClick={() => zoomIn()}
                   className="shadow-lg hover:shadow-xl transition-shadow"
-                  title="Zoom In"
+                  title={t("proofTreeCanvas.zoomIn")}
                 >
                   <ZoomIn className="h-4 w-4"/>
                 </Button>
@@ -118,7 +120,7 @@ export function ProofTreeBuilder() {
                   variant="secondary"
                   onClick={() => zoomOut()}
                   className="shadow-lg hover:shadow-xl transition-shadow"
-                  title="Zoom Out"
+                  title={t("proofTreeCanvas.zoomOut")}
                 >
                   <ZoomOut className="h-4 w-4"/>
                 </Button>
@@ -127,7 +129,7 @@ export function ProofTreeBuilder() {
                   variant="secondary"
                   onClick={() => centerView()}
                   className="shadow-lg hover:shadow-xl transition-shadow"
-                  title="Center View"
+                  title={t("proofTreeCanvas.centerView")}
                 >
                   <Crosshair className="h-4 w-4"/>
                 </Button>

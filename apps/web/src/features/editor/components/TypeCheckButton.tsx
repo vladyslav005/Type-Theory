@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
@@ -14,6 +15,7 @@ export function TypeCheckButton({
                                   onClick,
                                   className
                                 }: TypeCheckButtonProps) {
+  const { t } = useTranslation();
   const { parseAndTypeCheck } = useTermHooks()
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
 
@@ -42,13 +44,13 @@ export function TypeCheckButton({
             size="default"
           >
             <Network className="h-4 w-4" />
-            Parse & Type Check
+            {t("actions.typeCheck")}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {autoBuild
-            ? "Auto-build is on — this runs automatically as you type"
-            : "Parse & type-check the current expression — builds the AST, proof tree and Curry–Howard view"}
+            ? t("actions.autoBuildTooltip")
+            : t("actions.typeCheckTooltip")}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

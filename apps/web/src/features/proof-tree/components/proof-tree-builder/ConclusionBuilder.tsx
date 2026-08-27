@@ -1,4 +1,5 @@
 import {useCallback, useState} from "react";
+import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {Rule} from "@vladyslav005/tt-core";
@@ -57,6 +58,7 @@ type EditorKind = "type" | "context" | null;
 // interactive slot wrapped in \href{key}{...} (gamma/context/type/premise:N)
 // so MathJax renders it as a real clickable link.
 export function ConclusionBuilder({studentNode, answerNode, parentGamma, registry, typeSlotUnlocked}: ConclusionBuilderProps) {
+  const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const {isExpanded, toggle} = useTexRefExpansion();
@@ -178,26 +180,26 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
       <PopoverContent className="w-auto max-w-sm space-y-2" align="start">
         {openEditor === "type" && (
           <>
-            <p className="text-xs font-medium text-muted-foreground">Build this judgement's type</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("proofBuilder.buildJudgementType")}</p>
             <TypeSlotPicker value={typeDraft} onChange={setTypeDraft} contextTypes={contextTypeOptions(answerNode.gamma)} enabledTheories={enabledTheories}/>
-            <Button size="sm" className="w-full" disabled={!typeDraftAsType} onClick={submitType}>Set type</Button>
+            <Button size="sm" className="w-full" disabled={!typeDraftAsType} onClick={submitType}>{t("proofBuilder.setType")}</Button>
           </>
         )}
         {openEditor === "context" && (
           <>
-            <p className="text-xs font-medium text-muted-foreground">What gets added to the context here?</p>
+            <p className="text-xs font-medium text-muted-foreground">{t("proofBuilder.contextQuestion")}</p>
             <div className="flex items-center gap-1.5">
               <Input
                 autoFocus
                 value={bindingName}
                 onChange={(e) => setBindingName(e.target.value)}
-                placeholder="name"
+                placeholder={t("proofBuilder.namePlaceholder")}
                 className="h-7 w-20 text-xs font-mono px-1"
               />
               <span className="text-muted-foreground text-xs">:</span>
               <TypeSlotPicker value={bindingTypeDraft} onChange={setBindingTypeDraft} contextTypes={contextTypeOptions(parentGamma)} enabledTheories={enabledTheories}/>
             </div>
-            <Button size="sm" className="w-full" disabled={!canSubmitBinding} onClick={submitBinding}>Set binding</Button>
+            <Button size="sm" className="w-full" disabled={!canSubmitBinding} onClick={submitBinding}>{t("proofBuilder.setBinding")}</Button>
           </>
         )}
       </PopoverContent>

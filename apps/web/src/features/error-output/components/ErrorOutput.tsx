@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {Card, CardContent} from "@/shared/components/ui/card.tsx";
@@ -18,6 +19,7 @@ export function ErrorOutput({
   className
 } : ErrorOutputProps) {
 
+  const {t} = useTranslation();
   const errors = useAppSelector((state) => state.term.processingErrors);
   const hasErrors = errors && errors.length > 0;
 
@@ -54,7 +56,7 @@ export function ErrorOutput({
           ) : (
             <div className="p-6 text-center rounded-xl bg-green-500/5 border border-green-500/20">
               <p className="text-sm text-muted-foreground">
-                All expressions are valid. No errors to display.
+                {t("errorsPanel.allValid")}
               </p>
             </div>
           )}

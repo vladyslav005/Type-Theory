@@ -84,7 +84,7 @@ export function DocsLayout() {
             onClick={() => setIsMobileNavOpen((v) => !v)}
           >
             {isMobileNavOpen ? <X className="h-4 w-4"/> : <Menu className="h-4 w-4"/>}
-            Docs Menu
+            Guide Menu
           </Button>
         </div>
 

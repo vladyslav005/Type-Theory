@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {TexTree} from "@vladyslav005/tt-core";
 import {MathJax} from "better-react-mathjax";
 import "./ProofTree.css"
@@ -25,6 +26,7 @@ interface ConclusionCenterProps {
 }
 
 export const Conclusion = (props: ConclusionCenterProps) => {
+  const {t} = useTranslation();
   const {isDef = false, isExpanded = false, onToggle} = props;
   const containsError = props.node.error !== undefined;
   const hasSegments = !!props.node.judgementSegments;
@@ -77,7 +79,7 @@ export const Conclusion = (props: ConclusionCenterProps) => {
             <TooltipTrigger asChild>
               <div className="flex items-center gap-1 text-destructive cursor-help shrink-0 rounded px-1 py-0.5 hover:bg-destructive/10 transition-colors">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0"/>
-                <span className="text-xs font-semibold">Error</span>
+                <span className="text-xs font-semibold">{t("conclusion.error")}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent
@@ -108,7 +110,7 @@ export const Conclusion = (props: ConclusionCenterProps) => {
           )}
           {hasExpandableGamma && (
             <ContextMenuItem onClick={() => setGammaExpanded(v => !v)}>
-              {gammaExpanded ? "Collapse context" : "Expand context"}
+              {gammaExpanded ? t("proofTreeCanvas.collapseContext") : t("proofTreeCanvas.expandContext")}
             </ContextMenuItem>
           )}
         </ContextMenuContent>
@@ -121,7 +123,9 @@ export const Conclusion = (props: ConclusionCenterProps) => {
       <Tooltip>
         <TooltipTrigger asChild>{children as React.ReactElement}</TooltipTrigger>
         <TooltipContent side="top">
-          {isExpanded ? `Hide proof of ${props.node.meta ?? "variable"}` : `Show proof of ${props.node.meta ?? "variable"}`}
+          {isExpanded
+            ? t("conclusion.hideProof", {name: props.node.meta ?? t("conclusion.variable")})
+            : t("conclusion.showProof", {name: props.node.meta ?? t("conclusion.variable")})}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

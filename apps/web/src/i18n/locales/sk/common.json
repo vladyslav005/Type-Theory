@@ -1,0 +1,584 @@
+{
+  "language": {
+    "label": "Jazyk",
+    "en": "English",
+    "sk": "Slovenčina",
+    "uk": "Українська"
+  },
+  "feedback": {
+    "button": "Spätná väzba",
+    "aria": "Odoslať spätnú väzbu"
+  },
+  "nav": {
+    "editor": "Editor",
+    "docs": "Príručka",
+    "about": "O projekte"
+  },
+  "topbar": {
+    "brand": "Teória typov",
+    "tagline": "Typová kontrola a interpreter",
+    "searchPlaceholder": "Hľadať...",
+    "themeToLight": "Prepnúť na svetlý režim",
+    "themeToDark": "Prepnúť na tmavý režim",
+    "openGithub": "Otvoriť GitHub repozitár",
+    "openMenu": "Otvoriť menu",
+    "closeMenu": "Zavrieť menu",
+    "onlyOnEditor": "Dostupné len na stránke Editor"
+  },
+  "footer": {
+    "brand": "Teória typov",
+    "rights": "© {{year}} Type Theory. Všetky práva vyhradené."
+  },
+  "actions": {
+    "typeCheck": "Analyzovať a skontrolovať typy",
+    "typeCheckTooltip": "Analyzovať a typovo skontrolovať aktuálny výraz — zostaví AST, strom dôkazu a Curry–Howardov pohľad",
+    "autoBuildTooltip": "Automatické zostavenie je zapnuté — spúšťa sa automaticky počas písania",
+    "evaluate": "Vyhodnotiť",
+    "evaluateNeedsProof": "Najprv analyzujte a typovo skontrolujte platný výraz",
+    "evaluateTooltip": "Zredukovať výraz do normálnej formy pomocou zvolenej stratégie",
+    "chooseStrategy": "Zvoliť stratégiu vyhodnocovania"
+  },
+  "editor": {
+    "autoBuild": "Auto-build",
+    "autoBuildTooltip": "Automaticky analyzovať, kontrolovať typy a vyhodnocovať počas písania — vypne tlačidlá Analyzovať a Vyhodnotiť",
+    "font": "Písmo",
+    "fontSize": "Veľkosť písma",
+    "fontSizeTooltip": "Veľkosť písma editora"
+  },
+  "evalStrategy": {
+    "heading": "Stratégia vyhodnocovania",
+    "NORMAL": {
+      "label": "Normálne poradie",
+      "description": "Zľava zvonka, vrátane tiel lambda funkcií"
+    },
+    "CALL_BY_NAME": {
+      "label": "Volanie menom",
+      "description": "Argumenty sa vyhodnocujú až keď sú potrebné"
+    },
+    "CALL_BY_VALUE": {
+      "label": "Volanie hodnotou",
+      "description": "Argumenty sa vyhodnocujú pred aplikáciou"
+    }
+  },
+  "examples": {
+    "trigger": "Príklady",
+    "groups": {
+      "Basics": "Základy",
+      "Sums & Variants": "Súčty a varianty",
+      "Tuples & Records": "N-tice a záznamy",
+      "Lists": "Zoznamy",
+      "Iso-recursive Types (μ)": "Izo-rekurzívne typy (μ)",
+      "Recursion (fix)": "Rekurzia (fix)",
+      "Let & Polymorphism": "Let a polymorfizmus",
+      "System F": "System F",
+      "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
+      "System λP (Dependent Types)": "System λP (závislé typy)"
+    },
+    "items": {
+      "identity-function": {
+        "label": "Identická funkcia",
+        "description": "najjednoduchší možný výraz — aplikuje λx:T.x na premennú a:T a vráti a nezmenené"
+      },
+      "type-alias-basic-synonym": {
+        "label": "Typový alias: základné synonymum",
+        "description": "typedef X = T zavádza transparentné synonymum, použiteľné všade, kde by mohlo byť T"
+      },
+      "type-alias-chained": {
+        "label": "Typový alias: reťazený",
+        "description": "typedef postavený na skoršom typedef sa cez celý reťazec rozvinie na Nat"
+      },
+      "type-alias-function-type": {
+        "label": "Typový alias: funkčný typ",
+        "description": "aliasovanie zloženého (funkčného) typu na skrátenie opakovanej signatúry"
+      },
+      "application-chain-compose-twice": {
+        "label": "Reťazenie aplikácií: compose a twice",
+        "description": "identity, compose a twice spolu — twice aplikuje (compose identity identity) na seba, klasické cvičenie funkcií vyššieho rádu"
+      },
+      "alpha-conversion": {
+        "label": "Alfa konverzia",
+        "description": "vonkajšie y (viazané zvonka) je zatienené vnútorným λy — x v tele stále odkazuje na vonkajší parameter, nezasiahnuté kolíziou mien"
+      },
+      "booleans-if": {
+        "label": "Booleovské hodnoty a If",
+        "description": "reťazec if/then/elseif/else nad Bool — vyhráva prvá pravdivá vetva (elseif true then 200 sa vyhodnotí skôr než else)"
+      },
+      "ascription-sequencing": {
+        "label": "Anotácia typu a sekvencia",
+        "description": "unit; 42 zoradí efekt typu Unit a potom výsledok Nat, a celok je anotovaný ako Nat"
+      },
+      "dummy-abstraction": {
+        "label": "Prázdna abstrakcia: λ_",
+        "description": "λ_:T.t úplne zahodí svoj argument — parameter nikdy nedostane meno, takže sa naň v tele nedá odkázať"
+      },
+      "arithmetic": {
+        "label": "Aritmetika",
+        "description": "+ - * / nad Nat — všetky štyri majú jednu úroveň priority (zľava doprava), poradie riaďte zátvorkami"
+      },
+      "comparison": {
+        "label": "Porovnanie",
+        "description": "< <= > >= == != nad Nat, každé produkuje Bool použiteľný priamo v if"
+      },
+      "sum-types-inl-inr": {
+        "label": "Súčtové typy: inl / inr",
+        "description": "inl 5 : Nat+Bool vytvorí ľavú alternatívu; case ... of inl x => ... || inr y => ... ju obnoví a vyberie vetvu Nat"
+      },
+      "variants-labeled-sum": {
+        "label": "Varianty: označený súčet",
+        "description": "n-árny označený súčtový typ ([circle:Nat, square:Nat]) zovšeobecňujúci binárne inl/inr — porovnáva sa cez case ... of [label=x] => ..."
+      },
+      "tuples": {
+        "label": "N-tice",
+        "description": "heterogénny literál n-tice <1, true, 2>, projektovaný pozične cez .2"
+      },
+      "records": {
+        "label": "Záznamy",
+        "description": "označený literál záznamu <name=1, flag=true>, projektovaný podľa názvu poľa cez .flag"
+      },
+      "chained-projections": {
+        "label": "Reťazené projekcie",
+        "description": "projekcia cez výsledok funkcie (swap<7,9>).1, plus reťazec n-tica vnútri záznamu .2.label"
+      },
+      "head-of-a-list": {
+        "label": "Hlava zoznamu",
+        "description": "konštrukcia cons/nil, potom head vyberie prvý prvok — vlastný riešený príklad z prednášky (zredukuje sa na 3)"
+      },
+      "isnil-empty-vs-non-empty": {
+        "label": "isnil: prázdny vs. neprázdny",
+        "description": "isnil[Nat] testuje, či je zoznam nil — tu na neprázdnom zozname (cons 1 nil), takže sa zredukuje na false"
+      },
+      "tail-drop-the-first-element": {
+        "label": "tail: odstráň prvý prvok",
+        "description": "tail[Nat] na dvojprvkovom zozname (cons 1 (cons 2 nil)) odstráni hlavu a zostane cons[Nat] 2 nil[Nat]"
+      },
+      "nat-via-the-lecture-s-own-definition": {
+        "label": "Nat cez μ: definícia z prednášky",
+        "description": "NatRec ≅ μX.[zero:Unit, succ:X] — presne prednáškové \"Nat = μX...\" (tu premenované na NatRec, keďže Nat je vyhradené pre vstavané číselné literály jazyka); definuje zero/succ/iszero/pred a potom overí iszero(zero)"
+      },
+      "nat-via-iszero-succ-zero-false": {
+        "label": "Nat cez μ: iszero(succ zero) = false",
+        "description": "rovnaké kódovanie NatRec — unfold odkryje variant, takže case v iszero padne do vetvy \"succ\" namiesto \"zero\""
+      },
+      "nat-via-pred-succ-n-n": {
+        "label": "Nat cez μ: pred(succ n) = n",
+        "description": "pred odbalí jednu succ-bunku a priamo vráti jej obsah, čím zruší práve aplikované succ"
+      },
+      "nat-via-pred-zero-zero": {
+        "label": "Nat cez μ: pred(zero) = zero",
+        "description": "obvyklá hraničná konvencia — pred nuly je definované tak, že jednoducho vráti nulu, namiesto uviaznutia"
+      },
+      "fold-unfold-cancellation-e-unfoldfold": {
+        "label": "Zrušenie fold/unfold (E-unfoldfold)",
+        "description": "unfold[T](fold[T] v) → v v jednom kroku vyhodnotenia — základné pravidlo izomorfizmu, izolované od kódovania Nat, aby bolo viditeľné samostatne"
+      },
+      "over-a-function-type": {
+        "label": "μ nad funkčným typom",
+        "description": "rekurzívne typy nie sú obmedzené na telá variantov/záznamov — μX.(X→X) je samoreferenčný funkčný typ, foldovaný a unfoldovaný úplne rovnako"
+      },
+      "factorial-via-fix": {
+        "label": "Faktoriál cez fix",
+        "description": "klasické kódovanie faktoriálu fix g, g : (Nat->Nat)->Nat->Nat — vlastné rekurzívne volanie g ide cez operátor pevného bodu namiesto pomenovania seba"
+      },
+      "fibonacci-via-fix": {
+        "label": "Fibonacci cez fix",
+        "description": "rovnaký vzor pevného bodu ako faktoriál, ale s dvoma rekurzívnymi volaniami na krok, g : (Nat->Nat)->Nat->Nat"
+      },
+      "non-terminating-fix": {
+        "label": "Nekončiaci fix",
+        "description": "fix (λx:Nat.x) sa navždy rozvíja sám na seba bez základného prípadu — narazí na limit krokov vyhodnocovača namiesto hodnoty"
+      },
+      "let-bindings": {
+        "label": "Väzby let",
+        "description": "naviaž meno cez let x = ..., potom naň odkazuj v tele — pre jediné monomorfné použitie netreba polymorfizmus"
+      },
+      "let-bound-function": {
+        "label": "Funkcia viazaná cez let",
+        "description": "naviaž neanotovanú funkciu cez let, potom ju aplikuj v tele — typ jej parametra sa odvodí z miesta volania"
+      },
+      "nested-let-shadowing": {
+        "label": "Vnorený let: tienenie",
+        "description": "vnútorné let x = true zatieni vonkajšie let x = 1 vo svojom vlastnom tele, bez vplyvu na vonkajšiu väzbu"
+      },
+      "let-polymorphism-id-at-two-types": {
+        "label": "Let-polymorfizmus: id v dvoch typoch",
+        "description": "id je zovšeobecnené (∀A. A -> A), takže TÁ ISTÁ definícia sa v jednom tele použije pre Nat aj Bool — vyžaduje teóriu Let-polymorfizmu, nielen odvodzovanie typov"
+      },
+      "let-polymorphism-const": {
+        "label": "Let-polymorfizmus: const",
+        "description": "const je zovšeobecnené cez dve nezávislé typové premenné (∀A,B. A -> B -> A) a použité v dvoch rôznych inštanciách"
+      },
+      "type-inference-unannotated": {
+        "label": "Odvodzovanie typov: neanotovaná λ",
+        "description": "so zapnutou teóriou odvodzovania typov funguje neanotovaná λx.x aj mimo hodnoty viazanej cez let"
+      },
+      "type-inference-inferred-from-usage": {
+        "label": "Odvodzovanie typov: odvodené z použitia",
+        "description": "so zapnutým odvodzovaním typov sa typ parametra f odvodí z toho, ako sa f v tele aplikuje (f 5 vynúti Nat), nie z explicitnej anotácie"
+      },
+      "polymorphic-identity-system-f": {
+        "label": "Polymorfná identita (System F)",
+        "description": "explicitná typová abstrakcia ΛX.λx:X.x : ∀X.X->X, explicitne inštanciovaná pre Nat a Bool cez id[Nat]/id[Bool] — zapnite teóriu System F"
+      },
+      "polymorphic-compose-system-f": {
+        "label": "Polymorfná kompozícia (System F)",
+        "description": "compose prijíma tri explicitné typové parametre ∀A.∀B.∀C, inštanciované cez compose[Nat][Nat][Bool] na zloženie isZero po inc"
+      },
+      "identity-constructor-system-f": {
+        "label": "Konštruktor identity (System Fω)",
+        "description": "typedef Id = λX:@.X — typový konštruktor druhu @→@, ktorý s typmi nič nerobí; (Id Nat) sa normalizuje na Nat — zapnite teóriu System Fω"
+      },
+      "endo-constructor-system-f": {
+        "label": "Konštruktor Endo (System Fω)",
+        "description": "typedef Endo = λX:@.X->X vytvorí z ľubovoľného T \"typ endofunkcií na T\", sám klasifikovaný druhom @→@"
+      },
+      "dependent-head-system-p": {
+        "label": "Závislá hlava (System λP)",
+        "description": "typedef Vec : Nat -> @ deklaruje nepriehľadnú, termom indexovanú rodinu typov; typ vecHead Πn:Nat.Vec[n]->Nat inštanciuje očakávaný typ svojho argumentu pri každom volaní — zapnite teóriu System λP"
+      },
+      "dependent-head-index-mismatch-system-p": {
+        "label": "Závislá hlava: nezhoda indexu (System λP)",
+        "description": "tá istá hlava ako vyššie, ale v4 : Vec[4] sa odovzdá tam, kde sa očakáva Vec[3] — odmietnuté, keďže index je zapečený priamo do typu, nie je to len runtime hodnota"
+      }
+    }
+  },
+  "extensions": {
+    "trigger": "Rozšírenia",
+    "heading": "Aktívne rozšírenia",
+    "stlcLabel": "Jednoducho typovaný lambda kalkul",
+    "stlcDescription": "Vždy zapnuté — základná typová teória",
+    "theories": {
+      "letPolymorphism": {
+        "label": "Let-polymorfizmus",
+        "shortLabel": "Let-poly",
+        "description": "Zovšeobecní hodnoty viazané cez let (Hindley-Milner), aby sa dali použiť pri rôznych typoch"
+      },
+      "typeInference": {
+        "label": "Odvodzovanie typov",
+        "shortLabel": "Odvodzovanie",
+        "description": "Umožňuje vynechať typ parametra lambdy kdekoľvek; odvodí sa z toho, ako sa parameter používa (vždy povolené vo vnútri hodnoty viazanej cez let)"
+      },
+      "isoRecursiveTypes": {
+        "label": "Izo-rekurzívne typy (μ)",
+        "shortLabel": "μ-typy",
+        "description": "Samoreferenčné typy (μX.T) zavádzané/eliminované explicitne cez fold/unfold, izomorfné (nie rovné) svojmu jednokrokovému rozvinutiu [X↦μX.T]T"
+      },
+      "systemF": {
+        "label": "System F",
+        "shortLabel": "System F",
+        "description": "Explicitný polymorfizmus cez typovú abstrakciu (ΛX. t) a typovú aplikáciu (t [T])"
+      },
+      "systemFOmega": {
+        "label": "System Fω (typové konštruktory)",
+        "shortLabel": "System Fω",
+        "description": "Typy abstrahované nad typmi (λX:K. T) a aplikované na typový argument (F T), klasifikované druhmi (K ::= * | K→K) namiesto len typov"
+      },
+      "systemLambdaP": {
+        "label": "System λP (závislé typy)",
+        "shortLabel": "System λP",
+        "description": "Typy závislé od výrazov cez Π-typy (Πx:A.M, ktorých A→B je nezávislý špeciálny prípad), a druhy indexované typom (K ::= * | T→K, napr. Nat→*)"
+      }
+    }
+  },
+  "layoutPresets": {
+    "trigger": "Predvoľby rozloženia",
+    "editorFocus": {
+      "label": "Zameranie na editor",
+      "description": "Editor a výsledky vedľa seba, výsledky v záložkách"
+    },
+    "editorWide": {
+      "label": "Široký editor",
+      "description": "Editor na celú šírku hore, výsledky v záložkách dole"
+    },
+    "grid": {
+      "label": "Mriežka",
+      "description": "Všetky panely naraz, usporiadané do mriežky"
+    },
+    "editorErrors": {
+      "label": "Editor + chyby",
+      "description": "Editor a chyby vedľa seba hore, ostatné v záložkách dole"
+    }
+  },
+  "panels": {
+    "editor": "Editor",
+    "errors": "Chyby",
+    "evaluation": "Vyhodnotenie",
+    "proofTree": "Strom dôkazu",
+    "ast": "AST",
+    "results": "Výsledky"
+  },
+  "errorsPanel": {
+    "allValid": "Všetky výrazy sú platné. Žiadne chyby na zobrazenie."
+  },
+  "fullscreen": {
+    "enter": "Zobraziť na celú obrazovku",
+    "exit": "Ukončiť celú obrazovku"
+  },
+  "proofTree": {
+    "tabAutomatic": "Automaticky",
+    "tabBuildCheck": "Zostaviť a skontrolovať",
+    "tabLogic": "Curry–Howardova korešpondencia",
+    "tabLogicShort": "Logika",
+    "logicUnavailableNonStlc": "Tento výraz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie",
+    "logicUnavailableExtensions": "Dostupné len pre čisté STLC — vypnite aktívne rozšírenia typového systému",
+    "stepByStep": "Krok za krokom",
+    "highlightInEditor": "Zvýrazniť v editore",
+    "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
+    "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie."
+  },
+  "proofTreeCanvas": {
+    "zoomIn": "Priblížiť",
+    "zoomOut": "Oddialiť",
+    "centerView": "Vycentrovať",
+    "prevStep": "Predchádzajúci krok",
+    "nextStep": "Ďalší krok",
+    "restart": "Začať znova od cieľového úsudku",
+    "stepCount": "Krok {{step}} / {{total}}",
+    "expandContext": "Rozbaliť kontext",
+    "collapseContext": "Zbaliť kontext"
+  },
+  "proofBuilder": {
+    "emptyNeedsTerm": "Najprv napíšte platný výraz — Zostaviť a skontrolovať potrebuje výraz, ktorý už prejde typovou kontrolou.",
+    "emptyHasErrors": "Tento výraz zatiaľ neprešiel typovou kontrolou — najprv opravte chyby a potom sa vráťte zostaviť jeho dôkaz.",
+    "emptyInstructions": "Zostavte typové odvodenie aktuálneho výrazu sami a potom ho porovnajte so správnym.",
+    "startBuilding": "Začať zostavovať",
+    "nodesFilled": "vyplnených uzlov: {{filled}}/{{total}}",
+    "valid": "{{count}} platných",
+    "invalid": "{{count}} neplatných",
+    "highlightMistakes": "Zvýrazniť chyby",
+    "checkProof": "Skontrolovať dôkaz",
+    "exit": "Zavrieť",
+    "resetNode": "Vynulovať tento uzol",
+    "buildJudgementType": "Zostavte typ tohto úsudku",
+    "setType": "Nastaviť typ",
+    "contextQuestion": "Čo sa tu pridáva do kontextu?",
+    "setBinding": "Nastaviť väzbu",
+    "searchRules": "Hľadať pravidlá…",
+    "turnIntoArrow": "Zmeniť na funkčný typ (obalí sa ako ľavá strana, napr. T → ?)",
+    "turnIntoKindArrow": "Zmeniť na druhovú šípku",
+    "clickToChange": "Kliknutím zmeníte",
+    "namePlaceholder": "názov",
+    "labelPlaceholder": "označenie",
+    "fromContext": "Z kontextu"
+  },
+  "conclusion": {
+    "error": "Chyba",
+    "hideProof": "Skryť dôkaz {{name}}",
+    "showProof": "Zobraziť dôkaz {{name}}",
+    "variable": "premennej"
+  },
+  "astPanel": {
+    "tabViewer": "Prehliadač",
+    "tabEditor": "Editor",
+    "highlightInEditor": "Zvýrazniť v editore",
+    "empty": "Napíšte platný výraz na vygenerovanie AST.",
+    "copySource": "Skopírovať upravený AST ako zdrojový text lambda kalkulu",
+    "loadFromViewer": "Načítať sem aktuálny AST zo záložky Prehliadač na úpravu",
+    "downloadJson": "Stiahnuť upravený AST ako súbor JSON",
+    "loadJson": "Načítať AST zo súboru JSON",
+    "writeToEditor": "Zapísať zdrojový text upraveného AST do textového editora vyššie",
+    "toastLoadedFromFile": "AST načítaný zo súboru",
+    "toastInvalidJson": "Neplatný súbor AST JSON",
+    "btnCopyText": "Kopírovať text",
+    "btnCopyFromViewer": "Kopírovať z prehliadača",
+    "btnDownloadJson": "Stiahnuť JSON",
+    "btnUploadJson": "Nahrať JSON",
+    "btnPasteToEditor": "Vložiť do textového editora"
+  },
+  "astNodes": {
+    "categories": {
+      "terms": "Termy",
+      "types": "Typy",
+      "polymorphism": "Polymorfizmus",
+      "declarations": "Deklarácie"
+    },
+    "groups": {
+      "Terms": "Termy",
+      "Math": "Matematika",
+      "Sums": "Súčty",
+      "Lists": "Zoznamy",
+      "Recursive (μ)": "Rekurzívne (μ)",
+      "Tuples/Records": "N-tice/Záznamy",
+      "Control": "Riadenie",
+      "Types": "Typy",
+      "System F": "System F",
+      "System Fω": "System Fω",
+      "System λP": "System λP",
+      "Kinds": "Druhy",
+      "Decls": "Deklar."
+    },
+    "items": {
+      "abstraction": "Abstrakcia (λx.e)",
+      "application": "Aplikácia (f x)",
+      "variable": "Premenná",
+      "literal": "Literál (0, true, unit)",
+      "dummyAbstraction": "Prázdna abstrakcia (λ_:T.t)",
+      "sequencing": "Sekvencia (t1;t2)",
+      "ascribe": "Anotácia typu (t as T)",
+      "let": "Let (let x = t1 in t2, s let-polymorfizmom)",
+      "binOp": "Aritmetika alebo porovnanie (t1 op t2)",
+      "fix": "Operátor pevného bodu (fix t, t : T -> T)",
+      "inl": "Ľavá injekcia (inl t as T1+T2)",
+      "inr": "Pravá injekcia (inr t as T1+T2)",
+      "case": "Analýza prípadov súčtového typu",
+      "variant": "Variantový literál ([l=t] as VariantType)",
+      "variantCase": "Analýza prípadov variantového typu",
+      "nil": "Prázdny zoznam (nil[T])",
+      "cons": "Cons — pridá prvok na začiatok (cons[T] t1 t2)",
+      "isNil": "Je zoznam prázdny? (isnil[T] t)",
+      "headOp": "Prvý prvok (head[T] t)",
+      "tailOp": "Zvyšné prvky (tail[T] t)",
+      "fold": "Fold — do μX.T (fold[μX.T] t)",
+      "unfold": "Unfold — von z μX.T (unfold[μX.T] t)",
+      "tuple": "Literál n-tice",
+      "tupleProjection": "Projekcia n-tice (t.i)",
+      "record": "Literál záznamu",
+      "recordProjection": "Projekcia záznamu (t.l)",
+      "ifCondition": "Podmienka (if/then/elseif/else)",
+      "typeVar": "Typová premenná",
+      "typeArrow": "Funkčný typ (A→B)",
+      "sumType": "Súčtový typ (A+B)",
+      "tupleType": "Typ n-tice (A*B)",
+      "variantType": "Variantový typ ([l:T,...])",
+      "recordType": "Typ záznamu (syntetizovaný)",
+      "forallType": "Forall typ (∀X. T)",
+      "listType": "Typ zoznamu (List T)",
+      "recursiveType": "Rekurzívny typ (μX. T)",
+      "typeAbs": "Typová abstrakcia (ΛX. t)",
+      "typeApp": "Typová aplikácia (t [T])",
+      "typeConstructorAbs": "Abstrakcia typového konštruktora (λX:K. T)",
+      "typeConstructorApp": "Aplikácia typového konštruktora (F T)",
+      "typePi": "Závislý funkčný typ (Πx:A. B)",
+      "typeIndexApp": "Termom indexovaná typová aplikácia (F[t])",
+      "kindStar": "Hviezdny druh — druh bežných typov",
+      "kindArrow": "Funkčný druh (K→K, alebo T→K pre závislý druh v System λP)",
+      "funDecl": "Deklarácia funkcie",
+      "varDecl": "Deklarácia premennej",
+      "typeAliasDecl": "Typový alias (typedef X = T)"
+    }
+  },
+  "astEditor": {
+    "insertNode": "Vložiť uzol",
+    "selectNode": "Vybrať uzol",
+    "cancel": "Zrušiť",
+    "undo": "Späť (Ctrl+Z)",
+    "redo": "Znova (Ctrl+Y)",
+    "autoLayout": "Automatické rozloženie",
+    "centerView": "Vycentrovať",
+    "clearAll": "Vymazať všetky uzly a hrany",
+    "duplicate": "Duplikovať",
+    "delete": "Odstrániť"
+  },
+  "evaluationPanel": {
+    "gammaContext": "Kontext Γ",
+    "empty": "Vyhodnoťte výraz na zobrazenie jeho redukčných krokov."
+  },
+  "evalSteps": {
+    "viewStep": "Krok",
+    "viewAll": "Všetko",
+    "prev": "Späť",
+    "next": "Ďalej",
+    "stepOf": "Krok {{current}} z {{total}}",
+    "goToStep": "Prejsť na krok {{n}}",
+    "before": "Pred",
+    "after": "Po",
+    "betaReduction": "β-redukcia",
+    "stuck": "zaseknuté — redukcia nie je možná",
+    "stuckTerm": "Zaseknutý výraz",
+    "normalForm": "Normálna forma",
+    "finalResult": "Konečný výsledok",
+    "steps_one": "{{count}} krok",
+    "steps_few": "{{count}} kroky",
+    "steps_many": "{{count}} krokov",
+    "steps_other": "{{count}} kroku",
+    "stepLimit": "Dosiahnutý limit krokov — vyhodnotenie nemusí byť úplné.",
+    "clickToInspect": "Kliknutím zobrazíte tento krok",
+    "typeLevelReduction": "Redukcia na úrovni typov — vypočítaná raz počas typovej kontroly, nie je to krok vyhodnocovania výrazu",
+    "gammaHeader": "Γ — doterajší kontext",
+    "noBindings": "Zatiaľ neboli vytvorené žiadne väzby.",
+    "globals": "Globálne",
+    "alreadyStuck": "Výraz je zaseknutý — žiadne redukcie nie sú možné.",
+    "alreadyNormal": "Výraz je už v normálnej forme — nie sú potrebné žiadne redukčné kroky."
+  },
+  "latexExport": {
+    "trigger": "Exportovať LaTeX",
+    "menuLabel": "Exportovať LaTeX (ebproof)",
+    "preview": "Náhľad",
+    "copy": "Kopírovať",
+    "downloadTex": "Stiahnuť .tex",
+    "previewTitle": "Náhľad exportu LaTeX",
+    "previewDescription": "Dokument — presne zodpovedá tomu, čo je práve rozbalené alebo zbalené na obrazovke.",
+    "toastCopied": "LaTeX skopírovaný do schránky",
+    "toastCopyFailed": "Nepodarilo sa skopírovať do schránky"
+  },
+  "about": {
+    "metaTitle": "O projekte — tt",
+    "heroTitle": "O tomto projekte",
+    "heroLead": "Interaktívne prostredie na experimentovanie s typovaným lambda kalkulom. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
+    "heroSub": "Vytvorené ako diplomová práca; cieľom je sprístupniť teóriu na skúmanie: vidíte syntaktický strom, odvodené typy a dôkazové kroky, ktoré ich zdôvodňujú.",
+    "readThesis": "Prečítať diplomovú prácu (čoskoro)",
+    "overviewTitle": "Čo tento projekt robí",
+    "overviewSubtitle": "Ihrisko teórie typov na učenie, ladenie a výskum",
+    "features": {
+      "typeChecking": {
+        "title": "Typová kontrola (STLC)",
+        "description": "Kontroluje výrazy podľa pravidiel jednoducho typovaného lambda kalkulu a produkuje štruktúrované chyby."
+      },
+      "typeInference": {
+        "title": "Odvodzovanie typov (HM)",
+        "description": "Odvodzuje hlavné typy, kde je to možné, takže môžete experimentovať bez anotácií."
+      },
+      "evaluation": {
+        "title": "Vyhodnotenie",
+        "description": "Redukuje lambda výrazy v stratégiách normálneho poradia, volania hodnotou alebo volania menom, s prehliadačom krok za krokom a panelom väzieb Γ."
+      },
+      "proofTree": {
+        "title": "Vizualizácia stromu dôkazu",
+        "description": "Zobrazuje odvodzovacie stromy krok za krokom a zviditeľňuje typové pravidlá a kontexty."
+      },
+      "ast": {
+        "title": "Zobrazenie a úprava AST",
+        "description": "Prehliadajte a (voliteľne) upravujte AST v štruktúrovanej forme, aby ste sa vyhli syntaktickým chybám."
+      },
+      "synchronized": {
+        "title": "Viacero synchronizovaných reprezentácií",
+        "description": "Textové, AST a dôkazové pohľady sú navrhnuté tak, aby reprezentovali ten istý výraz."
+      },
+      "exercises": {
+        "title": "Cvičenia Zostaviť a skontrolovať",
+        "description": "Zostavte typové odvodenie sami, pravidlo po pravidle, a porovnajte ho so správnou odpoveďou so zvýraznením chýb."
+      },
+      "theories": {
+        "title": "Rozšírené typové teórie",
+        "description": "Zapnite let-polymorfizmus, izo-rekurzívne typy, System F, System Fω a závislé typy (λP) navrch základného STLC."
+      },
+      "curryHoward": {
+        "title": "Curry–Howardov / logický pohľad",
+        "description": "Prekresľuje STLC typové odvodenie ako dôkaz prirodzenej dedukcie s pravidlami implikácie, konjunkcie a disjunkcie."
+      },
+      "latex": {
+        "title": "Export do LaTeX / ebproof",
+        "description": "Zobrazte náhľad, skopírujte alebo stiahnite ľubovoľný strom dôkazu ako dokument LaTeX ebproof pripravený na kompiláciu, zodpovedajúci tomu, čo je na obrazovke."
+      }
+    }
+  },
+  "notFound": {
+    "metaTitle": "Stránka sa nenašla — tt",
+    "code": "404",
+    "title": "Stránka sa nenašla",
+    "message": "Γ ⊢ t : ? – Zdá sa, že táto stránka nie je správne typovaná.",
+    "needHelp": "Potrebujete pomoc? Kontakt"
+  },
+  "errorPage": {
+    "title": "Niečo sa pokazilo",
+    "fallbackMessage": "Vyskytla sa neočakávaná chyba.",
+    "showStack": "Zobraziť zásobník volaní",
+    "hideStack": "Skryť zásobník volaní",
+    "goBack": "Späť",
+    "reload": "Obnoviť stránku",
+    "persists": "Ak problém pretrváva,",
+    "openIssue": "nahláste issue"
+  },
+  "meta": {
+    "main": "tt — Interaktívne ihrisko typovaného lambda kalkulu"
+  }
+}

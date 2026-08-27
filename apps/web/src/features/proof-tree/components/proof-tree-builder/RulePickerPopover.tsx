@@ -1,4 +1,5 @@
 import {useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {ReactNode} from "react";
 import {Popover, PopoverContent, PopoverTrigger} from "@/shared/components/ui/popover.tsx";
 import {Input} from "@/shared/components/ui/input.tsx";
@@ -15,6 +16,7 @@ interface RulePickerPopoverProps {
 // Rules are gated by whichever theories are currently enabled, and searchable — the full rule set
 // is too long to scan as a flat list once every theory is on.
 export function RulePickerPopover({nodeId, children}: RulePickerPopoverProps) {
+  const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const [open, setOpen] = useState(false);
@@ -44,7 +46,7 @@ export function RulePickerPopover({nodeId, children}: RulePickerPopoverProps) {
           autoFocus
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search rules…"
+          placeholder={t("proofBuilder.searchRules")}
           className="h-8 text-xs mb-2"
         />
         <div className="max-h-64 overflow-y-auto space-y-0.5">

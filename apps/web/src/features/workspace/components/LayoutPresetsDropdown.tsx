@@ -1,4 +1,5 @@
 import {LayoutGrid} from "lucide-react";
+import {useTranslation} from "react-i18next";
 import {Button} from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -16,23 +17,24 @@ export interface LayoutPresetsDropdownProps {
 }
 
 export function LayoutPresetsDropdown({disabled = false}: LayoutPresetsDropdownProps) {
+  const {t} = useTranslation();
   const dispatch = useAppDispatch();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          title={disabled ? "Only available on the Editor page" : "Layout presets"}
-          aria-label="Layout presets"
+          title={disabled ? t("topbar.onlyOnEditor") : t("layoutPresets.trigger")}
+          aria-label={t("layoutPresets.trigger")}
           disabled={disabled}
         >
           <LayoutGrid className="h-4 w-4"/>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Layout presets</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("layoutPresets.trigger")}</DropdownMenuLabel>
         <DropdownMenuSeparator/>
         {LAYOUT_PRESETS.map((preset) => (
           <DropdownMenuItem
@@ -40,8 +42,8 @@ export function LayoutPresetsDropdown({disabled = false}: LayoutPresetsDropdownP
             onSelect={() => dispatch(requestLayoutPreset(preset.id))}
           >
             <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{preset.label}</span>
-              <span className="text-xs text-muted-foreground">{preset.description}</span>
+              <span className="font-medium">{t(`layoutPresets.${preset.id}.label`, preset.label)}</span>
+              <span className="text-xs text-muted-foreground">{t(`layoutPresets.${preset.id}.description`, preset.description)}</span>
             </div>
           </DropdownMenuItem>
         ))}

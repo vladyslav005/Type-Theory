@@ -1,4 +1,5 @@
 import {motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {
   CheckCircle2,
   ClipboardCheck,
@@ -40,13 +41,26 @@ const staggerContainer = {
 // Flip to true to bring the Technology Stack section back.
 const SHOW_TECH_STACK = false;
 
+const FEATURE_ICONS = {
+  CheckCircle2, Sparkles, Play, Network, Layers, GitBranch, ClipboardCheck, Shapes, Scale, FileDown,
+} as const;
+
+const FEATURE_KEYS = [
+  {icon: "CheckCircle2", key: "typeChecking"},
+  {icon: "Sparkles", key: "typeInference"},
+  {icon: "Play", key: "evaluation"},
+  {icon: "Network", key: "proofTree"},
+  {icon: "Layers", key: "ast"},
+  {icon: "GitBranch", key: "synchronized"},
+  {icon: "ClipboardCheck", key: "exercises"},
+  {icon: "Shapes", key: "theories"},
+  {icon: "Scale", key: "curryHoward"},
+  {icon: "FileDown", key: "latex"},
+] as const satisfies ReadonlyArray<{icon: keyof typeof FEATURE_ICONS; key: string}>;
+
 export function AboutPage() {
-  usePageMeta(
-    "About — tt",
-    "An interactive environment for experimenting with typed lambda calculus — parsing, AST " +
-    "inspection/editing, type checking and inference, proof tree visualization, and building your " +
-    "own derivations by hand. Built as a Master's thesis project.",
-  );
+  const {t} = useTranslation();
+  usePageMeta(t("about.metaTitle"));
 
   return (
     <div className="pt-16 min-h-screen bg-gradient-to-b from-background to-muted/40">
@@ -61,22 +75,18 @@ export function AboutPage() {
           variants={fadeInUp}
         >
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            About This Project
+            {t("about.heroTitle")}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed">
-            An interactive environment for experimenting with typed lambda calculus.
-            It supports parsing, AST inspection/editing, type checking and inference,
-            proof tree visualization, and building your own derivations by hand.
+            {t("about.heroLead")}
           </p>
           <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Built as a Master Thesis project, the goal is to make the underlying
-            theory explorable: you can see the syntax tree, derived types, and the
-            proof steps that justify them.
+            {t("about.heroSub")}
           </p>
           <div className="flex items-center justify-center">
             <Button size="lg" className="rounded-2xl shadow-lg" disabled>
               <FileCode className="mr-2 h-5 w-5" />
-              Read the Thesis (coming soon)
+              {t("about.readThesis")}
             </Button>
           </div>
         </motion.section>
@@ -91,9 +101,9 @@ export function AboutPage() {
       >
         <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300">
           <CardHeader>
-            <CardTitle className="text-2xl sm:text-3xl">What This Project Does</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl">{t("about.overviewTitle")}</CardTitle>
             <CardDescription className="text-base">
-              A type theory playground for learning, debugging, and research
+              {t("about.overviewSubtitle")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,88 +113,30 @@ export function AboutPage() {
               initial="initial"
               animate="animate"
             >
-              {[
-                {
-                  icon: CheckCircle2,
-                  title: "Type checking (STLC)",
-                  description:
-                    "Checks expressions using Simply Typed Lambda Calculus rules and produces structured errors.",
-                },
-                {
-                  icon: Sparkles,
-                  title: "Type inference (HM)",
-                  description:
-                    "Infers principal types where possible, so you can experiment without annotations.",
-                },
-                {
-                  icon: Play,
-                  title: "Evaluation",
-                  description:
-                    "Reduces lambda terms under normal-order, call-by-value, or call-by-name strategies, with a step-by-step viewer and Γ bindings panel.",
-                },
-                {
-                  icon: Network,
-                  title: "Proof tree visualization",
-                  description:
-                    "Shows derivation trees step-by-step, making typing rules and contexts explicit.",
-                },
-                {
-                  icon: Layers,
-                  title: "AST views & editing",
-                  description:
-                    "Inspect and (optionally) edit the AST in a structured form to avoid syntax errors.",
-                },
-                {
-                  icon: GitBranch,
-                  title: "Multiple synchronized representations",
-                  description:
-                    "Text/AST/proof views are designed to represent the same underlying term.",
-                },
-                {
-                  icon: ClipboardCheck,
-                  title: "Build & Check exercises",
-                  description:
-                    "Construct a typing derivation yourself, rule by rule, and check it against the real answer with mistake highlighting.",
-                },
-                {
-                  icon: Shapes,
-                  title: "Extended type theories",
-                  description:
-                    "Toggle let-polymorphism, iso-recursive types, System F, System Fω, and dependent types (λP) on top of base STLC.",
-                },
-                {
-                  icon: Scale,
-                  title: "Curry–Howard / logic view",
-                  description:
-                    "Re-renders an STLC typing derivation as a natural-deduction proof, with implication, conjunction, and disjunction rules.",
-                },
-                {
-                  icon: FileDown,
-                  title: "LaTeX / ebproof export",
-                  description:
-                    "Preview, copy, or download any proof tree as a ready-to-compile ebproof LaTeX document, matching what's on screen.",
-                },
-              ].map((feature, idx) => (
+              {FEATURE_KEYS.map(({icon, key}) => {
+                const Icon = FEATURE_ICONS[icon];
+                return (
                 <motion.div
-                  key={idx}
+                  key={key}
                   className="flex gap-4 p-6 rounded-2xl hover:bg-muted/50 transition-all duration-300 group"
                   variants={fadeInUp}
                 >
                   <div className="flex-shrink-0">
                     <div className="p-3 rounded-xl bg-muted group-hover:bg-primary/10 transition-colors duration-300">
-                      <feature.icon className="h-6 w-6 text-primary" />
+                      <Icon className="h-6 w-6 text-primary" />
                     </div>
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg mb-2">
-                      {feature.title}
+                      {t(`about.features.${key}.title`)}
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      {feature.description}
+                      {t(`about.features.${key}.description`)}
                     </p>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
           </CardContent>
         </Card>

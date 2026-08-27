@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, useState } from "react";
 import type { Term, Type } from "@vladyslav005/tt-core";
 import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowDown, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -11,6 +12,7 @@ import { expandTypeAliases, normalizeType, typeEquals } from "@vladyslav005/tt-c
 const TypeAliasesContext = createContext<Record<string, Type>>({});
 
 function TypeView({ type }: { type: Type }) {
+  const { t } = useTranslation();
   const typeAliases = useContext(TypeAliasesContext);
 
   switch (type.kind) {
@@ -101,7 +103,7 @@ function TypeView({ type }: { type: Type }) {
           {isReducible && (
             <span
               className="ml-1 rounded px-1 py-0.5 text-xs italic text-teal-600 dark:text-teal-400 bg-teal-500/10"
-              title="Type-level reduction — computed once during type-checking, not a term evaluation step"
+              title={t("evalSteps.typeLevelReduction")}
             >
               ⇒ <TypeView type={reduced} />
             </span>
@@ -498,17 +500,18 @@ function GammaPanel({
   bindings: BoundEntry[];
   globals: Record<string, Term>;
 }) {
+  const { t } = useTranslation();
   const globalEntries = Object.entries(globals);
   const hasAny = bindings.length > 0 || globalEntries.length > 0;
 
   return (
     <div className="w-72 shrink-0 rounded-xl border bg-muted/30 p-4">
       <div className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
-        Γ — context so far
+        {t("evalSteps.gammaHeader")}
       </div>
 
       {!hasAny && (
-        <p className="text-xs text-muted-foreground">No bindings established yet.</p>
+        <p className="text-xs text-muted-foreground">{t("evalSteps.noBindings")}</p>
       )}
 
       {bindings.length > 0 && (
@@ -529,7 +532,7 @@ function GammaPanel({
       {globalEntries.length > 0 && (
         <div>
           <div className="text-[11px] font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">
-            Globals
+            {t("evalSteps.globals")}
           </div>
           <div className="flex flex-col gap-2">
             {globalEntries.map(([name, def]) => (
@@ -556,6 +559,7 @@ export function ViewToggle({
   mode: "single" | "all";
   onChange: (m: "single" | "all") => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex rounded-md border overflow-hidden text-xs shrink-0">
       <button
@@ -565,7 +569,7 @@ export function ViewToggle({
         )}
         onClick={() => onChange("single")}
       >
-        Step
+        {t("evalSteps.viewStep")}
       </button>
       <button
         className={cn(
@@ -574,7 +578,7 @@ export function ViewToggle({
         )}
         onClick={() => onChange("all")}
       >
-        All
+        {t("evalSteps.viewAll")}
       </button>
     </div>
   );
@@ -590,6 +594,7 @@ interface StepRowProps {
 }
 
 function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: StepRowProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -599,7 +604,7 @@ function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: St
           : "bg-muted/20 hover:bg-muted/40 cursor-pointer",
       )}
       onClick={!isErrorStep ? onClick : undefined}
-      title={!isErrorStep ? "Click to inspect this step" : undefined}
+      title={!isErrorStep ? t("evalSteps.clickToInspect") : undefined}
     >
       <div className="flex items-center gap-2">
         <span
@@ -613,7 +618,7 @@ function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: St
           {index + 1}
         </span>
         <span className="text-xs text-muted-foreground">
-          {isErrorStep ? "stuck — no reduction possible" : "β-reduction"}
+          {isErrorStep ? t("evalSteps.stuck") : t("evalSteps.betaReduction")}
         </span>
       </div>
 
@@ -666,6 +671,7 @@ interface EvaluationStepsViewerInnerProps {
 }
 
 function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerInnerProps) {
+  const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
   const { steps, result, reachedStepLimit, errors, globals } = evaluation;
 
@@ -683,11 +689,11 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
         <div className="p-4 rounded-xl bg-muted/30 border text-center">
           <p className="text-sm text-muted-foreground">
             {hasErrors
-              ? "Expression is stuck — no reductions are possible."
-              : "Expression is already in normal form — no reduction steps needed."}
+              ? t("evalSteps.alreadyStuck")
+              : t("evalSteps.alreadyNormal")}
           </p>
         </div>
-        <TermBox term={result} label={hasErrors ? "Stuck term" : "Normal form"} errorId={stuckTermId} hasError={hasErrors} />
+        <TermBox term={result} label={hasErrors ? t("evalSteps.stuckTerm") : t("evalSteps.normalForm")} errorId={stuckTermId} hasError={hasErrors} />
         {hasErrors && (
           <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
             <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -707,7 +713,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
     return (
       <div className="flex flex-col gap-4 h-full overflow-y-auto">
         <div className="flex items-center justify-between sticky top-0 backdrop-blur-sm py-1 z-10">
-          <span className="text-sm font-medium">{steps.length} step{steps.length !== 1 ? "s" : ""}</span>
+          <span className="text-sm font-medium">{t("evalSteps.steps", {count: steps.length})}</span>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -733,7 +739,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
               <span className="text-xs font-medium text-orange-600 dark:text-orange-500 uppercase tracking-wide">
-                Final result
+                {t("evalSteps.finalResult")}
               </span>
             </div>
             <div className="font-mono text-sm overflow-x-auto">
@@ -752,7 +758,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
         {reachedStepLimit && (
           <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-sm">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>Step limit reached — evaluation may not be complete.</span>
+            <span>{t("evalSteps.stepLimit")}</span>
           </div>
         )}
       </div>
@@ -770,12 +776,12 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           disabled={isFirstStep}
         >
           <ChevronLeft className="h-4 w-4" />
-          Prev
+          {t("evalSteps.prev")}
         </Button>
 
         <div className="flex flex-col items-center gap-1.5 flex-1">
           <span className="text-sm font-medium">
-            Step {stepIndex + 1} of {steps.length}
+            {t("evalSteps.stepOf", {current: stepIndex + 1, total: steps.length})}
           </span>
           <div className="flex gap-1">
             {steps.map((_, i) => {
@@ -795,7 +801,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
                         ? "w-1.5 bg-destructive/40 hover:bg-destructive/70"
                         : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
                   )}
-                  aria-label={`Go to step ${i + 1}`}
+                  aria-label={t("evalSteps.goToStep", {n: i + 1})}
                 />
               );
             })}
@@ -808,7 +814,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
           disabled={isLastStep}
         >
-          Next
+          {t("evalSteps.next")}
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
@@ -819,17 +825,17 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           <TermBox
             term={currentStep.before}
             selectedId={currentStep.selectedId}
-            label="Before"
+            label={t("evalSteps.before")}
           />
 
           <div className="flex items-center gap-2 text-muted-foreground px-2">
             <ArrowDown className={cn("h-4 w-4 shrink-0", isErrorStep && "text-destructive")} />
-            <span className="text-xs">{isErrorStep ? "stuck — no reduction possible" : "β-reduction"}</span>
+            <span className="text-xs">{isErrorStep ? t("evalSteps.stuck") : t("evalSteps.betaReduction")}</span>
           </div>
 
           <TermBox
             term={currentStep.after}
-            label="After"
+            label={t("evalSteps.after")}
             resultId={!isErrorStep ? currentStep.resultId : undefined}
             errorId={isErrorStep ? stuckTermId : undefined}
             hasError={isErrorStep}
@@ -847,7 +853,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
                 <span className="text-xs font-medium text-orange-600 dark:text-orange-500 uppercase tracking-wide">
-                  Final result
+                  {t("evalSteps.finalResult")}
                 </span>
               </div>
               <div className="font-mono text-sm overflow-x-auto">
@@ -863,7 +869,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
       {reachedStepLimit && (
         <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-sm">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>Step limit reached — evaluation may not be complete.</span>
+          <span>{t("evalSteps.stepLimit")}</span>
         </div>
       )}
     </div>

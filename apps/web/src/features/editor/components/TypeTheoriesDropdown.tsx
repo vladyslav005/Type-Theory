@@ -1,4 +1,5 @@
 import { ChevronDown, FlaskConical } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ export interface TypeTheoriesDropdownProps {
 }
 
 export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownProps) {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
 
@@ -28,15 +30,15 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           size="sm"
           className="gap-1.5"
           disabled={disabled}
-          title={disabled ? "Only available on the Editor page" : undefined}
+          title={disabled ? t("topbar.onlyOnEditor") : undefined}
         >
           <FlaskConical className="h-3.5 w-3.5" />
-          Type System Extensions
+          {t("extensions.trigger")}
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>Active extensions</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("extensions.heading")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         <DropdownMenuCheckboxItem
@@ -45,8 +47,8 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           onSelect={(e) => e.preventDefault()}
         >
           <div className="flex flex-col gap-0.5">
-            <span className="font-medium">Simply Typed Lambda Calculus</span>
-            <span className="text-xs text-muted-foreground">Always enabled — the base type theory</span>
+            <span className="font-medium">{t("extensions.stlcLabel")}</span>
+            <span className="text-xs text-muted-foreground">{t("extensions.stlcDescription")}</span>
           </div>
         </DropdownMenuCheckboxItem>
 
@@ -62,8 +64,8 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
             }}
           >
             <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{theory.label}</span>
-              <span className="text-xs text-muted-foreground">{theory.description}</span>
+              <span className="font-medium">{t(`extensions.theories.${theory.id}.label`, theory.label)}</span>
+              <span className="text-xs text-muted-foreground">{t(`extensions.theories.${theory.id}.description`, theory.description)}</span>
             </div>
           </DropdownMenuCheckboxItem>
         ))}

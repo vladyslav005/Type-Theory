@@ -14,7 +14,7 @@ export function DocsLecturePage() {
   const Content = slug ? LECTURE_CONTENT[slug] : undefined;
 
   usePageMeta(
-    lecture ? `${lecture.title} — tt Docs` : "Lecture not found — tt",
+    lecture ? `${lecture.title} — tt Guide` : "Lecture not found — tt",
     lecture?.summary,
     lecture ? {
       "@context": "https://schema.org",
@@ -32,7 +32,7 @@ export function DocsLecturePage() {
       <motion.div initial="initial" animate="animate" variants={fadeInUp} className="space-y-4">
         <h1 className="text-2xl font-bold">Lecture not found</h1>
         <p className="text-muted-foreground">
-          There's no lecture at this address. <Link to="/docs" className="text-primary hover:underline">Back to Docs</Link>.
+          There's no lecture at this address. <Link to="/docs" className="text-primary hover:underline">Back to the Guide</Link>.
         </p>
       </motion.div>
     );

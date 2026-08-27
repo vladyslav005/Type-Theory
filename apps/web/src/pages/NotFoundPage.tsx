@@ -1,4 +1,5 @@
 import {motion} from 'framer-motion';
+import {useTranslation} from 'react-i18next';
 import {AlertCircle, FileQuestionMark} from 'lucide-react';
 import {FloatingLambdaSymbols} from '@/shared/components/FloatingLambdaSymbols.tsx';
 import {usePageMeta} from '@/shared/hooks/usePageMeta.ts';
@@ -18,7 +19,8 @@ const staggerContainer = {
 };
 
 export function NotFoundPage() {
-  usePageMeta("Page Not Found — tt", "The page you're looking for doesn't exist.");
+  const {t} = useTranslation();
+  usePageMeta(t("notFound.metaTitle"), "The page you're looking for doesn't exist.");
 
   return (
     <div className="relative min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
@@ -43,16 +45,16 @@ export function NotFoundPage() {
         {/* Error Code */}
         <motion.div className="space-y-2" variants={fadeInUp}>
           <h1 className="text-8xl sm:text-9xl font-bold text-foreground tracking-tight">
-            404
+            {t("notFound.code")}
           </h1>
           <p className="text-2xl sm:text-3xl font-semibold text-foreground">
-            Page Not Found
+            {t("notFound.title")}
           </p>
         </motion.div>
 
         {/* Description */}
         <motion.p className="text-lg text-muted-foreground max-w-md mx-auto" variants={fadeInUp}>
-          {"Γ ⊢ t : ? - Looks like this page is not correctly typed."}
+          {t("notFound.message")}
         </motion.p>
 
         {/* Help Message */}
@@ -60,7 +62,7 @@ export function NotFoundPage() {
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <AlertCircle className="w-4 h-4"/>
             <span>
-              Need help? Contact{' '}
+              {t("notFound.needHelp")}{' '}
               <a href="mailto:idkwho@idkwhere.com" className="text-primary hover:underline">
                 idkwho@idkwhere.com
               </a>

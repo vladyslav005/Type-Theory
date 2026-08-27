@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useRef, useState} from "react";
 import {useFullscreen} from "@/shared/hooks/useFullscreen.ts";
@@ -13,7 +14,6 @@ import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {EvaluationStepsViewer, ViewToggle} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {env} from "@/shared/lib/env.ts";
-import {EVALUATION_STRATEGY_LABELS} from "@vladyslav005/tt-core";
 
 interface EvaluationVisualisationProps {
   className?: string;
@@ -22,6 +22,7 @@ interface EvaluationVisualisationProps {
 export function EvaluationVisualisation({
   className,
 }: EvaluationVisualisationProps) {
+  const {t} = useTranslation();
   const evaluation = useAppSelector((state) => state.term.evaluation);
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
   const hasEvaluation = evaluation !== null && evaluation !== undefined;
@@ -49,7 +50,7 @@ export function EvaluationVisualisation({
             <div className="flex items-center gap-3 flex-nowrap overflow-x-auto min-w-0 flex-1">
               {hasEvaluation && (
                 <span className="rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none border-border bg-muted text-muted-foreground whitespace-nowrap shrink-0">
-                  {EVALUATION_STRATEGY_LABELS[evaluation.strategy]}
+                  {t(`evalStrategy.${evaluation.strategy}.label`)}
                 </span>
               )}
               {hasSteps && (
@@ -58,7 +59,7 @@ export function EvaluationVisualisation({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Switch id="show-gamma" checked={showGamma} onCheckedChange={setShowGamma}/>
                     <Label htmlFor="show-gamma" className="text-sm text-muted-foreground whitespace-nowrap">
-                      Γ context
+                      {t("evaluationPanel.gammaContext")}
                     </Label>
                   </div>
                   <ViewToggle mode={viewMode} onChange={setViewMode}/>
@@ -71,7 +72,7 @@ export function EvaluationVisualisation({
               variant="ghost"
               onClick={toggle}
               className="shrink-0"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              title={isFullscreen ? t("fullscreen.exit") : t("fullscreen.enter")}
             >
               {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </Button>
@@ -108,7 +109,7 @@ export function EvaluationVisualisation({
             </div>
           ) : (
             <div className="h-full p-6">
-              <EmptyState icon={Play} message="Evaluate an expression to see its reduction steps." />
+              <EmptyState icon={Play} message={t("evaluationPanel.empty")} />
             </div>
           )}
         </CardContent>

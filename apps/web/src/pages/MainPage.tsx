@@ -1,8 +1,10 @@
+import {useTranslation} from "react-i18next";
 import {WorkspaceLayout} from "@/features/workspace/components/WorkspaceLayout.tsx";
 import {usePageMeta} from "@/shared/hooks/usePageMeta.ts";
 
 export function MainPage() {
-  usePageMeta("tt — Interactive Typed Lambda Calculus Playground");
+  const {t} = useTranslation();
+  usePageMeta(t("meta.main"));
 
   return (
     <div className="mt-[4rem] flex flex-col h-[calc(100dvh-4rem)]">

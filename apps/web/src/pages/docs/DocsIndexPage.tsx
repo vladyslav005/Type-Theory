@@ -22,7 +22,7 @@ const staggerContainer = {
 
 export function DocsIndexPage() {
   usePageMeta(
-    "Docs — tt",
+    "Guide — tt",
     "A hands-on introduction to typed lambda calculus, taught alongside the app — lectures, a " +
     "typing/evaluation rule reference, and the full grammar and symbol glossary.",
     {
@@ -41,7 +41,7 @@ export function DocsIndexPage() {
   return (
     <div className="space-y-10">
       <motion.div initial="initial" animate="animate" variants={fadeInUp}>
-        <h1 className="text-3xl md:text-4xl font-bold mb-3">Docs</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-3">Guide</h1>
         <p className="text-muted-foreground max-w-2xl leading-relaxed">
           A hands-on introduction to typed lambda calculus, taught alongside this app.
           Each lecture pairs a short concept explanation with concrete steps to try in

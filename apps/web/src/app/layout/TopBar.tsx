@@ -1,10 +1,13 @@
 import {useState} from 'react';
 import type {RefObject} from 'react';
-import {BookType, Github, Menu, Moon, Search, Sun, X} from 'lucide-react';
+import {AnimatePresence, motion} from 'framer-motion';
+import {BookType, Github, Menu, Moon, Sun, X} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/shared/components/ui/button';
-import {Input} from '@/shared/components/ui/input';
+import {Separator} from '@/shared/components/ui/separator';
 import {NavLink, useLocation} from "react-router-dom";
 import {useTheme} from "next-themes";
+import {LanguageMenu} from "@/app/layout/LanguageMenu.tsx";
 import {TypeTheoriesDropdown} from "@/features/editor/components/TypeTheoriesDropdown.tsx";
 import {ActiveExtensionsBadges} from "@/features/editor/components/ActiveExtensionsBadges.tsx";
 import {LayoutPresetsDropdown} from "@/features/workspace/components/LayoutPresetsDropdown.tsx";
@@ -14,14 +17,14 @@ import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
 
 type NavItem = {
-  label: string;
+  key: 'editor' | 'docs' | 'about';
   href: string;
 };
 
 const navItems: NavItem[] = [
-  {label: 'Editor', href: '/main'},
-  {label: 'Docs', href: '/docs'},
-  {label: 'About', href: '/about'},
+  {key: 'editor', href: '/main'},
+  {key: 'docs', href: '/docs'},
+  {key: 'about', href: '/about'},
 ];
 
 export interface TopbarProps {
@@ -29,8 +32,8 @@ export interface TopbarProps {
 }
 
 export function Topbar({editorRef}: TopbarProps) {
+  const {t} = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const {setTheme, resolvedTheme} = useTheme()
   const isDarkMode = resolvedTheme === "dark";
@@ -50,102 +53,98 @@ export function Topbar({editorRef}: TopbarProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b shadow-sm">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 gap-4">
           {/* Left: Logo and Brand */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3 shrink-0">
             <div
               className="flex items-center justify-center w-10 h-10 rounded-full bg-primary shadow-lg hover:transform-y-1 transition-transform duration-200">
               <BookType className="w-6 h-6 text-primary-foreground"/>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-foreground">
-                Type Theory
+              <h1 className="text-xl font-bold text-foreground leading-tight">
+                {t("topbar.brand")}
               </h1>
-              <p className="text-xs text-muted-foreground">
-                Type checking and interpreter
+              <p className="text-xs text-muted-foreground leading-tight">
+                {t("topbar.tagline")}
               </p>
             </div>
           </div>
 
           {/* Center: Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.href}
                 to={item.href}
                 className={({isActive}) => `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
               >
-                {item.label}
+                {t(`nav.${item.key}`)}
               </NavLink>
             ))}
           </nav>
 
-          {/* Right: Examples, Type system extensions, Dark Mode, GitHub */}
-          <div className="flex items-center space-x-3">
-            {/* Examples */}
-            <div className="hidden md:block">
-              <ExamplesDropdown onSelect={onSelectExample} disabled={!isEditorPage} />
-            </div>
-
-            {/* Type System Extensions */}
-            <div className="hidden md:block">
-              <TypeTheoriesDropdown disabled={!isEditorPage} />
-            </div>
-
-            {/* Layout presets — panel arrangement is meaningless once the editor drops to its
-                single-column tabbed layout, so this only shows once dockview is active (lg+). */}
-            <div className="hidden lg:block">
-              <LayoutPresetsDropdown disabled={!isEditorPage} />
-            </div>
-
-            {/* Dark Mode Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="rounded-lg size-11 md:size-9"
-              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5"/>
-              ) : (
-                <Moon className="w-5 h-5"/>
+          {/* Right: workspace tools (editor page only) + global controls */}
+          <div className="flex items-center gap-2 min-w-0">
+            <AnimatePresence initial={false}>
+              {isEditorPage && (
+                <motion.div
+                  key="workspace-tools"
+                  initial={{opacity: 0, width: 0}}
+                  animate={{opacity: 1, width: "auto"}}
+                  exit={{opacity: 0, width: 0}}
+                  transition={{duration: 0.25, ease: "easeOut"}}
+                  className="hidden md:flex items-center gap-2 min-w-0 overflow-hidden"
+                >
+                  <ExamplesDropdown onSelect={onSelectExample}/>
+                  <TypeTheoriesDropdown/>
+                  <div className="hidden lg:block">
+                    <LayoutPresetsDropdown/>
+                  </div>
+                  <Separator orientation="vertical" className="h-6 mx-1"/>
+                </motion.div>
               )}
-            </Button>
+            </AnimatePresence>
 
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleDarkMode}
+                className="rounded-lg size-11 md:size-9"
+                aria-label={isDarkMode ? t("topbar.themeToLight") : t("topbar.themeToDark")}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5"/> : <Moon className="w-5 h-5"/>}
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="transition-all duration-200 size-11 md:size-9"
-              aria-label="Open GitHub repository"
-              onClick={() => {
-                window.location.assign("https://github.com/vladyslav005/tt")
-              }}
-            >
-              <Github className="h-4 w-4"/>
-            </Button>
+              <LanguageMenu className="rounded-lg size-11 md:size-9"/>
 
-            {/* Mobile Menu Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden rounded-lg size-11"
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5"/>
-              ) : (
-                <Menu className="w-5 h-5"/>
-              )}
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-lg size-11 md:size-9"
+                aria-label={t("topbar.openGithub")}
+                onClick={() => window.location.assign("https://github.com/vladyslav005/tt")}
+              >
+                <Github className="h-4 w-4"/>
+              </Button>
+
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden rounded-lg size-11"
+                aria-label={isMobileMenuOpen ? t("topbar.closeMenu") : t("topbar.openMenu")}
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5"/> : <Menu className="w-5 h-5"/>}
+              </Button>
+            </div>
           </div>
         </div>
 
-         {/*Active extensions badges, pinned straddling the topbar's bottom edge */}
+        {/* Active extensions badges, pinned straddling the topbar's bottom edge */}
         <div className="hidden md:flex absolute -bottom-2.5 left-4 sm:left-6 lg:left-8 max-w-[60%] flex-wrap justify-start gap-1">
-          <ActiveExtensionsBadges />
+          <ActiveExtensionsBadges/>
         </div>
       </div>
 
@@ -166,26 +165,14 @@ export function Topbar({editorRef}: TopbarProps) {
         `}
       >
         <div className="px-4 py-3 space-y-2 border-t">
-          {/* Mobile Search */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-            <Input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 h-11"
-            />
-          </div>
+          {isEditorPage && (
+            <div className="flex flex-col items-start gap-2 pb-3 mb-1 border-b">
+              <ExamplesDropdown onSelect={onSelectExample}/>
+              <TypeTheoriesDropdown/>
+              <ActiveExtensionsBadges/>
+            </div>
+          )}
 
-          {/* Mobile Type System Extensions */}
-          <div className="flex flex-col items-start gap-2 pb-2">
-            <ExamplesDropdown onSelect={onSelectExample} disabled={!isEditorPage} />
-            <TypeTheoriesDropdown disabled={!isEditorPage} />
-            <ActiveExtensionsBadges />
-          </div>
-
-          {/* Mobile Nav Items */}
           {navItems.map((item) => (
             <NavLink
               key={item.href}
@@ -193,7 +180,7 @@ export function Topbar({editorRef}: TopbarProps) {
               onClick={() => setIsMobileMenuOpen(false)}
               className={({isActive}) => `w-full block text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 min-h-11 ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
             >
-              {item.label}
+              {t(`nav.${item.key}`)}
             </NavLink>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
@@ -22,27 +23,16 @@ export interface EvaluateButtonProps {
 }
 
 const evaluationStrategies = [
-  {
-    value: EvaluationStrategy.NORMAL,
-    label: "Normal Order",
-    description: "Leftmost outermost, including lambda bodies",
-  },
-  {
-    value: EvaluationStrategy.CALL_BY_NAME,
-    label: "Call by name",
-    description: "Arguments are evaluated only when needed",
-  },
-  {
-    value: EvaluationStrategy.CALL_BY_VALUE,
-    label: "Call by value",
-    description: "Arguments are evaluated before application",
-  },
+  EvaluationStrategy.NORMAL,
+  EvaluationStrategy.CALL_BY_NAME,
+  EvaluationStrategy.CALL_BY_VALUE,
 ];
 
 export function EvaluateButton({
                                   onClick,
                                   className
                                 }: EvaluateButtonProps) {
+  const { t } = useTranslation();
   const { evaluateTerm } = useTermHooks()
   const dispatch = useAppDispatch();
 
@@ -52,10 +42,6 @@ export function EvaluateButton({
 
   const strategy = useAppSelector((state) => state.term.evaluationStrategy)
   const setStrategy = (value: EvaluationStrategy) => dispatch(setEvaluationStrategy(value));
-
-  const selectedStrategy = evaluationStrategies.find(
-    (item) => item.value === strategy
-  )
 
   const handleClick = () => {
     if (onClick) {
@@ -83,19 +69,19 @@ export function EvaluateButton({
             >
               <Calculator className="h-4 w-4" />
 
-              Evaluate
+              {t("actions.evaluate")}
 
               <span className="text-xs opacity-70">
-                ({selectedStrategy?.label})
+                ({t(`evalStrategy.${strategy}.label`)})
               </span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
             {autoBuild
-              ? "Auto-build is on — this runs automatically as you type"
+              ? t("actions.autoBuildTooltip")
               : disabled
-                ? "Parse & type-check a valid expression first"
-                : "Reduce the expression to a normal form using the selected strategy"}
+                ? t("actions.evaluateNeedsProof")
+                : t("actions.evaluateTooltip")}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -105,7 +91,7 @@ export function EvaluateButton({
           <Button
             size="icon"
             className="shadow-none h-fullby "
-            aria-label="Choose evaluation strategy"
+            aria-label={t("actions.chooseStrategy")}
             disabled={disabled}
           >
             <ChevronDown className="h-4 w-4" />
@@ -114,22 +100,22 @@ export function EvaluateButton({
 
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel>
-            Evaluation strategy
+            {t("evalStrategy.heading")}
           </DropdownMenuLabel>
 
           <DropdownMenuSeparator />
 
-          {evaluationStrategies.map((item) => (
+          {evaluationStrategies.map((value) => (
             <DropdownMenuItem
-              key={item.value}
-              onSelect={() => setStrategy(item.value)}
+              key={value}
+              onSelect={() => setStrategy(value)}
               className="flex justify-between"
             >
               <div className="flex flex-col gap-0.5">
-                <span className="font-medium">{item.label}</span>
-                <span className="text-xs text-muted-foreground">{item.description}</span>
+                <span className="font-medium">{t(`evalStrategy.${value}.label`)}</span>
+                <span className="text-xs text-muted-foreground">{t(`evalStrategy.${value}.description`)}</span>
               </div>
-              {strategy === item.value && (
+              {strategy === value && (
                 <Check className="h-4 w-4" />
               )}
             </DropdownMenuItem>

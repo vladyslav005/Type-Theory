@@ -1,4 +1,5 @@
 import {Fragment, memo} from "react";
+import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import {RotateCcw} from "lucide-react";
 import type {ProofTree, TypeScheme} from "@vladyslav005/tt-core";
@@ -51,6 +52,7 @@ function VariableMembershipLeaf({answerNode, registry}: { answerNode: ProofTree;
 // ancestor of an edited node a new reference — this keeps untouched sibling
 // subtrees from re-rendering (and re-typesetting via MathJax).
 export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentNode, answerNode, parentGamma, registry, highlightMistakes, root = true}: ProofTreeBuilderNodeProps) {
+  const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const hasChosenRule = studentNode.chosenRule !== undefined;
   // Keyed off the real rule/premise count, not the student's guess.
@@ -134,7 +136,7 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
             <button
               type="button"
               className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              title="Reset this node"
+              title={t("proofBuilder.resetNode")}
               onClick={() => dispatch(resetNode({nodeId: studentNode.id}))}
             >
               <RotateCcw className="h-3 w-3"/>

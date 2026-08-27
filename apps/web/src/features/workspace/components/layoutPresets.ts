@@ -1,6 +1,15 @@
 import type {DockviewApi} from "dockview-react";
 import type {LayoutPresetId} from "@/shared/ui-state/workspaceLayoutSlice.ts";
 import type {EditorPanelParams} from "@/features/workspace/components/panels.tsx";
+import i18n from "@/i18n";
+
+const title = {
+  editor: () => i18n.t("panels.editor"),
+  errors: () => i18n.t("panels.errors"),
+  evaluation: () => i18n.t("panels.evaluation"),
+  proofTree: () => i18n.t("panels.proofTree"),
+  ast: () => i18n.t("panels.ast"),
+};
 
 export function applyLayoutPreset(api: DockviewApi, preset: LayoutPresetId, editorParams: EditorPanelParams): void {
   api.clear();
@@ -22,22 +31,22 @@ export function applyLayoutPreset(api: DockviewApi, preset: LayoutPresetId, edit
 }
 
 function applyEditorFocus(api: DockviewApi, editorParams: EditorPanelParams): void {
-  api.addPanel({id: "editor", component: "editor", title: "Editor", params: editorParams});
+  api.addPanel({id: "editor", component: "editor", title: title.editor(), params: editorParams});
   api.addPanel({
     id: "errorOutput",
     component: "errorOutput",
-    title: "Errors",
+    title: title.errors(),
     position: {referencePanel: "editor", direction: "right"},
   });
   addResultTabs(api, editorParams);
 }
 
 function applyEditorWide(api: DockviewApi, editorParams: EditorPanelParams): void {
-  api.addPanel({id: "editor", component: "editor", title: "Editor", params: editorParams});
+  api.addPanel({id: "editor", component: "editor", title: title.editor(), params: editorParams});
   api.addPanel({
     id: "errorOutput",
     component: "errorOutput",
-    title: "Errors",
+    title: title.errors(),
     position: {referencePanel: "editor", direction: "below"},
   });
   addResultTabs(api, editorParams);
@@ -48,29 +57,29 @@ function applyEditorWide(api: DockviewApi, editorParams: EditorPanelParams): voi
 }
 
 function applyGrid(api: DockviewApi, editorParams: EditorPanelParams): void {
-  api.addPanel({id: "editor", component: "editor", title: "Editor", params: editorParams});
+  api.addPanel({id: "editor", component: "editor", title: title.editor(), params: editorParams});
   api.addPanel({
     id: "errorOutput",
     component: "errorOutput",
-    title: "Errors",
+    title: title.errors(),
     position: {referencePanel: "editor", direction: "right"},
   });
   api.addPanel({
     id: "proofTree",
     component: "proofTree",
-    title: "Proof Tree",
+    title: title.proofTree(),
     position: {referencePanel: "errorOutput", direction: "right"},
   });
   api.addPanel({
     id: "evaluation",
     component: "evaluation",
-    title: "Evaluation",
+    title: title.evaluation(),
     position: {referencePanel: "errorOutput", direction: "below"},
   });
   api.addPanel({
     id: "ast",
     component: "ast",
-    title: "AST",
+    title: title.ast(),
     params: editorParams,
     position: {referencePanel: "proofTree", direction: "below"},
   });
@@ -84,29 +93,29 @@ function applyGrid(api: DockviewApi, editorParams: EditorPanelParams): void {
 // width below. The bottom group is docked with an absolute (not relative-to-panel) position so
 // it sits under the whole top row instead of just under "editor".
 function applyEditorErrors(api: DockviewApi, editorParams: EditorPanelParams): void {
-  api.addPanel({id: "editor", component: "editor", title: "Editor", params: editorParams});
+  api.addPanel({id: "editor", component: "editor", title: title.editor(), params: editorParams});
   api.addPanel({
     id: "errorOutput",
     component: "errorOutput",
-    title: "Errors",
+    title: title.errors(),
     position: {referencePanel: "editor", direction: "right"},
   });
   api.addPanel({
     id: "evaluation",
     component: "evaluation",
-    title: "Evaluation",
+    title: title.evaluation(),
     position: {direction: "below"},
   });
   api.addPanel({
     id: "proofTree",
     component: "proofTree",
-    title: "Proof Tree",
+    title: title.proofTree(),
     position: {referencePanel: "evaluation", direction: "within"},
   });
   api.addPanel({
     id: "ast",
     component: "ast",
-    title: "AST",
+    title: title.ast(),
     params: editorParams,
     position: {referencePanel: "evaluation", direction: "within"},
   });
@@ -121,19 +130,19 @@ function addResultTabs(api: DockviewApi, editorParams: EditorPanelParams): void 
   api.addPanel({
     id: "evaluation",
     component: "evaluation",
-    title: "Evaluation",
+    title: title.evaluation(),
     position: {referencePanel: "errorOutput", direction: "within"},
   });
   api.addPanel({
     id: "proofTree",
     component: "proofTree",
-    title: "Proof Tree",
+    title: title.proofTree(),
     position: {referencePanel: "errorOutput", direction: "within"},
   });
   api.addPanel({
     id: "ast",
     component: "ast",
-    title: "AST",
+    title: title.ast(),
     params: editorParams,
     position: {referencePanel: "errorOutput", direction: "within"},
   });

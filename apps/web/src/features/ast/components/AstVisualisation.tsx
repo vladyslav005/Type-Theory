@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import type {ChangeEvent} from "react";
+import {useTranslation} from "react-i18next";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {cn} from "@/shared/lib/utils.ts";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
@@ -40,6 +41,7 @@ export function AstVisualisation({
                                    className,
                                    editorRef,
                                  }: AstVisualisationProps) {
+  const {t} = useTranslation();
   const viewerAst = useAppSelector((state) => state.term.ast);
   const hasViewerAst = viewerAst !== null && viewerAst !== undefined;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,10 +120,10 @@ export function AstVisualisation({
         throw new Error("Not a Program AST");
       }
       loadEditorAst(parsed as Program);
-      toast.success("AST loaded from file");
+      toast.success(t("astPanel.toastLoadedFromFile"));
     } catch (err) {
       console.error("Failed to load AST JSON", err);
-      toast.error("Invalid AST JSON file");
+      toast.error(t("astPanel.toastInvalidJson"));
     }
   };
 
@@ -143,8 +145,8 @@ export function AstVisualisation({
             <div className="flex items-center gap-2 flex-nowrap overflow-x-auto min-w-0 flex-1">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AstTab)}>
                 <TabsList className="shrink-0">
-                  <TabsTrigger value="viewer">Viewer</TabsTrigger>
-                  <TabsTrigger value="editor">Editor</TabsTrigger>
+                  <TabsTrigger value="viewer">{t("astPanel.tabViewer")}</TabsTrigger>
+                  <TabsTrigger value="editor">{t("astPanel.tabEditor")}</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -159,7 +161,7 @@ export function AstVisualisation({
                     }}
                   />
                   <Label htmlFor="ast-highlight-on-hover" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Highlight in editor
+                    {t("astPanel.highlightInEditor")}
                   </Label>
                 </div>
               )}
@@ -178,20 +180,20 @@ export function AstVisualisation({
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-1.5" onClick={copyAstText}>
                             <Copy className="h-3.5 w-3.5" />
-                            Copy text
+                            {t("astPanel.btnCopyText")}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">Copy the edited AST as lambda calculus source text</TooltipContent>
+                        <TooltipContent side="bottom">{t("astPanel.copySource")}</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-1.5" onClick={copyFromViewer} disabled={!viewerAst}>
                             <Download className="h-3.5 w-3.5" />
-                            Copy from viewer
+                            {t("astPanel.btnCopyFromViewer")}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">Load the Viewer tab's current AST in here for editing</TooltipContent>
+                        <TooltipContent side="bottom">{t("astPanel.loadFromViewer")}</TooltipContent>
                       </Tooltip>
                     </ButtonGroup>
 
@@ -202,20 +204,20 @@ export function AstVisualisation({
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-1.5" onClick={downloadEditorAst}>
                             <Download className="h-3.5 w-3.5" />
-                            Download JSON
+                            {t("astPanel.btnDownloadJson")}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">Download the edited AST as a JSON file</TooltipContent>
+                        <TooltipContent side="bottom">{t("astPanel.downloadJson")}</TooltipContent>
                       </Tooltip>
 
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-1.5" onClick={uploadEditorAst}>
                             <Upload className="h-3.5 w-3.5" />
-                            Upload JSON
+                            {t("astPanel.btnUploadJson")}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">Load an AST from a JSON file</TooltipContent>
+                        <TooltipContent side="bottom">{t("astPanel.loadJson")}</TooltipContent>
                       </Tooltip>
                     </ButtonGroup>
 
@@ -231,10 +233,10 @@ export function AstVisualisation({
                       <TooltipTrigger asChild>
                         <Button size="sm" className="gap-1.5" onClick={pasteAstToEditor} disabled={!editorRef}>
                           <ClipboardPaste className="h-3.5 w-3.5" />
-                          Paste to text editor
+                          {t("astPanel.btnPasteToEditor")}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">Write the edited AST's source text into the text editor above</TooltipContent>
+                      <TooltipContent side="bottom">{t("astPanel.writeToEditor")}</TooltipContent>
                     </Tooltip>
                   </div>
                 </TooltipProvider>
@@ -246,7 +248,7 @@ export function AstVisualisation({
               variant="ghost"
               onClick={toggle}
               className="shrink-0"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              title={isFullscreen ? t("fullscreen.exit") : t("fullscreen.enter")}
             >
               {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </Button>
@@ -276,7 +278,7 @@ export function AstVisualisation({
               </div>
             ) : (
               <div className="h-full p-6">
-                <EmptyState icon={Network} message="Type a valid expression to generate an AST." />
+                <EmptyState icon={Network} message={t("astPanel.empty")} />
               </div>
             )
           ) : (

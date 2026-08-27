@@ -1,7 +1,9 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import {useRouteError, useNavigate} from "react-router-dom";
 import {AlertTriangle, ChevronDown, ChevronUp} from "lucide-react";
 import {Button} from "@/shared/components/ui/button.tsx";
+import i18n from "@/i18n";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -13,7 +15,7 @@ function getErrorMessage(error: unknown): string {
   ) {
     return (error as {statusText: string}).statusText;
   }
-  return "An unexpected error occurred.";
+  return i18n.t("errorPage.fallbackMessage");
 }
 
 function getStackTrace(error: unknown): string | null {
@@ -22,6 +24,7 @@ function getStackTrace(error: unknown): string | null {
 }
 
 export function ErrorPage() {
+  const {t} = useTranslation();
   const error = useRouteError();
   const navigate = useNavigate();
   const [stackOpen, setStackOpen] = useState(false);
@@ -43,7 +46,7 @@ export function ErrorPage() {
 
         <div className="space-y-2">
           <p className="text-2xl sm:text-3xl font-semibold text-foreground">
-            Something went wrong
+            {t("errorPage.title")}
           </p>
         </div>
 
@@ -58,7 +61,7 @@ export function ErrorPage() {
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
             >
               {stackOpen ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
-              {stackOpen ? "Hide" : "Show"} stack trace
+              {stackOpen ? t("errorPage.hideStack") : t("errorPage.showStack")}
             </button>
 
             {stackOpen && (
@@ -71,21 +74,21 @@ export function ErrorPage() {
 
         <div className="flex items-center justify-center gap-3">
           <Button onClick={() => navigate(-1)} variant="outline">
-            Go Back
+            {t("errorPage.goBack")}
           </Button>
           <Button onClick={() => window.location.reload()}>
-            Reload Page
+            {t("errorPage.reload")}
           </Button>
         </div>
 
         <div className="pt-8 border-t border-border">
           <p className="text-sm text-muted-foreground">
-            If the problem persists, please{" "}
+            {t("errorPage.persists")}{" "}
             <a
               href="https://github.com/vladyslav005/tt/issues"
               className="text-primary hover:underline"
             >
-              open an issue
+              {t("errorPage.openIssue")}
             </a>
             .
           </p>

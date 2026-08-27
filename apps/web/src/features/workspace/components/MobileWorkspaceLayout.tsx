@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import {useOutletContext} from "react-router-dom";
 import type {AppOutletContext} from "@/app/layout/AppLayout.tsx";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
@@ -22,10 +23,10 @@ import {setTermText} from "@/shared/ui-state/termSlice.ts";
 type PrimaryTab = "editor" | "errors" | "results";
 type ResultView = "proofTree" | "evaluation" | "ast";
 
-const resultViewOptions: {value: ResultView; label: string}[] = [
-  {value: "proofTree", label: "Proof Tree"},
-  {value: "evaluation", label: "Evaluation"},
-  {value: "ast", label: "AST"},
+const resultViewOptions: {value: ResultView; labelKey: string}[] = [
+  {value: "proofTree", labelKey: "panels.proofTree"},
+  {value: "evaluation", labelKey: "panels.evaluation"},
+  {value: "ast", labelKey: "panels.ast"},
 ];
 
 export interface MobileWorkspaceLayoutProps {
@@ -36,6 +37,7 @@ export interface MobileWorkspaceLayoutProps {
 // screens — dockview's freeform panel grid has no sensible single-pane rendering,
 // so narrow viewports get this dedicated layout instead of a squeezed dockview grid.
 export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
+  const {t} = useTranslation();
   const {editorRef} = useOutletContext<AppOutletContext>();
   const dispatch = useAppDispatch();
   const buildModeActive = useAppSelector((state) => state.term.buildMode.active);
@@ -49,11 +51,11 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
     <div className={className ? `${className} flex flex-col` : "flex flex-col"}>
       <Tabs value={primaryTab} onValueChange={(v) => setPrimaryTab(v as PrimaryTab)} className="flex flex-col flex-1 min-h-0">
         <TabsList className="w-full h-11 shrink-0">
-          <TabsTrigger value="editor" className="flex-1 h-full">Editor</TabsTrigger>
+          <TabsTrigger value="editor" className="flex-1 h-full">{t("panels.editor")}</TabsTrigger>
           <TabsTrigger value="errors" className="flex-1 h-full">
-            Errors{errors && errors.length > 0 ? ` (${errors.length})` : ""}
+            {t("panels.errors")}{errors && errors.length > 0 ? ` (${errors.length})` : ""}
           </TabsTrigger>
-          <TabsTrigger value="results" className="flex-1 h-full">Results</TabsTrigger>
+          <TabsTrigger value="results" className="flex-1 h-full">{t("panels.results")}</TabsTrigger>
         </TabsList>
 
         <div className="flex-1 min-h-0 mt-2">
@@ -84,7 +86,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
                 </SelectTrigger>
                 <SelectContent>
                   {resultViewOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    <SelectItem key={option.value} value={option.value}>{t(option.labelKey)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

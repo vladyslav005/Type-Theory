@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useProofHooks} from "@/shared/hooks/processProofHooks.ts";
@@ -33,6 +34,7 @@ export function ProofTreeVisualisation({
                                          className,
                                          editorRef,
                                        }: ProofTreeVisualisationProps) {
+  const {t} = useTranslation();
   const proof = useAppSelector((state) => state.term.proof);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const {toTexTree, toLogicTree} = useProofHooks()
@@ -84,22 +86,22 @@ export function ProofTreeVisualisation({
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
-                  <TabsTrigger value="automatic">Automatic</TabsTrigger>
-                  <TabsTrigger value="build-check">Build &amp; Check</TabsTrigger>
+                  <TabsTrigger value="automatic">{t("proofTree.tabAutomatic")}</TabsTrigger>
+                  <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
                   {showLogicTab ? (
-                    <TabsTrigger value="logic">Curry–Howard correspondence</TabsTrigger>
+                    <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
                   ) : (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="inline-flex">
-                            <TabsTrigger value="logic" disabled>Logic</TabsTrigger>
+                            <TabsTrigger value="logic" disabled>{t("proofTree.tabLogicShort")}</TabsTrigger>
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
                           {hasProof
-                            ? "This term uses rules outside plain STLC, so it has no clean Curry-Howard reading"
-                            : "Only available for plain STLC — turn off the active type system extensions to use it"}
+                            ? t("proofTree.logicUnavailableNonStlc")
+                            : t("proofTree.logicUnavailableExtensions")}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -111,7 +113,7 @@ export function ProofTreeVisualisation({
                 <div className="flex items-center gap-2">
                   <Switch id="step-by-step" checked={stepByStep} onCheckedChange={setStepByStep}/>
                   <Label htmlFor="step-by-step" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Step by step
+                    {t("proofTree.stepByStep")}
                   </Label>
                 </div>
               )}
@@ -127,7 +129,7 @@ export function ProofTreeVisualisation({
                     }}
                   />
                   <Label htmlFor="highlight-on-hover" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Highlight in editor
+                    {t("proofTree.highlightInEditor")}
                   </Label>
                 </div>
               )}
@@ -138,7 +140,7 @@ export function ProofTreeVisualisation({
               variant="ghost"
               onClick={toggle}
               className="shrink-0"
-              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+              title={isFullscreen ? t("fullscreen.exit") : t("fullscreen.enter")}
             >
               {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </Button>
@@ -152,7 +154,7 @@ export function ProofTreeVisualisation({
             </div>
           ) : !hasProof ? (
             <div className="h-full p-6">
-              <EmptyState icon={ListTree} message="Type a valid expression to generate a proof tree." />
+              <EmptyState icon={ListTree} message={t("proofTree.empty")} />
             </div>
           ) : effectiveTab === "logic" ? (
             logicTree ? (
@@ -175,7 +177,7 @@ export function ProofTreeVisualisation({
               </div>
             ) : (
               <div className="h-full p-6">
-                <EmptyState icon={Info} message="This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading." />
+                <EmptyState icon={Info} message={t("proofTree.logicEmpty")} />
               </div>
             )
           ) : (

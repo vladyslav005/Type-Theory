@@ -2,6 +2,7 @@ import {useRef} from "react";
 import {Outlet, useLocation} from "react-router-dom";
 import {Topbar} from "@/app/layout/TopBar.tsx";
 import {Footer} from "@/app/layout/Footer.tsx";
+import {FeedbackButton} from "@/shared/components/FeedbackButton.tsx";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 
 export interface AppOutletContext {
@@ -18,6 +19,7 @@ export function AppLayout() {
       <Topbar editorRef={editorRef}></Topbar>
       <Outlet context={{editorRef} satisfies AppOutletContext}/>
       {!hideFooter && <Footer></Footer>}
+      <FeedbackButton/>
     </div>
   );
 }

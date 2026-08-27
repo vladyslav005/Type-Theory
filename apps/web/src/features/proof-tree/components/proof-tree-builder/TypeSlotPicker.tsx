@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import type {Kind, Term, Type} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Input} from "@/shared/components/ui/input.tsx";
@@ -211,6 +212,7 @@ export function typeToDraft(type: Type): DraftType {
 }
 
 function KindSlotPicker({value, onChange}: { value: DraftKind; onChange: (next: DraftKind) => void }) {
+  const {t} = useTranslation();
   if (value.kind === "star") {
     return (
       <span className="inline-flex items-center gap-0.5">
@@ -218,7 +220,7 @@ function KindSlotPicker({value, onChange}: { value: DraftKind; onChange: (next: 
         <button
           type="button"
           onClick={() => onChange({kind: "arrow", from: {kind: "star"}, to: {kind: "star"}})}
-          title="Turn into a kind arrow"
+          title={t("proofBuilder.turnIntoKindArrow")}
           className="font-mono text-xs px-1 rounded border border-dashed border-muted-foreground/40 hover:bg-accent"
         >
           →
@@ -247,6 +249,7 @@ interface TypeSlotPickerProps {
 }
 
 export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = true, enabledTheories = DEFAULT_TYPE_THEORY_CONFIG}: TypeSlotPickerProps) {
+  const {t} = useTranslation();
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState("");
 
@@ -255,7 +258,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
       <div className="flex flex-wrap items-center gap-1 max-w-80 p-1.5 rounded-md border border-dashed border-muted-foreground/30">
         {contextTypes.length > 0 && (
           <>
-            <span className="w-full text-[10px] uppercase tracking-wide text-muted-foreground">From context</span>
+            <span className="w-full text-[10px] uppercase tracking-wide text-muted-foreground">{t("proofBuilder.fromContext")}</span>
             {contextTypes.map((t, i) => (
               <Button
                 key={i}
@@ -384,7 +387,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
       variant="outline"
       onClick={wrapInArrow}
       className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
-      title="Turn this into an arrow type (wraps it as the left side, e.g. T → ?)"
+      title={t("proofBuilder.turnIntoArrow")}
     >
       →
     </Button>
@@ -408,7 +411,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
               ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60"
               : "border-dashed border-muted-foreground/40 text-muted-foreground italic hover:bg-accent",
           )}
-          title="Click to change"
+          title={t("proofBuilder.clickToChange")}
         >
           {value.name || "(empty)"}
         </button>
@@ -484,7 +487,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
               <Input
                 value={item.label}
                 onChange={(e) => setItems(items.map((it, j) => (j === i ? {...it, label: e.target.value} : it)))}
-                placeholder="label"
+                placeholder={t("proofBuilder.labelPlaceholder")}
                 className="h-6 w-14 text-xs font-mono px-1"
               />
               <span className="text-muted-foreground text-xs">:</span>
