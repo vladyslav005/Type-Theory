@@ -44,7 +44,9 @@ export function RuleCard({rule, className}: {rule: RuleDefinition; className?: s
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground leading-relaxed text-center">{rule.description}</p>
+        {rule.description && (
+          <p className="text-xs text-muted-foreground leading-relaxed text-center">{rule.description}</p>
+        )}
       </CardContent>
     </Card>
   );

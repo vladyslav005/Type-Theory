@@ -15,6 +15,15 @@ export interface RuleGroup {
   rules: RuleDefinition[];
 }
 
+// One row of the Curry–Howard table: a programming rule and the logic rule it
+// is the same derivation as, plus a line explaining the match.
+export interface CurryHowardPair {
+  concept: string;
+  program: RuleDefinition;
+  logic: RuleDefinition;
+  note: string;
+}
+
 // Grouped to mirror the lecture order, not the checker's internal Rule enum.
 export const TYPE_RULE_GROUPS: RuleGroup[] = [
   {
@@ -88,10 +97,12 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
   {
     id: "curry-howard",
     title: "Curry–Howard Correspondence",
-    note: "The exact same derivation as STLC typing, relabeled as natural-deduction logic — a term is a proof, its type is the proposition it proves.",
+    note: "The exact same derivation as STLC typing, relabeled as natural-deduction logic (NJ, Lecture 11) — a term is a proof, its type is the proposition it proves.",
+    // Rendered as a two-column correspondence table (see CURRY_HOWARD_CORRESPONDENCE);
+    // this list mirrors the logic side, matching the lecture's rule names.
     rules: [
       {
-        id: "Ax",
+        id: "ax",
         premisesTex: ["\\varphi \\in \\Gamma"],
         conclusionTex: "\\Gamma \\vdash \\varphi",
         description: "A hypothesis already in context proves itself — the logical reading of T-Var.",
@@ -112,19 +123,44 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
         id: "∧I",
         premisesTex: ["\\Gamma \\vdash \\varphi", "\\Gamma \\vdash \\psi"],
         conclusionTex: "\\Gamma \\vdash \\varphi \\wedge \\psi",
-        description: "Conjunction introduction — the logical reading of tuple construction.",
+        description: "Conjunction introduction — the logical reading of pairing.",
       },
       {
-        id: "∨I",
+        id: "∧E1",
+        premisesTex: ["\\Gamma \\vdash \\varphi \\wedge \\psi"],
+        conclusionTex: "\\Gamma \\vdash \\varphi",
+        description: "Left conjunction elimination — the logical reading of first projection.",
+      },
+      {
+        id: "∧E2",
+        premisesTex: ["\\Gamma \\vdash \\varphi \\wedge \\psi"],
+        conclusionTex: "\\Gamma \\vdash \\psi",
+        description: "Right conjunction elimination — the logical reading of second projection.",
+      },
+      {
+        id: "∨I1",
         premisesTex: ["\\Gamma \\vdash \\varphi"],
         conclusionTex: "\\Gamma \\vdash \\varphi \\vee \\psi",
-        description: "Disjunction introduction — the logical reading of inl/inr.",
+        description: "Left disjunction introduction — the logical reading of inl.",
+      },
+      {
+        id: "∨I2",
+        premisesTex: ["\\Gamma \\vdash \\psi"],
+        conclusionTex: "\\Gamma \\vdash \\varphi \\vee \\psi",
+        description: "Right disjunction introduction — the logical reading of inr.",
+      },
+      {
+        id: "∨E",
+        premisesTex: ["\\Gamma \\vdash \\varphi \\vee \\psi", "\\Gamma, \\varphi \\vdash \\chi", "\\Gamma, \\psi \\vdash \\chi"],
+        conclusionTex: "\\Gamma \\vdash \\chi",
+        description: "Disjunction elimination / proof by cases — the logical reading of case.",
+        wide: true,
       },
     ],
   },
   {
     id: "data-types",
-    title: "Data Types",
+    title: "Tuples, Records, Variants & Sums",
     rules: [
       {
         id: "T-Inl",
@@ -479,7 +515,7 @@ export const EVALUATION_RULE_GROUPS: RuleGroup[] = [
   },
   {
     id: "data-types-eval",
-    title: "Data Types",
+    title: "Tuples, Records, Variants & Sums",
     rules: [
       {
         id: "E-ProjTuple",
@@ -696,6 +732,163 @@ export const EVALUATION_RULE_GROUPS: RuleGroup[] = [
         description: "Reduce the term to a type-abstraction value before applying the type argument.",
       },
     ],
+  },
+];
+
+// Each entry is the *same* derivation read two ways — see the curry-howard group note.
+// Propositions use φ/ψ/χ; the programming side uses the matching term former.
+export const CURRY_HOWARD_CORRESPONDENCE: CurryHowardPair[] = [
+  {
+    concept: "Variable  ·  Hypothesis",
+    program: {
+      id: "T-Var",
+      premisesTex: ["x : \\varphi \\in \\Gamma"],
+      conclusionTex: "\\Gamma \\vdash x : \\varphi",
+      description: "Use a variable from the context.",
+    },
+    logic: {
+      id: "ax",
+      premisesTex: ["\\varphi \\in \\Gamma"],
+      conclusionTex: "\\Gamma \\vdash \\varphi",
+      description: "A hypothesis proves itself.",
+    },
+    note: "A variable in scope is an assumption you are allowed to use.",
+  },
+  {
+    concept: "Function abstraction  ·  Implication introduction",
+    program: {
+      id: "T-Abs",
+      premisesTex: ["\\Gamma, x{:}\\varphi \\vdash t : \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\lambda x{:}\\varphi.\\, t : \\varphi \\to \\psi",
+      description: "Bind a parameter, return the body.",
+    },
+    logic: {
+      id: "⇒I",
+      premisesTex: ["\\Gamma, \\varphi \\vdash \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\varphi \\Rightarrow \\psi",
+      description: "Assume φ, derive ψ, discharge the assumption.",
+    },
+    note: "Building a function is proving an implication — the parameter is the discharged assumption, the body is the proof of ψ under it.",
+  },
+  {
+    concept: "Function application  ·  Implication elimination",
+    program: {
+      id: "T-App",
+      premisesTex: ["\\Gamma \\vdash t_1 : \\varphi \\to \\psi", "\\Gamma \\vdash t_2 : \\varphi"],
+      conclusionTex: "\\Gamma \\vdash t_1\\ t_2 : \\psi",
+      description: "Apply a function to an argument.",
+    },
+    logic: {
+      id: "⇒E",
+      premisesTex: ["\\Gamma \\vdash \\varphi \\Rightarrow \\psi", "\\Gamma \\vdash \\varphi"],
+      conclusionTex: "\\Gamma \\vdash \\psi",
+      description: "Modus ponens.",
+    },
+    note: "Feeding a proof of φ to a proof of φ ⇒ ψ to obtain ψ is exactly applying a function to an argument.",
+  },
+  {
+    concept: "Pair construction  ·  Conjunction introduction",
+    program: {
+      id: "T-Pair",
+      premisesTex: ["\\Gamma \\vdash t_1 : \\varphi", "\\Gamma \\vdash t_2 : \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\langle t_1, t_2 \\rangle : \\varphi \\times \\psi",
+      description: "Build a pair.",
+    },
+    logic: {
+      id: "∧I",
+      premisesTex: ["\\Gamma \\vdash \\varphi", "\\Gamma \\vdash \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\varphi \\wedge \\psi",
+      description: "Conjunction introduction.",
+    },
+    note: "A proof of φ ∧ ψ is a pair carrying a proof of each side.",
+  },
+  {
+    concept: "First projection  ·  Conjunction elimination (left)",
+    program: {
+      id: "T-Proj",
+      premisesTex: ["\\Gamma \\vdash t : \\varphi \\times \\psi"],
+      conclusionTex: "\\Gamma \\vdash t.1 : \\varphi",
+      description: "Take the first component of a pair.",
+    },
+    logic: {
+      id: "∧E1",
+      premisesTex: ["\\Gamma \\vdash \\varphi \\wedge \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\varphi",
+      description: "From φ ∧ ψ, keep the left conjunct.",
+    },
+    note: "Pulling the left conjunct out of φ ∧ ψ is projecting the first component of the pair.",
+  },
+  {
+    concept: "Second projection  ·  Conjunction elimination (right)",
+    program: {
+      id: "T-Proj",
+      premisesTex: ["\\Gamma \\vdash t : \\varphi \\times \\psi"],
+      conclusionTex: "\\Gamma \\vdash t.2 : \\psi",
+      description: "Take the second component of a pair.",
+    },
+    logic: {
+      id: "∧E2",
+      premisesTex: ["\\Gamma \\vdash \\varphi \\wedge \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\psi",
+      description: "From φ ∧ ψ, keep the right conjunct.",
+    },
+    note: "Pulling the right conjunct out of φ ∧ ψ is projecting the second component of the pair.",
+  },
+  {
+    concept: "Left injection  ·  Disjunction introduction (left)",
+    program: {
+      id: "T-Inl",
+      premisesTex: ["\\Gamma \\vdash t : \\varphi"],
+      conclusionTex: "\\Gamma \\vdash \\text{inl}\\ t : \\varphi + \\psi",
+      description: "Tag a value into the left of a sum.",
+    },
+    logic: {
+      id: "∨I1",
+      premisesTex: ["\\Gamma \\vdash \\varphi"],
+      conclusionTex: "\\Gamma \\vdash \\varphi \\vee \\psi",
+      description: "A proof of φ already proves φ ∨ ψ.",
+    },
+    note: "inl wraps a proof of the left disjunct — proving φ ∨ ψ from φ.",
+  },
+  {
+    concept: "Right injection  ·  Disjunction introduction (right)",
+    program: {
+      id: "T-Inr",
+      premisesTex: ["\\Gamma \\vdash t : \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\text{inr}\\ t : \\varphi + \\psi",
+      description: "Tag a value into the right of a sum.",
+    },
+    logic: {
+      id: "∨I2",
+      premisesTex: ["\\Gamma \\vdash \\psi"],
+      conclusionTex: "\\Gamma \\vdash \\varphi \\vee \\psi",
+      description: "A proof of ψ already proves φ ∨ ψ.",
+    },
+    note: "inr wraps a proof of the right disjunct — proving φ ∨ ψ from ψ.",
+  },
+  {
+    concept: "Case analysis  ·  Disjunction elimination",
+    program: {
+      id: "T-Case",
+      premisesTex: [
+        "\\Gamma \\vdash t_0 : \\varphi + \\psi",
+        "\\Gamma, x{:}\\varphi \\vdash t_1 : \\chi",
+        "\\Gamma, y{:}\\psi \\vdash t_2 : \\chi",
+      ],
+      conclusionTex: "\\Gamma \\vdash \\text{case}\\ t_0\\ \\text{of}\\ \\text{inl}\\ x \\Rightarrow t_1\\ |\\ \\text{inr}\\ y \\Rightarrow t_2 : \\chi",
+      description: "Match on a sum; both branches produce the same type.",
+    },
+    logic: {
+      id: "∨E",
+      premisesTex: [
+        "\\Gamma \\vdash \\varphi \\vee \\psi",
+        "\\Gamma, \\varphi \\vdash \\chi",
+        "\\Gamma, \\psi \\vdash \\chi",
+      ],
+      conclusionTex: "\\Gamma \\vdash \\chi",
+      description: "Proof by cases.",
+    },
+    note: "Using φ ∨ ψ forces you to handle both possibilities — one branch per injection, each proving the same χ.",
   },
 ];
 
