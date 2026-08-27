@@ -242,8 +242,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     return {rule, subject, resultKind, delta: Object.fromEntries(delta), gamma: this.schemeContext.serializeGamma(), premises: [], id: subject.id};
   }
 
-  private kindNode(rule: Rule, subject: Type, resultKind: Kind, delta: ReadonlyMap<string, Kind>, premises: KindProofTree[]): KindProofTree {
-    return {rule, subject, resultKind, delta: Object.fromEntries(delta), gamma: this.schemeContext.serializeGamma(), premises, id: subject.id};
+  private kindNode(rule: Rule, subject: Type, resultKind: Kind, delta: ReadonlyMap<string, Kind>, premises: KindProofTree[], indexPremise?: ProofTree): KindProofTree {
+    return {rule, subject, resultKind, delta: Object.fromEntries(delta), gamma: this.schemeContext.serializeGamma(), premises, indexPremise, id: subject.id};
   }
 
   private expectStar(kind: Kind, subject: Type): void {
@@ -363,7 +363,15 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
         if (!typeEquals(argType, domainType)) {
           throw new Error(`Index "${termIndexToString(type.arg)}" has type ${typeToString(argType)}, but "${typeToString(type.func)}" expects an index of type ${typeToString(domainType)}`);
         }
-        return {kind: func.kind.to, proof: this.kindLeaf(Rule.KindIndexApp, type, func.kind.to, delta)};
+        const indexPremise: ProofTree = {
+          rule: type.arg.kind === "Var" ? Rule.Var : Rule.Lit,
+          term: type.arg,
+          type: argType,
+          gamma: this.schemeContext.serializeGamma(),
+          premises: [],
+          id: type.arg.id,
+        };
+        return {kind: func.kind.to, proof: this.kindNode(Rule.KindIndexApp, type, func.kind.to, delta, [func.proof], indexPremise)};
       }
 
       case "ListType": {

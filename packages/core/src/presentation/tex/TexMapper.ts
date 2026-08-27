@@ -132,6 +132,11 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     const contextSeg: TexSegment = ref ? {kind: "ref", key: ref.key} : {kind: "tex", value: "\\emptyset"};
     const contextTex = ref ? ref.shortTex : "\\emptyset";
 
+    const children = node.premises.map((p) => this.kindProofTex(p, gammaRegistry));
+    if (node.indexPremise) {
+      children.push(this.indexPremiseTex(node.indexPremise, contextSeg, contextTex, gammaRegistry));
+    }
+
     return {
       judgement: `${contextTex} \\vdash\\, ${this.typeToTex(node.subject)} : ${kindToTex(node.resultKind)}`,
       judgementSegments: [
@@ -141,8 +146,30 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       registry: gammaRegistry.registry,
       rule: this.KIND_RULE_LABELS[node.rule] ?? node.rule,
       id: node.id,
-      children: node.premises.map((p) => this.kindProofTex(p, gammaRegistry)),
+      children,
     };
+  }
+
+  // K-IndexApp's Γ ⊢ t : A premise — the index is always a Var or a literal, so this is a leaf.
+  private static indexPremiseTex(node: ProofTree, contextSeg: TexSegment, contextTex: string, gammaRegistry: GammaRegistry): TexTree {
+    const term = this.termToTex(node.term);
+    const type = this.typeToTex(node.type);
+    const rule = node.term.kind === "Var" ? "T-Var" : this.litRuleLabel(String((node.term as {value: unknown}).value));
+    return {
+      judgement: `${contextTex} \\vdash ${term} : ${type}`,
+      judgementSegments: [contextSeg, {kind: "tex", value: ` \\vdash ${term} : ${type}`}],
+      registry: gammaRegistry.registry,
+      rule,
+      id: node.id,
+      children: [],
+    };
+  }
+
+  private static litRuleLabel(value: string): string {
+    if (value === "unit" || value === "Unit") return "T-Unit";
+    if (value === "true" || value === "True" || value === "false" || value === "False") return "T-Bool";
+    if (value.startsWith('"') && value.endsWith('"')) return "T-String";
+    return "T-Nat";
   }
 
   // The (Conv) rule made visible as a leaf fact — nothing further to expand.
@@ -191,13 +218,9 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
 
   protected visitLit(node: ProofTree): TexTree {
     const value = (node.term as any).value as string
-    const rule = (value === "unit" || value === "Unit") ? "T-Unit"
-      : (value === "true" || value === "True" || value === "false" || value === "False") ? "T-Bool"
-      : (value.startsWith('"') && value.endsWith('"')) ? "T-String"
-      : "T-Nat"
     return {
       ...this.judgements(node),
-      rule,
+      rule: TexMapper.litRuleLabel(value),
       children: []
     }
   }
@@ -301,7 +324,8 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
   protected visitDummyAbstraction(node: ProofTree): TexTree {
     return {
       ...this.judgements(node),
-      rule: "T-Abs",
+      rule: "T-Wildcard",
+      ruleTooltip: "Like T-Abs, but a wildcard parameter (λ_:T. t) is never bound — the body is checked in the unchanged Γ.",
       children: this.childrenWithKind(node)
     }
   }

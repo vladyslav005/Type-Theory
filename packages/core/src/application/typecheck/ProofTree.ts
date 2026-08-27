@@ -25,6 +25,8 @@ export interface TypeConversion {
 export interface KindProofTree {
   rule: Rule
   premises: KindProofTree[]
+  // K-IndexApp's second premise (Γ ⊢ t : A) is a term-typing fact about the index, not a kinding one.
+  indexPremise?: ProofTree
   id?: string
   subject: Type
   resultKind: Kind

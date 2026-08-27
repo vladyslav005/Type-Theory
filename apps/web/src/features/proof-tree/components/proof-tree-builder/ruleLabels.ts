@@ -2,8 +2,6 @@ import {Rule} from "@vladyslav005/tt-core";
 import type {TypeTheoryConfig, TypeTheoryId} from "@vladyslav005/tt-core";
 
 // Display labels for every rule the student can pick, matching TexMapper's labels where one exists.
-// DummyAbs renders identically to Abs in TexMapper ("T-Abs") but needs its own label here so the two
-// don't look like duplicate entries in the picker.
 export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.Var]: "T-Var",
   [Rule.Abs]: "T-Abs",
@@ -20,7 +18,7 @@ export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.Record]: "T-Record",
   [Rule.RecordProjection]: "T-RecordProj",
   [Rule.Sequencing]: "T-Seq",
-  [Rule.DummyAbs]: "T-Abs (λ_:T. t)",
+  [Rule.DummyAbs]: "T-Wildcard",
   [Rule.Ascribe]: "T-Ascribe",
   [Rule.BinOp]: "T-BinOp",
   [Rule.Fix]: "T-Fix",

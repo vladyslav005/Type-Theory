@@ -7,7 +7,7 @@ import {GammaRegistry} from "@/presentation/tex/GammaRegistry.ts";
 import {TypeAliasRegistry} from "@/presentation/tex/TypeAliasRegistry.ts";
 
 const CONNECTIVE_RULES: ReadonlySet<Rule> = new Set([
-  Rule.Var, Rule.Abs, Rule.App, Rule.Tuple, Rule.TupleProjection, Rule.Inl, Rule.Inr, Rule.Case,
+  Rule.Var, Rule.Abs, Rule.DummyAbs, Rule.App, Rule.Tuple, Rule.TupleProjection, Rule.Inl, Rule.Inr, Rule.Case,
 ]);
 
 // Every rule tag that only a type-theory extension can produce: Fold/Unfold (iso-recursive),
@@ -123,6 +123,7 @@ export class LogicMapper {
       case Rule.Var:
         return this.visitVar(node);
       case Rule.Abs:
+      case Rule.DummyAbs:
         return {...this.judgements(node), rule: "⇒I", children: node.premises.map((p) => this.visit(p))};
       case Rule.App:
         return {...this.judgements(node), rule: "⇒E", children: node.premises.map((p) => this.visit(p))};
