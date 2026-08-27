@@ -76,11 +76,10 @@ export function EvaluateButton({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              onClick={autoBuild ? undefined : () => handleClick()}
-              aria-disabled={autoBuild}
-              className={cn("gap-2 shadow-none", autoBuild && "opacity-50 cursor-not-allowed")}
+              onClick={(autoBuild || disabled) ? undefined : () => handleClick()}
+              aria-disabled={autoBuild || disabled}
+              className={cn("gap-2 shadow-none", (autoBuild || disabled) && "opacity-50 cursor-not-allowed")}
               size="default"
-              disabled={disabled}
             >
               <Calculator className="h-4 w-4" />
 
@@ -91,9 +90,13 @@ export function EvaluateButton({
               </span>
             </Button>
           </TooltipTrigger>
-          {autoBuild && (
-            <TooltipContent side="bottom">Auto-build is on — this runs automatically as you type</TooltipContent>
-          )}
+          <TooltipContent side="bottom">
+            {autoBuild
+              ? "Auto-build is on — this runs automatically as you type"
+              : disabled
+                ? "Parse & type-check a valid expression first"
+                : "Reduce the expression to a normal form using the selected strategy"}
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 

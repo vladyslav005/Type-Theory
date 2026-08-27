@@ -11,6 +11,7 @@ export interface PersistedTermState {
   enabledTheories: TypeTheoryConfig;
   evaluationStrategy: EvaluationStrategy;
   fontSize: number;
+  autoBuild: boolean;
 }
 
 export function loadPersistedTermState(): PersistedTermState | undefined {
@@ -35,6 +36,7 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)
         ? parsed.fontSize
         : 14,
+      autoBuild: parsed.autoBuild === true,
     };
   } catch {
     return undefined;
@@ -47,6 +49,7 @@ export function persistTermState(state: TermState): void {
     enabledTheories: state.enabledTheories,
     evaluationStrategy: state.evaluationStrategy,
     fontSize: state.fontSize,
+    autoBuild: state.autoBuild,
   };
 
   try {

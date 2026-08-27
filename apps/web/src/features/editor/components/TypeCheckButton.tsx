@@ -45,9 +45,11 @@ export function TypeCheckButton({
             Parse & Type Check
           </Button>
         </TooltipTrigger>
-        {autoBuild && (
-          <TooltipContent side="bottom">Auto-build is on — this runs automatically as you type</TooltipContent>
-        )}
+        <TooltipContent side="bottom">
+          {autoBuild
+            ? "Auto-build is on — this runs automatically as you type"
+            : "Parse & type-check the current expression — builds the AST, proof tree and Curry–Howard view"}
+        </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
