@@ -75,7 +75,7 @@ export function useTermHooks() {
         dispatch(setErrorMarkers(typeMarkers));
       }
 
-      dispatch(setProof({proof, theories: enabledTheories}));
+      dispatch(setProof({proof}));
       dispatch(setTypeAliases(typeCheckerSLTC.getTypeAliases()));
 
     } catch (error) {

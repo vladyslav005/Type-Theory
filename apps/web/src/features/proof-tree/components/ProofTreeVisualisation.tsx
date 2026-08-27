@@ -6,7 +6,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {isPlainStlc} from "@vladyslav005/tt-core";
+import {isPlainStlc, isPlainStlcProof} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -34,7 +34,6 @@ export function ProofTreeVisualisation({
                                          editorRef,
                                        }: ProofTreeVisualisationProps) {
   const proof = useAppSelector((state) => state.term.proof);
-  const proofTheories = useAppSelector((state) => state.term.proofTheories);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const {toTexTree, toLogicTree} = useProofHooks()
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,11 +55,11 @@ export function ProofTreeVisualisation({
   }, [activeTab, editorRef]);
 
   const hasProof = proof !== null && proof !== undefined;
-  // Gate on the theories the *proof* was derived under, not the live toggle state — otherwise
-  // disabling an extension after checking a term built with it leaves a stale non-STLC proof
-  // that the Logic tab would misrender as if it were a valid Curry-Howard object.
+  // Gate on the rules the proof actually uses, not on which extensions are toggled on — a plain
+  // λ-term still has a clean Curry-Howard reading even with System F et al. enabled, and a term
+  // that reaches for a non-STLC rule doesn't regardless.
   const showLogicTab = hasProof
-    ? proofTheories !== undefined && isPlainStlc(proofTheories)
+    ? isPlainStlcProof(proof)
     : isPlainStlc(enabledTheories);
   const effectiveTab = activeTab === "logic" && !showLogicTab ? "automatic" : activeTab;
 
@@ -98,7 +97,9 @@ export function ProofTreeVisualisation({
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="bottom">
-                          Only available for plain STLC — turn off the active type system extensions to use it
+                          {hasProof
+                            ? "This term uses rules outside plain STLC, so it has no clean Curry-Howard reading"
+                            : "Only available for plain STLC — turn off the active type system extensions to use it"}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

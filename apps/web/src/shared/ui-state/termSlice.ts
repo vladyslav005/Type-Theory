@@ -29,9 +29,6 @@ export interface TermState {
   errorMarkers: ErrorMarker[];
   ast: Program | undefined;
   proof: ProofTree | undefined;
-  // Theory config the current `proof` was actually derived under — lets consumers (e.g. the
-  // Curry-Howard view) tell a stale proof apart from the live `enabledTheories` toggle state.
-  proofTheories: TypeTheoryConfig | undefined;
   typeAliases: Record<string, Type>;
   evaluation: EvaluationResult | undefined;
   enabledTheories: TypeTheoryConfig;
@@ -50,7 +47,6 @@ export const initialTermState: TermState = {
   errorMarkers: [],
   ast: undefined,
   proof: undefined,
-  proofTheories: undefined,
   typeAliases: {},
   evaluation: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
@@ -80,9 +76,8 @@ const counterSlice = createSlice({
       state.fontSize = action.payload;
     },
 
-    setProof: (state, action: { payload: { proof: ProofTree | undefined; theories?: TypeTheoryConfig } }) => {
+    setProof: (state, action: { payload: { proof: ProofTree | undefined } }) => {
       state.proof = action.payload.proof;
-      state.proofTheories = action.payload.proof ? action.payload.theories : undefined;
     },
 
     setTypeAliases: (state, action: { payload: Record<string, Type> }) => {
@@ -183,7 +178,6 @@ const counterSlice = createSlice({
       state.errorMarkers = [];
       state.ast = undefined;
       state.proof = undefined;
-      state.proofTheories = undefined;
       state.typeAliases = {};
       state.evaluation = undefined;
       state.buildMode = {active: false};

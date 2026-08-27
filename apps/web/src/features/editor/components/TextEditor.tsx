@@ -262,16 +262,16 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
       >
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3 flex-wrap flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-nowrap overflow-x-auto min-w-0 flex-1">
               {!hideActions && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <TypeCheckButton />
                   <EvaluateButton />
                 </div>
               )}
 
               <TooltipProvider>
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5">
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5 shrink-0">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center gap-2">

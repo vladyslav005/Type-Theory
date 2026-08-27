@@ -88,6 +88,7 @@ export function AstVisualisation({
     const newGraph = mapAstToFlow(viewerAst);
     newGraph.nodes.forEach((node) => {node.data.editable = true;});
     setGraph(layoutAstFlow(newGraph.nodes, newGraph.edges));
+    astEditorRef.current?.requestFitView();
   };
 
   const loadEditorAst = (program: Program) => {
@@ -95,6 +96,7 @@ export function AstVisualisation({
     const newGraph = mapAstToFlow(program);
     newGraph.nodes.forEach((node) => {node.data.editable = true;});
     setGraph(layoutAstFlow(newGraph.nodes, newGraph.edges));
+    astEditorRef.current?.requestFitView();
   };
 
   const downloadEditorAst = () => {

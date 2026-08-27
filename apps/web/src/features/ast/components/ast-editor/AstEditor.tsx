@@ -8,6 +8,7 @@ import {
   Background,
   MiniMap,
   Panel,
+  SelectionMode,
   type NodeTypes,
   type Connection,
   type Node,
@@ -37,6 +38,7 @@ import {
 } from "@/shared/components/ui/select.tsx";
 import {graphToAst} from "@/features/ast/hooks/graphToAst";
 import {layoutAstFlow} from "@/features/ast/hooks/layoutAstFlow.ts";
+import {useFitViewOnChange} from "@/features/ast/hooks/useFitViewOnChange.ts";
 import type {TyArrow, TyIdentifier} from "@vladyslav005/tt-core";
 import {TyIdentifierFlowNode} from "@/features/ast/components/ast/flow/TyIdentifierFlowNode";
 import {TyArrowFlowNode} from "@/features/ast/components/ast/flow/TyArrowFlowNode";
@@ -79,7 +81,7 @@ import {UnfoldFlowNode} from "@/features/ast/components/ast/flow/UnfoldFlowNode"
 import {RecursiveTypeFlowNode} from "@/features/ast/components/ast/flow/RecursiveTypeFlowNode";
 import {KindStarFlowNode} from "@/features/ast/components/ast/flow/KindStarFlowNode.tsx";
 import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlowNode.tsx";
-import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon} from "lucide-react";
+import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon, BoxSelect} from "lucide-react";
 
 const HANDLE_LABELS: Record<string, string> = {
   "global-decl": "decl",
@@ -115,6 +117,7 @@ export interface AstProps {
 
 export interface AstEditorHandle {
   addStandaloneNode: (nodeType: string) => void;
+  requestFitView: () => void;
 }
 
 function TypeFlowNodeDispatch(props: any) {
@@ -595,6 +598,14 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   const {resolvedTheme} = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  const [fitToken, setFitToken] = useState(0);
+  const requestFitView = useCallback(() => setFitToken((t) => t + 1), []);
+  useFitViewOnChange(fitToken);
+
+  // When on, a left-drag on empty canvas draws a marquee that selects the nodes it covers;
+  // panning moves to the middle/right mouse button. Shift-drag still marquees in either mode.
+  const [marqueeSelect, setMarqueeSelect] = useState(false);
+
   const [newNodeType_] = useState<string>("variable");
   const pendingAstRef = useRef<Program | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
@@ -916,7 +927,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
     }));
   }, [graph, newNodeType_, rf, setGraph, snapshotHistory, updateNodeTerm]);
 
-  useImperativeHandle(ref, () => ({addStandaloneNode}), [addStandaloneNode]);
+  useImperativeHandle(ref, () => ({addStandaloneNode, requestFitView}), [addStandaloneNode, requestFitView]);
 
   const autoLayout = useCallback(() => {
     snapshotHistory(graph);
@@ -981,6 +992,17 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
       nodes: prev.nodes.map((n) => ({ ...n, selected: true })),
       edges: prev.edges.map((e) => ({ ...e, selected: true })),
     }));
+  }, [setGraph]);
+
+  const clearSelection = useCallback(() => {
+    setGraph((prev) => {
+      if (!prev.nodes.some((n) => n.selected) && !prev.edges.some((e) => e.selected)) return prev;
+      return {
+        ...prev,
+        nodes: prev.nodes.map((n) => (n.selected ? { ...n, selected: false } : n)),
+        edges: prev.edges.map((e) => (e.selected ? { ...e, selected: false } : e)),
+      };
+    });
   }, [setGraph]);
 
   const clearAll = useCallback(() => {
@@ -1063,7 +1085,8 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
         edges: [...prev.edges, ...(pastedEdges as any)],
       };
     });
-  }, [graph, snapshotHistory]);
+    requestFitView();
+  }, [graph, snapshotHistory, requestFitView]);
 
   const onEditorKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -1079,6 +1102,14 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
 
       const modifier = event.ctrlKey || event.metaKey;
       const key = event.key.toLowerCase();
+
+      if (event.key === "Escape") {
+        clearSelection();
+        setNodeCtxMenu(null);
+        setConnectDraft(null);
+        setDropPopupPos(null);
+        return;
+      }
 
       if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault();
@@ -1115,7 +1146,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
         pasteSelection();
       }
     },
-    [copySelection, deleteSelection, pasteSelection, redo, selectAll, undo],
+    [clearSelection, copySelection, deleteSelection, pasteSelection, redo, selectAll, undo],
   );
 
   const onNodesDelete = useCallback((deleted: Node[]) => {
@@ -1448,6 +1479,9 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
         nodesConnectable={true}
         deleteKeyCode={null}
         panActivationKeyCode={null}
+        selectionOnDrag={marqueeSelect}
+        selectionMode={SelectionMode.Partial}
+        panOnDrag={marqueeSelect ? [1, 2] : true}
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         defaultEdgeOptions={{
           labelStyle: { fontSize: 10 },
@@ -1470,6 +1504,12 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
             <Button size="icon" variant="secondary" onClick={autoLayout} title="Auto Layout"
               className="shadow-lg hover:shadow-xl transition-shadow">
               <LayoutGrid className="h-4 w-4" />
+            </Button>
+            <Button size="icon" variant={marqueeSelect ? "secondary" : "outline"}
+              onClick={() => setMarqueeSelect((prev) => !prev)}
+              title={marqueeSelect ? "Marquee select: on (drag to box-select, middle/right-drag to pan)" : "Marquee select: off (drag to pan, Shift+drag to box-select)"}
+              className="shadow-lg hover:shadow-xl transition-shadow">
+              <BoxSelect className="h-4 w-4" />
             </Button>
             <Button size="icon" variant="secondary" onClick={() => rf.fitView()} title="Center View"
               className="shadow-lg hover:shadow-xl transition-shadow">

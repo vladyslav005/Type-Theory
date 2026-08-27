@@ -40,6 +40,7 @@ export * from "@/presentation/tex/texTree";
 export {
   LogicMapper,
   NonStlcProofError,
+  isPlainStlcProof,
 } from "@/presentation/tex/LogicMapper";
 
 export {GammaRegistry} from "@/presentation/tex/GammaRegistry";

@@ -17,6 +17,7 @@ import {VarDeclFlowNode} from "@/features/ast/components/ast/flow/VarDeclFlowNod
 import {LiteralFlowNode} from "@/features/ast/components/ast/flow/LiteralFlowNode.tsx";
 import {useMapAstToFlow} from "@/features/ast/hooks/mapAstToFlow.ts";
 import {layoutAstFlow} from "@/features/ast/hooks/layoutAstFlow.ts";
+import {useFitViewOnChange} from "@/features/ast/hooks/useFitViewOnChange.ts";
 import {TyIdentifierFlowNode} from "@/features/ast/components/ast/flow/TyIdentifierFlowNode";
 import {TyArrowFlowNode} from "@/features/ast/components/ast/flow/TyArrowFlowNode";
 import {SumTypeFlowNode} from "@/features/ast/components/ast/flow/SumTypeFlowNode";
@@ -109,6 +110,13 @@ function KindFlowNodeDispatch(props: any) {
   }
 }
 
+// Rendered inside <ReactFlow> so it can reach the flow context; re-centers the graph
+// every time a freshly built AST replaces the previous one.
+function FitViewOnAstChange({token}: {token: number}) {
+  useFitViewOnChange(token);
+  return null;
+}
+
 // Needs the ReactFlow context from its parent <Panel>.
 function CenterViewButton() {
   const rf = useReactFlow();
@@ -186,6 +194,7 @@ export function Ast({
   const { mapAstToFlow } = useMapAstToFlow()
   const { resolvedTheme } = useTheme();
   const [graph, setGraph] = useState<AstFlowGraph>({ nodes: [], edges: [] });
+  const [fitToken, setFitToken] = useState(0);
   const [showMiniMap, setShowMiniMap] = useState(false);
 
   const handleNodeMouseEnter = useCallback(
@@ -208,6 +217,7 @@ export function Ast({
     if (newGraph) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setGraph(layoutGraph);
+      setFitToken((t) => t + 1);
     }
   }, [AST]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -246,6 +256,7 @@ export function Ast({
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         fitView
       >
+        <FitViewOnAstChange token={fitToken} />
         <Panel position="top-right">
           <div className="flex gap-2">
             <MiniMapToggleButton showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />

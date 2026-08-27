@@ -272,11 +272,12 @@ export class AstPrettyPrinter {
   }
 
   private printAbs(abs: Abs): string {
-    // Parser example in repo uses: (λ x : T . (x) : T -> T)
+    // The grammar's LambdaAbstraction is `LAMBDA ID COLON type DOT term` — there is no
+    // trailing result-type annotation, so `abs.type` has no surface syntax and is dropped
+    // (a declared result type is carried by the enclosing global decl's `: type` instead).
     const body = this.printTerm(abs.body);
-    const annotatedType = abs.type ? ` : ${this.printType(abs.type)}` : "";
     const param = abs.paramType ? `${abs.param} : ${this.printType(abs.paramType)}` : abs.param;
-    return `(λ ${param} . ${body}${annotatedType})`;
+    return `(λ ${param} . ${body})`;
   }
 
   private printApp(app: App): string {
