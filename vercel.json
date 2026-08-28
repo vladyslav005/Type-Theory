@@ -1,6 +1,13 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "apps/web/dist",
+  "redirects": [
+    {
+      "source": "/about",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

@@ -508,9 +508,9 @@
     "toastCopied": "LaTeX copied to clipboard",
     "toastCopyFailed": "Couldn't copy to clipboard"
   },
-  "about": {
-    "metaTitle": "About — tt",
-    "heroTitle": "About This Project",
+  "home": {
+    "metaTitle": "tt — Interactive Typed Lambda Calculus Playground",
+    "heroTitle": "Interactive Typed Lambda Calculus Playground",
     "heroLead": "An interactive environment for experimenting with typed lambda calculus. It supports parsing, AST inspection/editing, type checking and inference, proof tree visualization, and building your own derivations by hand.",
     "heroSub": "Built as a Master Thesis project, the goal is to make the underlying theory explorable: you can see the syntax tree, derived types, and the proof steps that justify them.",
     "readThesis": "Read the Thesis (coming soon)",
@@ -556,6 +556,24 @@
       "latex": {
         "title": "LaTeX / ebproof export",
         "description": "Preview, copy, or download any proof tree as a ready-to-compile ebproof LaTeX document, matching what's on screen."
+      }
+    },
+    "ctaOpen": "Open the playground",
+    "ctaGuide": "Read the guide",
+    "exploreHeading": "Start exploring",
+    "exploreLead": "Short, hands-on pages that pair the theory with things to try in the editor.",
+    "explore": {
+      "basics": {
+        "title": "STLC Basics",
+        "desc": "Terms, types, and the Γ ⊢ t : T judgement — the foundation everything else builds on."
+      },
+      "rules": {
+        "title": "Typing & Evaluation Rules",
+        "desc": "The full inference-rule reference for type checking and reduction, with worked examples."
+      },
+      "grammar": {
+        "title": "Grammar & Symbols",
+        "desc": "The complete surface grammar and a glossary of every symbol the language uses."
       }
     }
   },

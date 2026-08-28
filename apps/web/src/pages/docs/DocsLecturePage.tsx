@@ -13,10 +13,12 @@ export function DocsLecturePage() {
   const lecture = index === -1 ? undefined : LECTURE_REGISTRY[index];
   const Content = slug ? LECTURE_CONTENT[slug] : undefined;
 
+  const hasContent = Boolean(Content);
+
   usePageMeta(
     lecture ? `${lecture.title} — tt Guide` : "Lecture not found — tt",
     lecture?.summary,
-    lecture ? {
+    lecture && hasContent ? {
       "@context": "https://schema.org",
       "@type": "TechArticle",
       headline: lecture.title,
@@ -25,6 +27,8 @@ export function DocsLecturePage() {
       inLanguage: "en",
       isPartOf: {"@type": "WebSite", name: "tt", url: SITE_URL},
     } : undefined,
+    // Unwritten lectures and the not-found state are real routes but thin — keep them out of the index.
+    {noindex: !lecture || !hasContent},
   );
 
   if (!lecture) {

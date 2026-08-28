@@ -1,67 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://type-theory.dev/main</loc>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/about</loc>
-    <priority>0.5</priority>
+    <loc>https://type-theory.dev/</loc>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs</loc>
-    <priority>0.8</priority>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs/rules</loc>
-    <priority>0.6</priority>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs/grammar</loc>
-    <priority>0.6</priority>
+    <lastmod>2026-08-28</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs/stlc-basics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/typing-derivations</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/evaluation</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/curry-howard</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/data-types</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/iso-recursive-types</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/recursion</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/let-polymorphism</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/system-f</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/system-f-omega</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/system-lambda-p</loc>
-    <priority>0.7</priority>
+    <lastmod>2026-08-28</lastmod>
   </url>
 </urlset>

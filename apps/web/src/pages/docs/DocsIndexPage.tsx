@@ -10,6 +10,7 @@ import {
 } from "@/shared/components/ui/card.tsx";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {LECTURE_REGISTRY} from "@/features/docs/lectureRegistry.ts";
+import {LECTURE_CONTENT} from "@/features/docs/lectureContentRegistry.tsx";
 import {usePageMeta, SITE_URL} from "@/shared/hooks/usePageMeta.ts";
 
 const staggerContainer = {
@@ -29,12 +30,14 @@ export function DocsIndexPage() {
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: "tt Type Theory Lectures",
-      itemListElement: LECTURE_REGISTRY.map((lecture, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
-        name: lecture.title,
-        url: `${SITE_URL}/docs/${lecture.slug}`,
-      })),
+      itemListElement: LECTURE_REGISTRY
+        .filter((lecture) => lecture.slug in LECTURE_CONTENT)
+        .map((lecture, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: lecture.title,
+          url: `${SITE_URL}/docs/${lecture.slug}`,
+        })),
     },
   );
 

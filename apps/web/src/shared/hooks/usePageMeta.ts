@@ -9,6 +9,13 @@ export const DEFAULT_META_DESCRIPTION =
   "lectures on type theory.";
 
 const STRUCTURED_DATA_ID = "page-structured-data";
+const ROBOTS_META_ID = "page-robots";
+
+export interface PageMetaOptions {
+  // Emit <meta name="robots" content="noindex, follow"> — for routes that exist but
+  // shouldn't be in the index (e.g. an unwritten lecture's placeholder).
+  noindex?: boolean;
+}
 
 // This is a single-page-app with one index.html, so without this every route would share
 // the same <title>/description/canonical — set them per page here instead. `structuredData`
@@ -18,8 +25,10 @@ export function usePageMeta(
   title: string,
   description: string = DEFAULT_META_DESCRIPTION,
   structuredData?: Record<string, unknown>,
+  options: PageMetaOptions = {},
 ) {
   const {pathname} = useLocation();
+  const {noindex = false} = options;
 
   useEffect(() => {
     document.title = title;
@@ -33,6 +42,19 @@ export function usePageMeta(
     }
     canonical.href = `${SITE_URL}${pathname}`;
 
+    let robots = document.getElementById(ROBOTS_META_ID) as HTMLMetaElement | null;
+    if (noindex) {
+      if (!robots) {
+        robots = document.createElement("meta");
+        robots.id = ROBOTS_META_ID;
+        robots.name = "robots";
+        document.head.appendChild(robots);
+      }
+      robots.content = "noindex, follow";
+    } else {
+      robots?.remove();
+    }
+
     let script = document.getElementById(STRUCTURED_DATA_ID) as HTMLScriptElement | null;
     if (structuredData) {
       if (!script) {
@@ -45,5 +67,5 @@ export function usePageMeta(
     } else {
       script?.remove();
     }
-  }, [title, description, pathname, structuredData]);
+  }, [title, description, pathname, structuredData, noindex]);
 }

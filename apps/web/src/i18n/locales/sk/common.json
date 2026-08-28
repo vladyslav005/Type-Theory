@@ -510,9 +510,9 @@
     "toastCopied": "LaTeX skopírovaný do schránky",
     "toastCopyFailed": "Nepodarilo sa skopírovať do schránky"
   },
-  "about": {
-    "metaTitle": "O projekte — tt",
-    "heroTitle": "O tomto projekte",
+  "home": {
+    "metaTitle": "tt — interaktívne prostredie pre typované lambda kalkulus",
+    "heroTitle": "Interaktívne prostredie pre typované lambda kalkulus",
     "heroLead": "Interaktívne prostredie na experimentovanie s typovaným lambda kalkulom. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
     "heroSub": "Vytvorené ako diplomová práca; cieľom je sprístupniť teóriu na skúmanie: vidíte syntaktický strom, odvodené typy a dôkazové kroky, ktoré ich zdôvodňujú.",
     "readThesis": "Prečítať diplomovú prácu (čoskoro)",
@@ -558,6 +558,24 @@
       "latex": {
         "title": "Export do LaTeX / ebproof",
         "description": "Zobrazte náhľad, skopírujte alebo stiahnite ľubovoľný strom dôkazu ako dokument LaTeX ebproof pripravený na kompiláciu, zodpovedajúci tomu, čo je na obrazovke."
+      }
+    },
+    "ctaOpen": "Otvoriť prostredie",
+    "ctaGuide": "Prečítať príručku",
+    "exploreHeading": "Začnite objavovať",
+    "exploreLead": "Krátke praktické stránky, ktoré spájajú teóriu s vecami na vyskúšanie v editore.",
+    "explore": {
+      "basics": {
+        "title": "Základy STLC",
+        "desc": "Termy, typy a úsudok Γ ⊢ t : T — základ, na ktorom stavia všetko ostatné."
+      },
+      "rules": {
+        "title": "Pravidlá typovania a vyhodnocovania",
+        "desc": "Úplná referencia inferenčných pravidiel pre typovú kontrolu a redukciu s riešenými príkladmi."
+      },
+      "grammar": {
+        "title": "Gramatika a symboly",
+        "desc": "Kompletná gramatika jazyka a slovník všetkých symbolov, ktoré jazyk používa."
       }
     }
   },

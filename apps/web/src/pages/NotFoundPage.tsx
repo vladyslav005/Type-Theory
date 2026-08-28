@@ -20,7 +20,7 @@ const staggerContainer = {
 
 export function NotFoundPage() {
   const {t} = useTranslation();
-  usePageMeta(t("notFound.metaTitle"), "The page you're looking for doesn't exist.");
+  usePageMeta(t("notFound.metaTitle"), "The page you're looking for doesn't exist.", undefined, {noindex: true});
 
   return (
     <div className="relative min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">

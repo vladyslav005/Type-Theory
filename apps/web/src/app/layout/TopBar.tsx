@@ -24,7 +24,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {key: 'editor', href: '/main'},
   {key: 'docs', href: '/docs'},
-  {key: 'about', href: '/about'},
+  {key: 'about', href: '/'},
 ];
 
 export interface TopbarProps {
@@ -55,20 +55,20 @@ export function Topbar({editorRef}: TopbarProps) {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Left: Logo and Brand */}
-          <div className="flex items-center gap-3 shrink-0">
+          <NavLink to="/" className="flex items-center gap-3 shrink-0 rounded-lg">
             <div
               className="flex items-center justify-center w-10 h-10 rounded-full bg-primary shadow-lg hover:transform-y-1 transition-transform duration-200">
               <BookType className="w-6 h-6 text-primary-foreground"/>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-foreground leading-tight">
+              <span className="block text-xl font-bold text-foreground leading-tight">
                 {t("topbar.brand")}
-              </h1>
-              <p className="text-xs text-muted-foreground leading-tight">
+              </span>
+              <span className="block text-xs text-muted-foreground leading-tight">
                 {t("topbar.tagline")}
-              </p>
+              </span>
             </div>
-          </div>
+          </NavLink>
 
           {/* Center: Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
@@ -76,6 +76,7 @@ export function Topbar({editorRef}: TopbarProps) {
               <NavLink
                 key={item.href}
                 to={item.href}
+                end={item.href === '/'}
                 className={({isActive}) => `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
               >
                 {t(`nav.${item.key}`)}
@@ -177,6 +178,7 @@ export function Topbar({editorRef}: TopbarProps) {
             <NavLink
               key={item.href}
               to={item.href}
+              end={item.href === '/'}
               onClick={() => setIsMobileMenuOpen(false)}
               className={({isActive}) => `w-full block text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 min-h-11 ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
             >

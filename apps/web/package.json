@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run check:i18n && tsc -b && vite build",
+    "build": "npm run check:i18n && npm run gen:sitemap && tsc -b && vite build",
     "check:i18n": "node scripts/check-i18n.mjs",
+    "gen:sitemap": "node scripts/gen-sitemap.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "release": "npm version patch --tag-version-prefix=web-v -m \"chore(web): release web-v%s\"",
