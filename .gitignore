@@ -42,7 +42,8 @@ packages/core/dist
 generate_parser.sh
 
 # Documentation
-desc.md
+notes/desc.md
+notes/
 
 # Environment variables
 .env

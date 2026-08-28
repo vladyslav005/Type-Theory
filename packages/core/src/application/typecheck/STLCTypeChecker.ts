@@ -445,7 +445,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       }
       const normalized = this.normalizeType(type);
       // The (Conv) rule's effect made visible — only set when reduction actually did something.
-      const conversion: TypeConversion | undefined = typeEquals(type, normalized)
+      // Compare the *surface forms*: typeEquals would β-normalize both sides and always match.
+      const conversion: TypeConversion | undefined = typeToString(type) === typeToString(normalized)
         ? undefined
         : {before: type, after: normalized};
       return {rejected: false, kindPremise: proof, conversion, normalized};
