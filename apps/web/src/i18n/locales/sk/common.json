@@ -358,7 +358,9 @@
     "clickToChange": "Kliknutím zmeníte",
     "namePlaceholder": "názov",
     "labelPlaceholder": "označenie",
-    "fromContext": "Z kontextu"
+    "fromContext": "Z kontextu",
+    "pickRule": "zvoľte pravidlo",
+    "noMatchingRules": "Žiadne zodpovedajúce pravidlá"
   },
   "conclusion": {
     "error": "Chyba",

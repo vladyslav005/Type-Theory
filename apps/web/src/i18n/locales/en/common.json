@@ -358,7 +358,9 @@
     "clickToChange": "Click to change",
     "namePlaceholder": "name",
     "labelPlaceholder": "label",
-    "fromContext": "From context"
+    "fromContext": "From context",
+    "pickRule": "pick rule",
+    "noMatchingRules": "No matching rules"
   },
   "conclusion": {
     "error": "Error",

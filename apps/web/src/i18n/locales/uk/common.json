@@ -358,7 +358,9 @@
     "clickToChange": "Натисніть, щоб змінити",
     "namePlaceholder": "ім'я",
     "labelPlaceholder": "мітка",
-    "fromContext": "З контексту"
+    "fromContext": "З контексту",
+    "pickRule": "оберіть правило",
+    "noMatchingRules": "Немає відповідних правил"
   },
   "conclusion": {
     "error": "Помилка",

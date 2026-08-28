@@ -51,7 +51,7 @@ export function RulePickerPopover({nodeId, children}: RulePickerPopoverProps) {
         />
         <div className="max-h-64 overflow-y-auto space-y-0.5">
           {filtered.length === 0 && (
-            <p className="text-xs text-muted-foreground px-2 py-1.5">No matching rules</p>
+            <p className="text-xs text-muted-foreground px-2 py-1.5">{t("proofBuilder.noMatchingRules")}</p>
           )}
           {filtered.map((rule) => (
             <button

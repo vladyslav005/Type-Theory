@@ -152,7 +152,7 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
                 highlightMistakes && studentNode.ruleCheck === "invalid" && "text-destructive",
               )}
             >
-              {ruleLabel ?? "pick rule"}
+              {ruleLabel ?? t("proofBuilder.pickRule")}
             </p>
           </RulePickerPopover>
         </div>
