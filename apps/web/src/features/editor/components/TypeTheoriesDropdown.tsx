@@ -37,7 +37,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72">
+      <DropdownMenuContent align="end" className="w-[22rem]">
         <DropdownMenuLabel>{t("extensions.heading")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
@@ -48,7 +48,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
         >
           <div className="flex flex-col gap-0.5">
             <span className="font-medium">{t("extensions.stlcLabel")}</span>
-            <span className="text-xs text-muted-foreground">{t("extensions.stlcDescription")}</span>
+            <span className="text-[13px] leading-snug text-muted-foreground">{t("extensions.stlcDescription")}</span>
           </div>
         </DropdownMenuCheckboxItem>
 
@@ -65,7 +65,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           >
             <div className="flex flex-col gap-0.5">
               <span className="font-medium">{t(`extensions.theories.${theory.id}.label`, theory.label)}</span>
-              <span className="text-xs text-muted-foreground">{t(`extensions.theories.${theory.id}.description`, theory.description)}</span>
+              <span className="text-[13px] leading-snug text-muted-foreground">{t(`extensions.theories.${theory.id}.description`, theory.description)}</span>
             </div>
           </DropdownMenuCheckboxItem>
         ))}

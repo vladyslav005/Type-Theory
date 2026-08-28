@@ -64,7 +64,7 @@ constant    ::= natural-number | '0'
               | 'true' | 'True' | 'false' | 'False'
               | 'Unit' | 'unit'
 
-kind        ::= '@'                                                (* star — the kind of ordinary types *)
+kind        ::= '@'                                                (* ∗ ("star"), the kind of ordinary types — spelled @ since * is the tuple separator *)
               | kind '->' kind                                     (* right-assoc *)
               | type '->' kind                                     (* dependent kind, System λP — e.g. Nat -> @ *)
               | '(' kind ')'

@@ -346,18 +346,18 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
   {
     id: "system-f-omega",
     title: "System Fω — Kinding",
-    note: "Kinds classify types the way types classify terms. @ (\"star\") is the kind of ordinary types; □ (\"box\") is the sort of kinds. The lecture presents Fω as a Pure Type System — one Γ ⊢ A : B judgement across all levels — so its Abst / Appl rules are exactly K-Abs / K-App read at the kind level.",
+    note: "Kinds classify types the way types classify terms. ∗ (\"star\") is the kind of ordinary types; □ (\"box\") is the sort of kinds. In tt's concrete syntax you write ∗ as @ — the * character is already taken by the tuple/product type ⟨A * B⟩. The lecture presents Fω as a Pure Type System — one Γ ⊢ A : B judgement across all levels — so its Abst / Appl rules are exactly K-Abs / K-App read at the kind level.",
     rules: [
       {
         id: "K-Base",
         premisesTex: [""],
-        conclusionTex: "\\Gamma \\vdash T : @",
-        description: "Nat, Bool, Unit, and any type variable of kind @ are already well-kinded.",
+        conclusionTex: "\\Gamma \\vdash T : \\ast",
+        description: "Nat, Bool, Unit, and any type variable of kind ∗ are already well-kinded.",
       },
       {
         id: "K-Form",
-        premisesTex: ["\\Gamma \\vdash T_1 : @", "\\Gamma \\vdash T_2 : @"],
-        conclusionTex: "\\Gamma \\vdash T_1 \\to T_2 : @",
+        premisesTex: ["\\Gamma \\vdash T_1 : \\ast", "\\Gamma \\vdash T_2 : \\ast"],
+        conclusionTex: "\\Gamma \\vdash T_1 \\to T_2 : \\ast",
         description: "Arrow (and sum/tuple/etc.) types are well-kinded when both sides are.",
       },
       {
@@ -379,13 +379,13 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
   {
     id: "system-lambda-p",
     title: "System λP (Dependent Types)",
-    note: "The result type of a Π-typed function may mention the argument itself — that's what makes it dependent.",
+    note: "The result type of a Π-typed function may mention the argument itself — that's what makes it dependent. ∗ (\"star\") is the kind of ordinary types, written @ in tt's concrete syntax (* is the tuple/product separator).",
     rules: [
       {
         id: "K-Pi",
-        premisesTex: ["\\Gamma \\vdash A : @", "\\Gamma, x{:}A \\vdash B : @"],
-        conclusionTex: "\\Gamma \\vdash \\Pi x{:}A.\\, B : @",
-        description: "A dependent function type is well-kinded when its result kind stays @ with x bound to A.",
+        premisesTex: ["\\Gamma \\vdash A : \\ast", "\\Gamma, x{:}A \\vdash B : \\ast"],
+        conclusionTex: "\\Gamma \\vdash \\Pi x{:}A.\\, B : \\ast",
+        description: "A dependent function type is well-kinded when its result kind stays ∗ with x bound to A.",
         wide: true,
       },
       {
@@ -404,7 +404,7 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
       },
       {
         id: "Conv",
-        premisesTex: ["\\Gamma \\vdash t : T", "\\Gamma \\vdash T' : @", "T \\equiv_\\beta T'"],
+        premisesTex: ["\\Gamma \\vdash t : T", "\\Gamma \\vdash T' : \\ast", "T \\equiv_\\beta T'"],
         conclusionTex: "\\Gamma \\vdash t : T'",
         description: "The rule that makes dependent typing work: if two well-formed types are β-equal (e.g. Vec[2+1] ≡ Vec[3]), a term of one also has the other.",
         wide: true,

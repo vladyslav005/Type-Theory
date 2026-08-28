@@ -131,3 +131,18 @@
 .proof-hover-highlight {
   background-color: rgb(244 241 6 / 0.42);
 }
+
+/* Background type-theory symbols — compositor-only transform loop, no JS per frame */
+@keyframes tt-symbol-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, calc(-1 * var(--tt-drift, 16px)), 0); }
+}
+
+.tt-symbol {
+  will-change: transform;
+  animation: tt-symbol-drift var(--tt-dur, 8s) ease-in-out var(--tt-delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-symbol { animation: none; }
+}

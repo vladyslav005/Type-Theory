@@ -250,32 +250,32 @@
       "letPolymorphism": {
         "label": "Let-polymorfizmus",
         "shortLabel": "Let-poly",
-        "description": "Zovšeobecní hodnoty viazané cez let (Hindley-Milner), aby sa dali použiť pri rôznych typoch"
+        "description": "Použi let-viazanú hodnotu pri viacerých typoch (Hindley–Milner)"
       },
       "typeInference": {
         "label": "Odvodzovanie typov",
         "shortLabel": "Odvodzovanie",
-        "description": "Umožňuje vynechať typ parametra lambdy kdekoľvek; odvodí sa z toho, ako sa parameter používa (vždy povolené vo vnútri hodnoty viazanej cez let)"
+        "description": "Vynechaj typ parametra λ — odvodí sa z použitia"
       },
       "isoRecursiveTypes": {
         "label": "Izo-rekurzívne typy (μ)",
         "shortLabel": "μ-typy",
-        "description": "Samoreferenčné typy (μX.T) zavádzané/eliminované explicitne cez fold/unfold, izomorfné (nie rovné) svojmu jednokrokovému rozvinutiu [X↦μX.T]T"
+        "description": "Samoreferenčné typy μX.T cez explicitné fold / unfold"
       },
       "systemF": {
         "label": "System F",
         "shortLabel": "System F",
-        "description": "Explicitný polymorfizmus cez typovú abstrakciu (ΛX. t) a typovú aplikáciu (t [T])"
+        "description": "Explicitný polymorfizmus: ΛX. t a t [T]"
       },
       "systemFOmega": {
         "label": "System Fω (typové konštruktory)",
         "shortLabel": "System Fω",
-        "description": "Typy abstrahované nad typmi (λX:K. T) a aplikované na typový argument (F T), klasifikované druhmi (K ::= * | K→K) namiesto len typov"
+        "description": "Typové konštruktory: λX:@. T a F T, klasifikované druhmi"
       },
       "systemLambdaP": {
         "label": "System λP (závislé typy)",
         "shortLabel": "System λP",
-        "description": "Typy závislé od výrazov cez Π-typy (Πx:A.M, ktorých A→B je nezávislý špeciálny prípad), a druhy indexované typom (K ::= * | T→K, napr. Nat→*)"
+        "description": "Typy závislé od výrazov: Π-typy a indexovanie Vec[n]"
       }
     }
   },
@@ -520,7 +520,7 @@
     "overviewSubtitle": "Ihrisko teórie typov na učenie, ladenie a výskum",
     "features": {
       "typeChecking": {
-        "title": "Typová kontrola (STLC)",
+        "title": "Typová kontrola",
         "description": "Kontroluje výrazy podľa pravidiel jednoducho typovaného lambda kalkulu a produkuje štruktúrované chyby."
       },
       "typeInference": {

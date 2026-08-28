@@ -14,7 +14,7 @@ export const TYPED_SYMBOLS: SymbolEntry[] = [
   {symbol: "∀", name: "Forall", meaning: "Universal type quantifier (System F) — ∀X. T", howToType: "\\forall"},
   {symbol: "Π", name: "Pi", meaning: "Dependent function type binder (System λP) — Πx:A. B", howToType: "\\Pi"},
   {symbol: "μ", name: "Mu", meaning: "Recursive type binder — μX. T", howToType: "\\mu"},
-  {symbol: "@", name: "Kind star", meaning: "The kind of ordinary types (avoids clashing with * for multiplication)", howToType: "plain @"},
+  {symbol: "@", name: "Kind star", meaning: "∗ (\"star\"), the kind of ordinary types — the rules write ∗, but the concrete syntax spells it @ because * is already the tuple/product type separator ⟨A * B⟩", howToType: "plain @"},
   {symbol: "×", name: "Times", meaning: "Alternative multiplication symbol, same as *", howToType: "\\times  (or plain *)"},
   {symbol: "α β γ ...", name: "Greek letters", meaning: "Conventional names for type variables", howToType: "\\alpha, \\beta, \\gamma, ..."},
 ];
