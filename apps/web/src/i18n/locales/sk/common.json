@@ -64,6 +64,7 @@
     "trigger": "Príklady",
     "groups": {
       "Basics": "Základy",
+      "Untyped Lambda Calculus": "Netypovaný lambda kalkul",
       "Sums & Variants": "Súčty a varianty",
       "Tuples & Records": "N-tice a záznamy",
       "Lists": "Zoznamy",
@@ -118,6 +119,14 @@
       "comparison": {
         "label": "Porovnanie",
         "description": "< <= > >= == != nad Nat, každé produkuje Bool použiteľný priamo v if"
+      },
+      "church-booleans-pairs": {
+        "label": "Churchove booleovské hodnoty a páry",
+        "description": "tru/fls kódujú booleovské hodnoty ako čisté funkcie (žiadny typ Bool), pair/fst/snd rovnako kódujú dvojicu — fst (pair tru fls) sa redukuje na tru; zapnite rozšírenie Netypovaný lambda kalkul"
+      },
+      "y-combinator-self-application": {
+        "label": "Y kombinátor: sebaaplikácia",
+        "description": "λx.f (x x) aplikuje x na seba samého — vo všetkých typovaných fragmentoch vyššie je to odmietnuté (žiadny typ nie je svojím vlastným funkčným typom), tu je to však v poriadku; Y id sa donekonečna rozvíja samo na seba (id (Y id) → Y id), takže narazí na limit krokov namiesto výsledku"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",

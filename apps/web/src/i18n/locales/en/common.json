@@ -64,6 +64,7 @@
     "trigger": "Examples",
     "groups": {
       "Basics": "Basics",
+      "Untyped Lambda Calculus": "Untyped Lambda Calculus",
       "Sums & Variants": "Sums & Variants",
       "Tuples & Records": "Tuples & Records",
       "Lists": "Lists",
@@ -118,6 +119,14 @@
       "comparison": {
         "label": "Comparison",
         "description": "< <= > >= == != over Nat, each producing a Bool usable directly in an if"
+      },
+      "church-booleans-pairs": {
+        "label": "Church Booleans & Pairs",
+        "description": "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory"
+      },
+      "y-combinator-self-application": {
+        "label": "Y Combinator: Self-Application",
+        "description": "λx.f (x x) applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; Y id unfolds to itself forever (id (Y id) → Y id), hitting the evaluator's step limit rather than a value"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",

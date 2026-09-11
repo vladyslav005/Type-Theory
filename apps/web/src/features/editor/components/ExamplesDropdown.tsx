@@ -112,6 +112,32 @@ twice ((compose identity) identity);`,
     ],
   },
   {
+    title: "Untyped Lambda Calculus",
+    items: [
+      {
+        label: "Church Booleans & Pairs",
+        description: "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory",
+        code: `tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+pair = λ f . λ s . λ b . b f s;
+fst = λ p . p tru;
+snd = λ p . p fls;
+
+fst (pair tru fls);`,
+      },
+      {
+        label: "Y Combinator: Self-Application",
+        description: "λx.f (x x) applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; Y id unfolds to itself forever (id (Y id) → Y id), hitting the evaluator's step limit rather than a value",
+        code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
+
+id = λ z . z;
+
+Y id;`,
+      },
+    ],
+  },
+  {
     title: "Sums & Variants",
     items: [
       {
