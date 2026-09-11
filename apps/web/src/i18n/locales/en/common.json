@@ -198,6 +198,14 @@
         "label": "Variants: Labeled Sum",
         "description": "an n-ary labeled sum type ([circle:Nat, square:Nat]) generalizing binary inl/inr — matched with case ... of [label=x] => ..."
       },
+      "enums-via-variants-traffic-light": {
+        "label": "Enums via Variants (Traffic Light)",
+        "description": "an enum is just a variant where every case carries the same (often trivial) payload — next cycles red -> green -> yellow -> red by case matching"
+      },
+      "optional-maybe-via-sum-types": {
+        "label": "Optional (Maybe) via Sum Types",
+        "description": "Nat+Unit encodes Option Nat — inl n is Some n, inr unit is None; getOrElse none 42 falls back to the default since there's nothing to unwrap"
+      },
       "tuples": {
         "label": "Tuples",
         "description": "a heterogeneous tuple literal <1, true, 2>, projected positionally with .2"

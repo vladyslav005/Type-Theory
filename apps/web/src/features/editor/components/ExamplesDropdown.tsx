@@ -314,6 +314,31 @@ isEven three;`,
 
 (case shape of [circle=r] => r || [square=s] => s);`,
       },
+      {
+        label: "Enums via Variants (Traffic Light)",
+        description: "an enum is just a variant where every case carries the same (often trivial) payload — next cycles red -> green -> yellow -> red by case matching",
+        code: `typedef Light = [red:Unit, yellow:Unit, green:Unit];
+
+red    = ([red=unit] as Light) : Light;
+yellow = ([yellow=unit] as Light) : Light;
+green  = ([green=unit] as Light) : Light;
+
+next = λ l : Light . (case l of [red=u] => green || [yellow=u] => red || [green=u] => yellow) : Light -> Light;
+
+next red;`,
+      },
+      {
+        label: "Optional (Maybe) via Sum Types",
+        description: "Nat+Unit encodes Option Nat — inl n is Some n, inr unit is None; getOrElse none 42 falls back to the default since there's nothing to unwrap",
+        code: `typedef OptionNat = Nat+Unit;
+
+some5 = (inl 5 as Nat+Unit) : OptionNat;
+none  = (inr unit as Nat+Unit) : OptionNat;
+
+getOrElse = λ o : OptionNat . λ d : Nat . (case o || inl x => x || inr u => d) : OptionNat -> Nat -> Nat;
+
+getOrElse none 42;`,
+      },
     ],
   },
   {

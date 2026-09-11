@@ -198,6 +198,14 @@
         "label": "Varianty: označený súčet",
         "description": "n-árny označený súčtový typ ([circle:Nat, square:Nat]) zovšeobecňujúci binárne inl/inr — porovnáva sa cez case ... of [label=x] => ..."
       },
+      "enums-via-variants-traffic-light": {
+        "label": "Enumy cez varianty (Semafor)",
+        "description": "enum je len variant, kde každý prípad nesie rovnaký (často triviálny) obsah — next cykluje red -> green -> yellow -> red porovnávaním prípadov"
+      },
+      "optional-maybe-via-sum-types": {
+        "label": "Voliteľná hodnota (Maybe) cez sumové typy",
+        "description": "Nat+Unit kóduje Option Nat — inl n je Some n, inr unit je None; getOrElse none 42 sa vráti k predvolenej hodnote, keďže nie je čo rozbaliť"
+      },
       "tuples": {
         "label": "N-tice",
         "description": "heterogénny literál n-tice <1, true, 2>, projektovaný pozične cez .2"

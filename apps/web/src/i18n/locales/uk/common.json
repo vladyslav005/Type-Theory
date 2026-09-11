@@ -198,6 +198,14 @@
         "label": "Варіанти: мічена сума",
         "description": "n-арний мічений тип-сума ([circle:Nat, square:Nat]), що узагальнює бінарні inl/inr — зіставляється через case ... of [label=x] => ..."
       },
+      "enums-via-variants-traffic-light": {
+        "label": "Переліки через варіанти (Світлофор)",
+        "description": "перелік — це просто варіант, де кожен випадок несе однакове (часто тривіальне) навантаження — next циклічно переходить red -> green -> yellow -> red через зіставлення випадків"
+      },
+      "optional-maybe-via-sum-types": {
+        "label": "Опціональне значення (Maybe) через суми",
+        "description": "Nat+Unit кодує Option Nat — inl n це Some n, inr unit це None; getOrElse none 42 повертає значення за замовчуванням, бо розпаковувати нічого"
+      },
       "tuples": {
         "label": "Кортежі",
         "description": "гетерогенний літерал кортежу <1, true, 2>, проєкція за позицією через .2"
