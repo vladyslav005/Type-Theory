@@ -364,6 +364,7 @@
   },
   "conclusion": {
     "error": "Chyba",
+    "shadow": "Prekrytie",
     "hideProof": "Skryť dôkaz {{name}}",
     "showProof": "Zobraziť dôkaz {{name}}",
     "variable": "premennej"
@@ -461,6 +462,8 @@
   "astEditor": {
     "insertNode": "Vložiť uzol",
     "selectNode": "Vybrať uzol",
+    "searchNodeTypes": "Hľadať typy uzlov…",
+    "noMatchingNodeTypes": "Žiadne zodpovedajúce typy uzlov",
     "cancel": "Zrušiť",
     "undo": "Späť (Ctrl+Z)",
     "redo": "Znova (Ctrl+Y)",

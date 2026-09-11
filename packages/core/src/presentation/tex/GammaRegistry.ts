@@ -7,6 +7,9 @@ export interface SetRegistration {
   key: string;
   shortTex: string;
   fullTex: string;
+  // Set only when this Γ rebinds a name already present in its parent (shadowing) — the UI
+  // surfaces this as a hover tooltip, since the underlined recipe entry alone is easy to miss.
+  shadowTooltip?: string;
 }
 
 // A context entry is either a term binding (x : T) or a type-variable/kind binding (X : K) — the
@@ -56,25 +59,36 @@ export class GammaRegistry {
       ? this.bySignature.get(this.signature(parentGamma)) ?? null
       : null;
 
-    const parentKeys = new Set(parentEntries.map(([name]) => name));
-    const added = entries.filter(([name]) => !parentKeys.has(name));
-    const addedTex = added.length > 0
-      ? `\\{ ${added.map(([name, t]) => `${name} : ${entryToTex(t)}`).join(", ")} \\}`
-      : null;
+    // A name present in both but bound to a different value (shadowing) counts as changed too —
+    // otherwise a rebound variable is invisible in the recipe (looks like child == parent).
+    const parentNames = new Set(parentEntries.map(([name]) => name));
+    const parentValues = new Map(parentEntries.map(([name, t]) => [name, entryToTex(t)]));
+    const changed = entries.filter(([name, t]) => parentValues.get(name) !== entryToTex(t));
+    const freshEntries = changed.filter(([name]) => !parentNames.has(name));
+    const reboundEntries = changed.filter(([name]) => parentNames.has(name));
 
     const index = this.nextIndex++;
     const key = `G${index}`;
     const shortTex = `\\Gamma_{${index}}`;
 
-    const recipe = parentReg && addedTex
-      ? `${parentReg.shortTex} \\cup ${addedTex}`
-      : addedTex
-        ? addedTex
-        : parentReg
-          ? parentReg.shortTex
-          : `\\{ ${entries.map(([name, t]) => `${name} : ${entryToTex(t)}`).join(", ")} \\}`;
+    // A rebound entry is underlined in the recipe (visual emphasis) rather than given its own
+    // notation — it stays inside the same ∪ {...} set as a fresh entry, just marked.
+    const changedTexParts = [...freshEntries, ...reboundEntries].map(([name, t]) => {
+      const label = `${name} : ${entryToTex(t)}`;
+      return parentNames.has(name) ? `\\underline{${label}}` : label;
+    });
 
-    const registration: SetRegistration = {key, shortTex, fullTex: `${shortTex} = ${recipe}`};
+    const recipe = changedTexParts.length > 0
+      ? (parentReg ? `${parentReg.shortTex} \\cup \\{ ${changedTexParts.join(", ")} \\}` : `\\{ ${changedTexParts.join(", ")} \\}`)
+      : parentReg
+        ? parentReg.shortTex
+        : `\\{ ${entries.map(([name, t]) => `${name} : ${entryToTex(t)}`).join(", ")} \\}`;
+
+    const shadowTooltip = reboundEntries.length > 0
+      ? reboundEntries.map(([name, t]) => `${name} : ${entryToTex(t)} shadows the earlier ${name} : ${parentValues.get(name)}`).join("; ")
+      : undefined;
+
+    const registration: SetRegistration = {key, shortTex, fullTex: `${shortTex} = ${recipe}`, shadowTooltip};
     this.bySignature.set(signature, registration);
     this.registry[key] = {shortTex: registration.shortTex, fullTex: registration.fullTex};
     return registration;

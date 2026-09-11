@@ -456,11 +456,12 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
         gammaSeg,
       ],
       registry: {...this.gammaRegistry.registry, ...this.typeAliasRegistry.registry},
-      rule: ""
+      rule: "",
+      contextTooltip: gammaRef?.shadowTooltip,
     }
   }
 
-  private judgements(node: ProofTree): Pick<TexTree, "judgement" | "judgementSegments" | "registry"> {
+  private judgements(node: ProofTree): Pick<TexTree, "judgement" | "judgementSegments" | "registry" | "contextTooltip"> {
     const gammaRef = this.gammaRegistry.refFor(node.gamma)
     const term = TexMapper.termToTex(node.term)
     const type = TexMapper.typeToTex(node.type)
@@ -488,6 +489,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       judgement: `${gammaTex} \\vdash ${term} : ${type}`,
       judgementSegments,
       registry: {...this.gammaRegistry.registry, ...this.typeAliasRegistry.registry},
+      contextTooltip: gammaRef?.shadowTooltip,
     }
   }
 

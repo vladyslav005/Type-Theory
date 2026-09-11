@@ -4,7 +4,7 @@ import type {TexTree} from "@vladyslav005/tt-core";
 import {MathJax} from "better-react-mathjax";
 import "./ProofTree.css"
 import {cn} from "@/shared/lib/utils.ts";
-import {AlertCircle, ChevronDown, ChevronRight} from "lucide-react";
+import {AlertCircle, ChevronDown, ChevronRight, Layers} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {
   ContextMenu,
@@ -29,6 +29,7 @@ export const Conclusion = (props: ConclusionCenterProps) => {
   const {t} = useTranslation();
   const {isDef = false, isExpanded = false, onToggle} = props;
   const containsError = props.node.error !== undefined;
+  const shadowTooltip = props.node.contextTooltip;
   const hasSegments = !!props.node.judgementSegments;
   const hasExpandableGamma = !hasSegments && !!props.node.judgementFull;
   const hasContextMenu = containsError || hasExpandableGamma;
@@ -87,6 +88,19 @@ export const Conclusion = (props: ConclusionCenterProps) => {
               className="max-w-sm text-xs leading-relaxed border-destructive/30 bg-destructive/5 text-destructive dark:bg-destructive/10"
             >
               {props.node.error}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+      {shadowTooltip && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Layers className="h-3 w-3 shrink-0 text-muted-foreground/60 cursor-help" aria-label={t("conclusion.shadow")}/>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-sm text-xs leading-relaxed">
+              {shadowTooltip}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

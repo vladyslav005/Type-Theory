@@ -364,6 +364,7 @@
   },
   "conclusion": {
     "error": "Error",
+    "shadow": "Shadowing",
     "hideProof": "Hide proof of {{name}}",
     "showProof": "Show proof of {{name}}",
     "variable": "variable"
@@ -461,6 +462,8 @@
   "astEditor": {
     "insertNode": "Insert node",
     "selectNode": "Select node",
+    "searchNodeTypes": "Search node types…",
+    "noMatchingNodeTypes": "No matching node types",
     "cancel": "Cancel",
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Y)",

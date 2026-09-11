@@ -392,6 +392,7 @@ export class LetPolymorphismTexMapper {
         ],
         registry,
         rule: "",
+        contextTooltip: gammaRef?.shadowTooltip,
       };
     }
 
@@ -411,12 +412,13 @@ export class LetPolymorphismTexMapper {
       ],
       registry,
       rule: "",
+      contextTooltip: gammaRef?.shadowTooltip,
     };
   }
 
   // ===== judgement construction ============================================
 
-  private judgements(node: InferProofTree): Pick<TexTree, "judgement" | "judgementSegments" | "registry"> {
+  private judgements(node: InferProofTree): Pick<TexTree, "judgement" | "judgementSegments" | "registry" | "contextTooltip"> {
     const gammaRef = this.gammaRefFor(node);
     const constraintsRef = this.constraintsRefFor(node);
     const term = TexMapper.termToTex(node.term);
@@ -450,6 +452,7 @@ export class LetPolymorphismTexMapper {
       judgement: `${gammaTex} \\vdash ${term} : ${type} \\mid ${constraintsTex}`,
       judgementSegments,
       registry: this.registry,
+      contextTooltip: gammaRef?.shadowTooltip,
     };
   }
 }

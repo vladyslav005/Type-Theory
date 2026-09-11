@@ -3,6 +3,7 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 import { ContextMenu as ContextMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 
 function ContextMenu({
   ...props
@@ -95,8 +96,10 @@ function ContextMenuContent({
   className,
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Content>) {
+  // Same fullscreen-portal fix as Popover — see useFullscreenElement.
+  const fullscreenElement = useFullscreenElement();
   return (
-    <ContextMenuPrimitive.Portal>
+    <ContextMenuPrimitive.Portal container={fullscreenElement}>
       <ContextMenuPrimitive.Content
         data-slot="context-menu-content"
         className={cn(

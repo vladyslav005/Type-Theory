@@ -23,6 +23,8 @@ export interface TexTree {
   rule: string
   // Hover text for the rule-name label — currently only set on a Conv node.
   ruleTooltip?: string
+  // Hover text explaining that this node's Γ shadows a name from its parent's Γ.
+  contextTooltip?: string
   children?: TexTree[]
   id?: string
   // The source span of the original term this node was derived from, for hover-to-highlight in the text editor.

@@ -364,6 +364,7 @@
   },
   "conclusion": {
     "error": "Помилка",
+    "shadow": "Затінення",
     "hideProof": "Сховати доведення {{name}}",
     "showProof": "Показати доведення {{name}}",
     "variable": "змінної"
@@ -461,6 +462,8 @@
   "astEditor": {
     "insertNode": "Вставити вузол",
     "selectNode": "Обрати вузол",
+    "searchNodeTypes": "Пошук типів вузлів…",
+    "noMatchingNodeTypes": "Немає відповідних типів вузлів",
     "cancel": "Скасувати",
     "undo": "Скасувати (Ctrl+Z)",
     "redo": "Повторити (Ctrl+Y)",

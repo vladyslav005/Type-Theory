@@ -3,6 +3,7 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 
 function Select({
   ...props
@@ -55,8 +56,10 @@ function SelectContent({
   align = "center",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  // Same fullscreen-portal fix as Popover — see useFullscreenElement.
+  const fullscreenElement = useFullscreenElement();
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={fullscreenElement}>
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(

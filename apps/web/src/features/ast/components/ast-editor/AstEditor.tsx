@@ -30,13 +30,8 @@ import {VarDeclFlowNode} from "@/features/ast/components/ast/flow/VarDeclFlowNod
 import {TypeAliasDeclFlowNode} from "@/features/ast/components/ast/flow/TypeAliasDeclFlowNode.tsx";
 import {LiteralFlowNode} from "@/features/ast/components/ast/flow/LiteralFlowNode.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/components/ui/select.tsx";
+import {Input} from "@/shared/components/ui/input.tsx";
+import {Popover, PopoverContent, PopoverTrigger} from "@/shared/components/ui/popover.tsx";
 import {graphToAst} from "@/features/ast/hooks/graphToAst";
 import {layoutAstFlow} from "@/features/ast/hooks/layoutAstFlow.ts";
 import {useFitViewOnChange} from "@/features/ast/hooks/useFitViewOnChange.ts";
@@ -624,6 +619,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
 
   const [addOnDropChoice, setAddOnDropChoice] = useState<string | null>(null);
   const [addOnDropOpen, setAddOnDropOpen] = useState(false);
+  const [addOnDropSearch, setAddOnDropSearch] = useState("");
   const addOnDropTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const [nodeCtxMenu, setNodeCtxMenu] = useState<null | { x: number; y: number; nodeId: string }>(null);
@@ -1405,24 +1401,51 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
           style={{ left: dropPopupPos.x, top: dropPopupPos.y }}
         >
           <div className="text-xs text-muted-foreground mb-2">{t("astEditor.insertNode")}</div>
-          <Select
-            value={addOnDropChoice ?? undefined}
+          <Popover
             open={addOnDropOpen}
-            onOpenChange={setAddOnDropOpen}
-            onValueChange={(v) => {
-              setAddOnDropChoice(v);
-              commitAddNodeOnDrop(v);
+            onOpenChange={(o) => {
+              setAddOnDropOpen(o);
+              if (!o) setAddOnDropSearch("");
             }}
           >
-            <SelectTrigger ref={addOnDropTriggerRef as any} className="w-44">
-              <SelectValue placeholder={t("astEditor.selectNode")} />
-            </SelectTrigger>
-            <SelectContent>
-              {connectDraft && VALID_NODE_TYPES_BY_KIND[connectDraft.kind].map((t) => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <PopoverTrigger asChild>
+              <Button ref={addOnDropTriggerRef} variant="outline" className="w-44 justify-start font-normal">
+                {addOnDropChoice ?? t("astEditor.selectNode")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-2" align="start">
+              <Input
+                autoFocus
+                value={addOnDropSearch}
+                onChange={(e) => setAddOnDropSearch(e.target.value)}
+                placeholder={t("astEditor.searchNodeTypes")}
+                className="h-8 text-xs mb-2"
+              />
+              <div className="max-h-64 overflow-y-auto space-y-0.5">
+                {(() => {
+                  const options = connectDraft ? VALID_NODE_TYPES_BY_KIND[connectDraft.kind] : [];
+                  const q = addOnDropSearch.trim().toLowerCase();
+                  const filtered = q ? options.filter((nt) => nt.toLowerCase().includes(q)) : options;
+                  if (filtered.length === 0) {
+                    return <p className="text-xs text-muted-foreground px-2 py-1.5">{t("astEditor.noMatchingNodeTypes")}</p>;
+                  }
+                  return filtered.map((nt) => (
+                    <button
+                      key={nt}
+                      type="button"
+                      onClick={() => {
+                        setAddOnDropChoice(nt);
+                        commitAddNodeOnDrop(nt);
+                      }}
+                      className="w-full text-left font-mono text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors"
+                    >
+                      {nt}
+                    </button>
+                  ));
+                })()}
+              </div>
+            </PopoverContent>
+          </Popover>
           <div className="mt-2 flex justify-end">
             <Button
               size="sm"
@@ -1432,6 +1455,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
                 setDropPopupPos(null);
                 setAddOnDropChoice(null);
                 setAddOnDropOpen(false);
+                setAddOnDropSearch("");
               }}
             >
               {t("astEditor.cancel")}

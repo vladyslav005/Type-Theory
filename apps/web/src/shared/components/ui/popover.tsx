@@ -2,6 +2,7 @@ import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 
 function Popover({
   ...props
@@ -21,8 +22,11 @@ function PopoverContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+  // While the app is in native fullscreen, a body-default portal renders outside the painted
+  // subtree and is invisible — target the fullscreen element instead (falls back to body).
+  const fullscreenElement = useFullscreenElement();
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={fullscreenElement}>
       <PopoverPrimitive.Content
         data-slot="popover-content"
         align={align}

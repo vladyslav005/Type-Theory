@@ -1,6 +1,6 @@
 import {type ProofTree, Rule, type TypeScheme} from "@vladyslav005/tt-core";
 import type {Type} from "@vladyslav005/tt-core";
-import {termIndexEquals} from "@vladyslav005/tt-core";
+import {termIndexEquals, TexMapper} from "@vladyslav005/tt-core";
 
 export interface ContextBinding {
   name: string;
@@ -25,12 +25,18 @@ export interface StudentProofNode {
   premises: StudentProofNode[];
 }
 
+// A key present in both gammas but bound to a different type (shadowing) still counts as
+// "new" — comparing by name alone would miss a rebound variable entirely.
+function isRebound(name: string, value: Type | TypeScheme, parentGamma: Record<string, Type | TypeScheme>): boolean {
+  return !(name in parentGamma) || TexMapper.typeToTex(value) !== TexMapper.typeToTex(parentGamma[name]);
+}
+
 export function buildStudentNode(
   answer: ProofTree,
   revealed: boolean,
   parentGamma: Record<string, Type | TypeScheme> = answer.gamma,
 ): StudentProofNode {
-  const requiresContextBuild = Object.keys(answer.gamma).some((k) => !(k in parentGamma));
+  const requiresContextBuild = Object.entries(answer.gamma).some(([k, v]) => isRebound(k, v, parentGamma));
   // A T-Var's "jump to definition" premise has its own unrelated scope.
   const childParentGamma = (p: ProofTree) => answer.rule === Rule.Var ? p.gamma : answer.gamma;
   return {
@@ -225,10 +231,9 @@ export function diffAgainstAnswer(
     student.typeCheck = flexibleTypeEquals(student.writtenType, answer.type) ? "valid" : "invalid";
   }
   if (student.requiresContextBuild && student.writtenBindings !== undefined) {
-    const expected: ContextBinding[] = Object.keys(answer.gamma)
-      .filter((k) => !(k in parentGamma))
-      .map((k) => {
-        const bound = answer.gamma[k];
+    const expected: ContextBinding[] = Object.entries(answer.gamma)
+      .filter(([k, v]) => isRebound(k, v, parentGamma))
+      .map(([k, bound]) => {
         const type = bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound;
         return {name: k, type};
       });

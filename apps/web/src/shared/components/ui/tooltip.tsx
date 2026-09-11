@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 
 function TooltipProvider({
   delayDuration = 1500,
@@ -22,8 +23,10 @@ function TooltipContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
+  // Same fullscreen-portal fix as Popover — see useFullscreenElement.
+  const fullscreenElement = useFullscreenElement();
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal container={fullscreenElement}>
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
