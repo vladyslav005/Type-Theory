@@ -36,7 +36,9 @@
     "evaluate": "Evaluate",
     "evaluateNeedsProof": "Parse & type-check a valid expression first",
     "evaluateTooltip": "Reduce the expression to a normal form using the selected strategy",
-    "chooseStrategy": "Choose evaluation strategy"
+    "chooseStrategy": "Choose evaluation strategy",
+    "run": "Run",
+    "runTooltip": "Parse, type-check, and evaluate in one step using the selected strategy"
   },
   "editor": {
     "autoBuild": "Auto-build",

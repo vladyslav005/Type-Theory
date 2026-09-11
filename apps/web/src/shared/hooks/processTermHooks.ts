@@ -28,9 +28,13 @@ export function useTermHooks() {
     return typeCheckerSLTC.check(ast);
   }
 
-  function parseAndTypeCheck(termOverride?: string): void {
+  // Returns the parsed Program on success (a term to evaluate exists, whether or not it
+  // type-checked cleanly) so a caller can chain straight into evaluateTerm without waiting for
+  // the next render — dispatch updates the store immediately, but this hook's own `ast`/`proof`
+  // closures only refresh once React re-renders, which is too late for a same-tick chain.
+  function parseAndTypeCheck(termOverride?: string): Program | undefined {
     const term = termOverride ?? termText;
-    if (!term) return
+    if (!term) return undefined;
 
     let ast: Program | undefined = undefined
     let proof: ProofTree | undefined = undefined
@@ -50,15 +54,15 @@ export function useTermHooks() {
       }
       dispatch(setAst(undefined))
       dispatch(setProof({proof: undefined}))
-      return;
+      return undefined;
     }
 
     try {
-      if (!ast) return;
+      if (!ast) return undefined;
 
       if (!ast.term) {
         dispatch(pushProcessingError(new Error("No main expression — write a term after the declarations")));
-        return;
+        return undefined;
       }
 
       typeCheckerSLTC.setTheories(enabledTheories);
@@ -78,23 +82,28 @@ export function useTermHooks() {
       dispatch(setProof({proof}));
       dispatch(setTypeAliases(typeCheckerSLTC.getTypeAliases()));
 
+      return ast;
     } catch (error) {
       console.error("Error typechecking term:", error);
       dispatch(pushProcessingError(new Error(`${(error as Error).message}`)));
       dispatch(setProof({proof: undefined}));
+      return undefined;
     }
   }
 
 
-  function evaluateTerm(strategy: EvaluationStrategy) {
-    if (!ast) return;
+  // `astOverride` lets a caller that just ran parseAndTypeCheck synchronously (in the same tick)
+  // pass its result straight through, instead of reading this hook's own (not-yet-updated) `ast`.
+  function evaluateTerm(strategy: EvaluationStrategy, astOverride?: Program) {
+    const targetAst = astOverride ?? ast;
+    if (!targetAst) return;
 
     // Otherwise a stale message from a previous run (a different strategy, a since-fixed
     // divergence, ...) sticks around forever, piling up alongside whatever this run produces.
     dispatch(clearProcessingErrors());
 
     try {
-      const evaluationResult = evaluator.evaluate(ast, strategy);
+      const evaluationResult = evaluator.evaluate(targetAst, strategy);
       dispatch(setEvaluation(evaluationResult));
 
       evaluationResult.errors?.forEach((e) =>

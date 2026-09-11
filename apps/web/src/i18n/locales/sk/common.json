@@ -36,7 +36,9 @@
     "evaluate": "Vyhodnotiť",
     "evaluateNeedsProof": "Najprv analyzujte a typovo skontrolujte platný výraz",
     "evaluateTooltip": "Zredukovať výraz do normálnej formy pomocou zvolenej stratégie",
-    "chooseStrategy": "Zvoliť stratégiu vyhodnocovania"
+    "chooseStrategy": "Zvoliť stratégiu vyhodnocovania",
+    "run": "Spustiť",
+    "runTooltip": "Analyzovať, typovo skontrolovať a vyhodnotiť v jednom kroku pomocou zvolenej stratégie"
   },
   "editor": {
     "autoBuild": "Auto-build",

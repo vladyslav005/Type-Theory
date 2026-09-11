@@ -5,7 +5,8 @@ import {useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
 import {useTheme} from "next-themes";
 import {cn} from "@/shared/lib/utils.ts";
 import {TypeCheckButton} from "@/features/editor/components/TypeCheckButton.tsx";
-import { motion } from "framer-motion";
+import {RunButton} from "@/features/editor/components/RunButton.tsx";
+import { AnimatePresence, motion } from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
@@ -80,6 +81,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   // condition, so auto-build doesn't try to evaluate declarations with no final term yet.
   const proof = useAppSelector((state) => state.term.proof);
   const fontSize = useAppSelector((state) => state.term.fontSize);
+  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const monacoTheme = useMemo(() => {
@@ -266,10 +268,32 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3 flex-nowrap overflow-x-auto min-w-0 flex-1">
               {!hideActions && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <TypeCheckButton />
-                  <EvaluateButton />
-                </div>
+                <AnimatePresence mode="wait" initial={false}>
+                  {isUntyped ? (
+                    <motion.div
+                      key="run-button"
+                      initial={{opacity: 0, width: 0}}
+                      animate={{opacity: 1, width: "auto"}}
+                      exit={{opacity: 0, width: 0}}
+                      transition={{duration: 0.25, ease: "easeOut"}}
+                      className="flex items-center gap-2 shrink-0 overflow-hidden"
+                    >
+                      <RunButton />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="two-buttons"
+                      initial={{opacity: 0, width: 0}}
+                      animate={{opacity: 1, width: "auto"}}
+                      exit={{opacity: 0, width: 0}}
+                      transition={{duration: 0.25, ease: "easeOut"}}
+                      className="flex items-center gap-2 shrink-0 overflow-hidden"
+                    >
+                      <TypeCheckButton />
+                      <EvaluateButton />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               )}
 
               <TooltipProvider>
