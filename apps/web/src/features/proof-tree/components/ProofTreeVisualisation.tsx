@@ -56,7 +56,9 @@ export function ProofTreeVisualisation({
     return () => editor?.highlightRange?.(null);
   }, [activeTab, editorRef]);
 
-  const hasProof = proof !== null && proof !== undefined;
+  // Untyped lambda calculus has no type derivation to visualize — always show the
+  // placeholder here, even if `check()` produced a (typeless) proof or an error.
+  const hasProof = !enabledTheories.untyped && proof !== null && proof !== undefined;
   // Gate on the rules the proof actually uses, not on which extensions are toggled on — a plain
   // λ-term still has a clean Curry-Howard reading even with System F et al. enabled, and a term
   // that reaches for a non-STLC rule doesn't regardless.
@@ -154,7 +156,7 @@ export function ProofTreeVisualisation({
             </div>
           ) : !hasProof ? (
             <div className="h-full p-6">
-              <EmptyState icon={ListTree} message={t("proofTree.empty")} />
+              <EmptyState icon={ListTree} message={t(enabledTheories.untyped ? "proofTree.emptyUntyped" : "proofTree.empty")} />
             </div>
           ) : effectiveTab === "logic" ? (
             logicTree ? (

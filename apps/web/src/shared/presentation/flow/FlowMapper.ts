@@ -147,13 +147,15 @@ export class AstFlowMapper extends AstVisitor<void> {
   protected visitTermDecl(node: FunDecl): void {
     this.pushNode(node);
 
-    this.visit((node as any).type);
-    this.pushEdge({
-      id: `e-${node.id}-type-${(node as any).type.id}`,
-      source: node.id,
-      sourceHandle: "type",
-      target: (node as any).type.id,
-    });
+    if (node.type) {
+      this.visit(node.type);
+      this.pushEdge({
+        id: `e-${node.id}-type-${node.type.id}`,
+        source: node.id,
+        sourceHandle: "type",
+        target: node.type.id,
+      });
+    }
 
     this.visit(node.value);
     this.pushEdge({

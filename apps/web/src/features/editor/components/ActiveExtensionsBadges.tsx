@@ -10,6 +10,7 @@ const SWATCH: Record<TypeTheoryId, string> = {
   systemF: "border-indigo-300 bg-indigo-100 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-900 dark:text-indigo-300",
   systemFOmega: "border-violet-300 bg-violet-100 text-violet-700 dark:border-violet-700 dark:bg-violet-900 dark:text-violet-300",
   systemLambdaP: "border-rose-300 bg-rose-100 text-rose-700 dark:border-rose-700 dark:bg-rose-900 dark:text-rose-300",
+  untyped: "border-pink-300 bg-pink-100 text-pink-700 dark:border-pink-700 dark:bg-pink-900 dark:text-pink-300",
 };
 
 const STLC_SWATCH = "border-border bg-muted text-muted-foreground";
@@ -21,9 +22,11 @@ export function ActiveExtensionsBadges({className}: {className?: string}) {
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1", className)}>
-      <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none ${STLC_SWATCH}`}>
-        STLC
-      </span>
+      {!enabledTheories.untyped && (
+        <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none ${STLC_SWATCH}`}>
+          STLC
+        </span>
+      )}
       {enabled.map((theory) => (
         <span
           key={theory.id}

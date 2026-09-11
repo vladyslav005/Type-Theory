@@ -64,6 +64,7 @@ import {
   type Substitution,
   type TypeConversion,
   type TypeScheme,
+  UNTYPED_TYPE,
 } from "@/application/typecheck/ProofTree.ts";
 import {TypeInferenceEngine} from "@/application/typecheck/TypeInferenceEngine.ts";
 import {TypeCheckError} from "@/application/typecheck/TypeCheckError.ts";
@@ -198,6 +199,18 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       constraints: premises.flatMap((p) => p.constraints),
       error: msg,
     };
+  }
+
+  // Hard-stops a construct that has no meaning in pure untyped lambda calculus (everything
+  // except Var/untyped-Abs/App) — called before visiting children, same style as visitLet's
+  // own theory gate.
+  private rejectIfUntyped(node: ASTNode, rule: Rule, construct: string): InferProofTree | undefined {
+    if (!this.theories.untyped) return undefined;
+    return this.reject(
+      node,
+      rule,
+      `"${construct}" is not part of untyped lambda calculus — encode it as a pure λ-term (see the lecture's Church encodings), or disable "Untyped lambda calculus" to use it`,
+    );
   }
 
   // Solves + applies a proof's own constraints immediately, rather than deferring to check() —
@@ -414,6 +427,13 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   // Kind-checks an (already expandAliases'd) type used as a term annotation. A no-op for any type
   // that doesn't mention a λω̲ construct; otherwise gates on the theory flag and requires kind *.
   private checkKindAnnotation(type: Type): { rejected: false; kindPremise?: KindProofTree; conversion?: TypeConversion; normalized: Type } | { rejected: true; message: string } {
+    if (this.theories.untyped) {
+      return {
+        rejected: true,
+        message: `Type annotations are not part of untyped lambda calculus — remove the ": T"/"[T]"/"as T", or disable "Untyped lambda calculus" to use types`,
+      };
+    }
+
     const usesFOmega = containsTypeConstructor(type);
     const usesLambdaP = containsLambdaPConstruct(type);
 
@@ -476,6 +496,20 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitTermDecl(node: FunDecl): InferProofTree {
+    if (!node.type) {
+      if (!this.inferring && !this.theories.untyped) {
+        const msg = `Declaration "${node.name}" needs a type annotation (${node.name} = value : T;) — omit it only when the Type inference theory or Untyped lambda calculus is enabled`;
+        this.errorBuffer.push(new TypeCheckError(msg, node.pos));
+        this.schemeContext.add(node.name, {kind: "TypeScheme", vars: [], type: ERROR_TYPE});
+        return {} as InferProofTree;
+      }
+
+      const valueProof = this.solveLocally(this.visit(node.value));
+      this.schemeContext.add(node.name, {kind: "TypeScheme", vars: [], type: valueProof.type});
+      this.globalProofs.set(node.name, valueProof);
+      return {} as InferProofTree;
+    }
+
     const expanded = this.expandAliases(node.type);
     const kindCheck = this.checkKindAnnotation(expanded);
     if (kindCheck.rejected) {
@@ -549,6 +583,19 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitVar(node: Var): InferProofTree {
+    if (this.theories.untyped) {
+      if (!this.schemeContext.has(node.name)) {
+        const contextKeys = Object.keys(this.schemeContext.serializeGamma());
+        const contextHint = contextKeys.length > 0
+          ? ` (in-scope variables: ${contextKeys.join(", ")})`
+          : " (context is empty)";
+        const msg = `Variable "${node.name}" is not in scope${contextHint}`;
+        this.errorBuffer.push(new TypeCheckError(msg, node.pos));
+        return {rule: Rule.Var, term: node, type: UNTYPED_TYPE, gamma: this.schemeContext.serializeGamma(), premises: [], constraints: [], error: msg};
+      }
+      return {rule: Rule.Var, term: node, type: UNTYPED_TYPE, gamma: this.schemeContext.serializeGamma(), premises: [], constraints: []};
+    }
+
     const scheme = this.schemeContext.get(node.name);
     const rule = this.inferring ? (this.varOrigin.get(node.name) ?? Rule.CtVar) : Rule.Var;
 
@@ -595,6 +642,23 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   protected visitAbs(node: Abs): InferProofTree {
     const outerGamma = this.schemeContext.serializeGamma();
+
+    if (this.theories.untyped) {
+      if (node.paramType) {
+        return this.reject(
+          node,
+          Rule.Abs,
+          `Type annotations are not part of untyped lambda calculus — remove the ":T", or disable "Untyped lambda calculus" to use types`,
+        );
+      }
+      const bodyProof = this.withBinding(
+        node.param,
+        {kind: "TypeScheme", vars: [], type: UNTYPED_TYPE},
+        Rule.CtVar,
+        () => this.visit(node.body),
+      );
+      return {rule: Rule.Abs, term: node, type: UNTYPED_TYPE, gamma: outerGamma, premises: [bodyProof], constraints: []};
+    }
 
     if (!node.paramType && !this.inferring) {
       return this.reject(
@@ -649,6 +713,10 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const funcProof = this.visit(node.func);
     const argProof = this.visit(node.arg);
 
+    if (this.theories.untyped) {
+      return {rule: Rule.App, term: node, type: UNTYPED_TYPE, gamma: this.schemeContext.serializeGamma(), premises: [funcProof, argProof], constraints: []};
+    }
+
     // System λP: applying a Π-typed function substitutes the argument term itself into the
     // dependent result type — something the generic metavar/unification path can't express.
     const funcType = this.normalizeType(funcProof.type);
@@ -702,6 +770,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitLit(node: Lit): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Lit, Rule.CtLit), `literal ("${node.value}")`);
+    if (gate) return gate;
+
     const litType = this.literalType(node.value);
 
     return {
@@ -715,6 +786,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitIfCondition(node: IfCondition): InferProofTree {
+    const gate = this.rejectIfUntyped(node, Rule.If, "if/then/else");
+    if (gate) return gate;
+
     const boolType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Bool"};
     const unitType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Unit"};
 
@@ -821,6 +895,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitCase(node: Case): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Case, Rule.CtCase), "case ... || inl ... || inr ...");
+    if (gate) return gate;
+
     const scrutineeProof = this.visit(node.variable);
 
     if (scrutineeProof.type.kind !== "SumType") {
@@ -860,6 +937,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitVariantCase(node: VariantCase): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.VariantCase, Rule.CtVariantCase), "case ... of [l=x] => ...");
+    if (gate) return gate;
+
     const scrutineeProof = this.visit(node.variable);
 
     if (scrutineeProof.type.kind !== "VariantType") {
@@ -991,6 +1071,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitRecordProjection(node: RecordProjection): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.RecordProjection, Rule.CtRecordProjection), "record projection (.label)");
+    if (gate) return gate;
+
     const recordProof = this.visit(node.term);
 
     if (recordProof.type.kind !== "RecordType") {
@@ -1015,6 +1098,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitRecord(node: Record): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Record, Rule.CtRecord), "record (<l=t, ...>)");
+    if (gate) return gate;
+
     const fieldProofs = node.fields.map((f) => this.visit(f.term));
 
     const recordType: RecordType = {
@@ -1034,6 +1120,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitTuple(node: Tuple): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Tuple, Rule.CtTuple), "tuple (<t1, t2, ...>)");
+    if (gate) return gate;
+
     const elementProofs = node.elements.map((el) => this.visit(el));
 
     const tupleType: TupleType = {
@@ -1053,6 +1142,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitTupleProjection(node: TupleProjection): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.TupleProjection, Rule.CtTupleProjection), "tuple projection (.N)");
+    if (gate) return gate;
+
     const tupleProof = this.visit(node.tuple);
 
     if (tupleProof.type.kind !== "TupleType") {
@@ -1076,6 +1168,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitSequencing(node: Sequencing): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Sequencing, Rule.CtSequencing), "sequencing (t1; t2)");
+    if (gate) return gate;
+
     const unitType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Unit"};
 
     const firstProof = this.visit(node.first);
@@ -1126,6 +1221,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitBinOp(node: BinOp): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.BinOp, Rule.CtBinOp), `arithmetic/comparison ("${node.operator}")`);
+    if (gate) return gate;
+
     const natType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"};
     const boolType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Bool"};
 
@@ -1148,6 +1246,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitFix(node: Fix): InferProofTree {
+    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.Fix, Rule.CtFix), "fix");
+    if (gate) return gate;
+
     const termProof = this.visit(node.term);
     const resultType = this.engine.freshTyMetaVar();
     const expectedType: TyArrow = {

@@ -154,4 +154,8 @@ export enum Rule {
 // Sentinel type used as a placeholder when the real type cannot be inferred due to an error.
 export const ERROR_TYPE: TyIdentifier = { kind: "TyIdentifier", id: "error-sentinel", name: "?" };
 
+// Placeholder "type" for Var/Abs/App under the Untyped lambda calculus theory, which has no
+// type system at all — never fed into unification, just a stand-in so ProofTree.type is total.
+export const UNTYPED_TYPE: TyIdentifier = { kind: "TyIdentifier", id: "untyped-sentinel", name: "Untyped" };
+
 

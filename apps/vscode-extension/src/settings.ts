@@ -11,6 +11,7 @@ const TYPE_THEORY_IDS: TypeTheoryId[] = [
 	"systemF",
 	"systemFOmega",
 	"systemLambdaP",
+	"untyped",
 ];
 
 export function getTypeTheoryConfig(): TypeTheoryConfig {

@@ -16,7 +16,7 @@ export interface FunDecl extends Node {
   kind: "FunDecl"
   name: string
   value: Term
-  type: Type
+  type?: Type
 
 }
 

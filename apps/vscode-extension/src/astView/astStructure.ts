@@ -86,10 +86,14 @@ export function childrenOf(node: AnyAstNode): ChildEntry[] {
 
 		// ---- GlobalDecl ----
 		case "VarDecl":
-		case "FunDecl":
 			return [
 				{ child: node.value, label: "value" },
 				{ child: node.type, label: "type" },
+			];
+		case "FunDecl":
+			return [
+				{ child: node.value, label: "value" },
+				...(node.type ? [{ child: node.type, label: "type" }] : []),
 			];
 		case "TypeAliasDecl":
 			return [{ child: node.type, label: "type" }];

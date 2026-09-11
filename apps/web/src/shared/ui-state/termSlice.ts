@@ -92,8 +92,23 @@ const counterSlice = createSlice({
       state.evaluation = action.payload;
     },
 
+    // "Untyped lambda calculus" is XOR'd with every other theory — it needs to genuinely
+    // bypass STLC's type-checking rather than compose with it, so enabling it clears the
+    // other 6, and enabling any of the other 6 clears it.
     setTheoryEnabled: (state, action: { payload: { id: TypeTheoryId; enabled: boolean } }) => {
-      state.enabledTheories[action.payload.id] = action.payload.enabled;
+      const {id, enabled} = action.payload;
+      if (!enabled) {
+        state.enabledTheories[id] = false;
+        return;
+      }
+      if (id === "untyped") {
+        (Object.keys(state.enabledTheories) as TypeTheoryId[]).forEach((key) => {
+          state.enabledTheories[key] = false;
+        });
+      } else {
+        state.enabledTheories.untyped = false;
+      }
+      state.enabledTheories[id] = true;
     },
 
     enterBuildMode: (state) => {

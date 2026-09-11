@@ -276,6 +276,11 @@
         "label": "System λP (závislé typy)",
         "shortLabel": "System λP",
         "description": "Typy závislé od výrazov: Π-typy a indexovanie Vec[n]"
+      },
+      "untyped": {
+        "label": "Netypovaný lambda kalkul",
+        "shortLabel": "Netypovaný",
+        "description": "Len premenné, abstrakcia a aplikácia — všetko ostatné je odmietnuté. Vypne všetky ostatné rozšírenia."
       }
     }
   },
@@ -323,6 +328,7 @@
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
+    "emptyUntyped": "Netypovaný lambda kalkul nemá typovú derivačiu na zobrazenie.",
     "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie."
   },
   "proofTreeCanvas": {

@@ -112,6 +112,11 @@
           "default": false,
           "description": "Types that depend on terms via Π-types (Πx:A.M, of which A→B is the non-dependent special case), and kinds indexed by a type."
         },
+        "tt.typeTheories.untyped": {
+          "type": "boolean",
+          "default": false,
+          "description": "Only variables, abstraction, and application are allowed — everything else is rejected. Enabling it disables every other type theory extension."
+        },
         "tt.evaluationStrategy": {
           "type": "string",
           "enum": [

@@ -77,8 +77,11 @@ export class AstPrettyPrinter {
   }
 
   private printFunDecl(decl: FunDecl): string {
-    // Grammar's GlobalFunctionDeclaration is `ID EQ term COLON type SEMI`.
-    return `${decl.name} = ${this.printTerm(decl.value)} : ${this.printType(decl.type)}`;
+    // Grammar's GlobalFunctionDeclaration is `ID EQ term COLON type SEMI`; the
+    // UntypedGlobalFunctionDeclaration alternative (`ID EQ term SEMI`) omits the type.
+    return decl.type
+      ? `${decl.name} = ${this.printTerm(decl.value)} : ${this.printType(decl.type)}`
+      : `${decl.name} = ${this.printTerm(decl.value)}`;
   }
 
   private printTypeAliasDecl(decl: TypeAliasDecl): string {

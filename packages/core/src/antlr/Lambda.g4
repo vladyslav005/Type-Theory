@@ -8,6 +8,7 @@ expression
 globalDecl
     : ID COLON type SEMI                      # GlobalVariableDeclaration
     | ID EQ term COLON type SEMI           # GlobalFunctionDeclaration
+    | ID EQ term SEMI                          # UntypedGlobalFunctionDeclaration
     | TYPEDEF ID EQ type SEMI                 # TypeAliasDeclaration
     | TYPEDEF ID COLON kind SEMI               # TypeConstructorDeclaration
     ;

@@ -276,6 +276,11 @@
         "label": "System λP (dependent types)",
         "shortLabel": "System λP",
         "description": "Types that depend on terms: Π-types and Vec[n]-style indexing"
+      },
+      "untyped": {
+        "label": "Untyped lambda calculus",
+        "shortLabel": "Untyped",
+        "description": "Only variables, abstraction, and application — everything else is rejected. Disables every other extension."
       }
     }
   },
@@ -323,6 +328,7 @@
     "stepByStep": "Step by step",
     "highlightInEditor": "Highlight in editor",
     "empty": "Type a valid expression to generate a proof tree.",
+    "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
     "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading."
   },
   "proofTreeCanvas": {

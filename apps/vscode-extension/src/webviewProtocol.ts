@@ -65,6 +65,7 @@ export interface ProofTreePayload {
 export type HostToProofTreeMessage =
 	| { type: "render"; payload: ProofTreePayload }
 	| { type: "invalid"; messages: string[] }
+	| { type: "empty"; message: string }
 	| { type: "clear" };
 export type ProofTreeToHostMessage =
 	| { type: "ready" }

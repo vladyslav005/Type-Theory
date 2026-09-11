@@ -22,6 +22,8 @@ window.addEventListener("message", (event: MessageEvent<HostToProofTreeMessage>)
 		render(msg.payload);
 	} else if (msg.type === "invalid") {
 		renderInvalid(msg.messages);
+	} else if (msg.type === "empty") {
+		renderEmpty(msg.message);
 	} else {
 		fitObserver?.disconnect();
 		root.replaceChildren();
@@ -43,6 +45,18 @@ function renderInvalid(messages: string[]): void {
 		error.textContent = message;
 		container.appendChild(error);
 	}
+	root.appendChild(container);
+}
+
+function renderEmpty(message: string): void {
+	fitObserver?.disconnect();
+	root.replaceChildren();
+	const container = document.createElement("div");
+	container.className = "tt-fallback";
+	const note = document.createElement("div");
+	note.className = "tt-note";
+	note.textContent = message;
+	container.appendChild(note);
 	root.appendChild(container);
 }
 

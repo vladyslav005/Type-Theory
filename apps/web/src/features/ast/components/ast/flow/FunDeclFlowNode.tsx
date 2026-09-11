@@ -45,7 +45,7 @@ export function FunDeclFlowNode({data, selected}: { data: FunDeclNodeData; selec
             <div className="h-9 rounded-lg border border-dashed border-green-300 dark:border-green-700 bg-background/30"/>
           ) : (
             <div className="rounded-lg border border-green-200 dark:border-green-800 bg-background px-3 py-2">
-              <code className="text-xs font-mono text-foreground/80">{typeToString(data.term.type)}</code>
+              <code className="text-xs font-mono text-foreground/80">{data.term.type ? typeToString(data.term.type) : "(untyped)"}</code>
             </div>
           )}
           <LimitedHandle type="source" position={Position.Right} id="type" maxConnections={1}

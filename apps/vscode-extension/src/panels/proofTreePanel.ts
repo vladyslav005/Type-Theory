@@ -89,6 +89,10 @@ export class ProofTreePanel {
 			this.post({ type: "clear" });
 			return;
 		}
+		if (analysis.theories.untyped) {
+			this.post({ type: "empty", message: "Untyped lambda calculus has no type derivation to show." });
+			return;
+		}
 
 		const { texTree, effectiveMode, logicAvailable } = computeTexTree(
 			analysis.proof,

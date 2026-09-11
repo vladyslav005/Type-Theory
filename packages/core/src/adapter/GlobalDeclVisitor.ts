@@ -8,6 +8,7 @@ import {
   type GlobalVariableDeclarationContext,
   type TypeAliasDeclarationContext,
   type TypeConstructorDeclarationContext,
+  type UntypedGlobalFunctionDeclarationContext,
 } from "@/antlr/LambdaParser.ts";
 import type {GlobalDecl, Term} from "@/domain/ast";
 
@@ -32,6 +33,16 @@ export class GlobalDeclVisitor extends LambdaVisitor<GlobalDecl> {
       name: ctx.ID().getText(),
       value: new TermBuilderVisitor().visit(ctx.term()),
       type: new TypeBuilderVisitor().visit(ctx.type_())
+    }
+  }
+
+  visitUntypedGlobalFunctionDeclaration = (ctx: UntypedGlobalFunctionDeclarationContext): GlobalDecl => {
+    return {
+      kind: "FunDecl",
+      id: crypto.randomUUID(),
+      pos: sourcePos(ctx),
+      name: ctx.ID().getText(),
+      value: new TermBuilderVisitor().visit(ctx.term()),
     }
   }
 

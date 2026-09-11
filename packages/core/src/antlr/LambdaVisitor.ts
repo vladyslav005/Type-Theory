@@ -7,6 +7,7 @@ import {ParseTreeVisitor} from 'antlr4';
 import { ExprContext } from "./LambdaParser.js";
 import { GlobalVariableDeclarationContext } from "./LambdaParser.js";
 import { GlobalFunctionDeclarationContext } from "./LambdaParser.js";
+import { UntypedGlobalFunctionDeclarationContext } from "./LambdaParser.js";
 import { TypeAliasDeclarationContext } from "./LambdaParser.js";
 import { TypeConstructorDeclarationContext } from "./LambdaParser.js";
 import { FoldContext } from "./LambdaParser.js";
@@ -90,6 +91,13 @@ export default class LambdaVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitGlobalFunctionDeclaration?: (ctx: GlobalFunctionDeclarationContext) => Result;
+	/**
+	 * Visit a parse tree produced by the `UntypedGlobalFunctionDeclaration`
+	 * labeled alternative in `LambdaParser.globalDecl`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitUntypedGlobalFunctionDeclaration?: (ctx: UntypedGlobalFunctionDeclarationContext) => Result;
 	/**
 	 * Visit a parse tree produced by the `TypeAliasDeclaration`
 	 * labeled alternative in `LambdaParser.globalDecl`.
