@@ -1,23 +1,23 @@
-export type TypeTheoryId = "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes" | "untyped";
+export type TypeTheoryId = "untyped" | "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes";
 
 export interface TypeTheoryConfig {
+  untyped: boolean;
   letPolymorphism: boolean;
   typeInference: boolean;
   systemF: boolean;
   systemFOmega: boolean;
   systemLambdaP: boolean;
   isoRecursiveTypes: boolean;
-  untyped: boolean;
 }
 
 export const DEFAULT_TYPE_THEORY_CONFIG: TypeTheoryConfig = {
+  untyped: false,
   letPolymorphism: false,
   typeInference: false,
   systemF: false,
   systemFOmega: false,
   systemLambdaP: false,
   isoRecursiveTypes: false,
-  untyped: false,
 };
 
 // No extension on top of plain STLC — the Curry-Howard logic view only has a clean reading for this fragment.
@@ -33,6 +33,12 @@ export interface TypeTheoryDescriptor {
 }
 
 export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
+  {
+    id: "untyped",
+    label: "Untyped lambda calculus",
+    shortLabel: "Untyped",
+    description: "Only variables, abstraction, and application — everything else (type annotations, if/arithmetic/literals, tuples/records, fix) is rejected. Selecting it disables every other extension.",
+  },
   {
     id: "letPolymorphism",
     label: "Let-polymorphism",
@@ -68,11 +74,5 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
     label: "System λP (dependent types)",
     shortLabel: "System λP",
     description: "Types that depend on terms via Π-types (Πx:A.M, of which A→B is the non-dependent special case), and kinds indexed by a type (K ::= * | T→K, e.g. Nat→*)",
-  },
-  {
-    id: "untyped",
-    label: "Untyped lambda calculus",
-    shortLabel: "Untyped",
-    description: "Only variables, abstraction, and application — everything else (type annotations, if/arithmetic/literals, tuples/records, fix) is rejected. Selecting it disables every other extension.",
   },
 ];

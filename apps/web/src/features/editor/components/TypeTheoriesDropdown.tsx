@@ -21,6 +21,9 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const isUntyped = enabledTheories.untyped;
+  const untypedTheory = TYPE_THEORIES.find((theory) => theory.id === "untyped")!;
+  const composableTheories = TYPE_THEORIES.filter((theory) => theory.id !== "untyped");
 
   return (
     <DropdownMenu>
@@ -42,9 +45,10 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
         <DropdownMenuSeparator />
 
         <DropdownMenuCheckboxItem
-          checked
-          disabled
+          checked={!isUntyped}
+          disabled={!isUntyped}
           onSelect={(e) => e.preventDefault()}
+          onCheckedChange={() => dispatch(setTheoryEnabled({ id: "untyped", enabled: false }))}
         >
           <div className="flex flex-col gap-0.5">
             <span className="font-medium">{t("extensions.stlcLabel")}</span>
@@ -52,9 +56,21 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           </div>
         </DropdownMenuCheckboxItem>
 
+        <DropdownMenuCheckboxItem
+          checked={isUntyped}
+          disabled={isUntyped}
+          onSelect={(e) => e.preventDefault()}
+          onCheckedChange={(checked) => dispatch(setTheoryEnabled({ id: "untyped", enabled: checked }))}
+        >
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium">{t("extensions.theories.untyped.label", untypedTheory.label)}</span>
+            <span className="text-[13px] leading-snug text-muted-foreground">{t("extensions.theories.untyped.description", untypedTheory.description)}</span>
+          </div>
+        </DropdownMenuCheckboxItem>
+
         <DropdownMenuSeparator />
 
-        {TYPE_THEORIES.map((theory) => (
+        {composableTheories.map((theory) => (
           <DropdownMenuCheckboxItem
             key={theory.id}
             checked={enabledTheories[theory.id]}

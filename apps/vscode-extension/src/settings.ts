@@ -5,13 +5,13 @@ const TYPE_THEORY_SECTION = "tt.typeTheories";
 const STRATEGY_KEY = "tt.evaluationStrategy";
 
 const TYPE_THEORY_IDS: TypeTheoryId[] = [
+	"untyped",
 	"letPolymorphism",
 	"typeInference",
 	"isoRecursiveTypes",
 	"systemF",
 	"systemFOmega",
 	"systemLambdaP",
-	"untyped",
 ];
 
 export function getTypeTheoryConfig(): TypeTheoryConfig {
