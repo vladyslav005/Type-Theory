@@ -62,6 +62,8 @@
   },
   "examples": {
     "trigger": "Príklady",
+    "searchPlaceholder": "Hľadať príklady...",
+    "noResults": "Žiadne príklady nezodpovedajú hľadaniu.",
     "groups": {
       "Basics": "Základy",
       "Untyped Lambda Calculus": "Netypovaný lambda kalkul",
@@ -124,9 +126,13 @@
         "label": "Churchove booleovské hodnoty a páry",
         "description": "tru/fls kódujú booleovské hodnoty ako čisté funkcie (žiadny typ Bool), pair/fst/snd rovnako kódujú dvojicu — fst (pair tru fls) sa redukuje na tru; zapnite rozšírenie Netypovaný lambda kalkul"
       },
-      "y-combinator-self-application": {
-        "label": "Y kombinátor: sebaaplikácia",
-        "description": "λx.f (x x) aplikuje x na seba samého — vo všetkých typovaných fragmentoch vyššie je to odmietnuté (žiadny typ nie je svojím vlastným funkčným typom), tu je to však v poriadku; Y id sa donekonečna rozvíja samo na seba (id (Y id) → Y id), takže narazí na limit krokov namiesto výsledku"
+      "y-combinator-diverges-under-call-by-value": {
+        "label": "Y kombinátor: diverguje pri Call-by-value",
+        "description": "x x aplikuje x na seba samého — vo všetkých typovaných fragmentoch vyššie je to odmietnuté (žiadny typ nie je svojím vlastným funkčným typom), tu je to však v poriadku; pri Call-by-value sa musí argument x x najprv zredukovať na hodnotu, no nikdy sa nezredukuje úplne (stále sa len rozvíja na id (x x) znova) — Y id sa naozaj nikdy neskončí, rastie krok po kroku, kým nenarazí na limit krokov evaluátora; pri prepnutí na Normal order namiesto toho donekonečna cykluje s konštantnou veľkosťou, stále bez dosiahnutia hodnoty — pozrite príklad Z kombinátora pre štandardnú opravu"
+      },
+      "z-combinator-the-call-by-value-safe-fix": {
+        "label": "Z kombinátor: oprava bezpečná pre Call-by-value",
+        "description": "rovnaká sebaaplikácia ako pri Y, no obalená do navyše λy, ktoré ju odloží, kým nie je skutočne potrebná — Z id sa v pár krokoch ustáli na hodnote pri Call-by-value/Call-by-name namiesto toho, aby divergovalo ako čistý Y-kombinátor; pri prepnutí na Normal order sa namiesto toho úplne rozvinie a narazí na limit krokov evaluátora"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",

@@ -1,12 +1,16 @@
-import { BookOpen, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { BookOpen, ChevronDown, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 
@@ -127,13 +131,22 @@ snd = λ p . p fls;
 fst (pair tru fls);`,
       },
       {
-        label: "Y Combinator: Self-Application",
-        description: "λx.f (x x) applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; Y id unfolds to itself forever (id (Y id) → Y id), hitting the evaluator's step limit rather than a value",
+        label: "Y Combinator: Diverges under Call-by-value",
+        description: "x x applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; under Call-by-value the argument x x must be reduced to a value before it can be substituted, but it's never done reducing (it just keeps unfolding into id (x x) again) — Y id genuinely never terminates, growing one step at a time until the evaluator's step limit; switch to Normal order and it instead cycles at constant size forever, still never reaching a value — see the Z-combinator example for the standard fix",
         code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
 
 id = λ z . z;
 
 Y id;`,
+      },
+      {
+        label: "Z Combinator: The Call-by-value-safe Fix",
+        description: "same self-application as Y, but wrapped in an extra λy that defers it until actually needed — Z id settles to a value in a few steps under Call-by-value/Call-by-name instead of diverging like the plain Y-combinator does; switch to Normal order and it fully unfolds instead, hitting the evaluator's step limit",
+        code: `Z = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+
+id = λ z . z;
+
+Z id;`,
       },
     ],
   },
@@ -439,10 +452,46 @@ interface ExamplesDropdownProps {
 const exampleSlug = (label: string) =>
   label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
+// One flat {group, item} row per example, precomputed once — used only by the search filter;
+// browsing (no query) renders EXAMPLE_GROUPS directly as per-group submenus instead.
+const FLAT_EXAMPLES = EXAMPLE_GROUPS.flatMap((group) =>
+  group.items.map((item) => ({ group, item, slug: exampleSlug(item.label) })),
+);
+
 export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdownProps) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const results = useMemo(() => {
+    if (!normalizedQuery) return [];
+    return FLAT_EXAMPLES.filter(({ group, item, slug }) => {
+      const label = t(`examples.items.${slug}.label`, item.label).toLowerCase();
+      const description = t(`examples.items.${slug}.description`, item.description).toLowerCase();
+      const groupTitle = t(`examples.groups.${group.title}`, group.title).toLowerCase();
+      return label.includes(normalizedQuery) || description.includes(normalizedQuery) || groupTitle.includes(normalizedQuery);
+    });
+  }, [normalizedQuery, t]);
+
+  // Radix's DropdownMenu.Content doesn't expose onOpenAutoFocus publicly (only onCloseAutoFocus) —
+  // it always auto-focuses the first item itself on open. Steal focus back to the search input one
+  // frame later, after that default focus has already landed.
+  useEffect(() => {
+    if (!open) return;
+    const id = requestAnimationFrame(() => searchRef.current?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [open]);
+
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery("");
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
@@ -456,24 +505,58 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72 max-h-[70vh] overflow-y-auto">
-        {EXAMPLE_GROUPS.map((group, groupIndex) => (
-          <div key={group.title}>
-            {groupIndex > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel>{t(`examples.groups.${group.title}`, group.title)}</DropdownMenuLabel>
-            {group.items.map((ex) => {
-              const slug = exampleSlug(ex.label);
-              return (
-              <DropdownMenuItem key={ex.label} onClick={() => onSelect(ex.code)}>
+      <DropdownMenuContent align="end" className="w-80 max-h-[70vh] overflow-y-auto">
+        <div className="sticky top-0 z-10 -mx-1 -mt-1 mb-1 bg-popover px-1 pt-1 pb-1.5">
+          <div className="relative">
+            <Search className="pointer-events-none absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              ref={searchRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder={t("examples.searchPlaceholder")}
+              className="h-8 pl-7 text-sm"
+            />
+          </div>
+        </div>
+        <DropdownMenuSeparator />
+
+        {normalizedQuery ? (
+          results.length > 0 ? (
+            results.map(({ group, item, slug }) => (
+              <DropdownMenuItem key={slug} onClick={() => onSelect(item.code)}>
                 <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{t(`examples.items.${slug}.label`, ex.label)}</span>
-                  <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, ex.description)}</span>
+                  <span className="font-medium">{t(`examples.items.${slug}.label`, item.label)}</span>
+                  <span className="text-[11px] tracking-wide text-muted-foreground/70 uppercase">
+                    {t(`examples.groups.${group.title}`, group.title)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, item.description)}</span>
                 </div>
               </DropdownMenuItem>
-              );
-            })}
-          </div>
-        ))}
+            ))
+          ) : (
+            <div className="px-2 py-6 text-center text-sm text-muted-foreground">{t("examples.noResults")}</div>
+          )
+        ) : (
+          EXAMPLE_GROUPS.map((group) => (
+            <DropdownMenuSub key={group.title}>
+              <DropdownMenuSubTrigger>{t(`examples.groups.${group.title}`, group.title)}</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="max-h-[70vh] w-72 overflow-y-auto">
+                {group.items.map((ex) => {
+                  const slug = exampleSlug(ex.label);
+                  return (
+                    <DropdownMenuItem key={ex.label} onClick={() => onSelect(ex.code)}>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium">{t(`examples.items.${slug}.label`, ex.label)}</span>
+                        <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, ex.description)}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -62,6 +62,8 @@
   },
   "examples": {
     "trigger": "Examples",
+    "searchPlaceholder": "Search examples...",
+    "noResults": "No examples match your search.",
     "groups": {
       "Basics": "Basics",
       "Untyped Lambda Calculus": "Untyped Lambda Calculus",
@@ -124,9 +126,13 @@
         "label": "Church Booleans & Pairs",
         "description": "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory"
       },
-      "y-combinator-self-application": {
-        "label": "Y Combinator: Self-Application",
-        "description": "λx.f (x x) applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; Y id unfolds to itself forever (id (Y id) → Y id), hitting the evaluator's step limit rather than a value"
+      "y-combinator-diverges-under-call-by-value": {
+        "label": "Y Combinator: Diverges under Call-by-value",
+        "description": "x x applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; under Call-by-value the argument x x must be reduced to a value before it can be substituted, but it's never done reducing (it just keeps unfolding into id (x x) again) — Y id genuinely never terminates, growing one step at a time until the evaluator's step limit; switch to Normal order and it instead cycles at constant size forever, still never reaching a value — see the Z-combinator example for the standard fix"
+      },
+      "z-combinator-the-call-by-value-safe-fix": {
+        "label": "Z Combinator: The Call-by-value-safe Fix",
+        "description": "same self-application as Y, but wrapped in an extra λy that defers it until actually needed — Z id settles to a value in a few steps under Call-by-value/Call-by-name instead of diverging like the plain Y-combinator does; switch to Normal order and it fully unfolds instead, hitting the evaluator's step limit"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",
