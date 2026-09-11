@@ -17,7 +17,6 @@ import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {ProofTreeBuilder} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilder.tsx";
 import {InferenceConstraintList} from "@/features/proof-tree/components/InferenceConstraintList.tsx";
-import {InferenceSnapshotsPrewarmer} from "@/features/proof-tree/components/InferenceSnapshotsPrewarmer.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {env} from "@/shared/lib/env.ts";
@@ -292,13 +291,6 @@ export function ProofTreeVisualisation({
                         caption: inferenceCaption,
                       } : undefined}
                     />
-                  )}
-                  {/* Mounted as soon as stepping is AVAILABLE, not once the switch is on — the
-                      switch-on transition itself (final proof -> raw snapshot 0, often changing
-                      nearly every judgement at once) is the big one; prewarming only once the
-                      switch flips gives it zero lead time and misses exactly that transition. */}
-                  {hasInferenceSteps && (
-                    <InferenceSnapshotsPrewarmer snapshots={inferenceProofSnapshots} toTexTree={toTexTree}/>
                   )}
                 </div>
                 {isInferenceStepping && showConstraintList && (
