@@ -1,7 +1,7 @@
 // src/store/counterSlice.ts
 import {createSlice} from "@reduxjs/toolkit";
 import type {Program, SourcePosition, Type} from "@vladyslav005/tt-core";
-import type {ProofTree, Rule} from "@vladyslav005/tt-core";
+import type {InferenceStep, ProofTree, Rule} from "@vladyslav005/tt-core";
 import {EvaluationStrategy, type EvaluationResult} from "@vladyslav005/tt-core";
 import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
 import {
@@ -30,6 +30,10 @@ export interface TermState {
   ast: Program | undefined;
   proof: ProofTree | undefined;
   typeAliases: Record<string, Type>;
+  inferenceSteps: InferenceStep[];
+  // Index-aligned with inferenceSteps — the whole-program proof tree as it looked once that
+  // step's substitution was applied, so the tree view can show metavariables resolving live.
+  inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
   enabledTheories: TypeTheoryConfig;
   evaluationStrategy: EvaluationStrategy;
@@ -51,6 +55,8 @@ export const initialTermState: TermState = {
   ast: undefined,
   proof: undefined,
   typeAliases: {},
+  inferenceSteps: [],
+  inferenceProofSnapshots: [],
   evaluation: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
@@ -86,6 +92,14 @@ const counterSlice = createSlice({
 
     setTypeAliases: (state, action: { payload: Record<string, Type> }) => {
       state.typeAliases = action.payload;
+    },
+
+    setInferenceSteps: (state, action: { payload: InferenceStep[] }) => {
+      state.inferenceSteps = action.payload;
+    },
+
+    setInferenceProofSnapshots: (state, action: { payload: ProofTree[] }) => {
+      state.inferenceProofSnapshots = action.payload;
     },
 
     setAst: (state, action: { payload: Program | undefined }) => {
@@ -206,6 +220,8 @@ const counterSlice = createSlice({
       state.ast = undefined;
       state.proof = undefined;
       state.typeAliases = {};
+      state.inferenceSteps = [];
+      state.inferenceProofSnapshots = [];
       state.evaluation = undefined;
       state.buildMode = {active: false};
     }
@@ -220,6 +236,8 @@ export const {
   setFontSize,
   setProof,
   setTypeAliases,
+  setInferenceSteps,
+  setInferenceProofSnapshots,
   setAst,
   setTheoryEnabled,
   enterBuildMode,

@@ -510,6 +510,11 @@ unfold[SelfFn] identity;`,
         description: "const is generalized over two independent type variables (∀A,B. A -> B -> A) and reused at two different instantiations",
         code: `let const = λ x . λ y . x in <(const 1 true), (const false 2)>;`,
       },
+    ],
+  },
+  {
+    title: "Type Inference",
+    items: [
       {
         label: "Type Inference: Unannotated λ",
         description: "with the Type inference theory on, an unannotated λx.x works even outside a let-bound value",

@@ -11,6 +11,9 @@ interface ProofTreeUsingCssProps {
   node: TexTree,
   root?: boolean,
   onNodeHover?: (pos: SourcePosition | null) => void,
+  // Node ids whose resolved type just changed, while stepping through an inference trace —
+  // rendered with an emphasis style so the resolving type is visually obvious, not just narrated.
+  highlightedNodeIds?: ReadonlySet<string>,
 }
 
 export function ProofTreeComponentUsingCss(
@@ -18,6 +21,7 @@ export function ProofTreeComponentUsingCss(
     node,
     root = true,
     onNodeHover,
+    highlightedNodeIds,
   }: ProofTreeUsingCssProps,) {
   const isDef = node.rule === "T-Def" || node.rule === "CT-Def" || node.rule === "Lemma";
   // Shared (not local) so the LaTeX export can snapshot which T-Def/CT-Def/Lemma
@@ -36,6 +40,7 @@ export function ProofTreeComponentUsingCss(
   const isItLeaf = node.children === undefined ? 'leaf-node' : 'not-leaf-node';
 
   const showPremises = displayChildren !== undefined && (!isDef || expanded || showCollapsedAsVar);
+  const isHighlighted = node.id !== undefined && highlightedNodeIds?.has(node.id);
 
   return (
     <div className='proof-node'>
@@ -46,7 +51,8 @@ export function ProofTreeComponentUsingCss(
               <ProofTreeComponentUsingCss
                 root={false}
                 node={premise}
-                onNodeHover={onNodeHover}/>
+                onNodeHover={onNodeHover}
+                highlightedNodeIds={highlightedNodeIds}/>
               {displayChildren !== undefined && index !== displayChildren.length - 1 && (
                 <div className="inter-proof"></div>
               )}
@@ -55,7 +61,7 @@ export function ProofTreeComponentUsingCss(
         </div>
       )}
       <div
-        className={cn(`conclusion ${isItRoot} ${isItLeaf}`, !revealed && "step-pending")}
+        className={cn(`conclusion ${isItRoot} ${isItLeaf}`, !revealed && "step-pending", isHighlighted && "inference-active")}
         onMouseEnter={() => onNodeHover?.(node.pos ?? null)}
         onMouseLeave={() => onNodeHover?.(null)}
       >

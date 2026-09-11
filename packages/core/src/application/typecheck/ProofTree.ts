@@ -53,6 +53,24 @@ export interface InferProofTree extends ProofTree {
   constraints: Constraint[];
 }
 
+// One step of solving a program's constraint set — the part of Hindley-Milner inference that's
+// normally invisible: check() generates constraints while walking the AST, then solves and
+// substitutes them all before ever returning a proof, so the UI only ever saw the final answer.
+export interface InferenceStep {
+  constraint: Constraint;
+  substitutionBefore: Record<string, Type>;
+  substitutionAfter: Record<string, Type>;
+  // Keys in `substitutionAfter` but not `substitutionBefore` — a constraint over a compound type
+  // (e.g. two TyArrows) can bind more than one metavariable in a single step.
+  newBindings: {name: string; type: Type}[];
+  // Set instead of the two fields above on the last step of a trace whose unification failed —
+  // shows exactly where/why the process stopped, rather than silently dropping the failed step.
+  error?: string;
+  // Proof-tree node ids whose resolved `.type` changed vs. the previous step's snapshot — lets
+  // the UI emphasize exactly the type(s) that just resolved, not just narrate it in text.
+  affectedNodeIds: string[];
+}
+
 export enum Rule {
   Var = "Var",
   Abs = "Abs",

@@ -80,6 +80,7 @@
       "Iso-recursive Types (μ)": "Izo-rekurzívne typy (μ)",
       "Recursion (fix)": "Rekurzia (fix)",
       "Let & Polymorphism": "Let a polymorfizmus",
+      "Type Inference": "Typová inferencia",
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
       "System λP (Dependent Types)": "System λP (závislé typy)"
@@ -93,6 +94,7 @@
       "Iso-recursive Types (μ)": "μ-typy",
       "Recursion (fix)": "Rekurzia",
       "Let & Polymorphism": "Let/Poly",
+      "Type Inference": "Inferencia",
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
       "System λP (Dependent Types)": "Sys λP"
@@ -406,6 +408,15 @@
     "logicUnavailableExtensions": "Dostupné len pre čisté STLC — vypnite aktívne rozšírenia typového systému",
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",
+    "showInferenceSteps": "Zobraziť kroky inferencie",
+    "showConstraintList": "Zobraziť zoznam obmedzení",
+    "constraintListHeader": "Obmedzenia",
+    "resizePanel": "Ťahaním zmeníte veľkosť",
+    "clickToApplyStep": "Kliknutím prejdete na stav hneď po vyriešení tohto obmedzenia",
+    "clickToUndoStep": "Ďalším kliknutím sa vrátite pred toto obmedzenie",
+    "inferenceInitial": "Počiatočný stav — zatiaľ nič nevyriešené",
+    "justSolvedConstraint": "Práve vyriešené",
+    "noNewBindings": "Žiadne nové väzby — už v súlade s tým, čo je známe",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
     "emptyUntyped": "Netypovaný lambda kalkul nemá typovú derivačiu na zobrazenie.",
     "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie."
@@ -605,13 +616,13 @@
     "toastCopyFailed": "Nepodarilo sa skopírovať do schránky"
   },
   "home": {
-    "metaTitle": "tt — interaktívne prostredie pre typované lambda kalkulus",
-    "heroTitle": "Interaktívne prostredie pre typované lambda kalkulus",
-    "heroLead": "Interaktívne prostredie na experimentovanie s typovaným lambda kalkulom. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
+    "metaTitle": "tt — interaktívne prostredie pre lambda kalkulus",
+    "heroTitle": "Interaktívne prostredie pre lambda kalkulus",
+    "heroLead": "Interaktívne prostredie na experimentovanie s lambda kalkulom — typovaným aj netypovaným — ako toto webové ihrisko a ako rozšírenie pre VS Code, ktoré prináša rovnaké pohľady priamo do editora. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
     "heroSub": "Vytvorené ako diplomová práca; cieľom je sprístupniť teóriu na skúmanie: vidíte syntaktický strom, odvodené typy a dôkazové kroky, ktoré ich zdôvodňujú.",
     "readThesis": "Prečítať diplomovú prácu (čoskoro)",
     "overviewTitle": "Čo tento projekt robí",
-    "overviewSubtitle": "Ihrisko teórie typov na učenie, ladenie a výskum",
+    "overviewSubtitle": "Ihrisko teórie typov na učenie, ladenie a výskum — v prehliadači aj vo VS Code",
     "features": {
       "typeChecking": {
         "title": "Typová kontrola",

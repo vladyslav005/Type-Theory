@@ -7,7 +7,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {isPlainStlc, isPlainStlcProof} from "@vladyslav005/tt-core";
+import {isPlainStlc, isPlainStlcProof, typeToString} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -16,6 +16,8 @@ import {useFullscreen} from "@/shared/hooks/useFullscreen";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {ProofTreeBuilder} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilder.tsx";
+import {InferenceConstraintList} from "@/features/proof-tree/components/InferenceConstraintList.tsx";
+import {InferenceSnapshotsPrewarmer} from "@/features/proof-tree/components/InferenceSnapshotsPrewarmer.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {env} from "@/shared/lib/env.ts";
@@ -37,6 +39,8 @@ export function ProofTreeVisualisation({
   const {t} = useTranslation();
   const proof = useAppSelector((state) => state.term.proof);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const inferenceSteps = useAppSelector((state) => state.term.inferenceSteps);
+  const inferenceProofSnapshots = useAppSelector((state) => state.term.inferenceProofSnapshots);
   const {toTexTree, toLogicTree} = useProofHooks()
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
@@ -44,6 +48,27 @@ export function ProofTreeVisualisation({
   const [activeTab, setActiveTab] = useState<ProofTreeTab>("automatic");
   const [stepByStep, setStepByStep] = useState(false);
   const [highlightOnHover, setHighlightOnHover] = useState(true);
+  const [showInferenceSteps, setShowInferenceSteps] = useState(false);
+  const [showConstraintList, setShowConstraintList] = useState(false);
+  const [inferenceStepIndex, setInferenceStepIndex] = useState(0);
+  // A fresh result invalidates whatever step the user was on — reset during render (the
+  // React-endorsed way to adjust state when a prop changes) rather than in an effect.
+  const [snapshotsForStepIndex, setSnapshotsForStepIndex] = useState(inferenceProofSnapshots);
+  if (snapshotsForStepIndex !== inferenceProofSnapshots) {
+    setSnapshotsForStepIndex(inferenceProofSnapshots);
+    setInferenceStepIndex(0);
+  }
+
+  // inferenceProofSnapshots always has one more entry than inferenceSteps — snapshot 0 is the
+  // raw, nothing-solved-yet tree, snapshot i+1 is the tree right after inferenceSteps[i] solved.
+  // Also gated on the theory that actually causes inference to happen — constraints get
+  // generated/solved internally even in plain STLC, but that's implementation plumbing, not
+  // something meaningful to show unless Let-polymorphism or Type inference is actually on.
+  const hasInferenceSteps = inferenceSteps.length > 0
+    && (enabledTheories.letPolymorphism || enabledTheories.typeInference);
+  const clampedInferenceIndex = Math.min(inferenceStepIndex, inferenceProofSnapshots.length - 1);
+  const isInferenceStepping = showInferenceSteps && hasInferenceSteps;
+  const isInitialInferenceStep = clampedInferenceIndex === 0;
 
   const handleNodeHover = highlightOnHover
     ? (pos: SourcePosition | null) => editorRef?.current?.highlightRange?.(pos)
@@ -56,6 +81,16 @@ export function ProofTreeVisualisation({
     return () => editor?.highlightRange?.(null);
   }, [activeTab, editorRef]);
 
+  // Highlights the source range the current inference step's constraint came from, independent
+  // of hover — lets you see which part of the code produced the constraint being solved.
+  useEffect(() => {
+    if (!isInferenceStepping || isInitialInferenceStep) return;
+    const editor = editorRef?.current;
+    const pos = inferenceSteps[clampedInferenceIndex - 1]?.constraint.pos;
+    editor?.highlightRange?.(pos ?? null);
+    return () => editor?.highlightRange?.(null);
+  }, [isInferenceStepping, isInitialInferenceStep, clampedInferenceIndex, inferenceSteps, editorRef]);
+
   // Untyped lambda calculus has no type derivation to visualize — always show the
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
   const hasProof = !enabledTheories.untyped && proof !== null && proof !== undefined;
@@ -67,8 +102,32 @@ export function ProofTreeVisualisation({
     : isPlainStlc(enabledTheories);
   const effectiveTab = activeTab === "logic" && !showLogicTab ? "automatic" : activeTab;
 
-  const texTree = proof ? toTexTree(proof) : null;
+  // While stepping through inference, render the partially-solved snapshot instead of the
+  // final proof — same tree shape, so this is the only thing that needs to change.
+  const displayedProof = isInferenceStepping ? inferenceProofSnapshots[clampedInferenceIndex] : proof;
+  const texTree = displayedProof ? toTexTree(displayedProof) : null;
   const logicTree = proof && showLogicTab ? toLogicTree(proof) : null;
+  // undefined at the initial (nothing solved yet) step — there's no "just solved" constraint yet.
+  const currentInferenceStep = isInferenceStepping && !isInitialInferenceStep
+    ? inferenceSteps[clampedInferenceIndex - 1]
+    : undefined;
+  const highlightedNodeIds = currentInferenceStep
+    ? new Set(currentInferenceStep.affectedNodeIds)
+    : undefined;
+  const inferenceCaption = !isInferenceStepping
+    ? undefined
+    : isInitialInferenceStep
+      ? t("proofTree.inferenceInitial")
+      : currentInferenceStep
+        ? [
+            `${t("proofTree.justSolvedConstraint")}: ${typeToString(currentInferenceStep.constraint.left)} ~ ${typeToString(currentInferenceStep.constraint.right)}`,
+            currentInferenceStep.error
+              ? currentInferenceStep.error
+              : currentInferenceStep.newBindings.length > 0
+                ? currentInferenceStep.newBindings.map((b) => `${b.name} := ${typeToString(b.type)}`).join(", ")
+                : t("proofTree.noNewBindings"),
+          ].join("  •  ")
+        : undefined;
 
   return (
     <motion.div
@@ -111,7 +170,36 @@ export function ProofTreeVisualisation({
                 </TabsList>
               </Tabs>
 
-              {effectiveTab === "automatic" && hasProof && (
+              {effectiveTab === "automatic" && hasProof && hasInferenceSteps && (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="show-inference-steps"
+                    checked={showInferenceSteps}
+                    onCheckedChange={(checked) => {
+                      setShowInferenceSteps(checked);
+                      if (checked) setStepByStep(false);
+                    }}
+                  />
+                  <Label htmlFor="show-inference-steps" className="text-sm text-muted-foreground whitespace-nowrap">
+                    {t("proofTree.showInferenceSteps")}
+                  </Label>
+                </div>
+              )}
+
+              {effectiveTab === "automatic" && isInferenceStepping && (
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="show-constraint-list"
+                    checked={showConstraintList}
+                    onCheckedChange={setShowConstraintList}
+                  />
+                  <Label htmlFor="show-constraint-list" className="text-sm text-muted-foreground whitespace-nowrap">
+                    {t("proofTree.showConstraintList")}
+                  </Label>
+                </div>
+              )}
+
+              {effectiveTab === "automatic" && hasProof && !isInferenceStepping && (
                 <div className="flex items-center gap-2">
                   <Switch id="step-by-step" checked={stepByStep} onCheckedChange={setStepByStep}/>
                   <Label htmlFor="step-by-step" className="text-sm text-muted-foreground whitespace-nowrap">
@@ -184,15 +272,45 @@ export function ProofTreeVisualisation({
             )
           ) : (
             <div className="w-full h-full flex flex-col">
-              {texTree && (
-                <ProofTreeCanvas
-                  texTree={texTree}
-                  treeKey={proof?.id ?? "none"}
-                  stepByStep={stepByStep}
-                  exportFilename="proof-tree.tex"
-                  onNodeHover={handleNodeHover}
-                />
-              )}
+              <div className="flex-1 min-h-0 flex">
+                <div className="flex-1 min-w-0 flex flex-col">
+                  {texTree && (
+                    <ProofTreeCanvas
+                      texTree={texTree}
+                      treeKey={proof?.id ?? "none"}
+                      stepByStep={!isInferenceStepping && stepByStep}
+                      exportFilename="proof-tree.tex"
+                      onNodeHover={handleNodeHover}
+                      highlightedNodeIds={highlightedNodeIds}
+                      inferenceStepControl={isInferenceStepping ? {
+                        index: clampedInferenceIndex,
+                        total: inferenceProofSnapshots.length,
+                        canGoPrev: clampedInferenceIndex > 0,
+                        canGoNext: clampedInferenceIndex < inferenceProofSnapshots.length - 1,
+                        onPrev: () => setInferenceStepIndex((i) => Math.max(0, i - 1)),
+                        onNext: () => setInferenceStepIndex((i) => Math.min(inferenceProofSnapshots.length - 1, i + 1)),
+                        caption: inferenceCaption,
+                      } : undefined}
+                    />
+                  )}
+                  {/* Mounted as soon as stepping is AVAILABLE, not once the switch is on — the
+                      switch-on transition itself (final proof -> raw snapshot 0, often changing
+                      nearly every judgement at once) is the big one; prewarming only once the
+                      switch flips gives it zero lead time and misses exactly that transition. */}
+                  {hasInferenceSteps && (
+                    <InferenceSnapshotsPrewarmer snapshots={inferenceProofSnapshots} toTexTree={toTexTree}/>
+                  )}
+                </div>
+                {isInferenceStepping && showConstraintList && (
+                  <InferenceConstraintList
+                    steps={inferenceSteps}
+                    activeIndex={clampedInferenceIndex - 1}
+                    // Clicking the row already showing "just applied" cancels it — back to
+                    // right before that constraint, rather than only ever jumping forward.
+                    onSelect={(i) => setInferenceStepIndex((current) => current === i + 1 ? i : i + 1)}
+                  />
+                )}
+              </div>
               {env.VITE_SHOW_DEBUG_DATA && (
                 <details className="group mx-6 mb-6 mt-4">
                   <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors p-3 rounded-lg hover:bg-muted/50">

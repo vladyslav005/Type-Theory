@@ -2,7 +2,7 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearProcessingErrors, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearProcessingErrors, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
@@ -81,6 +81,8 @@ export function useTermHooks() {
 
       dispatch(setProof({proof}));
       dispatch(setTypeAliases(typeCheckerSLTC.getTypeAliases()));
+      dispatch(setInferenceSteps(typeCheckerSLTC.getInferenceSteps()));
+      dispatch(setInferenceProofSnapshots(typeCheckerSLTC.getInferenceProofSnapshots()));
 
       return ast;
     } catch (error) {

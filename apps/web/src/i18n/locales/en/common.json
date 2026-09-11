@@ -80,6 +80,7 @@
       "Iso-recursive Types (μ)": "Iso-recursive Types (μ)",
       "Recursion (fix)": "Recursion (fix)",
       "Let & Polymorphism": "Let & Polymorphism",
+      "Type Inference": "Type Inference",
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (Type Constructors)",
       "System λP (Dependent Types)": "System λP (Dependent Types)"
@@ -93,6 +94,7 @@
       "Iso-recursive Types (μ)": "μ-types",
       "Recursion (fix)": "Recursion",
       "Let & Polymorphism": "Let/Poly",
+      "Type Inference": "Inference",
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
       "System λP (Dependent Types)": "Sys λP"
@@ -406,6 +408,15 @@
     "logicUnavailableExtensions": "Only available for plain STLC — turn off the active type system extensions to use it",
     "stepByStep": "Step by step",
     "highlightInEditor": "Highlight in editor",
+    "showInferenceSteps": "Show inference steps",
+    "showConstraintList": "Show constraint list",
+    "constraintListHeader": "Constraints",
+    "resizePanel": "Drag to resize",
+    "clickToApplyStep": "Click to jump to right after this constraint is solved",
+    "clickToUndoStep": "Click again to go back to right before this constraint",
+    "inferenceInitial": "Initial state — nothing solved yet",
+    "justSolvedConstraint": "Just solved",
+    "noNewBindings": "No new bindings — already consistent with what's known",
     "empty": "Type a valid expression to generate a proof tree.",
     "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
     "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading."
@@ -603,13 +614,13 @@
     "toastCopyFailed": "Couldn't copy to clipboard"
   },
   "home": {
-    "metaTitle": "tt — Interactive Typed Lambda Calculus Playground",
-    "heroTitle": "Interactive Typed Lambda Calculus Playground",
-    "heroLead": "An interactive environment for experimenting with typed lambda calculus. It supports parsing, AST inspection/editing, type checking and inference, proof tree visualization, and building your own derivations by hand.",
+    "metaTitle": "tt — Interactive Lambda Calculus Playground",
+    "heroTitle": "Interactive Lambda Calculus Playground",
+    "heroLead": "An interactive environment for experimenting with lambda calculus — typed and untyped — as this web playground and as a VS Code extension bringing the same views into your editor. It supports parsing, AST inspection/editing, type checking and inference, proof tree visualization, and building your own derivations by hand.",
     "heroSub": "Built as a Master Thesis project, the goal is to make the underlying theory explorable: you can see the syntax tree, derived types, and the proof steps that justify them.",
     "readThesis": "Read the Thesis (coming soon)",
     "overviewTitle": "What This Project Does",
-    "overviewSubtitle": "A type theory playground for learning, debugging, and research",
+    "overviewSubtitle": "A type theory playground for learning, debugging, and research — in the browser or in VS Code",
     "features": {
       "typeChecking": {
         "title": "Type checking",

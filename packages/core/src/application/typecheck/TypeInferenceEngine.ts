@@ -1,6 +1,6 @@
 
 import {
-  type Constraint, type InferProofTree, type ProofTree,
+  type Constraint, type InferenceStep, type InferProofTree, type ProofTree,
   type Substitution,
   type TypeScheme,
 } from "@/application/typecheck/ProofTree.ts";
@@ -12,10 +12,21 @@ import {TypeCheckError} from "@/application/typecheck/TypeCheckError.ts";
 export class TypeInferenceEngine {
 
   private freshCounter = 0;
+  // Live reference to the steps array `solve()` is building, so a caller's catch block can still
+  // recover the steps that succeeded before a mid-trace unification failure threw past `solve()`.
+  private lastSolveSteps: InferenceStep[] = [];
 
   // Call at the start of each typecheck run, or metavariable names keep climbing across keystrokes.
   reset(): void {
     this.freshCounter = 0;
+  }
+
+  getLastSolveSteps(): InferenceStep[] {
+    return this.lastSolveSteps;
+  }
+
+  private substitutionToRecord(substitution: Substitution): Record<string, Type> {
+    return Object.fromEntries(substitution);
   }
 
   toSchemeGamma(gamma: Gamma<Type>): Gamma<TypeScheme> {
@@ -146,10 +157,14 @@ export class TypeInferenceEngine {
     }
   }
 
-  solve(constraints: Constraint[]): Substitution {
+  solve(constraints: Constraint[]): {substitution: Substitution; steps: InferenceStep[]} {
     let substitution: Substitution = new Map();
+    const steps: InferenceStep[] = [];
+    this.lastSolveSteps = steps;
 
     for (const constraint of constraints) {
+      const substitutionBefore = this.substitutionToRecord(substitution);
+
       try {
         substitution = this.unify(
           this.applySubstitution(constraint.left, substitution),
@@ -158,11 +173,20 @@ export class TypeInferenceEngine {
         );
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        steps.push({constraint, substitutionBefore, substitutionAfter: substitutionBefore, newBindings: [], affectedNodeIds: [], error: message});
         throw new TypeCheckError(message, constraint.pos);
       }
+
+      const substitutionAfter = this.substitutionToRecord(substitution);
+      const newBindings = Object.entries(substitutionAfter)
+        .filter(([name]) => !(name in substitutionBefore))
+        .map(([name, type]) => ({name, type}));
+
+      // Filled in by STLCTypeChecker once it can compare consecutive proof-tree snapshots.
+      steps.push({constraint, substitutionBefore, substitutionAfter, newBindings, affectedNodeIds: []});
     }
 
-    return substitution;
+    return {substitution, steps};
   }
 
   unify(

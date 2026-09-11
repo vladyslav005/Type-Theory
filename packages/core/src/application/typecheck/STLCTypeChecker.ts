@@ -57,6 +57,7 @@ import {
 import {
   type Constraint,
   ERROR_TYPE,
+  type InferenceStep,
   type InferProofTree,
   type KindProofTree,
   type ProofTree,
@@ -81,6 +82,18 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   private schemeContext: Gamma<TypeScheme> = new Gamma<TypeScheme>();
   private varOrigin: Gamma<VarOrigin> = new Gamma<VarOrigin>();
   private errorBuffer: Error[] = [];
+  private inferenceSteps: InferenceStep[] = [];
+  // One tree per entry in inferenceSteps — the whole-program proof with only the substitution
+  // known as of that step applied, so the UI can show metavariables resolving node-by-node
+  // instead of only ever seeing the final, fully-solved tree.
+  private inferenceProofSnapshots: InferProofTree[] = [];
+  // A `let`-bound (or global-declaration) value is solved+substituted locally, eagerly, before
+  // check()'s own top-level solve even starts — so by the time `visit(program)` returns, that
+  // subtree is already fully resolved and its own metavariables are gone from `.type` everywhere.
+  // Keyed by that value proof's id, so check() can splice the truly-unresolved version back in
+  // before replaying inferenceSteps against it — otherwise a let-local step would have nothing
+  // left to visibly resolve.
+  private rawValueProofs: Map<string, InferProofTree> = new Map();
   private globalProofs: Map<string, ProofTree> = new Map();
   private theories: TypeTheoryConfig = DEFAULT_TYPE_THEORY_CONFIG;
   private readonly engine: TypeInferenceEngine = new TypeInferenceEngine();
@@ -106,6 +119,14 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     return this.errorBuffer;
   }
 
+  public getInferenceSteps(): InferenceStep[] {
+    return this.inferenceSteps;
+  }
+
+  public getInferenceProofSnapshots(): InferProofTree[] {
+    return this.inferenceProofSnapshots;
+  }
+
   // Exposed so the proof-tree renderer can offer "show as alias" for any matching type.
   public getTypeAliases(): { [name: string]: Type } {
     return Object.fromEntries(this.typeAliases);
@@ -122,6 +143,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     this.schemeContext = new Gamma<TypeScheme>();
     this.varOrigin = new Gamma<VarOrigin>();
     this.errorBuffer = [];
+    this.inferenceSteps = [];
+    this.inferenceProofSnapshots = [];
+    this.rawValueProofs = new Map();
     this.globalProofs = new Map();
     this.typeAliases = new Map();
     this.kindContext = new Map();
@@ -129,16 +153,71 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     this.engine.reset();
 
     const proof = this.visit(program);
+    let result: InferProofTree;
 
     try {
-      const substitution = this.engine.solve(proof.constraints);
-      return this.engine.applySubstitutionToProof(proof, substitution);
+      const {substitution, steps} = this.engine.solve(proof.constraints);
+      this.inferenceSteps.push(...steps);
+      result = this.engine.applySubstitutionToProof(proof, substitution);
     } catch (error) {
+      this.inferenceSteps.push(...this.engine.getLastSolveSteps());
       const pos = error instanceof TypeCheckError ? error.pos : undefined;
       const msg = error instanceof Error ? error.message : String(error);
       this.errorBuffer.push(new TypeCheckError(msg, pos));
-      return {...proof, type: ERROR_TYPE, error: msg};
+      result = {...proof, type: ERROR_TYPE, error: msg};
     }
+
+    // `proof` still has any `let`/global value subtree already locally solved (see
+    // rawValueProofs) — splice the truly-unresolved versions back in before replaying steps,
+    // or a let-local step would have nothing left to visibly resolve.
+    const trueRawProof = this.restoreRawValueProofs(proof) as InferProofTree;
+    this.inferenceProofSnapshots = this.buildInferenceSnapshots(trueRawProof);
+    return result;
+  }
+
+  private restoreRawValueProofs(node: ProofTree): ProofTree {
+    const raw = (node.id && this.rawValueProofs.get(node.id)) || node;
+    return {
+      ...raw,
+      premises: raw.premises.map((p) => this.restoreRawValueProofs(p)),
+    };
+  }
+
+  private buildInferenceSnapshots(rawProof: InferProofTree): InferProofTree[] {
+    const cumulative: Substitution = new Map();
+    // Snapshot 0 is the raw (fully unresolved) tree itself — an explicit "nothing solved yet"
+    // starting point, so the UI can show it rather than jumping straight to an already-solved
+    // step with no baseline to compare against.
+    const snapshots: InferProofTree[] = [rawProof];
+    let previous: InferProofTree = rawProof;
+
+    for (const step of this.inferenceSteps) {
+      for (const binding of step.newBindings) {
+        cumulative.set(binding.name, binding.type);
+      }
+      const snapshot = this.engine.applySubstitutionToProof(rawProof, cumulative);
+      step.affectedNodeIds = this.collectChangedNodeIds(previous, snapshot);
+      snapshots.push(snapshot);
+      previous = snapshot;
+    }
+
+    return snapshots;
+  }
+
+  // `previous`/`current` always share the same shape (substitution never changes tree structure),
+  // so premises can be walked in lockstep by index.
+  private collectChangedNodeIds(previous: ProofTree, current: ProofTree): string[] {
+    const ids: string[] = [];
+
+    const walk = (prevNode: ProofTree, curNode: ProofTree) => {
+      if (curNode.id && !typeEquals(prevNode.type, curNode.type)) {
+        ids.push(curNode.id);
+      }
+      curNode.premises.forEach((child, i) => walk(prevNode.premises[i], child));
+    };
+
+    walk(previous, current);
+    return ids;
   }
 
   visit(node: ASTNode): InferProofTree {
@@ -216,10 +295,13 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   // Solves + applies a proof's own constraints immediately, rather than deferring to check() —
   // needed where a fully concrete type is required right now (e.g. a global declaration's value).
   private solveLocally(proof: InferProofTree): InferProofTree {
+    if (proof.id) this.rawValueProofs.set(proof.id, proof);
     try {
-      const substitution = this.engine.solve(proof.constraints);
+      const {substitution, steps} = this.engine.solve(proof.constraints);
+      this.inferenceSteps.push(...steps);
       return this.engine.applySubstitutionToProof(proof, substitution);
     } catch (error) {
+      this.inferenceSteps.push(...this.engine.getLastSolveSteps());
       const pos = error instanceof TypeCheckError ? error.pos : undefined;
       const msg = error instanceof Error ? error.message : String(error);
       this.errorBuffer.push(new TypeCheckError(msg, pos));
@@ -1479,13 +1561,17 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   private checkLet(node: Let): InferProofTree {
     // 1. Infer the bound value's type.
     const valueProof = this.visit(node.value);
+    if (valueProof.id) this.rawValueProofs.set(valueProof.id, valueProof);
 
     let valueSubstitution: Substitution;
 
     // 2. Solve the value's constraints first — must be fully resolved before generalizing.
     try {
-      valueSubstitution = this.engine.solve(valueProof.constraints);
+      const solved = this.engine.solve(valueProof.constraints);
+      valueSubstitution = solved.substitution;
+      this.inferenceSteps.push(...solved.steps);
     } catch (error) {
+      this.inferenceSteps.push(...this.engine.getLastSolveSteps());
       const pos = error instanceof TypeCheckError ? error.pos : undefined;
       const msg = error instanceof Error ? error.message : String(error);
       this.errorBuffer.push(new TypeCheckError(msg, pos));
