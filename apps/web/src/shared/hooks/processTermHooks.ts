@@ -2,7 +2,7 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearProcessingErrors, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
@@ -88,6 +88,10 @@ export function useTermHooks() {
 
   function evaluateTerm(strategy: EvaluationStrategy) {
     if (!ast) return;
+
+    // Otherwise a stale message from a previous run (a different strategy, a since-fixed
+    // divergence, ...) sticks around forever, piling up alongside whatever this run produces.
+    dispatch(clearProcessingErrors());
 
     try {
       const evaluationResult = evaluator.evaluate(ast, strategy);

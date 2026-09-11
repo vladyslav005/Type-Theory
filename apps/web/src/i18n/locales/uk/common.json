@@ -515,6 +515,7 @@
     "stuckTerm": "Застряглий вираз",
     "normalForm": "Нормальна форма",
     "finalResult": "Кінцевий результат",
+    "stoppedResult": "Зупинено тут (це не кінцевий результат)",
     "steps_one": "{{count}} крок",
     "steps_few": "{{count}} кроки",
     "steps_many": "{{count}} кроків",

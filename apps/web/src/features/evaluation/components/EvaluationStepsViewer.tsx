@@ -673,10 +673,13 @@ interface EvaluationStepsViewerInnerProps {
 function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
-  const { steps, result, reachedStepLimit, errors, globals } = evaluation;
+  const { steps, result, reachedStepLimit, divergence, errors, globals } = evaluation;
 
   const hasErrors = errors && errors.length > 0;
   const stuckTermId = errors?.[0]?.stuckTermId;
+  // Whatever `result` holds when reduction stopped without erroring — only actually a normal
+  // form (nothing left to reduce) if it got there on its own, not because we cut it off.
+  const isFullyReduced = !reachedStepLimit && !divergence;
 
   const bindingsAtCurrentStep = useMemo(
     () => accumulateBindings(steps, stepIndex),
@@ -735,11 +738,19 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
         </div>
 
         {!hasErrors && (
-          <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
+          <div className={cn(
+            "p-4 rounded-xl border",
+            isFullyReduced ? "bg-orange-500/5 border-orange-500/20" : "bg-yellow-500/5 border-yellow-500/20",
+          )}>
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
-              <span className="text-xs font-medium text-orange-600 dark:text-orange-500 uppercase tracking-wide">
-                {t("evalSteps.finalResult")}
+              {isFullyReduced
+                ? <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
+                : <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />}
+              <span className={cn(
+                "text-xs font-medium uppercase tracking-wide",
+                isFullyReduced ? "text-orange-600 dark:text-orange-500" : "text-yellow-700 dark:text-yellow-500",
+              )}>
+                {t(isFullyReduced ? "evalSteps.finalResult" : "evalSteps.stoppedResult")}
               </span>
             </div>
             <div className="font-mono text-sm overflow-x-auto">
@@ -849,11 +860,19 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           )}
 
           {isLastStep && !hasErrors && (
-            <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
+            <div className={cn(
+              "p-4 rounded-xl border",
+              isFullyReduced ? "bg-orange-500/5 border-orange-500/20" : "bg-yellow-500/5 border-yellow-500/20",
+            )}>
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
-                <span className="text-xs font-medium text-orange-600 dark:text-orange-500 uppercase tracking-wide">
-                  {t("evalSteps.finalResult")}
+                {isFullyReduced
+                  ? <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
+                  : <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />}
+                <span className={cn(
+                  "text-xs font-medium uppercase tracking-wide",
+                  isFullyReduced ? "text-orange-600 dark:text-orange-500" : "text-yellow-700 dark:text-yellow-500",
+                )}>
+                  {t(isFullyReduced ? "evalSteps.finalResult" : "evalSteps.stoppedResult")}
                 </span>
               </div>
               <div className="font-mono text-sm overflow-x-auto">

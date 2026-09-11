@@ -515,6 +515,7 @@
     "stuckTerm": "Zaseknutý výraz",
     "normalForm": "Normálna forma",
     "finalResult": "Konečný výsledok",
+    "stoppedResult": "Zastavené tu (nie je to konečný výsledok)",
     "steps_one": "{{count}} krok",
     "steps_few": "{{count}} kroky",
     "steps_many": "{{count}} krokov",

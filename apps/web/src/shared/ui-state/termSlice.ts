@@ -188,6 +188,10 @@ const counterSlice = createSlice({
       state.errorMarkers = action.payload;
     },
 
+    clearProcessingErrors: (state) => {
+      state.processingErrors = [];
+    },
+
     clean: (state) => {
       state.processingErrors = [];
       state.errorMarkers = [];
@@ -220,6 +224,7 @@ export const {
   checkProof,
   pushProcessingError,
   setErrorMarkers,
+  clearProcessingErrors,
   clean
 } = counterSlice.actions;
 export default counterSlice.reducer;

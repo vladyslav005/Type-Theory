@@ -515,6 +515,7 @@
     "stuckTerm": "Stuck term",
     "normalForm": "Normal form",
     "finalResult": "Final result",
+    "stoppedResult": "Stopped here (not a final result)",
     "steps_one": "{{count}} step",
     "steps_other": "{{count}} steps",
     "stepLimit": "Step limit reached — evaluation may not be complete.",
