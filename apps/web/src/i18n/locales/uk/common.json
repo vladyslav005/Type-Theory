@@ -150,6 +150,10 @@
         "label": "Булеві значення Черча: and / or / not",
         "description": "and/or/not побудовані з tru/fls як селекторів — (tru and fls) or (not fls) редукується до tru"
       },
+      "church-booleans-if-test": {
+        "label": "Булеві значення Черча: if (test)",
+        "description": "test b c a обирає c, якщо b істинне, a — якщо хибне — саме те, що вже робить пряме застосування булевого значення Черча; test лише називає це"
+      },
       "church-numerals-zero-succ-numbers": {
         "label": "Числа Черча: Zero, Succ, Числа",
         "description": "число n означає \"застосувати s до z, n разів\" — three succ zero розгортається назад у 3 вкладені succ"
@@ -162,9 +166,9 @@
         "label": "Арифметика Черча: Додавання (plus)",
         "description": "plus застосовує s, m разів, потім n разів, до z — (plus two three) succ zero розгортається до 5 вкладених succ"
       },
-      "church-arithmetic-multiplication-mult": {
-        "label": "Арифметика Черча: Множення (mult)",
-        "description": "mult складає n-кратне застосування s, m разів — загалом m×n застосувань; (mult two three) succ zero розгортається до 6"
+      "church-arithmetic-multiplication-times": {
+        "label": "Арифметика Черча: Множення (times)",
+        "description": "times додає n до zero, m разів поспіль — m × n через повторне додавання; (times two three) succ zero розгортається до 6"
       },
       "church-numerals-iszero": {
         "label": "Числа Черча: iszero",
@@ -174,9 +178,9 @@
         "label": "Числа Черча: Попередник (pred)",
         "description": "числа Черча не мають вбудованого попередника — прокручує пару (попереднє, поточне) n разів вперед від (0,0), зупиняючись на (n-1, n)"
       },
-      "y-combinator-diverges-under-call-by-value": {
-        "label": "Y-комбінатор: розходиться при Call-by-value",
-        "description": "x x застосовує x до самого себе — неможливо в жодному типізованому фрагменті вище. Y id ніколи не завершується: зростає при Call-by-value, нескінченно циклиться при Normal order — виправлення дивіться в прикладі fixx"
+      "y-combinator-never-terminates": {
+        "label": "Y-комбінатор: ніколи не завершується",
+        "description": "x x застосовує x до самого себе — неможливо в жодному типізованому фрагменті вище. Y id розходиться при кожній стратегії тут, лише по-різному: зростає при Call-by-value, нескінченно циклиться при Normal order/Call-by-name — виправлення дивіться в прикладі fixx"
       },
       "fixx-the-call-by-value-safe-fix": {
         "label": "fixx: виправлення, безпечне для Call-by-value",

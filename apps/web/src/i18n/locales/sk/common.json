@@ -150,6 +150,10 @@
         "label": "Churchove booleovské hodnoty: and / or / not",
         "description": "and/or/not postavené na tru/fls ako selektoroch — (tru and fls) or (not fls) sa redukuje na tru"
       },
+      "church-booleans-if-test": {
+        "label": "Churchove booleovské hodnoty: if (test)",
+        "description": "test b c a vyberie c, ak je b true, a ak je false — presne to, čo už robí priama aplikácia Churchovej booleovskej hodnoty; test to len pomenúva"
+      },
       "church-numerals-zero-succ-numbers": {
         "label": "Churchove číslice: Zero, Succ, Čísla",
         "description": "číslica n znamená \"aplikuj s na z, n-krát\" — three succ zero sa rozvinie späť na 3 vnorené succ"
@@ -162,9 +166,9 @@
         "label": "Churchova aritmetika: Sčítanie (plus)",
         "description": "plus aplikuje s, m-krát a potom n-krát, na z — (plus two three) succ zero sa rozvinie na 5 vnorených succ"
       },
-      "church-arithmetic-multiplication-mult": {
-        "label": "Churchova aritmetika: Násobenie (mult)",
-        "description": "mult skladá n-násobnú aplikáciu s, m-krát — spolu m×n aplikácií; (mult two three) succ zero sa rozvinie na 6"
+      "church-arithmetic-multiplication-times": {
+        "label": "Churchova aritmetika: Násobenie (times)",
+        "description": "times pripočíta n k zero, m-krát za sebou — m × n opakovaným sčítaním; (times two three) succ zero sa rozvinie na 6"
       },
       "church-numerals-iszero": {
         "label": "Churchove číslice: iszero",
@@ -174,9 +178,9 @@
         "label": "Churchove číslice: Predchodca (pred)",
         "description": "Churchove číslice nemajú vstavaného predchodcu — spustí dvojicu (predošlý, aktuálny) n-krát dopredu od (0,0), končí na (n-1, n)"
       },
-      "y-combinator-diverges-under-call-by-value": {
-        "label": "Y kombinátor: diverguje pri Call-by-value",
-        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id nikdy neskončí: pri Call-by-value stále rastie, pri Normal order donekonečna cykluje — opravu nájdete v príklade fixx"
+      "y-combinator-never-terminates": {
+        "label": "Y kombinátor: nikdy sa neskončí",
+        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id diverguje pri každej stratégii tu, len inak: pri Call-by-value stále rastie, pri Normal order/Call-by-name donekonečna cykluje — opravu nájdete v príklade fixx"
       },
       "fixx-the-call-by-value-safe-fix": {
         "label": "fixx: oprava bezpečná pre Call-by-value",

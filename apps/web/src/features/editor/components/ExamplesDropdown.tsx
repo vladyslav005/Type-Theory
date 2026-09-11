@@ -124,7 +124,8 @@ twice ((compose identity) identity);`,
       {
         label: "Church Booleans & Pairs",
         description: "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory",
-        code: `tru = λ t . λ f . t;
+        code: `// Named "tru"/"fls" here, not "true"/"false" — those are reserved Bool literals.
+tru = λ t . λ f . t;
 fls = λ t . λ f . f;
 
 pair = λ f . λ s . λ b . b f s;
@@ -146,9 +147,22 @@ not = λ b . b fls tru;       // b ? false : true
 or (and tru fls) (not fls);`,
       },
       {
+        label: "Church Booleans: if (test)",
+        description: "test b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; test just names it",
+        code: `tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+// test b c a is literally b applied to c and a — naming it "if" is just for
+// readability, it adds no new behaviour over using the boolean directly.
+test = λ b . λ c . λ a . b c a;
+
+test fls tru fls;`,
+      },
+      {
         label: "Church Numerals: Zero, Succ, Numbers",
         description: "a numeral n means \"apply s to z, n times\" — three succ zero unfolds it back into 3 nested succ calls",
         code: `// A Church numeral n is the function "apply s to z, n times".
+// Named "zero"/"one"/"two"/"three" here — plain digits can't be identifiers.
 zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
 
@@ -191,18 +205,20 @@ plus = λ m . λ n . λ s . λ z . m s (n s z);
 (plus two three) succ zero;`,
       },
       {
-        label: "Church Arithmetic: Multiplication (mult)",
-        description: "mult composes n-many s-applications, m times — total m×n applications; (mult two three) succ zero unfolds to 6",
+        label: "Church Arithmetic: Multiplication (times)",
+        description: "times adds n to zero, m times over — m × n by repeated addition; (times two three) succ zero unfolds to 6",
         code: `zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
 one = succ zero;
 two = succ one;
 three = succ two;
 
-// "apply (n s), m times" applies s a total of m × n times.
-mult = λ m . λ n . λ s . m (n s);
+plus = λ m . λ n . λ s . λ z . m s (n s z);
 
-(mult two three) succ zero;`,
+// Apply "plus n" to zero, m times — n + n + ... + n (m times) = m × n.
+times = λ m . λ n . m (plus n) zero;
+
+(times two three) succ zero;`,
       },
       {
         label: "Church Numerals: iszero",
@@ -239,8 +255,8 @@ two = succ (succ zero);
 (pred two) succ zero;`,
       },
       {
-        label: "Y Combinator: Diverges under Call-by-value",
-        description: "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the fixx example for the fix",
+        label: "Y Combinator: Never Terminates",
+        description: "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fixx example for the fix",
         code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
 
 id = λ z . z;
@@ -250,7 +266,8 @@ Y id;`,
       {
         label: "fixx: The Call-by-value-safe Fix",
         description: "same self-application as Y, but the extra λy defers it until needed — fixx id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever). Called \"fixx\" here — plain \"fix\" is already a reserved builtin",
-        code: `fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+        code: `// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 
 id = λ z . z;
 
@@ -272,6 +289,7 @@ three = succ (succ (succ zero));
 
 isEvenGen = λ f . λ n . ((iszero n) (λ d . tru) (λ d . not (f (pred n)))) (λ x . x);
 
+// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
 fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 isEven = fixx isEvenGen;
 

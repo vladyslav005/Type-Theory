@@ -150,6 +150,10 @@
         "label": "Church Booleans: and / or / not",
         "description": "and/or/not built from tru/fls as selectors — (tru and fls) or (not fls) reduces to tru"
       },
+      "church-booleans-if-test": {
+        "label": "Church Booleans: if (test)",
+        "description": "test b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; test just names it"
+      },
       "church-numerals-zero-succ-numbers": {
         "label": "Church Numerals: Zero, Succ, Numbers",
         "description": "a numeral n means \"apply s to z, n times\" — three succ zero unfolds it back into 3 nested succ calls"
@@ -162,9 +166,9 @@
         "label": "Church Arithmetic: Addition (plus)",
         "description": "plus applies s, m times then n times, on top of z — (plus two three) succ zero unfolds to 5 nested succs"
       },
-      "church-arithmetic-multiplication-mult": {
-        "label": "Church Arithmetic: Multiplication (mult)",
-        "description": "mult composes n-many s-applications, m times — total m×n applications; (mult two three) succ zero unfolds to 6"
+      "church-arithmetic-multiplication-times": {
+        "label": "Church Arithmetic: Multiplication (times)",
+        "description": "times adds n to zero, m times over — m × n by repeated addition; (times two three) succ zero unfolds to 6"
       },
       "church-numerals-iszero": {
         "label": "Church Numerals: iszero",
@@ -174,9 +178,9 @@
         "label": "Church Numerals: Predecessor (pred)",
         "description": "Church numerals have no built-in predecessor — runs a (prev, current) pair forward n times from (0,0), landing on (n-1, n)"
       },
-      "y-combinator-diverges-under-call-by-value": {
-        "label": "Y Combinator: Diverges under Call-by-value",
-        "description": "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the fixx example for the fix"
+      "y-combinator-never-terminates": {
+        "label": "Y Combinator: Never Terminates",
+        "description": "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fixx example for the fix"
       },
       "fixx-the-call-by-value-safe-fix": {
         "label": "fixx: The Call-by-value-safe Fix",

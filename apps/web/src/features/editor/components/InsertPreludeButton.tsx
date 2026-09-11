@@ -10,19 +10,20 @@ export const PRELUDE_CODE = `// Standard combinators for untyped lambda calculus
 // calculus" in the Type Theories dropdown to use them. Edit or delete anything
 // you don't need.
 
-// Booleans
+// Booleans (named "tru"/"fls" — "true"/"false" are reserved Bool literals)
 tru = λ t . λ f . t;
 fls = λ t . λ f . f;
 not = λ b . b fls tru;
 and = λ b . λ c . b c fls;
 or  = λ b . λ c . b tru c;
+test = λ b . λ c . λ a . b c a;   // if b then c else a
 
 // Pairs
 pair = λ f . λ s . λ b . b f s;
 fst  = λ p . p tru;
 snd  = λ p . p fls;
 
-// Numerals
+// Numerals (named "zero"/"one"/"two"/"three" — plain digits can't be identifiers)
 zero  = λ s . λ z . z;
 succ  = λ n . λ s . λ z . s (n s z);
 one   = succ zero;
@@ -30,7 +31,7 @@ two   = succ one;
 three = succ two;
 
 plus = λ m . λ n . λ s . λ z . m s (n s z);
-mult = λ m . λ n . λ s . m (n s);
+times = λ m . λ n . m (plus n) zero;
 iszero = λ n . n (λ x . fls) tru;
 
 // pred: run (prev, current) forward n times from (0, 0) via the classic pair trick.
