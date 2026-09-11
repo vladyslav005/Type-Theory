@@ -66,6 +66,7 @@
     "trigger": "Приклади",
     "searchPlaceholder": "Пошук прикладів...",
     "noResults": "Немає прикладів, що відповідають пошуку.",
+    "allTopics": "Усі",
     "groups": {
       "Basics": "Основи",
       "Untyped Lambda Calculus": "Нетипізоване лямбда-числення",
@@ -78,6 +79,19 @@
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (конструктори типів)",
       "System λP (Dependent Types)": "System λP (залежні типи)"
+    },
+    "groupsShort": {
+      "Basics": "Основи",
+      "Untyped Lambda Calculus": "Нетипізоване",
+      "Sums & Variants": "Суми",
+      "Tuples & Records": "Кортежі",
+      "Lists": "Списки",
+      "Iso-recursive Types (μ)": "μ-типи",
+      "Recursion (fix)": "Рекурсія",
+      "Let & Polymorphism": "Let/Поліморф",
+      "System F": "Sys F",
+      "System Fω (Type Constructors)": "Sys Fω",
+      "System λP (Dependent Types)": "Sys λP"
     },
     "items": {
       "identity-function": {

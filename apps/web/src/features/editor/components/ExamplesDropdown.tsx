@@ -13,6 +13,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
+import { cn } from "@/shared/lib/utils.ts";
+import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
+import { setExamplesTopic } from "@/shared/ui-state/termSlice.ts";
 
 interface Example {
   label: string;
@@ -584,22 +587,44 @@ const FLAT_EXAMPLES = EXAMPLE_GROUPS.flatMap((group) =>
   group.items.map((item) => ({ group, item, slug: exampleSlug(item.label) })),
 );
 
+// Short forms of the group titles for the topic-filter chip row — the full titles wrap onto
+// far too many lines at the dropdown's width.
+const GROUP_SHORT_LABELS: Record<string, string> = {
+  "Basics": "Basics",
+  "Untyped Lambda Calculus": "Untyped",
+  "Sums & Variants": "Sums",
+  "Tuples & Records": "Tuples",
+  "Lists": "Lists",
+  "Iso-recursive Types (μ)": "μ-types",
+  "Recursion (fix)": "Recursion",
+  "Let & Polymorphism": "Let/Poly",
+  "System F": "Sys F",
+  "System Fω (Type Constructors)": "Sys Fω",
+  "System λP (Dependent Types)": "Sys λP",
+};
+
 export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdownProps) {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const topic = useAppSelector((state) => state.term.examplesTopic);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
   const normalizedQuery = query.trim().toLowerCase();
+  const scopedExamples = useMemo(
+    () => (topic === "all" ? FLAT_EXAMPLES : FLAT_EXAMPLES.filter(({ group }) => group.title === topic)),
+    [topic],
+  );
   const results = useMemo(() => {
     if (!normalizedQuery) return [];
-    return FLAT_EXAMPLES.filter(({ group, item, slug }) => {
+    return scopedExamples.filter(({ group, item, slug }) => {
       const label = t(`examples.items.${slug}.label`, item.label).toLowerCase();
       const description = t(`examples.items.${slug}.description`, item.description).toLowerCase();
       const groupTitle = t(`examples.groups.${group.title}`, group.title).toLowerCase();
       return label.includes(normalizedQuery) || description.includes(normalizedQuery) || groupTitle.includes(normalizedQuery);
     });
-  }, [normalizedQuery, t]);
+  }, [normalizedQuery, scopedExamples, t]);
 
   // Radix's DropdownMenu.Content doesn't expose onOpenAutoFocus publicly (only onCloseAutoFocus) —
   // it always auto-focuses the first item itself on open. Steal focus back to the search input one
@@ -644,6 +669,42 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
               className="h-8 pl-7 text-sm"
             />
           </div>
+
+          {/* Persisted (state.term.examplesTopic) so e.g. picking "Untyped Lambda Calculus"
+              once keeps its examples one click away — no need to re-open the submenu.
+              max-h + overflow caps it at ~2 rows so it can't crowd out the results below,
+              however many groups end up in the list. */}
+          <div className="mt-1.5 flex max-h-12 flex-wrap gap-1 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => dispatch(setExamplesTopic("all"))}
+              title={t("examples.allTopics")}
+              className={cn(
+                "shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium transition-colors",
+                topic === "all"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+              )}
+            >
+              {t("examples.allTopics")}
+            </button>
+            {EXAMPLE_GROUPS.map((group) => (
+              <button
+                key={group.title}
+                type="button"
+                onClick={() => dispatch(setExamplesTopic(group.title))}
+                title={t(`examples.groups.${group.title}`, group.title)}
+                className={cn(
+                  "shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium transition-colors",
+                  topic === group.title
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                )}
+              >
+                {t(`examples.groupsShort.${group.title}`, GROUP_SHORT_LABELS[group.title] ?? group.title)}
+              </button>
+            ))}
+          </div>
         </div>
         <DropdownMenuSeparator />
 
@@ -663,7 +724,7 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
           ) : (
             <div className="px-2 py-6 text-center text-sm text-muted-foreground">{t("examples.noResults")}</div>
           )
-        ) : (
+        ) : topic === "all" ? (
           EXAMPLE_GROUPS.map((group) => (
             <DropdownMenuSub key={group.title}>
               <DropdownMenuSubTrigger>{t(`examples.groups.${group.title}`, group.title)}</DropdownMenuSubTrigger>
@@ -681,6 +742,16 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
                 })}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+          ))
+        ) : (
+          // A topic chip is active — go straight to its items, no submenu hop needed.
+          scopedExamples.map(({ item, slug }) => (
+            <DropdownMenuItem key={slug} onClick={() => onSelect(item.code)}>
+              <div className="flex flex-col gap-0.5">
+                <span className="font-medium">{t(`examples.items.${slug}.label`, item.label)}</span>
+                <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, item.description)}</span>
+              </div>
+            </DropdownMenuItem>
           ))
         )}
       </DropdownMenuContent>

@@ -12,6 +12,7 @@ export interface PersistedTermState {
   evaluationStrategy: EvaluationStrategy;
   fontSize: number;
   autoBuild: boolean;
+  examplesTopic: string;
 }
 
 export function loadPersistedTermState(): PersistedTermState | undefined {
@@ -37,6 +38,7 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
         ? parsed.fontSize
         : 14,
       autoBuild: parsed.autoBuild === true,
+      examplesTopic: typeof parsed.examplesTopic === "string" ? parsed.examplesTopic : "all",
     };
   } catch {
     return undefined;
@@ -50,6 +52,7 @@ export function persistTermState(state: TermState): void {
     evaluationStrategy: state.evaluationStrategy,
     fontSize: state.fontSize,
     autoBuild: state.autoBuild,
+    examplesTopic: state.examplesTopic,
   };
 
   try {

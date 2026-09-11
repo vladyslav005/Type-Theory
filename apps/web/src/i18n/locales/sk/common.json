@@ -66,6 +66,7 @@
     "trigger": "Príklady",
     "searchPlaceholder": "Hľadať príklady...",
     "noResults": "Žiadne príklady nezodpovedajú hľadaniu.",
+    "allTopics": "Všetky",
     "groups": {
       "Basics": "Základy",
       "Untyped Lambda Calculus": "Netypovaný lambda kalkul",
@@ -78,6 +79,19 @@
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
       "System λP (Dependent Types)": "System λP (závislé typy)"
+    },
+    "groupsShort": {
+      "Basics": "Základy",
+      "Untyped Lambda Calculus": "Netypovaný",
+      "Sums & Variants": "Súčty",
+      "Tuples & Records": "N-tice",
+      "Lists": "Zoznamy",
+      "Iso-recursive Types (μ)": "μ-typy",
+      "Recursion (fix)": "Rekurzia",
+      "Let & Polymorphism": "Let/Poly",
+      "System F": "Sys F",
+      "System Fω (Type Constructors)": "Sys Fω",
+      "System λP (Dependent Types)": "Sys λP"
     },
     "items": {
       "identity-function": {

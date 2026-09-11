@@ -66,6 +66,7 @@
     "trigger": "Examples",
     "searchPlaceholder": "Search examples...",
     "noResults": "No examples match your search.",
+    "allTopics": "All",
     "groups": {
       "Basics": "Basics",
       "Untyped Lambda Calculus": "Untyped Lambda Calculus",
@@ -78,6 +79,19 @@
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (Type Constructors)",
       "System λP (Dependent Types)": "System λP (Dependent Types)"
+    },
+    "groupsShort": {
+      "Basics": "Basics",
+      "Untyped Lambda Calculus": "Untyped",
+      "Sums & Variants": "Sums",
+      "Tuples & Records": "Tuples",
+      "Lists": "Lists",
+      "Iso-recursive Types (μ)": "μ-types",
+      "Recursion (fix)": "Recursion",
+      "Let & Polymorphism": "Let/Poly",
+      "System F": "Sys F",
+      "System Fω (Type Constructors)": "Sys Fω",
+      "System λP (Dependent Types)": "Sys λP"
     },
     "items": {
       "identity-function": {

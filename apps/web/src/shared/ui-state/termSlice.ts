@@ -39,6 +39,9 @@ export interface TermState {
   autoBuild: boolean;
   // Monaco editor font size in px — see TextEditor's font size selector.
   fontSize: number;
+  // Last topic chip picked in the Examples dropdown ("all" = browse every group) — persisted
+  // so e.g. picking "Untyped Lambda Calculus" once keeps it one click away next time.
+  examplesTopic: string;
 }
 
 export const initialTermState: TermState = {
@@ -54,6 +57,7 @@ export const initialTermState: TermState = {
   buildMode: {active: false},
   autoBuild: false,
   fontSize: 14,
+  examplesTopic: "all",
 };
 
 const counterSlice = createSlice({
@@ -192,6 +196,10 @@ const counterSlice = createSlice({
       state.processingErrors = [];
     },
 
+    setExamplesTopic: (state, action: { payload: string }) => {
+      state.examplesTopic = action.payload;
+    },
+
     clean: (state) => {
       state.processingErrors = [];
       state.errorMarkers = [];
@@ -225,6 +233,7 @@ export const {
   pushProcessingError,
   setErrorMarkers,
   clearProcessingErrors,
+  setExamplesTopic,
   clean
 } = counterSlice.actions;
 export default counterSlice.reducer;
