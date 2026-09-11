@@ -12,8 +12,9 @@ import {TypeTheoriesDropdown} from "@/features/editor/components/TypeTheoriesDro
 import {ActiveExtensionsBadges} from "@/features/editor/components/ActiveExtensionsBadges.tsx";
 import {LayoutPresetsDropdown} from "@/features/workspace/components/LayoutPresetsDropdown.tsx";
 import {ExamplesDropdown} from "@/features/editor/components/ExamplesDropdown.tsx";
+import {InsertPreludeButton} from "@/features/editor/components/InsertPreludeButton.tsx";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
-import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
+import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
 
 type NavItem = {
@@ -38,12 +39,22 @@ export function Topbar({editorRef}: TopbarProps) {
   const {setTheme, resolvedTheme} = useTheme()
   const isDarkMode = resolvedTheme === "dark";
   const dispatch = useAppDispatch();
+  const termText = useAppSelector((state) => state.term.termText);
+  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
   const {pathname} = useLocation();
   const isEditorPage = pathname === "/main";
 
   const onSelectExample = (code: string) => {
     editorRef.current?.setValue(code);
     dispatch(setTermText(code));
+  };
+
+  // Prepends rather than replaces — unlike loading an example, inserting the prelude shouldn't
+  // discard whatever the user already wrote.
+  const onInsertPrelude = (code: string) => {
+    const combined = code + "\n" + (termText ?? "");
+    editorRef.current?.setValue(combined);
+    dispatch(setTermText(combined));
   };
 
   const toggleDarkMode = () => {
@@ -97,6 +108,20 @@ export function Topbar({editorRef}: TopbarProps) {
                   className="hidden md:flex items-center gap-2 min-w-0 overflow-hidden"
                 >
                   <ExamplesDropdown onSelect={onSelectExample}/>
+                  <AnimatePresence initial={false}>
+                    {isUntyped && (
+                      <motion.div
+                        key="insert-prelude"
+                        initial={{opacity: 0, width: 0}}
+                        animate={{opacity: 1, width: "auto"}}
+                        exit={{opacity: 0, width: 0}}
+                        transition={{duration: 0.25, ease: "easeOut"}}
+                        className="overflow-hidden"
+                      >
+                        <InsertPreludeButton onInsert={onInsertPrelude}/>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <TypeTheoriesDropdown/>
                   <div className="hidden lg:block">
                     <LayoutPresetsDropdown/>
@@ -169,6 +194,20 @@ export function Topbar({editorRef}: TopbarProps) {
           {isEditorPage && (
             <div className="flex flex-col items-start gap-2 pb-3 mb-1 border-b">
               <ExamplesDropdown onSelect={onSelectExample}/>
+              <AnimatePresence initial={false}>
+                {isUntyped && (
+                  <motion.div
+                    key="insert-prelude"
+                    initial={{opacity: 0, height: 0}}
+                    animate={{opacity: 1, height: "auto"}}
+                    exit={{opacity: 0, height: 0}}
+                    transition={{duration: 0.25, ease: "easeOut"}}
+                    className="w-full overflow-hidden"
+                  >
+                    <InsertPreludeButton onInsert={onInsertPrelude}/>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <TypeTheoriesDropdown/>
               <ActiveExtensionsBadges/>
             </div>

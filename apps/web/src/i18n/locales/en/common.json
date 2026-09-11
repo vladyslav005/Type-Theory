@@ -40,6 +40,10 @@
     "run": "Run",
     "runTooltip": "Parse, type-check, and evaluate in one step using the selected strategy"
   },
+  "prelude": {
+    "trigger": "Prelude",
+    "tooltip": "Insert standard untyped lambda calculus definitions (booleans, pairs, numerals, arithmetic, Y/Z) at the top of the editor"
+  },
   "editor": {
     "autoBuild": "Auto-build",
     "autoBuildTooltip": "Automatically parse, type-check, and evaluate as you type — disables the Parse & Evaluate buttons",
@@ -172,15 +176,15 @@
       },
       "y-combinator-diverges-under-call-by-value": {
         "label": "Y Combinator: Diverges under Call-by-value",
-        "description": "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the Z-combinator example for the fix"
+        "description": "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the fixx example for the fix"
       },
-      "z-combinator-the-call-by-value-safe-fix": {
-        "label": "Z Combinator: The Call-by-value-safe Fix",
-        "description": "same self-application as Y, but the extra λy defers it until needed — Z id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever)"
+      "fixx-the-call-by-value-safe-fix": {
+        "label": "fixx: The Call-by-value-safe Fix",
+        "description": "same self-application as Y, but the extra λy defers it until needed — fixx id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever). Called \"fixx\" here — plain \"fix\" is already a reserved builtin"
       },
-      "z-combinator-real-recursion-iseven": {
-        "label": "Z Combinator: Real Recursion (isEven)",
-        "description": "Y/Z used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls"
+      "fixx-real-recursion-iseven": {
+        "label": "fixx: Real Recursion (isEven)",
+        "description": "Y/fixx used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",

@@ -40,6 +40,10 @@
     "run": "Spustiť",
     "runTooltip": "Analyzovať, typovo skontrolovať a vyhodnotiť v jednom kroku pomocou zvolenej stratégie"
   },
+  "prelude": {
+    "trigger": "Prelúdium",
+    "tooltip": "Vloží štandardné definície netypovaného lambda kalkulu (booleovské hodnoty, dvojice, číslice, aritmetika, Y/Z) na začiatok editora"
+  },
   "editor": {
     "autoBuild": "Auto-build",
     "autoBuildTooltip": "Automaticky analyzovať, kontrolovať typy a vyhodnocovať počas písania — vypne tlačidlá Analyzovať a Vyhodnotiť",
@@ -172,15 +176,15 @@
       },
       "y-combinator-diverges-under-call-by-value": {
         "label": "Y kombinátor: diverguje pri Call-by-value",
-        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id nikdy neskončí: pri Call-by-value stále rastie, pri Normal order donekonečna cykluje — opravu nájdete v príklade Z kombinátora"
+        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id nikdy neskončí: pri Call-by-value stále rastie, pri Normal order donekonečna cykluje — opravu nájdete v príklade fixx"
       },
-      "z-combinator-the-call-by-value-safe-fix": {
-        "label": "Z kombinátor: oprava bezpečná pre Call-by-value",
-        "description": "rovnaká sebaaplikácia ako pri Y, no navyše λy ju odloží, kým nie je potrebná — Z id sa ustáli na hodnote pri Call-by-value/Call-by-name namiesto divergencie (pri Normal order sa stále rozvíja donekonečna)"
+      "fixx-the-call-by-value-safe-fix": {
+        "label": "fixx: oprava bezpečná pre Call-by-value",
+        "description": "rovnaká sebaaplikácia ako pri Y, no navyše λy ju odloží, kým nie je potrebná — fixx id sa ustáli na hodnote pri Call-by-value/Call-by-name namiesto divergencie (pri Normal order sa stále rozvíja donekonečna). Volá sa tu \"fixx\" — samotné \"fix\" je už rezervovaný vstavaný operátor"
       },
-      "z-combinator-real-recursion-iseven": {
-        "label": "Z kombinátor: skutočná rekurzia (isEven)",
-        "description": "Y/Z v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na fls"
+      "fixx-real-recursion-iseven": {
+        "label": "fixx: skutočná rekurzia (isEven)",
+        "description": "Y/fixx v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na fls"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",

@@ -240,7 +240,7 @@ two = succ (succ zero);
       },
       {
         label: "Y Combinator: Diverges under Call-by-value",
-        description: "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the Z-combinator example for the fix",
+        description: "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the fixx example for the fix",
         code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
 
 id = λ z . z;
@@ -248,17 +248,17 @@ id = λ z . z;
 Y id;`,
       },
       {
-        label: "Z Combinator: The Call-by-value-safe Fix",
-        description: "same self-application as Y, but the extra λy defers it until needed — Z id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever)",
-        code: `Z = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+        label: "fixx: The Call-by-value-safe Fix",
+        description: "same self-application as Y, but the extra λy defers it until needed — fixx id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever). Called \"fixx\" here — plain \"fix\" is already a reserved builtin",
+        code: `fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 
 id = λ z . z;
 
-Z id;`,
+fixx id;`,
       },
       {
-        label: "Z Combinator: Real Recursion (isEven)",
-        description: "Y/Z used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls",
+        label: "fixx: Real Recursion (isEven)",
+        description: "Y/fixx used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls",
         code: `tru = λ t . λ f . t;
 fls = λ t . λ f . f;
 not = λ b . b fls tru;
@@ -272,8 +272,8 @@ three = succ (succ (succ zero));
 
 isEvenGen = λ f . λ n . ((iszero n) (λ d . tru) (λ d . not (f (pred n)))) (λ x . x);
 
-Z = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
-isEven = Z isEvenGen;
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+isEven = fixx isEvenGen;
 
 isEven three;`,
       },
