@@ -68,6 +68,12 @@ function render(payload: EvalStepsPayload): void {
 	if (payload.reachedStepLimit) {
 		root.appendChild(line("tt-note", "Stopped: step limit reached."));
 	}
+	if (payload.divergence) {
+		const reason = payload.divergence.kind === "cycle"
+			? "the exact same term repeated"
+			: "the term kept growing without ever settling down";
+		root.appendChild(line("tt-note", `Stopped early after ${payload.divergence.atStep} steps: ${reason} — this will never reach a value.`));
+	}
 	for (const err of payload.errors ?? []) {
 		root.appendChild(line("tt-error", `Evaluation error: ${err.message}`));
 	}

@@ -16,6 +16,7 @@ export interface EvalStepView {
 export interface EvalStepsPayload {
 	strategy: string;
 	reachedStepLimit: boolean;
+	divergence?: { kind: "cycle" | "growth"; atStep: number };
 	errors?: { message: string }[];
 	finalResultText: string;
 	steps: EvalStepView[];

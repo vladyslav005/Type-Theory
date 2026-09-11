@@ -3,15 +3,16 @@ import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useRef, useState} from "react";
 import {useFullscreen} from "@/shared/hooks/useFullscreen.ts";
 import {motion} from "framer-motion";
-import {cn} from "@/shared/lib/utils.ts";
+import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
-import {Maximize2, Minimize2, Play} from "lucide-react";
+import {Maximize2, Minimize2, Play, TriangleAlert} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Separator} from "@/shared/components/ui/separator.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {EvaluationStepsViewer, ViewToggle} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {env} from "@/shared/lib/env.ts";
 
@@ -52,6 +53,26 @@ export function EvaluationVisualisation({
                 <span className="rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none border-border bg-muted text-muted-foreground whitespace-nowrap shrink-0">
                   {t(`evalStrategy.${evaluation.strategy}.label`)}
                 </span>
+              )}
+              {hasEvaluation && evaluation.divergence && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium leading-none text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0">
+                        <TriangleAlert className="h-3 w-3" />
+                        {t("evaluationPanel.diverges")}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      {t(
+                        evaluation.divergence.kind === "cycle"
+                          ? "evaluationPanel.divergesTooltipCycle"
+                          : "evaluationPanel.divergesTooltipGrowth",
+                        {step: evaluation.divergence.atStep},
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
               {hasSteps && (
                 <>
@@ -101,7 +122,7 @@ export function EvaluationVisualisation({
                   </summary>
                   <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
                     <pre className="text-xs overflow-x-auto text-foreground/80">
-                      {JSON.stringify(evaluation, null, 2)}
+                      {safeJsonStringify(evaluation, 2)}
                     </pre>
                   </div>
                 </details>

@@ -1,5 +1,5 @@
 import {useTranslation} from "react-i18next";
-import {cn} from "@/shared/lib/utils.ts";
+import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useProofHooks} from "@/shared/hooks/processProofHooks.ts";
 import {motion} from "framer-motion";
@@ -171,7 +171,7 @@ export function ProofTreeVisualisation({
                     </summary>
                     <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
                       <pre className="text-xs overflow-x-auto text-foreground/80">
-                        {JSON.stringify(logicTree, null, 2)}
+                        {safeJsonStringify(logicTree, 2)}
                       </pre>
                     </div>
                   </details>
@@ -202,7 +202,7 @@ export function ProofTreeVisualisation({
                   </summary>
                   <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
                     <pre className="text-xs overflow-x-auto text-foreground/80">
-                      {JSON.stringify(proof, null, 2)}
+                      {safeJsonStringify(proof, 2)}
                     </pre>
                   </div>
                 </details>

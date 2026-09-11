@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import type {ChangeEvent} from "react";
 import {useTranslation} from "react-i18next";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {cn} from "@/shared/lib/utils.ts";
+import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {motion} from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
@@ -270,7 +270,7 @@ export function AstVisualisation({
                     </summary>
                     <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
                       <pre className="text-xs overflow-x-auto text-foreground/80">
-                        {JSON.stringify(viewerAst, null, 2)}
+                        {safeJsonStringify(viewerAst, 2)}
                       </pre>
                     </div>
                   </details>
@@ -297,7 +297,7 @@ export function AstVisualisation({
                   </summary>
                   <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
                     <pre className="text-xs overflow-x-auto text-foreground/80">
-                      {JSON.stringify(editorAst, null, 2)}
+                      {safeJsonStringify(editorAst, 2)}
                     </pre>
                   </div>
                 </details>

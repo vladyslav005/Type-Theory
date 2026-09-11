@@ -104,6 +104,18 @@ export function useTermHooks() {
           ),
         );
       }
+
+      if (evaluationResult.divergence) {
+        const {kind, atStep} = evaluationResult.divergence;
+        const reason = kind === "cycle"
+          ? "it started repeating the exact same term forever"
+          : "the term kept growing without ever settling down";
+        dispatch(
+          pushProcessingError(
+            new Error(`Evaluation stopped early after ${atStep} step${atStep === 1 ? "" : "s"} — ${reason}, so it will never reach a value`),
+          ),
+        );
+      }
     } catch (error) {
       console.error("Error evaluating term:", error);
       dispatch(pushProcessingError(new Error(`${(error as Error).message}`)));

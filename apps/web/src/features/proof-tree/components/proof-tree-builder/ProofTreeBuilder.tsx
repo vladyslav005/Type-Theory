@@ -12,7 +12,7 @@ import {ExportLatexButtons} from "@/features/proof-tree/components/ExportLatexBu
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
-import {cn} from "@/shared/lib/utils.ts";
+import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
 import {ZoomIn, ZoomOut, Crosshair, Hammer} from "lucide-react";
 import {env} from "@/shared/lib/env.ts";
@@ -164,7 +164,7 @@ export function ProofTreeBuilder() {
           </summary>
           <div className="mt-3 p-4 rounded-xl bg-muted/50 border">
             <pre className="text-xs overflow-x-auto text-foreground/80">
-              {JSON.stringify({studentTree, answerKey, summary}, null, 2)}
+              {safeJsonStringify({studentTree, answerKey, summary}, 2)}
             </pre>
           </div>
         </details>
