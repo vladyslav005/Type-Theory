@@ -128,13 +128,45 @@
         "label": "Church Booleans & Pairs",
         "description": "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory"
       },
+      "church-booleans-and-or-not": {
+        "label": "Church Booleans: and / or / not",
+        "description": "and/or/not built from tru/fls as selectors — (tru and fls) or (not fls) reduces to tru"
+      },
+      "church-numerals-zero-succ-numbers": {
+        "label": "Church Numerals: Zero, Succ, Numbers",
+        "description": "a numeral n means \"apply s to z, n times\" — three succ zero unfolds it back into 3 nested succ calls"
+      },
+      "church-numerals-the-core-idea-repeat-n-times": {
+        "label": "Church Numerals: The Core Idea (Repeat N Times)",
+        "description": "a numeral n is really a generic \"apply f to x, n times\" machine — three not fls flips fls three times, landing on tru"
+      },
+      "church-arithmetic-addition-plus": {
+        "label": "Church Arithmetic: Addition (plus)",
+        "description": "plus applies s, m times then n times, on top of z — (plus two three) succ zero unfolds to 5 nested succs"
+      },
+      "church-arithmetic-multiplication-mult": {
+        "label": "Church Arithmetic: Multiplication (mult)",
+        "description": "mult composes n-many s-applications, m times — total m×n applications; (mult two three) succ zero unfolds to 6"
+      },
+      "church-numerals-iszero": {
+        "label": "Church Numerals: iszero",
+        "description": "n (λx.fls) tru applies always-false to tru, n times — survives unchanged only when n never applies it, i.e. n = zero"
+      },
+      "church-numerals-predecessor-pred": {
+        "label": "Church Numerals: Predecessor (pred)",
+        "description": "Church numerals have no built-in predecessor — runs a (prev, current) pair forward n times from (0,0), landing on (n-1, n)"
+      },
       "y-combinator-diverges-under-call-by-value": {
         "label": "Y Combinator: Diverges under Call-by-value",
-        "description": "x x applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; under Call-by-value the argument x x must be reduced to a value before it can be substituted, but it's never done reducing (it just keeps unfolding into id (x x) again) — Y id genuinely never terminates, growing one step at a time until the evaluator's step limit; switch to Normal order and it instead cycles at constant size forever, still never reaching a value — see the Z-combinator example for the standard fix"
+        "description": "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the Z-combinator example for the fix"
       },
       "z-combinator-the-call-by-value-safe-fix": {
         "label": "Z Combinator: The Call-by-value-safe Fix",
-        "description": "same self-application as Y, but wrapped in an extra λy that defers it until actually needed — Z id settles to a value in a few steps under Call-by-value/Call-by-name instead of diverging like the plain Y-combinator does; switch to Normal order and it fully unfolds instead, hitting the evaluator's step limit"
+        "description": "same self-application as Y, but the extra λy defers it until needed — Z id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever)"
+      },
+      "z-combinator-real-recursion-iseven": {
+        "label": "Z Combinator: Real Recursion (isEven)",
+        "description": "Y/Z used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",

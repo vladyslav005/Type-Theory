@@ -128,13 +128,45 @@
         "label": "Churchove booleovské hodnoty a páry",
         "description": "tru/fls kódujú booleovské hodnoty ako čisté funkcie (žiadny typ Bool), pair/fst/snd rovnako kódujú dvojicu — fst (pair tru fls) sa redukuje na tru; zapnite rozšírenie Netypovaný lambda kalkul"
       },
+      "church-booleans-and-or-not": {
+        "label": "Churchove booleovské hodnoty: and / or / not",
+        "description": "and/or/not postavené na tru/fls ako selektoroch — (tru and fls) or (not fls) sa redukuje na tru"
+      },
+      "church-numerals-zero-succ-numbers": {
+        "label": "Churchove číslice: Zero, Succ, Čísla",
+        "description": "číslica n znamená \"aplikuj s na z, n-krát\" — three succ zero sa rozvinie späť na 3 vnorené succ"
+      },
+      "church-numerals-the-core-idea-repeat-n-times": {
+        "label": "Churchove číslice: Základná myšlienka (Zopakuj N-krát)",
+        "description": "číslica n je vlastne všeobecný stroj \"aplikuj f na x, n-krát\" — three not fls preklopí fls trikrát, skončí na tru"
+      },
+      "church-arithmetic-addition-plus": {
+        "label": "Churchova aritmetika: Sčítanie (plus)",
+        "description": "plus aplikuje s, m-krát a potom n-krát, na z — (plus two three) succ zero sa rozvinie na 5 vnorených succ"
+      },
+      "church-arithmetic-multiplication-mult": {
+        "label": "Churchova aritmetika: Násobenie (mult)",
+        "description": "mult skladá n-násobnú aplikáciu s, m-krát — spolu m×n aplikácií; (mult two three) succ zero sa rozvinie na 6"
+      },
+      "church-numerals-iszero": {
+        "label": "Churchove číslice: iszero",
+        "description": "n (λx.fls) tru aplikuje vždy-false na tru, n-krát — zostane nezmenené len keď n ho nikdy neaplikuje, teda n = zero"
+      },
+      "church-numerals-predecessor-pred": {
+        "label": "Churchove číslice: Predchodca (pred)",
+        "description": "Churchove číslice nemajú vstavaného predchodcu — spustí dvojicu (predošlý, aktuálny) n-krát dopredu od (0,0), končí na (n-1, n)"
+      },
       "y-combinator-diverges-under-call-by-value": {
         "label": "Y kombinátor: diverguje pri Call-by-value",
-        "description": "x x aplikuje x na seba samého — vo všetkých typovaných fragmentoch vyššie je to odmietnuté (žiadny typ nie je svojím vlastným funkčným typom), tu je to však v poriadku; pri Call-by-value sa musí argument x x najprv zredukovať na hodnotu, no nikdy sa nezredukuje úplne (stále sa len rozvíja na id (x x) znova) — Y id sa naozaj nikdy neskončí, rastie krok po kroku, kým nenarazí na limit krokov evaluátora; pri prepnutí na Normal order namiesto toho donekonečna cykluje s konštantnou veľkosťou, stále bez dosiahnutia hodnoty — pozrite príklad Z kombinátora pre štandardnú opravu"
+        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id nikdy neskončí: pri Call-by-value stále rastie, pri Normal order donekonečna cykluje — opravu nájdete v príklade Z kombinátora"
       },
       "z-combinator-the-call-by-value-safe-fix": {
         "label": "Z kombinátor: oprava bezpečná pre Call-by-value",
-        "description": "rovnaká sebaaplikácia ako pri Y, no obalená do navyše λy, ktoré ju odloží, kým nie je skutočne potrebná — Z id sa v pár krokoch ustáli na hodnote pri Call-by-value/Call-by-name namiesto toho, aby divergovalo ako čistý Y-kombinátor; pri prepnutí na Normal order sa namiesto toho úplne rozvinie a narazí na limit krokov evaluátora"
+        "description": "rovnaká sebaaplikácia ako pri Y, no navyše λy ju odloží, kým nie je potrebná — Z id sa ustáli na hodnote pri Call-by-value/Call-by-name namiesto divergencie (pri Normal order sa stále rozvíja donekonečna)"
+      },
+      "z-combinator-real-recursion-iseven": {
+        "label": "Z kombinátor: skutočná rekurzia (isEven)",
+        "description": "Y/Z v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na fls"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",

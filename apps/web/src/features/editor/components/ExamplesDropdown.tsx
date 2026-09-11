@@ -131,8 +131,113 @@ snd = λ p . p fls;
 fst (pair tru fls);`,
       },
       {
+        label: "Church Booleans: and / or / not",
+        description: "and/or/not built from tru/fls as selectors — (tru and fls) or (not fls) reduces to tru",
+        code: `tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+and = λ b . λ c . b c fls;   // b ? c : false
+or  = λ b . λ c . b tru c;   // b ? true : c
+not = λ b . b fls tru;       // b ? false : true
+
+or (and tru fls) (not fls);`,
+      },
+      {
+        label: "Church Numerals: Zero, Succ, Numbers",
+        description: "a numeral n means \"apply s to z, n times\" — three succ zero unfolds it back into 3 nested succ calls",
+        code: `// A Church numeral n is the function "apply s to z, n times".
+zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+
+one   = succ zero;
+two   = succ one;
+three = succ two;
+
+three succ zero;`,
+      },
+      {
+        label: "Church Numerals: The Core Idea (Repeat N Times)",
+        description: "a numeral n is really a generic \"apply f to x, n times\" machine — three not fls flips fls three times, landing on tru",
+        code: `zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+one   = succ zero;
+two   = succ one;
+three = succ two;
+
+tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+not = λ b . b fls tru;
+
+// Nothing here is about counting — three just applies "not" to "fls", 3
+// times: fls -> tru -> fls -> tru. Any f/x pair works the same way; succ/zero
+// are just ONE particular choice of f/x that happens to build numbers.
+three not fls;`,
+      },
+      {
+        label: "Church Arithmetic: Addition (plus)",
+        description: "plus applies s, m times then n times, on top of z — (plus two three) succ zero unfolds to 5 nested succs",
+        code: `zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+one = succ zero;
+two = succ one;
+three = succ two;
+
+// Apply s, m times, then n more times, on top of z — m + n applications total.
+plus = λ m . λ n . λ s . λ z . m s (n s z);
+
+(plus two three) succ zero;`,
+      },
+      {
+        label: "Church Arithmetic: Multiplication (mult)",
+        description: "mult composes n-many s-applications, m times — total m×n applications; (mult two three) succ zero unfolds to 6",
+        code: `zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+one = succ zero;
+two = succ one;
+three = succ two;
+
+// "apply (n s), m times" applies s a total of m × n times.
+mult = λ m . λ n . λ s . m (n s);
+
+(mult two three) succ zero;`,
+      },
+      {
+        label: "Church Numerals: iszero",
+        description: "n (λx.fls) tru applies always-false to tru, n times — survives unchanged only when n never applies it, i.e. n = zero",
+        code: `zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+// Apply "always false" to tru, n times — stays tru only if n = zero.
+iszero = λ n . n (λ x . fls) tru;
+
+iszero (succ zero);`,
+      },
+      {
+        label: "Church Numerals: Predecessor (pred)",
+        description: "Church numerals have no built-in predecessor — runs a (prev, current) pair forward n times from (0,0), landing on (n-1, n)",
+        code: `zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+pair = λ f . λ s . λ b . b f s;
+fst = λ p . p tru;
+snd = λ p . p fls;
+
+// Running (prev, current) -> (current, current+1) n times from (0,0) lands on
+// (n-1, n) — fst of that pair is the predecessor. The classic Kleene trick.
+shift = λ p . pair (snd p) (succ (snd p));
+pred = λ n . fst (n shift (pair zero zero));
+
+two = succ (succ zero);
+
+(pred two) succ zero;`,
+      },
+      {
         label: "Y Combinator: Diverges under Call-by-value",
-        description: "x x applies x to itself — rejected by every typed fragment above (no type is its own function type), but perfectly fine here; under Call-by-value the argument x x must be reduced to a value before it can be substituted, but it's never done reducing (it just keeps unfolding into id (x x) again) — Y id genuinely never terminates, growing one step at a time until the evaluator's step limit; switch to Normal order and it instead cycles at constant size forever, still never reaching a value — see the Z-combinator example for the standard fix",
+        description: "x x applies x to itself — impossible in any typed fragment above. Y id never terminates: grows forever under Call-by-value, cycles forever under Normal order — see the Z-combinator example for the fix",
         code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
 
 id = λ z . z;
@@ -141,12 +246,33 @@ Y id;`,
       },
       {
         label: "Z Combinator: The Call-by-value-safe Fix",
-        description: "same self-application as Y, but wrapped in an extra λy that defers it until actually needed — Z id settles to a value in a few steps under Call-by-value/Call-by-name instead of diverging like the plain Y-combinator does; switch to Normal order and it fully unfolds instead, hitting the evaluator's step limit",
+        description: "same self-application as Y, but the extra λy defers it until needed — Z id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever)",
         code: `Z = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 
 id = λ z . z;
 
 Z id;`,
+      },
+      {
+        label: "Z Combinator: Real Recursion (isEven)",
+        description: "Y/Z used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls",
+        code: `tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+not = λ b . b fls tru;
+
+zero = λ z . λ s . z;
+succ = λ n . λ z . λ s . s n;
+iszero = λ n . n tru (λ m . fls);
+pred = λ n . n zero (λ m . m);
+
+three = succ (succ (succ zero));
+
+isEvenGen = λ f . λ n . ((iszero n) (λ d . tru) (λ d . not (f (pred n)))) (λ x . x);
+
+Z = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+isEven = Z isEvenGen;
+
+isEven three;`,
       },
     ],
   },
