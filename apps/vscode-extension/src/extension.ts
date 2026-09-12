@@ -10,6 +10,7 @@ import {registerEvaluateCurrentFileCommand} from "./commands/evaluateCurrentFile
 import {registerEvaluationStrategyCommand} from "./commands/evaluationStrategyCommand";
 import {registerToggleTypeTheoriesCommand} from "./commands/toggleTypeTheoriesCommand";
 import {registerExportProofTreeLatexCommand} from "./commands/exportProofTreeLatexCommand";
+import {registerInsertExampleCommand} from "./commands/insertExampleCommand";
 import {ttOutputChannel} from "./outputChannel";
 import {registerEvaluationStepsCommand} from "./panels/evaluationStepsPanel";
 import {registerProofTreeCommand} from "./panels/proofTreePanel";
@@ -31,6 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
 	registerCompletions(context);
 	registerFileDecoration(context);
 	registerToggleTypeTheoriesCommand(context);
+	registerInsertExampleCommand(context);
 	registerEvaluationStrategyCommand(context);
 	registerEvaluateCurrentFileCommand(context);
 	registerStatusBar(context);

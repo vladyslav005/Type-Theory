@@ -1,5 +1,6 @@
 export * from "@/domain/ast";
 export * from "@/domain/typeTheory";
+export * from "@/domain/examples";
 
 export type {Parser} from "@/application/Parser";
 

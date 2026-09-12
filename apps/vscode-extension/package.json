@@ -144,6 +144,10 @@
         "title": "TT: Toggle Type Theories"
       },
       {
+        "command": "tt-vscode-extension.insertExample",
+        "title": "TT: Insert Example"
+      },
+      {
         "command": "tt-vscode-extension.chooseEvaluationStrategy",
         "title": "TT: Choose Evaluation Strategy"
       },
