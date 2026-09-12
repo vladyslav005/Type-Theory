@@ -1,5 +1,6 @@
 import {motion} from "framer-motion";
 import {Link} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import {ArrowRight, ScrollText, Sigma} from "lucide-react";
 import {
   Card,
@@ -8,9 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card.tsx";
+import {cn} from "@/shared/lib/utils.ts";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
-import {LECTURE_REGISTRY} from "@/features/docs/lectureRegistry.ts";
-import {LECTURE_CONTENT} from "@/features/docs/lectureContentRegistry.tsx";
+import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
 import {usePageMeta, SITE_URL} from "@/shared/hooks/usePageMeta.ts";
 
 const staggerContainer = {
@@ -22,6 +23,9 @@ const staggerContainer = {
 };
 
 export function DocsIndexPage() {
+  const {i18n} = useTranslation();
+  const visibleLectures = LECTURE_REGISTRY.filter((lecture) => lecture.visible);
+
   usePageMeta(
     "Guide — tt",
     "A hands-on introduction to typed lambda calculus, taught alongside the app — lectures, a " +
@@ -30,12 +34,12 @@ export function DocsIndexPage() {
       "@context": "https://schema.org",
       "@type": "ItemList",
       name: "tt Type Theory Lectures",
-      itemListElement: LECTURE_REGISTRY
-        .filter((lecture) => lecture.slug in LECTURE_CONTENT)
+      itemListElement: visibleLectures
+        .filter((lecture) => lecture.openable)
         .map((lecture, i) => ({
           "@type": "ListItem",
           position: i + 1,
-          name: lecture.title,
+          name: getLectureText(lecture, i18n.language).title,
           url: `${SITE_URL}/docs/${lecture.slug}`,
         })),
     },
@@ -61,28 +65,46 @@ export function DocsIndexPage() {
           Lectures
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          {LECTURE_REGISTRY.map((lecture, index) => (
-            <motion.div key={lecture.slug} variants={fadeInUp}>
-              <Link to={`/docs/${lecture.slug}`}>
-                <Card className="h-full shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <CardTitle className="text-lg leading-snug">
-                        <span className="text-muted-foreground/60 tabular-nums mr-2">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>
-                        {lecture.title}
-                      </CardTitle>
+          {visibleLectures.map((lecture, index) => {
+            const text = getLectureText(lecture, i18n.language);
+            const card = (
+              <Card
+                className={cn(
+                  "h-full shadow-sm transition-all duration-200",
+                  lecture.openable
+                    ? "hover:shadow-md hover:-translate-y-0.5"
+                    : "opacity-60 cursor-default",
+                )}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-3">
+                    <CardTitle className="text-lg leading-snug">
+                      <span className="text-muted-foreground/60 tabular-nums mr-2">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {text.title}
+                    </CardTitle>
+                    {lecture.openable ? (
                       <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1"/>
-                    </div>
-                    <CardDescription className="leading-relaxed">
-                      {lecture.summary}
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              </Link>
-            </motion.div>
-          ))}
+                    ) : (
+                      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground shrink-0 mt-1.5 rounded-full border px-2 py-0.5">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                  <CardDescription className="leading-relaxed">
+                    {text.summary}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            );
+
+            return (
+              <motion.div key={lecture.slug} variants={fadeInUp}>
+                {lecture.openable ? <Link to={`/docs/${lecture.slug}`}>{card}</Link> : card}
+              </motion.div>
+            );
+          })}
         </div>
       </motion.section>
 

@@ -17,6 +17,8 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^2.0.4",
+    "@mdx-js/react": "^3.1.1",
+    "@mdx-js/rollup": "^3.1.1",
     "@monaco-editor/react": "^4.7.0",
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
@@ -38,6 +40,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.13.0",
     "react-zoom-pan-pinch": "^3.7.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",

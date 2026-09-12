@@ -1,0 +1,180 @@
+{
+  "lectures": [
+    {
+      "slug": "stlc-basics",
+      "visible": true,
+      "openable": true,
+      "translations": {
+        "en": {
+          "title": "STLC Basics",
+          "summary": "Terms, types, and the Γ ⊢ t : T judgement — the foundation everything else builds on.",
+          "outline": [
+            {
+              "id": "why-any-of-this",
+              "label": "Why any of this?",
+              "subitems": [
+                { "id": "what-is-stlc", "label": "What is STLC?" },
+                { "id": "types-and-grammars", "label": "Types & grammars" },
+                { "id": "where-this-comes-from", "label": "Where this comes from" },
+                { "id": "where-youll-see-this-again", "label": "Where you'll see this again" }
+              ]
+            },
+            {
+              "id": "syntax",
+              "label": "Syntax",
+              "subitems": [
+                { "id": "terms", "label": "Terms" },
+                { "id": "the-arrow", "label": "The arrow" },
+                { "id": "text-to-tree", "label": "From text to tree" },
+                { "id": "free-bound", "label": "Free vs. bound" },
+                { "id": "alpha-equivalence", "label": "α-equivalence" }
+              ]
+            },
+            {
+              "id": "typing",
+              "label": "Typing",
+              "subitems": [
+                { "id": "why-bother", "label": "Why bother?" },
+                { "id": "how-to-read-a-rule", "label": "Reading a rule" }
+              ]
+            },
+            {
+              "id": "semantics",
+              "label": "Semantics",
+              "subitems": [
+                { "id": "math-functions", "label": "Math notation" },
+                { "id": "substitution", "label": "Substitution" },
+                { "id": "evaluation-rule-meaning", "label": "Evaluation rules" },
+                { "id": "evaluation-strategies", "label": "Strategies" },
+                { "id": "non-termination", "label": "Non-termination" },
+                { "id": "church-rosser", "label": "Church–Rosser" }
+              ]
+            },
+            { "id": "summary", "label": "Summary" },
+            { "id": "sources", "label": "Sources" }
+          ]
+        }
+      }
+    },
+    {
+      "slug": "typing-derivations",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Typing Derivations & Proof Trees",
+          "summary": "How a type-checking judgement is justified step by step, and how to read the Proof Tree panel.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "evaluation",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Evaluation",
+          "summary": "Reducing terms to values, and the three evaluation strategies the app supports.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "curry-howard",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Curry–Howard Correspondence",
+          "summary": "Reading a typing derivation as a natural-deduction proof — propositions as types, terms as proofs.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "data-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Data Types",
+          "summary": "Sums, products, records, variants, and lists — building structured data on top of STLC.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "iso-recursive-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Iso-recursive Types (μ)",
+          "summary": "Defining self-referential types with fold/unfold, and why they need an explicit isomorphism.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "recursion",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Recursion (fix)",
+          "summary": "Writing recursive functions with the fixpoint operator instead of naming a function after itself.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "let-polymorphism",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "Let-polymorphism & Type Inference",
+          "summary": "Generalizing let-bound values so one definition can be reused at multiple types.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "system-f",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "System F",
+          "summary": "Explicit polymorphism via type abstraction and type application.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "system-f-omega",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "System Fω",
+          "summary": "Type constructors and kinds — types that take types as arguments.",
+          "outline": []
+        }
+      }
+    },
+    {
+      "slug": "system-lambda-p",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "en": {
+          "title": "System λP (Dependent Types)",
+          "summary": "Types that depend on terms — dependent function types and term-indexed type families.",
+          "outline": []
+        }
+      }
+    }
+  ]
+}

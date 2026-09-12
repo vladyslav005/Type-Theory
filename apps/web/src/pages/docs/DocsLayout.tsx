@@ -1,9 +1,10 @@
 import {useState} from "react";
 import {NavLink, Outlet, useLocation} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import {BookOpen, Menu, ScrollText, Sigma, X} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {LECTURE_REGISTRY} from "@/features/docs/lectureRegistry.ts";
+import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
 
 const navLinkClass = ({isActive}: {isActive: boolean}) =>
   cn(
@@ -14,6 +15,9 @@ const navLinkClass = ({isActive}: {isActive: boolean}) =>
   );
 
 function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
+  const {i18n} = useTranslation();
+  const visibleLectures = LECTURE_REGISTRY.filter((lecture) => lecture.visible);
+
   return (
     <nav className="space-y-6">
       <div>
@@ -30,14 +34,14 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
           Lectures
         </p>
         <ol className="space-y-1">
-          {LECTURE_REGISTRY.map((lecture, index) => (
+          {visibleLectures.map((lecture, index) => (
             <li key={lecture.slug}>
               <NavLink to={`/docs/${lecture.slug}`} className={navLinkClass} onClick={onNavigate}>
                 <span className="flex gap-2.5">
                   <span className="text-muted-foreground/60 tabular-nums shrink-0">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-                  {lecture.title}
+                  {getLectureText(lecture, i18n.language).title}
                 </span>
               </NavLink>
             </li>
