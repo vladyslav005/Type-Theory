@@ -77,10 +77,10 @@ export function DocsLayout() {
   const location = useLocation();
 
   return (
-    <div className="pt-16 min-h-screen bg-gradient-to-b from-background to-muted/40">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div className="pt-16 print:pt-0 min-h-screen bg-gradient-to-b from-background to-muted/40 print:bg-none">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 print:p-0">
         {/* Mobile nav toggle */}
-        <div className="lg:hidden mb-4">
+        <div className="lg:hidden print:hidden mb-4">
           <Button
             variant="outline"
             size="sm"
@@ -92,11 +92,11 @@ export function DocsLayout() {
           </Button>
         </div>
 
-        <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-10">
+        <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:gap-10 print:block">
           {/* Sidebar */}
           <aside
             className={cn(
-              "lg:block",
+              "lg:block print:hidden",
               isMobileNavOpen ? "block mb-6" : "hidden",
             )}
           >

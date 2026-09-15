@@ -30,7 +30,7 @@ export function PredictThenVerify({term, prompt = "What type does this term have
   const matches = revealed && !!result && normalize(guess) === normalize(result.typeText);
 
   return (
-    <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+    <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">Checkpoint — predict, then verify</p>
 
       <pre className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto">{term}</pre>

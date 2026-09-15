@@ -72,7 +72,7 @@ export function TableOfContents({items}: {items: TocItem[]}) {
     );
 
   return (
-    <nav aria-label="On this page" className="hidden xl:block w-52 shrink-0">
+    <nav aria-label="On this page" className="hidden xl:block print:hidden w-52 shrink-0">
       <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 pl-3">On this page</p>
         <ul>
@@ -100,7 +100,7 @@ export function TableOfContents({items}: {items: TocItem[]}) {
 // placed at the top of the article, since a below-the-fold TOC on mobile is dead weight.
 export function MobileTableOfContents({items}: {items: TocItem[]}) {
   return (
-    <details className="group xl:hidden rounded-xl border bg-card">
+    <details className="group xl:hidden print:hidden rounded-xl border bg-card">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold min-h-11">
         <span className="flex items-center gap-2">
           <ListTree className="h-4 w-4 text-muted-foreground"/>
@@ -139,7 +139,7 @@ export interface PipelineStep {
 
 export function PipelineDiagram({steps}: {steps: PipelineStep[]}) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-3 rounded-xl border bg-muted/10 p-4">
+    <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-3 rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
       {steps.map((step, i) => (
         <div key={step.label} className="flex items-center gap-1">
           <div className="flex flex-col items-center justify-center rounded-lg border bg-background px-4 py-2.5 min-w-[7rem] text-center">
@@ -156,7 +156,7 @@ export function PipelineDiagram({steps}: {steps: PipelineStep[]}) {
 // Unlabeled example rule, teaching the premises/line/conclusion convention before real ones show up.
 export function RuleAnatomy() {
   return (
-    <div className="rounded-xl border bg-muted/10 p-4 flex flex-col items-center gap-1.5">
+    <div className="rounded-xl border bg-muted/10 p-4 flex flex-col items-center gap-1.5 print:break-inside-avoid">
       <span className="text-sm text-muted-foreground">premise 1&nbsp;&nbsp;&nbsp;&nbsp;premise 2&nbsp;&nbsp;&nbsp;&nbsp;...</span>
       <div className="flex items-center gap-2 w-full max-w-xs">
         <div className="flex-1 border-t border-foreground/50"/>
@@ -174,7 +174,7 @@ export function RuleAnatomy() {
 
 export function TryItBox({steps}: {steps: ReactNode[]}) {
   return (
-    <div className="rounded-xl border bg-muted/20 p-4">
+    <div className="rounded-xl border bg-muted/20 p-4 print:break-inside-avoid">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">Try it</p>
       <ol className="space-y-2.5 text-sm">
         {steps.map((step, i) => (
@@ -213,7 +213,7 @@ export function RuleCardStrip({ruleIds}: {ruleIds: string[]}) {
 // Introduces one piece of the app's own UI at a time — a small aside, not a manual dump.
 export function Callout({title, children}: {title: string; children: ReactNode}) {
   return (
-    <div className="flex gap-3 rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
+    <div className="flex gap-3 rounded-xl border border-primary/25 bg-primary/[0.04] p-4 print:break-inside-avoid">
       <Sparkles className="h-4 w-4 shrink-0 text-primary mt-0.5"/>
       <div className="text-sm space-y-1">
         <p className="font-semibold text-foreground">{title}</p>
@@ -225,7 +225,7 @@ export function Callout({title, children}: {title: string; children: ReactNode})
 
 export function GrammarBox({grammar, title = "Grammar covered so far"}: {grammar: string; title?: string}) {
   return (
-    <div className="rounded-xl border bg-muted/10 p-4">
+    <div className="rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{title}</p>
       <pre className="font-mono text-sm overflow-x-auto leading-relaxed">{grammar}</pre>
     </div>
@@ -239,7 +239,7 @@ export interface SummaryPoint {
 
 export function SummaryBox({id, points, next}: {id?: string; points: SummaryPoint[]; next?: ReactNode}) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border bg-muted/10 p-4">
+    <div id={id} className="scroll-mt-24 rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Summary</p>
       <ul className="space-y-1.5 text-sm">
         {points.map((point) => (
@@ -261,7 +261,7 @@ export interface ReferenceEntry {
 
 export function ReferenceList({id, entries}: {id?: string; entries: ReferenceEntry[]}) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border border-dashed bg-transparent p-4">
+    <div id={id} className="scroll-mt-24 rounded-xl border border-dashed bg-transparent p-4 print:break-inside-avoid">
       <div className="flex items-center gap-1.5 mb-2.5">
         <BookOpen className="h-3.5 w-3.5 text-muted-foreground"/>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sources for this text</p>

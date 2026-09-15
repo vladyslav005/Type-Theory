@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 export function FeedbackButton() {
   const {t} = useTranslation();
   return (
-    <div className="fixed bottom-20 left-[-10px] z-40 hidden sm:block">
+    <div className="fixed bottom-20 left-[-10px] z-40 hidden sm:block print:hidden">
       <Link
         to="/feedback"
         aria-label={t("feedback.aria")}

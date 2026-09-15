@@ -40,7 +40,7 @@ export function AstBuilder({label = "Build it yourself", instructions, allowedTy
   const reset = () => setState(emptyState());
 
   return (
-    <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+    <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</p>

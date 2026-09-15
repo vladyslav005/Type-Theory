@@ -12,7 +12,7 @@ export function RuleCard({rule, className}: {rule: RuleDefinition; className?: s
   const hasPremises = rule.premisesTex.length > 0;
 
   return (
-    <Card className={cn("shadow-sm hover:shadow-md transition-shadow duration-200", className)}>
+    <Card className={cn("shadow-sm hover:shadow-md transition-shadow duration-200 print:break-inside-avoid", className)}>
       <CardContent className="pt-6 pb-4 flex flex-col items-center gap-3">
         <div className="flex flex-col w-full">
           {hasPremises && (

@@ -13,7 +13,7 @@ export function MiniWorkspace({initialTerm, label = "Try it yourself", hint}: Mi
   const dirty = termText !== initialTerm;
 
   return (
-    <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+    <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</p>
         {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}

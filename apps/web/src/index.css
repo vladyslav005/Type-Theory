@@ -146,3 +146,42 @@
 @media (prefers-reduced-motion: reduce) {
   .tt-symbol { animation: none; }
 }
+
+/* Lecture PDFs are generated at build time by headless Chrome printing this same stylesheet
+   (see scripts/gen-lecture-pdfs.mjs) — force the light palette regardless of the active theme,
+   since dark backgrounds with dark text mostly just waste ink/toner on paper. */
+@media print {
+  :root, .dark {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.35 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --border: oklch(0.85 0 0);
+  }
+
+  h1, h2, h3, h4 {
+    break-after: avoid-page;
+  }
+
+  /* Single knob for lecture PDF text size — the on-screen scale reads oversized once printed
+     at A4 width. 100% = identical to on-screen; tweak and rerun `npm run gen:lecture-pdfs`. */
+  html {
+    font-size: 85%;
+  }
+
+  /* --primary collapses to near-black above, so color alone no longer marks a link — underline
+     plus a real (non-monochrome) color are the only signal left once printed. */
+  a {
+    color: oklch(0.45 0.18 260);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}

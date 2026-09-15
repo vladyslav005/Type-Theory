@@ -47,7 +47,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
   };
 
   return (
-    <div className="rounded-xl border bg-muted/20 p-4 space-y-3">
+    <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">Try it — reduction strategies</p>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
 

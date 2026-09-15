@@ -2,7 +2,7 @@ import {motion} from "framer-motion";
 import {Link, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {MDXProvider} from "@mdx-js/react";
-import {BookOpen} from "lucide-react";
+import {BookOpen, Download} from "lucide-react";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Callout, MobileTableOfContents, TableOfContents} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
@@ -50,12 +50,27 @@ export function DocsLecturePage() {
 
   return (
     <motion.div initial="initial" animate="animate" variants={fadeInUp}>
-      <div className="mb-6">
-        <p className="text-sm font-medium text-muted-foreground mb-1">
-          Lecture {String(index + 1).padStart(2, "0")}
-        </p>
-        <h1 className="text-3xl font-bold">{text.title}</h1>
-        <p className="text-muted-foreground mt-2 max-w-2xl leading-relaxed">{text.summary}</p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground mb-1">
+            Lecture {String(index + 1).padStart(2, "0")}
+          </p>
+          <h1 className="text-3xl font-bold">{text.title}</h1>
+          <p className="text-muted-foreground mt-2 max-w-2xl leading-relaxed">{text.summary}</p>
+        </div>
+        {/* Pre-rendered at build time (scripts/gen-lecture-pdfs.mjs), not generated client-side —
+            see the PDF-export postmortem in project memory for why. isFallback ⇒ the on-screen
+            content is the English file, so the generated PDF is filed under "en" too. */}
+        {resolved && (
+          <a
+            href={`/lectures-pdf/${resolved.isFallback ? "en" : i18n.language}/${lecture.slug}.pdf`}
+            download
+            className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+          >
+            <Download className="h-4 w-4"/>
+            Download PDF
+          </a>
+        )}
       </div>
 
       {!resolved ? (
