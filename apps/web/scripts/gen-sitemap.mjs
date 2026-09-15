@@ -1,6 +1,6 @@
 // Generates public/sitemap.xml from the actual routes that have crawlable content.
-// Lecture slugs are read from lectureContentRegistry.tsx so unwritten placeholder
-// pages never end up in the sitemap. Run: node scripts/gen-sitemap.mjs
+// Lecture slugs come from lectures.config.json (visible + openable) so hidden or
+// not-yet-written lectures never end up in the sitemap. Run: node scripts/gen-sitemap.mjs
 import {readFileSync, writeFileSync} from "node:fs";
 import {execSync} from "node:child_process";
 import {fileURLToPath} from "node:url";
@@ -12,11 +12,12 @@ const SITE_URL = "https://type-theory.dev";
 // Content routes only — /main is the interactive app (no crawlable text, stays out).
 const STATIC_ROUTES = ["/", "/docs", "/docs/rules", "/docs/grammar"];
 
-const contentRegistry = readFileSync(
-  resolve(here, "../src/features/docs/lectureContentRegistry.tsx"),
-  "utf8",
+const lecturesConfig = JSON.parse(
+  readFileSync(resolve(here, "../src/features/docs/lectures.config.json"), "utf8"),
 );
-const writtenLectures = [...contentRegistry.matchAll(/"([a-z0-9-]+)":\s*\w/g)].map((m) => m[1]);
+const writtenLectures = lecturesConfig.lectures
+  .filter((lecture) => lecture.visible && lecture.openable)
+  .map((lecture) => lecture.slug);
 
 const lastmod = (() => {
   try {
