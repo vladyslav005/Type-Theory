@@ -21,6 +21,16 @@ const webRoot = resolve(here, "..");
 const lecturesDir = join(webRoot, "src/features/docs/lectures");
 const SITE_URL = "https://type-theory.dev";
 
+// Header/footer templates are isolated from the page's own stylesheet (Chrome renders them in
+// a separate context), so styling has to be inlined here rather than reusing index.css classes.
+// The pageNumber/totalPages classes are magic strings Chrome itself fills in — not app markup.
+const HEADER_TEMPLATE = "<span></span>";
+const FOOTER_TEMPLATE = `
+  <div style="width:100%; font-size:9px; text-align:center; color:#999; font-family:sans-serif;">
+    <span class="pageNumber"></span> / <span class="totalPages"></span>
+  </div>
+`;
+
 const lecturesConfig = JSON.parse(
   readFileSync(join(webRoot, "src/features/docs/lectures.config.json"), "utf8"),
 );
@@ -92,7 +102,10 @@ try {
       path: join(localeDir, `${slug}.pdf`),
       format: "a4",
       printBackground: true,
-      margin: {top: "15mm", bottom: "15mm", left: "15mm", right: "15mm"},
+      margin: {top: "15mm", bottom: "18mm", left: "15mm", right: "15mm"},
+      displayHeaderFooter: true,
+      headerTemplate: HEADER_TEMPLATE,
+      footerTemplate: FOOTER_TEMPLATE,
     });
     await page.close();
     console.log(`[gen-lecture-pdfs] wrote ${locale}/${slug}.pdf`);
