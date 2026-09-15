@@ -171,6 +171,17 @@
     break-after: avoid-page;
   }
 
+  /* The lecture blocks' recurring small-caps "eyebrow" label (RuleCardStrip's "Rules",
+     SummaryBox's "Summary", GrammarBox/TryItBox/ReferenceList's titles, ...) is a plain <p>,
+     not a heading, so it's invisible to the h1-h4 rule above — without this, a page break can
+     land right after the label and before the content it introduces (e.g. "RULES" stranded on
+     one page, its rule cards pushed to the next). Targeting the shared utility combo instead of
+     each component individually means any future block using this same label pattern is covered
+     automatically. */
+  .text-xs.font-semibold.uppercase.tracking-wide {
+    break-after: avoid-page;
+  }
+
   /* Single knob for lecture PDF text size — the on-screen scale reads oversized once printed
      at A4 width. 100% = identical to on-screen; tweak and rerun `npm run gen:lecture-pdfs`. */
   html {

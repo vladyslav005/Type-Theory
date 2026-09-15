@@ -1,0 +1,89 @@
+// Renders each written lecture to a PDF using real headless Chrome (Page.printToPDF via
+// Puppeteer) against the just-built dist/, printing the app's own @media print stylesheet —
+// same mechanism as a reader hitting Ctrl+P, just automated and without the dialog. This
+// deliberately avoids rasterizing the DOM ourselves (html2canvas-style): that approach was
+// tried and reverted after repeatedly breaking on this app's CSS (Tailwind's color-mix()
+// outline rule, MathJax's SVG <use>/<defs> glyphs) — a real browser has none of those problems
+// because it's not re-implementing CSS/SVG parsing in JS.
+//
+// One PDF per (slug, locale) that has a real .mdx file, plus always an "en" one for every
+// written lecture (DocsLecturePage.tsx links to the "en" file whenever it's showing the
+// English-fallback content, which is guaranteed to exist for any lecture in the config below).
+// Run: node scripts/gen-lecture-pdfs.mjs (expects dist/ to already be built — see package.json)
+import {readFileSync, readdirSync, mkdirSync} from "node:fs";
+import {fileURLToPath} from "node:url";
+import {dirname, resolve, join} from "node:path";
+import puppeteer from "puppeteer";
+import {preview} from "vite";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const webRoot = resolve(here, "..");
+const lecturesDir = join(webRoot, "src/features/docs/lectures");
+const SITE_URL = "https://type-theory.dev";
+
+const lecturesConfig = JSON.parse(
+  readFileSync(join(webRoot, "src/features/docs/lectures.config.json"), "utf8"),
+);
+const writtenSlugs = new Set(
+  lecturesConfig.lectures.filter((l) => l.visible && l.openable).map((l) => l.slug),
+);
+
+const jobs = [];
+for (const slug of writtenSlugs) {
+  const localeFiles = readdirSync(join(lecturesDir, slug)).filter((f) => f.endsWith(".mdx"));
+  const locales = new Set(localeFiles.map((f) => f.replace(/\.mdx$/, "")));
+  if (!locales.has("en")) {
+    console.warn(`[gen-lecture-pdfs] ${slug} has no en.mdx — skipping (fallback assumption broken)`);
+    continue;
+  }
+  for (const locale of locales) jobs.push({slug, locale});
+}
+
+if (jobs.length === 0) {
+  console.log("[gen-lecture-pdfs] no written lectures found, nothing to do");
+  process.exit(0);
+}
+
+const server = await preview({root: webRoot, preview: {port: 4173, strictPort: false}});
+const baseUrl = server.resolvedUrls.local[0];
+
+const browser = await puppeteer.launch({args: ["--no-sandbox", "--disable-setuid-sandbox"]});
+const outDir = join(webRoot, "dist", "lectures-pdf");
+
+try {
+  for (const {slug, locale} of jobs) {
+    const page = await browser.newPage();
+    // i18next reads this key (LANGUAGE_STORAGE_KEY in i18n.ts) before its own init runs.
+    await page.evaluateOnNewDocument((loc) => localStorage.setItem("tt-lang", loc), locale);
+    await page.goto(new URL(`/docs/${slug}`, baseUrl).href, {waitUntil: "networkidle0"});
+    await page.waitForSelector("mjx-container", {timeout: 10_000}).catch(() => {});
+    // Individual <MathJax> components typeset independently after mount — networkidle plus
+    // the first mjx-container doesn't guarantee the rest (usually many small inline formulas
+    // per page) have finished; this margin is cheap and avoids a flaky per-node readiness check.
+    await new Promise((r) => setTimeout(r, 500));
+
+    // We render against the local preview server, so root-relative hrefs ("/docs/rules")
+    // would otherwise print as http://localhost:.../docs/rules — dead links once downloaded.
+    // Adding a <base> now (after everything's already loaded from localhost) only affects how
+    // the print engine resolves those hrefs, not any further asset fetches.
+    await page.evaluate((siteUrl) => {
+      const base = document.createElement("base");
+      base.href = `${siteUrl}/`;
+      document.head.prepend(base);
+    }, SITE_URL);
+
+    const localeDir = join(outDir, locale);
+    mkdirSync(localeDir, {recursive: true});
+    await page.pdf({
+      path: join(localeDir, `${slug}.pdf`),
+      format: "a4",
+      printBackground: true,
+      margin: {top: "15mm", bottom: "15mm", left: "15mm", right: "15mm"},
+    });
+    await page.close();
+    console.log(`[gen-lecture-pdfs] wrote ${locale}/${slug}.pdf`);
+  }
+} finally {
+  await browser.close();
+  await new Promise((r) => server.httpServer.close(r));
+}
