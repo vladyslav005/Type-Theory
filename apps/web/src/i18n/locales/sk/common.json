@@ -29,6 +29,12 @@
     "brand": "Teória typov",
     "rights": "© {{year}} Type Theory. Všetky práva vyhradené."
   },
+  "guide": {
+    "lecture": "Prednáška",
+    "tableOfContents": "Obsah",
+    "appendix": "Príloha",
+    "rulesReference": "Prehľad pravidiel"
+  },
   "actions": {
     "typeCheck": "Analyzovať a skontrolovať typy",
     "typeCheckTooltip": "Analyzovať a typovo skontrolovať aktuálny výraz — zostaví AST, strom dôkazu a Curry–Howardov pohľad",

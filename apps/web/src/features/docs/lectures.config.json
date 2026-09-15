@@ -2,38 +2,14 @@
   "lectures": [
     {
       "slug": "church-encodings",
-        "visible": true,
-        "openable": true,
-        "translations": {
-          "en": {
-            "title": "Church encodings, Recursion",
-            "summary": "Church encodings, Recursion",
-            "outline": [
-              {
-                "id": "church-encodings",
-                "label": "Church encodings",
-                "subitems": [
-                  {
-                    "id": "church-encodings-intro",
-                    "label": "Church encodings intro"
-                  },
-                  {
-                    "id": "church-encodings-nats",
-                    "label": "Church encodings of natural numbers"
-                  },
-                  {
-                    "id": "church-encodings-bools",
-                    "label": "Church encodings of booleans"
-                  },
-                  {
-                    "id": "church-encodings-lists",
-                    "label": "Church encodings of lists"
-                  }
-                ]
-              }
-            ]
-          }
+      "visible": true,
+      "openable": true,
+      "translations": {
+        "en": {
+          "title": "Church encodings, Recursion",
+          "summary": "Church encodings, Recursion"
         }
+      }
     },
     {
       "slug": "stlc-basics",
@@ -42,55 +18,9 @@
       "translations": {
         "en": {
           "title": "STLC Basics",
-          "summary": "Terms, types, and the Γ ⊢ t : T judgement — the foundation everything else builds on.",
-          "outline": [
-            {
-              "id": "why-any-of-this",
-              "label": "Why any of this?",
-              "subitems": [
-                { "id": "what-is-stlc", "label": "What is STLC?" },
-                { "id": "types-and-grammars", "label": "Types & grammars" },
-                { "id": "where-this-comes-from", "label": "Where this comes from" },
-                { "id": "where-youll-see-this-again", "label": "Where you'll see this again" }
-              ]
-            },
-            {
-              "id": "syntax",
-              "label": "Syntax",
-              "subitems": [
-                { "id": "terms", "label": "Terms" },
-                { "id": "the-arrow", "label": "The arrow" },
-                { "id": "text-to-tree", "label": "From text to tree" },
-                { "id": "free-bound", "label": "Free vs. bound" },
-                { "id": "alpha-equivalence", "label": "α-equivalence" }
-              ]
-            },
-            {
-              "id": "typing",
-              "label": "Typing",
-              "subitems": [
-                { "id": "why-bother", "label": "Why bother?" },
-                { "id": "how-to-read-a-rule", "label": "Reading a rule" }
-              ]
-            },
-            {
-              "id": "semantics",
-              "label": "Semantics",
-              "subitems": [
-                { "id": "math-functions", "label": "Math notation" },
-                { "id": "substitution", "label": "Substitution" },
-                { "id": "evaluation-rule-meaning", "label": "Evaluation rules" },
-                { "id": "evaluation-strategies", "label": "Strategies" },
-                { "id": "non-termination", "label": "Non-termination" },
-                { "id": "church-rosser", "label": "Church–Rosser" }
-              ]
-            },
-            { "id": "summary", "label": "Summary" },
-            { "id": "sources", "label": "Sources" }
-          ]
+          "summary": "Terms, types, and the Γ ⊢ t : T judgement — the foundation everything else builds on."
         }
       }
     }
-
   ]
 }

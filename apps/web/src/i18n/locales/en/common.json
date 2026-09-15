@@ -29,6 +29,12 @@
     "brand": "Type Theory",
     "rights": "© {{year}} Type Theory. All rights reserved."
   },
+  "guide": {
+    "lecture": "Lecture",
+    "tableOfContents": "Table of Contents",
+    "appendix": "Appendix",
+    "rulesReference": "Rules Reference"
+  },
   "actions": {
     "typeCheck": "Parse & Type Check",
     "typeCheckTooltip": "Parse & type-check the current expression — builds the AST, proof tree and Curry–Howard view",

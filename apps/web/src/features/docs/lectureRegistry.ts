@@ -1,10 +1,11 @@
 import lecturesConfig from "./lectures.config.json";
-import type {TocItem} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
 
+// No `outline` field — the table of contents (on-page and in the merged PDF) is derived
+// straight from the rendered MDX instead, see extractOutline.ts. Keeping it here would just be
+// a second hand-maintained copy of what SectionHeading/ConceptSection ids already say.
 export interface LectureTranslation {
   title: string;
   summary: string;
-  outline: TocItem[];
 }
 
 export interface LectureEntry {

@@ -1,0 +1,23 @@
+{/* Title page for the merged "Complete Guide" PDF (see scripts/gen-merged-guide.mjs) — edit
+   this file to change the title, subtitle, motif, or authors. Rendered through the same MDX +
+   print pipeline as a lecture, so it gets the app's real styling instead of a hand-drawn PDF
+   page. Decorative framing (background symbols, spacing) lives in DocsGuideCoverPage.tsx, not
+   here — this file is just the content. */}
+
+<div className="flex flex-col items-center text-center gap-3">
+  <img src="/logo.png" alt="" className="w-28 h-28 drop-shadow-lg"/>
+  <h1 className="text-6xl font-bold tracking-tight mt-6">Type Theory</h1>
+  <p className="text-xl text-primary font-medium">Complete Guide</p>
+
+[//]: # (<div className="mt-3 rounded-full border px-4 py-1.5 font-mono text-sm text-muted-foreground">)
+
+[//]: # (  Γ ⊢ t : T)
+
+[//]: # (</div>)
+</div>
+
+<div className="mt-32 flex flex-col items-center gap-2">
+  <div className="w-12 border-t-2 border-primary/40 mb-2"/>
+  <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Authored by</p>
+  <p className="font-semibold text-lg">Vladyslav Futrak</p>
+</div>

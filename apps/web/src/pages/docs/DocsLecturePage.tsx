@@ -1,3 +1,4 @@
+import {useLayoutEffect, useRef, useState} from "react";
 import {motion} from "framer-motion";
 import {Link, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
@@ -5,14 +6,15 @@ import {MDXProvider} from "@mdx-js/react";
 import {BookOpen, Download} from "lucide-react";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {Callout, MobileTableOfContents, TableOfContents} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {Callout, MobileTableOfContents, TableOfContents, type TocItem} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
 import {mdxComponents} from "@/features/docs/lectures/mdxComponents.tsx";
+import {extractOutline} from "@/features/docs/lectures/extractOutline.ts";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
 import {resolveLectureContent} from "@/features/docs/lectureContent.ts";
 import {usePageMeta, SITE_URL} from "@/shared/hooks/usePageMeta.ts";
 
 export function DocsLecturePage() {
-  const {i18n} = useTranslation();
+  const {t, i18n} = useTranslation();
   const {slug} = useParams<{slug: string}>();
   const index = LECTURE_REGISTRY.findIndex((l) => l.slug === slug);
   const entry = index === -1 ? undefined : LECTURE_REGISTRY[index];
@@ -20,6 +22,18 @@ export function DocsLecturePage() {
   const lecture = entry?.visible ? entry : undefined;
   const text = lecture ? getLectureText(lecture, i18n.language) : undefined;
   const resolved = lecture?.openable && slug ? resolveLectureContent(slug, i18n.language) : undefined;
+
+  // Derived from the rendered MDX (see extractOutline.ts) rather than a hand-maintained
+  // lectures.config.json field — only knowable once the content's actually in the DOM.
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [outline, setOutline] = useState<TocItem[]>([]);
+  useLayoutEffect(() => {
+    setOutline(contentRef.current ? extractOutline(contentRef.current) : []);
+    // `resolved` is a fresh {Component, isFallback} object literal every render (resolveLectureContent
+    // isn't memoized) — depending on it directly would re-run this effect, call setOutline, and
+    // re-render every time, forever. resolved.Component itself is the cached MDX module export, so
+    // it's referentially stable across renders for the same content — safe to depend on.
+  }, [resolved?.Component]);
 
   usePageMeta(
     lecture && text ? `${text.title} — tt Guide` : "Lecture not found — tt",
@@ -53,7 +67,7 @@ export function DocsLecturePage() {
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">
-            Lecture {String(index + 1).padStart(2, "0")}
+            {t("guide.lecture")} {String(index + 1).padStart(2, "0")}
           </p>
           <h1 className="text-3xl font-bold">{text.title}</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl leading-relaxed">{text.summary}</p>
@@ -82,8 +96,8 @@ export function DocsLecturePage() {
       ) : (
         <div className="xl:flex xl:gap-8">
           <div className="space-y-12 min-w-0 flex-1">
-            {text.outline.length > 0 && (
-              <MobileTableOfContents items={text.outline}/>
+            {outline.length > 0 && (
+              <MobileTableOfContents items={outline}/>
             )}
 
             {resolved.isFallback && (
@@ -92,13 +106,19 @@ export function DocsLecturePage() {
               </Callout>
             )}
 
-            <MDXProvider components={mdxComponents}>
-              <resolved.Component/>
-            </MDXProvider>
+            {/* space-y-12 repeated here, not just on the outer div — MDXProvider renders no DOM
+                element of its own, so the MDX's top-level blocks are direct children of this
+                div, not of the outer one; without the class here they'd all render flush
+                against each other. */}
+            <div ref={contentRef} className="space-y-12">
+              <MDXProvider components={mdxComponents}>
+                <resolved.Component/>
+              </MDXProvider>
+            </div>
           </div>
 
-          {text.outline.length > 0 && (
-            <TableOfContents items={text.outline}/>
+          {outline.length > 0 && (
+            <TableOfContents items={outline}/>
           )}
         </div>
       )}

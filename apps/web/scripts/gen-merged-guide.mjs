@@ -1,7 +1,9 @@
 // Builds one "Complete Guide" PDF per locale that has real translations for every written
-// lecture: title page -> table of contents -> every lecture in order -> an "Appendix" divider
-// -> the Rules and Grammar & Symbols reference pages, with continuous page numbers stamped
-// across the whole thing (title page excluded) and clickable table-of-contents entries.
+// lecture: title page -> table of contents (each lecture, indented with its own top-level
+// outline sections, derived from the rendered MDX — see measureOutlinePages/extractOutline.ts,
+// not a hand-maintained JSON list) -> every lecture in order -> an "Appendix" divider -> the
+// Rules reference page, with continuous page numbers stamped across the whole thing (title page
+// excluded) and clickable table-of-contents entries.
 //
 // Every part except the table of contents is rendered with real headless Chrome, same as
 // gen-lecture-pdfs.mjs — no rasterization, see that file's header comment for why. The title
@@ -21,21 +23,51 @@ import {fileURLToPath} from "node:url";
 import {dirname, resolve, join} from "node:path";
 import puppeteer from "puppeteer";
 import {preview} from "vite";
-import {PDFDocument, StandardFonts, PDFName, rgb} from "pdf-lib";
+import {PDFDocument, PDFName, rgb} from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "..");
+// Noto Sans, not pdf-lib's built-in Helvetica — the standard PDF fonts only cover WinAnsi
+// (Latin-1) and can't encode Cyrillic or several Slovak diacritics (š č ž ľ ť ď ň) at all;
+// pdf-lib throws rather than mangling them, so "sk"/"uk" ToC labels would otherwise crash this
+// script outright the moment real lecture translations exist for them. Noto Sans is specifically
+// designed for broad multi-script coverage — verified it covers both scripts before adding it.
+// Resolved via import.meta.resolve rather than a hardcoded node_modules path since npm
+// workspaces hoists this devDependency up to the repo root, not apps/web/node_modules.
+const NOTO_SANS_REGULAR = fileURLToPath(
+  import.meta.resolve("@expo-google-fonts/noto-sans/400Regular/NotoSans_400Regular.ttf"),
+);
+const NOTO_SANS_BOLD = fileURLToPath(
+  import.meta.resolve("@expo-google-fonts/noto-sans/700Bold/NotoSans_700Bold.ttf"),
+);
 const lecturesDir = join(webRoot, "src/features/docs/lectures");
 const SITE_URL = "https://type-theory.dev";
-const PRINT_MARGIN = "15mm";
+const PRINT_MARGIN_MM = 15;
+const PRINT_MARGIN = `${PRINT_MARGIN_MM}mm`;
 
 // Must match SUPPORTED_LANGUAGES in src/i18n/i18n.ts — kept as a plain constant here since this
 // script runs under plain Node, outside Vite's TS/JSX pipeline.
 const CANDIDATE_LOCALES = ["en", "sk", "uk"];
 
+// The pdf-lib-drawn labels ("Table of Contents", "Appendix", "Rules Reference") come straight
+// from the same common.json the live app uses (guide.*) — one source of truth, not a second
+// hardcoded translation map to drift out of sync with it. Drawn with the embedded Noto Sans
+// fonts above (not pdf-lib's standard fonts), so Cyrillic and Slovak diacritics render fine.
+function guideStrings(locale) {
+  const common = JSON.parse(readFileSync(join(webRoot, `src/i18n/locales/${locale}/common.json`), "utf8"));
+  return common.guide;
+}
+
 const A4_WIDTH = 595.28;
 const A4_HEIGHT = 841.89;
 const MARGIN = 56.7; // 20mm
+
+// The CSS-px box Chrome actually lays content out in while printing (scale 1 => 96 CSS px per
+// inch) — used to work out which page, within a lecture's own PDF, a given heading lands on.
+const MM_PER_INCH = 25.4;
+const CONTENT_WIDTH_PX = Math.round(((210 - PRINT_MARGIN_MM * 2) / MM_PER_INCH) * 96);
+const CONTENT_HEIGHT_PX = ((297 - PRINT_MARGIN_MM * 2) / MM_PER_INCH) * 96;
 
 const lecturesConfig = JSON.parse(
   readFileSync(join(webRoot, "src/features/docs/lectures.config.json"), "utf8"),
@@ -68,8 +100,13 @@ const server = await preview({root: webRoot, preview: {port: 4173, strictPort: f
 const baseUrl = server.resolvedUrls.local[0];
 const browser = await puppeteer.launch({args: ["--no-sandbox", "--disable-setuid-sandbox"]});
 const outDir = join(webRoot, "dist", "lectures-pdf");
+const notoSansRegularBytes = readFileSync(NOTO_SANS_REGULAR);
+const notoSansBoldBytes = readFileSync(NOTO_SANS_BOLD);
 
-async function printRoute(path, locale) {
+// `onBeforePrint(page)`, if given, runs after the page is fully settled (MathJax typeset, print
+// media rewrites applied) but before it's captured — its return value is passed back as `extra`
+// alongside the PDF buffer. Used to measure heading positions for the table of contents.
+async function printRoute(path, locale, {onBeforePrint} = {}) {
   const page = await browser.newPage();
   await page.evaluateOnNewDocument((loc) => localStorage.setItem("tt-lang", loc), locale);
   await page.goto(new URL(path, baseUrl).href, {waitUntil: "networkidle0"});
@@ -88,13 +125,35 @@ async function printRoute(path, locale) {
     base.href = `${siteUrl}/`;
     document.head.prepend(base);
   }, SITE_URL);
+  const extra = onBeforePrint ? await onBeforePrint(page) : undefined;
   const buffer = await page.pdf({
     format: "a4",
     printBackground: true,
     margin: {top: PRINT_MARGIN, bottom: PRINT_MARGIN, left: PRINT_MARGIN, right: PRINT_MARGIN},
   });
   await page.close();
-  return buffer;
+  return {buffer, extra};
+}
+
+// Finds each top-level outline section (SectionHeading/SummaryBox/ReferenceList — see
+// extractOutline.ts, the same data-toc-level markers the live site's on-page TOC uses) and
+// which page (1-indexed, within this lecture's own PDF) it lands on, by switching to print
+// layout at the same content width/media Chrome prints at and reading each heading's actual
+// position. No JSON outline list involved — id, label, and position all come from this one DOM
+// query, so a section added to the MDX shows up here automatically. Only level 1 is used (not
+// ConceptSection's nested level 2) to keep the merged guide's table of contents concise.
+async function measureOutlinePages(page) {
+  await page.emulateMediaType("print");
+  await page.setViewport({width: CONTENT_WIDTH_PX, height: 1200});
+  return page.evaluate((contentHeightPx) => {
+    const items = [];
+    document.querySelectorAll("[data-toc-level]").forEach((el) => {
+      if (el.dataset.tocLevel !== "1" || !el.id || !el.dataset.tocTitle) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      items.push({label: el.dataset.tocTitle, pageWithinLecture: Math.floor(top / contentHeightPx) + 1});
+    });
+    return items;
+  }, CONTENT_HEIGHT_PX);
 }
 
 function drawCentered(page, text, {y, size, font, color = rgb(0.1, 0.1, 0.1)}) {
@@ -104,15 +163,16 @@ function drawCentered(page, text, {y, size, font, color = rgb(0.1, 0.1, 0.1)}) {
 
 // Draws one "Label ..... 12" row with a dotted leader filling the gap, and returns its
 // clickable bounding box (for the internal jump-to-page link added once all pages exist).
-function drawTocRow(page, label, pageNum, {y, labelFont, numFont, size = 11}) {
-  page.drawText(label, {x: MARGIN, y, size, font: labelFont, color: rgb(0.15, 0.15, 0.15)});
+function drawTocRow(page, label, pageNum, {y, labelFont, numFont, size = 11, indent = 0}) {
+  const x = MARGIN + indent;
+  page.drawText(label, {x, y, size, font: labelFont, color: rgb(0.15, 0.15, 0.15)});
   const numText = String(pageNum);
   const numWidth = numFont.widthOfTextAtSize(numText, size);
   const numX = A4_WIDTH - MARGIN - numWidth;
   page.drawText(numText, {x: numX, y, size, font: numFont, color: rgb(0.15, 0.15, 0.15)});
 
   const labelWidth = labelFont.widthOfTextAtSize(label, size);
-  const leaderStart = MARGIN + labelWidth + 6;
+  const leaderStart = x + labelWidth + 6;
   const leaderEnd = numX - 6;
   if (leaderEnd > leaderStart) {
     page.drawLine({
@@ -124,7 +184,7 @@ function drawTocRow(page, label, pageNum, {y, labelFont, numFont, size = 11}) {
     });
   }
 
-  return {x1: MARGIN - 4, y1: y - 5, x2: A4_WIDTH - MARGIN, y2: y + size + 3, targetPageNum: pageNum};
+  return {x1: x - 4, y1: y - 5, x2: A4_WIDTH - MARGIN, y2: y + size + 3, targetPageNum: pageNum};
 }
 
 // A jump-to-page link, not an external URL — constructed at the PDF-object level since pdf-lib
@@ -151,37 +211,51 @@ try {
   for (const locale of locales) {
     console.log(`[gen-merged-guide] building ${locale}...`);
 
-    const coverDoc = await PDFDocument.load(await printRoute("/docs/guide-cover", locale));
+    const {buffer: coverBuffer} = await printRoute("/docs/guide-cover", locale);
+    const coverDoc = await PDFDocument.load(coverBuffer);
 
-    // Render every other part first so each one's page count is known before the table of
-    // contents is drawn — no need for a "reserve a blank page, go back and fill in numbers
-    // later" trick.
+    // Render every other part first so each one's page count (and each outline section's page
+    // within it) is known before the table of contents is drawn — no need for a "reserve a
+    // blank page, go back and fill in numbers later" trick.
     const parts = [];
     for (const lecture of writtenLectures) {
-      const buffer = await printRoute(`/docs/${lecture.slug}`, locale);
+      const {buffer, extra: outlinePages} = await printRoute(`/docs/${lecture.slug}`, locale, {
+        onBeforePrint: (page) => measureOutlinePages(page),
+      });
       const doc = await PDFDocument.load(buffer);
-      parts.push({title: lecture.translations[locale].title, doc, pageCount: doc.getPageCount()});
+      parts.push({
+        title: lecture.translations[locale].title,
+        doc,
+        pageCount: doc.getPageCount(),
+        outline: outlinePages,
+      });
     }
-    const rulesDoc = await PDFDocument.load(await printRoute("/docs/rules", locale));
-    const grammarDoc = await PDFDocument.load(await printRoute("/docs/grammar", locale));
+    const {buffer: rulesBuffer} = await printRoute("/docs/rules", locale);
+    const rulesDoc = await PDFDocument.load(rulesBuffer);
 
     // Physical 1-indexed page numbers: the cover page(s) first, then one ToC page, then content.
     let cursor = coverDoc.getPageCount() + 2;
     for (const part of parts) {
       part.startPage = cursor;
+      part.outline.forEach((section) => {
+        section.page = part.startPage + section.pageWithinLecture - 1;
+      });
       cursor += part.pageCount;
     }
     const appendixDividerPage = cursor;
     cursor += 1;
     const rulesStartPage = cursor;
     cursor += rulesDoc.getPageCount();
-    const grammarStartPage = cursor;
-    cursor += grammarDoc.getPageCount();
     const expectedTotalPages = cursor - 1;
 
+    const strings = guideStrings(locale);
     const finalDoc = await PDFDocument.create();
-    const font = await finalDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await finalDoc.embedFont(StandardFonts.HelveticaBold);
+    finalDoc.registerFontkit(fontkit);
+    // subset: false (the default) — subsetting garbled several glyphs here (a pdf-lib bug when
+    // the same embedded font is reused across many separate drawText calls); full embedding
+    // costs a few hundred KB in this one-time build artifact, which isn't worth chasing further.
+    const font = await finalDoc.embedFont(notoSansRegularBytes);
+    const boldFont = await finalDoc.embedFont(notoSansBoldBytes);
 
     // --- Cover (prepended, not hand-drawn — see file header) ---
     const copiedCover = await finalDoc.copyPages(coverDoc, coverDoc.getPageIndices());
@@ -190,19 +264,21 @@ try {
     // --- Table of contents (assumes everything fits on one page — revisit if the lecture
     // count grows enough that it doesn't) ---
     const tocPage = finalDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-    drawCentered(tocPage, "Table of Contents", {y: A4_HEIGHT - MARGIN - 20, size: 20, font: boldFont});
+    drawCentered(tocPage, strings.tableOfContents, {y: A4_HEIGHT - MARGIN - 20, size: 20, font: boldFont});
     const tocLinks = [];
     let rowY = A4_HEIGHT - MARGIN - 70;
     for (const part of parts) {
-      tocLinks.push(drawTocRow(tocPage, part.title, part.startPage, {y: rowY, labelFont: font, numFont: font}));
-      rowY -= 26;
+      tocLinks.push(drawTocRow(tocPage, part.title, part.startPage, {y: rowY, labelFont: boldFont, numFont: font}));
+      rowY -= 22;
+      for (const section of part.outline) {
+        tocLinks.push(drawTocRow(tocPage, section.label, section.page, {y: rowY, labelFont: font, numFont: font, size: 9.5, indent: 16}));
+        rowY -= 17;
+      }
+      rowY -= 9;
     }
-    rowY -= 14;
-    tocLinks.push(drawTocRow(tocPage, "Appendix", appendixDividerPage, {y: rowY, labelFont: boldFont, numFont: font}));
-    rowY -= 26;
-    tocLinks.push(drawTocRow(tocPage, "   Rules Reference", rulesStartPage, {y: rowY, labelFont: font, numFont: font}));
-    rowY -= 26;
-    tocLinks.push(drawTocRow(tocPage, "   Grammar & Symbols", grammarStartPage, {y: rowY, labelFont: font, numFont: font}));
+    tocLinks.push(drawTocRow(tocPage, strings.appendix, appendixDividerPage, {y: rowY, labelFont: boldFont, numFont: font}));
+    rowY -= 22;
+    tocLinks.push(drawTocRow(tocPage, strings.rulesReference, rulesStartPage, {y: rowY, labelFont: font, numFont: font, size: 9.5, indent: 16}));
 
     // --- Lectures ---
     for (const part of parts) {
@@ -212,11 +288,9 @@ try {
 
     // --- Appendix ---
     const dividerPage = finalDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-    drawCentered(dividerPage, "Appendix", {y: A4_HEIGHT / 2, size: 26, font: boldFont});
-    for (const doc of [rulesDoc, grammarDoc]) {
-      const copied = await finalDoc.copyPages(doc, doc.getPageIndices());
-      copied.forEach((p) => finalDoc.addPage(p));
-    }
+    drawCentered(dividerPage, strings.appendix, {y: A4_HEIGHT / 2, size: 26, font: boldFont});
+    const copiedRules = await finalDoc.copyPages(rulesDoc, rulesDoc.getPageIndices());
+    copiedRules.forEach((p) => finalDoc.addPage(p));
 
     const allPages = finalDoc.getPages();
     if (allPages.length !== expectedTotalPages) {

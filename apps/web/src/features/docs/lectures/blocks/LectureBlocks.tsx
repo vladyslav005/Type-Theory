@@ -7,9 +7,16 @@ import {findRule} from "@/features/docs/rules/ruleDefinitions.ts";
 
 // Chapter-level heading (Syntax / Typing / Semantics); ConceptSection nests under it.
 // scroll-mt-24 keeps anchored/scrolled-to headings clear of the fixed top bar.
+// data-toc-level/data-toc-title (only when there's an id to link to) are how extractOutline.ts
+// derives the on-page TOC and the merged PDF's table of contents straight from this rendered
+// content, instead of from a hand-maintained duplicate list in lectures.config.json.
 export function SectionHeading({id, index, title, blurb}: {id?: string; index: string; title: string; blurb: string}) {
   return (
-    <div id={id} className="scroll-mt-24 flex items-start gap-4">
+    <div
+      id={id}
+      className="scroll-mt-24 flex items-start gap-4"
+      {...(id ? {"data-toc-level": "1", "data-toc-title": title} : {})}
+    >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-base font-bold">
         {index}
       </span>
@@ -23,7 +30,11 @@ export function SectionHeading({id, index, title, blurb}: {id?: string; index: s
 
 export function ConceptSection({id, title, children}: {id?: string; title: string; children: ReactNode}) {
   return (
-    <section id={id} className="scroll-mt-24 space-y-3 border-l-2 border-primary/20 pl-5 ml-5">
+    <section
+      id={id}
+      className="scroll-mt-24 space-y-3 border-l-2 border-primary/20 pl-5 ml-5"
+      {...(id ? {"data-toc-level": "2", "data-toc-title": title} : {})}
+    >
       <h3 className="text-lg font-semibold">{title}</h3>
       <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">{children}</div>
     </section>
@@ -172,9 +183,12 @@ export function RuleAnatomy() {
   );
 }
 
+// Always points at something to click in the live app ("open the Editor", "switch to the
+// Proof Tree panel") — meaningless once printed, so it's print:hidden rather than just
+// print:break-inside-avoid like the other boxed blocks.
 export function TryItBox({steps}: {steps: ReactNode[]}) {
   return (
-    <div className="rounded-xl border bg-muted/20 p-4 print:break-inside-avoid">
+    <div className="rounded-xl border bg-muted/20 p-4 print:hidden">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">Try it</p>
       <ol className="space-y-2.5 text-sm">
         {steps.map((step, i) => (
@@ -197,7 +211,7 @@ export function RuleCardStrip({ruleIds}: {ruleIds: string[]}) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">Rules</p>
-        <Link to="/docs/rules" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
+        <Link to="/docs/rules" className="text-xs text-muted-foreground hover:text-foreground hover:underline print:hidden">
           Full reference →
         </Link>
       </div>
@@ -211,9 +225,15 @@ export function RuleCardStrip({ruleIds}: {ruleIds: string[]}) {
 }
 
 // Introduces one piece of the app's own UI at a time — a small aside, not a manual dump.
-export function Callout({title, children}: {title: string; children: ReactNode}) {
+// Not every Callout is app-specific (e.g. a translation-fallback notice reuses it too), so
+// hiding it from the printed PDF is an explicit per-usage opt-in, not automatic — pass
+// screenOnly on the ones that point at a panel, dropdown, or button in the live app.
+export function Callout({title, children, screenOnly}: {title: string; children: ReactNode; screenOnly?: boolean}) {
   return (
-    <div className="flex gap-3 rounded-xl border border-primary/25 bg-primary/[0.04] p-4 print:break-inside-avoid">
+    <div className={cn(
+      "flex gap-3 rounded-xl border border-primary/25 bg-primary/[0.04] p-4 print:break-inside-avoid",
+      screenOnly && "print:hidden",
+    )}>
       <Sparkles className="h-4 w-4 shrink-0 text-primary mt-0.5"/>
       <div className="text-sm space-y-1">
         <p className="font-semibold text-foreground">{title}</p>
@@ -239,7 +259,11 @@ export interface SummaryPoint {
 
 export function SummaryBox({id, points, next}: {id?: string; points: SummaryPoint[]; next?: ReactNode}) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
+    <div
+      id={id}
+      className="scroll-mt-24 rounded-xl border bg-muted/10 p-4 print:break-inside-avoid"
+      {...(id ? {"data-toc-level": "1", "data-toc-title": "Summary"} : {})}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Summary</p>
       <ul className="space-y-1.5 text-sm">
         {points.map((point) => (
@@ -261,7 +285,11 @@ export interface ReferenceEntry {
 
 export function ReferenceList({id, entries}: {id?: string; entries: ReferenceEntry[]}) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border border-dashed bg-transparent p-4 print:break-inside-avoid">
+    <div
+      id={id}
+      className="scroll-mt-24 rounded-xl border border-dashed bg-transparent p-4 print:break-inside-avoid"
+      {...(id ? {"data-toc-level": "1", "data-toc-title": "Sources"} : {})}
+    >
       <div className="flex items-center gap-1.5 mb-2.5">
         <BookOpen className="h-3.5 w-3.5 text-muted-foreground"/>
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sources for this text</p>
