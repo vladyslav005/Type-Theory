@@ -1,21 +1,337 @@
-import {Link} from "react-router-dom";
 import {
-    Callout,
-    ConceptSection,
-    GrammarBox,
-    PipelineDiagram,
-    ReferenceList,
-    RuleAnatomy,
-    RuleCardStrip,
-    SectionHeading,
-    SummaryBox,
-    TryItBox,
+  Callout,
+  ConceptSection,
+  Math,
+  ReferenceList,
+  SectionHeading,
+  SummaryBox,
+  TryItBox,
 } from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
-import {MiniWorkspace} from "@/features/docs/workspace/MiniWorkspace.tsx";
-import {PredictThenVerify} from "@/features/docs/workspace/PredictThenVerify.tsx";
-import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
 import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
 
+If you're new to type theory, welcome — this is the first hands-on lecture, and it starts
+from almost nothing on purpose. Lambda calculus, the language underneath everything TT
+does, gives you exactly one building block: functions. Not "functions plus numbers,"
+not "functions plus true/false" — just functions, alone. That can sound too small to be
+useful. This lecture's whole job is to show, patiently and with real running examples,
+that it isn't: booleans, pairs, numbers, and even repetition can all be built out of
+functions and nothing else. By the end, a handful of tiny function definitions will be
+doing everything a built-in `if`, a built-in number, and a built-in loop would normally do.
 
+<SectionHeading id="why-any-of-this" index="0" title="Why any of this?" blurb="A gentle run-up before any real notation shows up." />
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+<ConceptSection id="functions-as-boxes" title="First, what is a function here?">
+
+Think of a function the way you'd think of a vending machine: you put something in, it
+does something fixed and predictable, and something comes out. `λ x . x + 1` is a
+machine that takes a number and gives back one more than it. That's genuinely the whole
+idea — no hidden state, no memory of what happened last time, just "input goes in,
+output comes out." Everything in this lecture is built by combining machines like that
+in clever ways, never by adding a new kind of machine.
+
+</ConceptSection>
+
+<ConceptSection id="values-as-behavior" title="A value can BE a choice, not just hold one">
+
+Here's the leap this whole lecture rests on, so it's worth sitting with. Normally you'd
+say "true is a piece of data, and separately, there's an `if` that inspects it." Church's
+idea is to fuse those two things together: make the value itself *be* the inspecting.
+
+An analogy: imagine two identical-looking envelopes. One is rigged so that whenever you
+ask it "give me the left thing or the right thing?", it always hands you the left one.
+The other always hands you the right one. You never open either envelope and read a
+label saying "true" or "false" — the *only* way you ever notice a difference between
+them is by watching which one they hand you. If something always behaves like "always
+pick left," that behavior *is* true — there's nothing further to check. That's the trick
+this lecture applies over and over: instead of storing a value and writing code to
+inspect it later, make the value *be* a small machine that already knows how to behave
+correctly when it's inspected.
+
+</ConceptSection>
+
+<ConceptSection id="why-untyped" title="Why there's no `if`, no `0`, nothing built in yet">
+
+You might reasonably ask: why not just use the app's real `if` and real numbers? Because
+right now we're deliberately using the smallest possible language — plain, untyped
+lambda calculus, with nothing but `λ`, variables, and applying one thing to another — to
+prove a point: that smallest possible language is already enough. Every `if`, every
+number, every pair you'll see below is built *from* that tiny language, not bolted on
+top of it. Types (which make sure these pieces are used consistently) are the very next
+lecture's job — for today, the only goal is getting comfortable with what these
+functions actually *do*.
+
+</ConceptSection>
+
+<Callout title="The app, alongside this page" screenOnly>
+
+Everything below is real code, and you don't have to take it on faith — you can run every
+single example. Open **Editor**, enable **Untyped lambda calculus** in the Type Theories
+dropdown, then click **Insert Prelude**: it drops in every definition used on this page
+(`tru`/`fls`, numbers, pairs, both recursion helpers), under the exact names used here.
+It's all plain, editable text — nothing is a hidden engine built-in.
+
+</Callout>
+
+<SectionHeading id="booleans" index="1" title="Booleans" blurb="The simplest possible version of the trick above." />
+
+<ConceptSection id="boolean-encoding" title="A boolean, spelled out as a switch">
+
+Picture a two-position switch. Flip it one way, and whatever's connected on the "left"
+side lights up; flip it the other way, and the "right" side lights up. A Church boolean
+is exactly that switch, written as a function that's handed two things and always
+returns one of them:
+
+```
+tru = λ t . λ f . t;   // always return the first thing you're handed
+fls = λ t . λ f . f;   // always return the second thing you're handed
+```
+
+Try reading `tru a b` out loud as "given `a` and `b`, `tru` always picks `a`." That's
+genuinely all there is to it — there's no separate "true value" hiding anywhere behind
+this function. Being handed two options and always returning the first one *is* what
+being "true" means here.
+
+</ConceptSection>
+
+<ConceptSection id="boolean-logic" title="Logic, for free">
+
+Once you have something that can pick between two branches, every familiar logical
+operation turns out to just be a different arrangement of that same pick:
+
+```
+test = λ b . λ c . λ a . b c a;   // if b then c else a
+not  = λ b . b fls tru;           // swap the two branches
+and  = λ b . λ c . b c fls;       // if b then c else fls
+or   = λ b . λ c . b tru c;       // if b then tru else c
+```
+
+Take `and` slowly: `and b c` just hands `b` two options — `c` (if `b` turns out to be
+`tru`) or `fls` (if `b` turns out to be `fls`). Which makes sense once you say it as a
+sentence: "if `b`, the answer is whatever `c` is; otherwise, the answer is already
+`fls`, no need to even look at `c`." No built-in `if`, no case analysis — just a switch,
+handed the right two options.
+
+</ConceptSection>
+
+<ReductionStrategyExplorer
+  term={"tru = λ t . λ f . t;\nfls = λ t . λ f . f;\nand = λ b . λ c . b c fls;\nand tru fls;"}
+  hint="and tru fls should end up behaving exactly like fls — watch the switch pick its branch, one step at a time."
+/>
+
+<SectionHeading id="pairs" index="2" title="Pairs" blurb="Bundle two things into one, using the same trick again." />
+
+<ConceptSection id="pair-encoding" title="A box with two compartments">
+
+Think of a small box with two compartments and two different keys — a "first" key and a
+"second" key. Put the key in, and the matching compartment opens. A Church pair is that
+box: a function that's holding two values and, depending on which key (which boolean)
+it's handed, hands back one of them.
+
+```
+pair = λ f . λ s . λ b . b f s;
+fst  = λ p . p tru;
+snd  = λ p . p fls;
+```
+
+`pair 3 5` builds the box: `λ b . b 3 5`, still waiting for a key. `fst` hands it the
+`tru` key, so the box's own internal switch picks `3`; `snd` hands it the `fls` key, and
+it picks `5`. It's the exact same switch from the Booleans section, just reused to hold
+data instead of to make a decision.
+
+</ConceptSection>
+
+<SectionHeading id="numbers" index="3" title="Numbers" blurb="The trickiest one — worth taking slowly." />
+
+<ConceptSection id="numeral-puzzle" title="Wait — how can a number possibly be a function?">
+
+This is usually the part that feels strange at first, so let's sit with the confusion
+before resolving it. A number like `3` feels like a *thing* — a symbol, a quantity, a
+fact about how much of something there is. How could that possibly be the same kind of
+object as a function, which is an *action*?
+
+The resolution: stop thinking of "3" as a quantity, and start thinking of it as an
+*instruction* — specifically, the instruction "do the following thing three times in a
+row." Picture clapping: you can't "hold" three claps in your hand, but you can
+absolutely perform the *action* of clapping three times. Church numerals encode a number
+that same way — not as a static amount, but as the repeated action itself.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-encoding" title="A number is: apply this, that many times">
+
+A Church numeral for `n` is a function that takes a step (`s`, for "successor" — think
+"one clap") and a starting point (`z`, for "zero") and applies the step `n` times,
+starting from `z`:
+
+```
+zero = λ s . λ z . z;                  // apply s zero times — just hand back z untouched
+succ = λ n . λ s . λ z . s (n s z);    // apply s one more time than n already does
+one   = succ zero;
+two   = succ one;
+three = succ two;
+```
+
+`zero`'s job is to do nothing — apply `s` zero times, and just return `z` as-is. `succ`
+doesn't inspect its argument as a quantity at all; it just wraps one more application of
+`s` around whatever `n` already produces. Do that three times, starting from `zero`, and
+you get "apply `s` three times" — which is exactly what the number `3` *means* here.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-walkthrough" title="Walking through it by hand">
+
+It's worth tracing this once slowly, since it's easy to nod along and not actually
+believe it yet. `two s z` should mean "apply `s` twice to `z`." Follow the definitions:
+
+- `two` is `succ one`, and `succ n = λ s . λ z . s (n s z)`.
+- So `two s z` becomes `s (one s z)`.
+- `one` is `succ zero`, so `one s z` becomes `s (zero s z)`.
+- `zero s z` is just `z` (by `zero`'s own definition).
+- So `one s z` becomes `s z`, and `two s z` becomes `s (s z)`.
+
+`s (s z)` — `s` applied twice to `z`. Exactly the "two claps" from the analogy above, now
+written out as an actual reduction, term by term, with nothing hidden.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-arithmetic" title="Arithmetic by iteration">
+
+Once a number is "do this N times," addition and multiplication stop needing any new
+ideas — they just reuse that same repetition:
+
+```
+plus  = λ m . λ n . λ s . λ z . m s (n s z);   // apply s, m times, on top of "n applied to z"
+times = λ m . λ n . m (plus n) zero;            // starting from zero, add n, m times
+```
+
+`plus m n` first builds "`s` applied `n` times to `z`," then applies `s` an *additional*
+`m` times on top of that — the two repetition counts simply stack. `times` goes one
+level up: instead of repeating `s`, it repeats the action "add `n`," `m` times, starting
+from `zero`. Same trick, reused on itself.
+
+</ConceptSection>
+
+<ReductionStrategyExplorer
+  term={"zero = λ s . λ z . z;\nsucc = λ n . λ s . λ z . s (n s z);\none = succ zero;\ntwo = succ one;\nplus = λ m . λ n . λ s . λ z . m s (n s z);\nplus one two;"}
+  hint="plus one two should behave exactly like three: s applied three times to z. Compare this trace to the by-hand walkthrough above."
+/>
+
+<ConceptSection id="numeral-predecessor" title="The awkward one: going backwards">
+
+Checking whether a numeral is zero is easy — hand it a step function that always answers
+`fls`, and only `zero` manages to return `tru` (by skipping the step entirely):
+
+```
+iszero = λ n . n (λ x . fls) tru;
+```
+
+Going the other way — `pred`, "one less than `n`" — is genuinely awkward, and it's worth
+knowing why rather than just memorizing the trick. A Church numeral only knows how to
+build *forward*, by wrapping one more `succ` around a starting point; nothing about it
+records what the previous numeral was, so there's nothing to "peel off." The workaround:
+walk forward `n` times anyway, but carry *two* numbers at once — "the previous one" and
+"the current one" — shifting both forward together at each step, like someone walking
+down a hallway calling out the room they just left and the room they're standing in:
+
+```
+pair  = λ f . λ s . λ b . b f s;
+fst   = λ p . p tru;
+snd   = λ p . p fls;
+shift = λ p . pair (snd p) (succ (snd p));      // (previous, current) -> (current, current+1)
+pred  = λ n . fst (n shift (pair zero zero));   // walk n forward from (0, 0), keep "previous"
+```
+
+Starting from `(0, 0)` and shifting twice: `(0, 1)`, then `(1, 2)`. So `pred two` reads
+off the "previous" half of that final pair, `1`. Roundabout, but built from nothing
+except the pieces already on this page.
+
+</ConceptSection>
+
+<SectionHeading id="recursion" index="4" title="Recursion" blurb="How do you write a function that calls itself, when nothing has a name yet?" />
+
+<ConceptSection id="self-reference-problem" title="The self-reference problem">
+
+Every definition so far stands on its own — `plus` never has to mention `plus` while
+it's being written. A recursive function breaks that pattern: to write `factorial` in
+terms of `factorial`, you need a name that refers to the very thing you're still in the
+middle of defining. But a `λ` only ever introduces a *parameter* — it never gives a
+function a name that's visible to its own body. There's no "call yourself" built in.
+
+</ConceptSection>
+
+<ConceptSection id="self-application-trick" title="Hand the function a copy of itself">
+
+Here's an analogy: imagine instructions for opening a nested set of boxes, where each
+step says "open this box, then follow these same instructions on the box inside." You're
+not allowed to write "these same instructions" as a name inside the instructions
+themselves — that name doesn't exist yet. The workaround: whenever you hand someone the
+instructions, also tape a *photocopy* of the instructions to the outside of the box.
+Now "follow these same instructions" is just "read the copy taped right here" — no name
+needed, just a copy handed along at every step.
+
+That's exactly what self-application does. Instead of trying to name a recursive
+function, write a function that expects to be handed a copy of itself as an extra
+argument, and calls *that* instead of its own (nonexistent) name:
+
+```
+g = λ self . λ n . test (iszero n) one (times n (self (pred n)));
+```
+
+`g` isn't `factorial` yet — it's "factorial, *if* you first hand me something to call
+for the recursive case." Applying a function to itself — roughly `(λ x . x x) g` — is
+the "tape a copy to the box" move: it's what actually produces that "something."
+
+</ConceptSection>
+
+<ConceptSection id="fixed-point" title="A fixed point, computed">
+
+Packaging that self-application trick into one reusable helper gives a *fixed-point
+combinator* — something where <Math>{"\\mathit{fix}\\ g"}</Math> and
+<Math>{"g\\ (\\mathit{fix}\\ g)"}</Math> always reduce to the same term, for any
+`g` you hand it:
+
+```
+Y    = λ f . (λ x . f (x x)) (λ x . f (x x));
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+```
+
+`Y` is the classic version; `fixx` wraps the recursive call in one extra `λ y . ...`
+before it's used. That extra wrapper isn't decoration — under **call by value**,
+arguments get reduced *before* they're substituted in, so a bare `Y` forces the
+self-application immediately and keeps expanding forever, the same divergence lecture 1
+warned about for `ω ω`. `fixx` hides that self-application behind a function, so it only
+actually runs once something calls it.
+
+</ConceptSection>
+
+<TryItBox
+  steps={[
+    <>Insert the prelude (see the callout above), then add <code>fact = fixx (λ self . λ n . test (iszero n) one (times n (self (pred n))));</code> and <code>fact two;</code>.</>,
+    <>Set the strategy to <strong>Call by value</strong> (the default) and evaluate — it never finishes. Every call to <code>test</code> eagerly evaluates <em>both</em> branches, including the recursive one, so <code>self (pred n)</code> keeps expanding even once <code>n</code> is <code>zero</code>.</>,
+    <>Switch to <strong>Call by name</strong> and evaluate the same term — it completes, because an unused branch is never forced at all.</>,
+  ]}
+/>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "The trick", detail: "make a value BE a small machine that behaves correctly, instead of storing data and inspecting it later."},
+    {label: "Booleans & pairs", detail: "both are switches — functions that are handed two options and always return one of them."},
+    {label: "Numbers", detail: "a Church numeral isn't a quantity, it's the action \"apply this step N times\" — succ just wraps one more application on top."},
+    {label: "Recursion", detail: "a function can't name itself, so hand it a copy of itself instead (self-application); fixx packages that so it survives call-by-value."},
+  ]}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "TUKE Type Theory course — Lecture 2 (Church encodings, recursion, fixed-point combinators)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/02.html",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages, ch. 5 (MIT Press, 2002)",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+  ]}
+/>

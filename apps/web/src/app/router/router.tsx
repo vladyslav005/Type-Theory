@@ -10,6 +10,7 @@ import {DocsLecturePage} from "@/pages/docs/DocsLecturePage.tsx";
 import {DocsRulesPage} from "@/pages/docs/DocsRulesPage.tsx";
 import {DocsGrammarPage} from "@/pages/docs/DocsGrammarPage.tsx";
 import {DocsGuideCoverPage} from "@/pages/docs/DocsGuideCoverPage.tsx";
+import {DocsGuideAppendixCoverPage} from "@/pages/docs/DocsGuideAppendixCoverPage.tsx";
 
 
 export const router = createBrowserRouter([
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
           {path: "rules", element: <DocsRulesPage/>},
           {path: "grammar", element: <DocsGrammarPage/>},
           {path: "guide-cover", element: <DocsGuideCoverPage/>},
+          {path: "guide-appendix-cover", element: <DocsGuideAppendixCoverPage/>},
           {path: ":slug", element: <DocsLecturePage/>},
         ],
       },

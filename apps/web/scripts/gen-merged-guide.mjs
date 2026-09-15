@@ -7,10 +7,12 @@
 //
 // Every part except the table of contents is rendered with real headless Chrome, same as
 // gen-lecture-pdfs.mjs — no rasterization, see that file's header comment for why. The title
-// page is /docs/guide-cover (src/features/docs/guide/cover.mdx) printed through the exact same
-// pipeline as a lecture, so it gets real app styling instead of a hand-drawn PDF page; edit that
-// MDX file to change the title, subtitle, or authors. The table of contents can't be rendered
-// that way — its page numbers depend on every other part's page count, which is only known once
+// page is /docs/guide-cover (src/features/docs/guide/cover.mdx) and the appendix divider is
+// /docs/guide-appendix-cover (src/pages/docs/DocsGuideAppendixCoverPage.tsx), both printed
+// through the exact same pipeline as a lecture, so they get real app styling instead of a
+// hand-drawn PDF page; edit the cover MDX file to change the title, subtitle, or authors, or the
+// appendix page component to change its layout. The table of contents can't be rendered that
+// way — its page numbers depend on every other part's page count, which is only known once
 // they've all been printed — so it's drawn directly with pdf-lib instead.
 //
 // The parts are stitched together with pdf-lib, which works on the real PDF objects (pages,
@@ -230,6 +232,8 @@ try {
         outline: outlinePages,
       });
     }
+    const {buffer: appendixCoverBuffer} = await printRoute("/docs/guide-appendix-cover", locale);
+    const appendixCoverDoc = await PDFDocument.load(appendixCoverBuffer);
     const {buffer: rulesBuffer} = await printRoute("/docs/rules", locale);
     const rulesDoc = await PDFDocument.load(rulesBuffer);
 
@@ -243,7 +247,7 @@ try {
       cursor += part.pageCount;
     }
     const appendixDividerPage = cursor;
-    cursor += 1;
+    cursor += appendixCoverDoc.getPageCount();
     const rulesStartPage = cursor;
     cursor += rulesDoc.getPageCount();
     const expectedTotalPages = cursor - 1;
@@ -286,9 +290,10 @@ try {
       copied.forEach((p) => finalDoc.addPage(p));
     }
 
-    // --- Appendix ---
-    const dividerPage = finalDoc.addPage([A4_WIDTH, A4_HEIGHT]);
-    drawCentered(dividerPage, strings.appendix, {y: A4_HEIGHT / 2, size: 26, font: boldFont});
+    // --- Appendix (a real app-styled page, printed the same way as the cover — see
+    // DocsGuideAppendixCoverPage.tsx — not hand-drawn text on a blank pdf-lib page) ---
+    const copiedAppendixCover = await finalDoc.copyPages(appendixCoverDoc, appendixCoverDoc.getPageIndices());
+    copiedAppendixCover.forEach((p) => finalDoc.addPage(p));
     const copiedRules = await finalDoc.copyPages(rulesDoc, rulesDoc.getPageIndices());
     copiedRules.forEach((p) => finalDoc.addPage(p));
 

@@ -1,9 +1,24 @@
 import {useEffect, useState, type ReactNode} from "react";
 import {Link} from "react-router-dom";
+import {MathJax} from "better-react-mathjax";
 import {ArrowRight, BookOpen, ChevronDown, ListTree, Sparkles} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {RuleCard} from "@/features/docs/rules/RuleCard.tsx";
 import {findRule} from "@/features/docs/rules/ruleDefinitions.ts";
+
+// Real LaTeX in lecture prose — inline within a sentence: <Math>{"\\Gamma \\vdash t : T"}</Math>,
+// or as its own centered equation: <MathBlock>{"\\mathit{fix}\\ g = g\\ (\\mathit{fix}\\ g)"}</MathBlock>.
+// Deliberately the same MathJax pipeline every rule card and evaluation step already uses
+// (MathJaxContext in AppProviders.tsx) rather than a second static renderer (e.g. rehype-katex)
+// bolted onto the MDX pipeline — that would render differently, and this app already paid the
+// cost of making MathJax itself behave correctly on-screen and in the PDF export.
+export function Math({children}: {children: string}) {
+  return <MathJax inline>{`\\(${children}\\)`}</MathJax>;
+}
+
+export function MathBlock({children}: {children: string}) {
+  return <MathJax>{`\\[${children}\\]`}</MathJax>;
+}
 
 // Chapter-level heading (Syntax / Typing / Semantics); ConceptSection nests under it.
 // scroll-mt-24 keeps anchored/scrolled-to headings clear of the fixed top bar.
