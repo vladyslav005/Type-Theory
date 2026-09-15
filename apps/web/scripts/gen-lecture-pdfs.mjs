@@ -13,8 +13,8 @@
 import {readFileSync, readdirSync, mkdirSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 import {dirname, resolve, join} from "node:path";
-import puppeteer from "puppeteer";
 import {preview} from "vite";
+import {launchBrowser} from "./launchBrowser.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(here, "..");
@@ -57,7 +57,7 @@ if (jobs.length === 0) {
 const server = await preview({root: webRoot, preview: {port: 4173, strictPort: false}});
 const baseUrl = server.resolvedUrls.local[0];
 
-const browser = await puppeteer.launch({args: ["--no-sandbox", "--disable-setuid-sandbox"]});
+const browser = await launchBrowser();
 const outDir = join(webRoot, "dist", "lectures-pdf");
 
 try {
