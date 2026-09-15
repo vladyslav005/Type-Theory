@@ -56,6 +56,20 @@ try {
     // i18next reads this key (LANGUAGE_STORAGE_KEY in i18n.ts) before its own init runs.
     await page.evaluateOnNewDocument((loc) => localStorage.setItem("tt-lang", loc), locale);
     await page.goto(new URL(`/docs/${slug}`, baseUrl).href, {waitUntil: "networkidle0"});
+
+    // Catches a real failure mode: dist/ built before this lecture was added to
+    // lectures.config.json (or before its .mdx file existed) silently renders the app's
+    // "Lecture not found" page instead of the lecture — which would otherwise get saved as a
+    // valid-looking PDF with no error at all. Run `npm run build:web` (not this script alone)
+    // whenever source content changes.
+    const title = await page.title();
+    if (title === "Lecture not found — tt") {
+      throw new Error(
+        `${slug}: dist/ doesn't know about this lecture yet — rebuild with \`npm run build:web\` ` +
+        `(not \`gen:lecture-pdfs\` alone) after editing lectures.config.json or adding a .mdx file.`,
+      );
+    }
+
     await page.waitForSelector("mjx-container", {timeout: 10_000}).catch(() => {});
     // Individual <MathJax> components typeset independently after mount — networkidle plus
     // the first mjx-container doesn't guarantee the rest (usually many small inline formulas

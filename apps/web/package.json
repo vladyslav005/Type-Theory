@@ -6,10 +6,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run check:i18n && npm run gen:sitemap && tsc -b && vite build && npm run gen:lecture-pdfs",
+    "build": "npm run gen:lecture-pdfs",
+    "build:app": "npm run check:i18n && npm run gen:sitemap && tsc -b && vite build",
     "check:i18n": "node scripts/check-i18n.mjs",
     "gen:sitemap": "node scripts/gen-sitemap.mjs",
-    "gen:lecture-pdfs": "node scripts/gen-lecture-pdfs.mjs",
+    "gen:lecture-pdfs": "npm run build:app && node scripts/gen-lecture-pdfs.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "release": "npm version patch --tag-version-prefix=web-v -m \"chore(web): release web-v%s\"",

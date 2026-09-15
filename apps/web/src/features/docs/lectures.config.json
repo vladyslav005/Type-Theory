@@ -1,6 +1,41 @@
 {
   "lectures": [
     {
+      "slug": "church-encodings",
+        "visible": true,
+        "openable": true,
+        "translations": {
+          "en": {
+            "title": "Church encodings, Recursion",
+            "summary": "Church encodings, Recursion",
+            "outline": [
+              {
+                "id": "church-encodings",
+                "label": "Church encodings",
+                "subitems": [
+                  {
+                    "id": "church-encodings-intro",
+                    "label": "Church encodings intro"
+                  },
+                  {
+                    "id": "church-encodings-nats",
+                    "label": "Church encodings of natural numbers"
+                  },
+                  {
+                    "id": "church-encodings-bools",
+                    "label": "Church encodings of booleans"
+                  },
+                  {
+                    "id": "church-encodings-lists",
+                    "label": "Church encodings of lists"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+    },
+    {
       "slug": "stlc-basics",
       "visible": true,
       "openable": true,
@@ -55,126 +90,7 @@
           ]
         }
       }
-    },
-    {
-      "slug": "typing-derivations",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Typing Derivations & Proof Trees",
-          "summary": "How a type-checking judgement is justified step by step, and how to read the Proof Tree panel.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "evaluation",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Evaluation",
-          "summary": "Reducing terms to values, and the three evaluation strategies the app supports.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "curry-howard",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Curry–Howard Correspondence",
-          "summary": "Reading a typing derivation as a natural-deduction proof — propositions as types, terms as proofs.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "data-types",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Data Types",
-          "summary": "Sums, products, records, variants, and lists — building structured data on top of STLC.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "iso-recursive-types",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Iso-recursive Types (μ)",
-          "summary": "Defining self-referential types with fold/unfold, and why they need an explicit isomorphism.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "recursion",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Recursion (fix)",
-          "summary": "Writing recursive functions with the fixpoint operator instead of naming a function after itself.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "let-polymorphism",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "Let-polymorphism & Type Inference",
-          "summary": "Generalizing let-bound values so one definition can be reused at multiple types.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "system-f",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "System F",
-          "summary": "Explicit polymorphism via type abstraction and type application.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "system-f-omega",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "System Fω",
-          "summary": "Type constructors and kinds — types that take types as arguments.",
-          "outline": []
-        }
-      }
-    },
-    {
-      "slug": "system-lambda-p",
-      "visible": true,
-      "openable": false,
-      "translations": {
-        "en": {
-          "title": "System λP (Dependent Types)",
-          "summary": "Types that depend on terms — dependent function types and term-indexed type families.",
-          "outline": []
-        }
-      }
     }
+
   ]
 }
