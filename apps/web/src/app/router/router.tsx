@@ -9,6 +9,7 @@ import {DocsIndexPage} from "@/pages/docs/DocsIndexPage.tsx";
 import {DocsLecturePage} from "@/pages/docs/DocsLecturePage.tsx";
 import {DocsRulesPage} from "@/pages/docs/DocsRulesPage.tsx";
 import {DocsGrammarPage} from "@/pages/docs/DocsGrammarPage.tsx";
+import {DocsGuideCoverPage} from "@/pages/docs/DocsGuideCoverPage.tsx";
 
 
 export const router = createBrowserRouter([
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
           {index: true, element: <DocsIndexPage/>},
           {path: "rules", element: <DocsRulesPage/>},
           {path: "grammar", element: <DocsGrammarPage/>},
+          {path: "guide-cover", element: <DocsGuideCoverPage/>},
           {path: ":slug", element: <DocsLecturePage/>},
         ],
       },

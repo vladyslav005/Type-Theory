@@ -212,7 +212,7 @@ export function DocsRulesPage() {
         </p>
       </motion.div>
 
-      <div className="sticky top-16 z-10 -mx-1 space-y-3 border-b bg-background/85 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="print:hidden sticky top-16 z-10 -mx-1 space-y-3 border-b bg-background/85 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <div className="relative max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/>
           <Input
