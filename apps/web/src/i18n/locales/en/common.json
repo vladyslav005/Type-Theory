@@ -619,16 +619,15 @@
   },
   "evaluationPanel": {
     "gammaContext": "Γ context",
-    "empty": "Evaluate an expression to see its reduction steps.",
-    "diverges": "Diverges",
-    "divergesTooltipCycle": "Stopped after {{step}} steps — the exact same term repeated, so it will never reach a value.",
-    "divergesTooltipGrowth": "Stopped after {{step}} steps — the term kept growing without ever settling down, so it will never reach a value."
+    "empty": "Evaluate an expression to see its reduction steps."
   },
   "evalSteps": {
     "viewStep": "Step",
     "viewAll": "All",
     "prev": "Prev",
     "next": "Next",
+    "first": "First step",
+    "last": "Last step",
     "stepOf": "Step {{current}} of {{total}}",
     "goToStep": "Go to step {{n}}",
     "before": "Before",

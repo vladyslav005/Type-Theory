@@ -100,7 +100,6 @@ export class EvaluationStepsPanel {
 			payload: {
 				strategy: result.strategy,
 				reachedStepLimit: result.reachedStepLimit,
-				divergence: result.divergence,
 				errors: result.errors,
 				finalResultText: printTerm(result.result),
 				steps: result.steps.map((s, i) => describeStep(s, i)),

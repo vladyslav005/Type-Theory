@@ -619,16 +619,15 @@
   },
   "evaluationPanel": {
     "gammaContext": "Kontext Γ",
-    "empty": "Vyhodnoťte výraz na zobrazenie jeho redukčných krokov.",
-    "diverges": "Diverguje",
-    "divergesTooltipCycle": "Zastavené po {{step}} krokoch — ten istý výraz sa opakoval, takže nikdy nedosiahne hodnotu.",
-    "divergesTooltipGrowth": "Zastavené po {{step}} krokoch — výraz sa neustále zväčšoval bez ustálenia, takže nikdy nedosiahne hodnotu."
+    "empty": "Vyhodnoťte výraz na zobrazenie jeho redukčných krokov."
   },
   "evalSteps": {
     "viewStep": "Krok",
     "viewAll": "Všetko",
     "prev": "Späť",
     "next": "Ďalej",
+    "first": "Prvý krok",
+    "last": "Posledný krok",
     "stepOf": "Krok {{current}} z {{total}}",
     "goToStep": "Prejsť na krok {{n}}",
     "before": "Pred",

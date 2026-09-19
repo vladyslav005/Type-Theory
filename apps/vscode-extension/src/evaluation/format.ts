@@ -83,12 +83,6 @@ export function formatEvaluationResultText(result: EvaluationResult): string {
 	if (result.reachedStepLimit) {
 		lines.push("(stopped: step limit reached)");
 	}
-	if (result.divergence) {
-		const reason = result.divergence.kind === "cycle"
-			? "the exact same term repeated"
-			: "the term kept growing without ever settling down";
-		lines.push(`(stopped early after ${result.divergence.atStep} steps: ${reason} — this will never reach a value)`);
-	}
 	for (const e of result.errors ?? []) {
 		lines.push(`Evaluation error: ${e.message}`);
 	}

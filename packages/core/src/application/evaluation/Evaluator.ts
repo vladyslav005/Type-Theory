@@ -11,19 +11,6 @@ import {
   type ReductionStep,
 } from "@/application/evaluation/type.ts";
 import {ReductionVisitor} from "@/application/evaluation/ReductionVisitor.ts";
-import {termSignature} from "@/application/evaluation/termSignature.ts";
-
-// Legitimate recursion (Fibonacci/factorial via fix, Church-numeral arithmetic, ...) grows and
-// shrinks as it expands a call and later combines its result — empirically, never more than 2
-// *consecutive* steps of strictly increasing term size, even for a 2000-step Fibonacci(12) that
-// doesn't even finish in that budget. A term stuck in unbounded self-application (the raw
-// Y-combinator under Call-by-value) instead grows on nearly every single step forever, with no
-// ceiling — 10x the observed legitimate margin is a confident, early signal, not a guess.
-const GROWTH_STREAK_THRESHOLD = 20;
-// A generous backstop independent of the streak shape above, so any pattern of unbounded growth
-// (not just a steady one) is still bounded well short of sizes that could ever strain rendering
-// or JSON serialization — an order of magnitude above the largest legitimate signature observed.
-const MAX_SIGNATURE_LENGTH = 20_000;
 
 export class Evaluator {
   private evaluationSteps: ReductionStep[] = [];
@@ -51,9 +38,6 @@ export class Evaluator {
     const reductionVisitor = new ReductionVisitor(strategy, globals);
 
     let currentTerm = initialTerm;
-    let previousSignatureLength = termSignature(currentTerm).length;
-    let growthStreak = 0;
-    const seenSignatures = new Set<string>([termSignature(currentTerm)]);
 
     for (
       let index = 0;
@@ -76,32 +60,6 @@ export class Evaluator {
 
       this.evaluationSteps.push(step);
       currentTerm = step.after;
-
-      const signature = termSignature(currentTerm);
-      growthStreak = signature.length > previousSignatureLength ? growthStreak + 1 : 0;
-      previousSignatureLength = signature.length;
-
-      if (growthStreak >= GROWTH_STREAK_THRESHOLD || signature.length > MAX_SIGNATURE_LENGTH) {
-        return {
-          result: currentTerm,
-          steps: [...this.evaluationSteps],
-          reachedStepLimit: false,
-          strategy,
-          globals: Object.fromEntries(globals),
-          divergence: {kind: "growth", atStep: index + 1},
-        };
-      }
-      if (seenSignatures.has(signature)) {
-        return {
-          result: currentTerm,
-          steps: [...this.evaluationSteps],
-          reachedStepLimit: false,
-          strategy,
-          globals: Object.fromEntries(globals),
-          divergence: {kind: "cycle", atStep: index + 1},
-        };
-      }
-      seenSignatures.add(signature);
     }
 
     return {

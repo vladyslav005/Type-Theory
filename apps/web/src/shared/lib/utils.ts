@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// A genuinely-diverging term (e.g. the raw Y-combinator under Call-by-value) can produce an
+// A long-running term (e.g. the raw Y-combinator under Call-by-value) can produce an
 // evaluation trace whose JSON representation is too large for JSON.stringify itself to build
 // (RangeError: Invalid string length) — used by the "View Raw ... Data (DEBUG)" panels, which
 // must never crash the page just because the user is inspecting an intentionally huge result.

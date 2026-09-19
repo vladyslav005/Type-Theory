@@ -4,7 +4,7 @@ import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
-import { ChevronLeft, ChevronRight, ArrowDown, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowDown, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { expandTypeAliases, normalizeType, typeEquals } from "@vladyslav005/tt-core";
 
@@ -650,6 +650,22 @@ interface EvaluationStepsViewerProps {
 }
 
 // Wraps EvaluationStepsViewerInner so its early returns don't each need the provider individually.
+const DOT_WINDOW = 4;
+
+// Long traces (up to 500 steps) can't render one dot each without overflowing the panel — keep
+// the first/last step plus a window around the current one, with null marking an elided gap.
+function visibleDotIndexes(total: number, current: number): (number | null)[] {
+  if (total <= 2 * DOT_WINDOW + 5) return Array.from({length: total}, (_, i) => i);
+  const from = Math.max(1, current - DOT_WINDOW);
+  const to = Math.min(total - 2, current + DOT_WINDOW);
+  const result: (number | null)[] = [0];
+  if (from > 1) result.push(null);
+  for (let i = from; i <= to; i += 1) result.push(i);
+  if (to < total - 2) result.push(null);
+  result.push(total - 1);
+  return result;
+}
+
 export function EvaluationStepsViewer({ evaluation, typeAliases = {}, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerProps) {
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
@@ -673,13 +689,13 @@ interface EvaluationStepsViewerInnerProps {
 function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
-  const { steps, result, reachedStepLimit, divergence, errors, globals } = evaluation;
+  const { steps, result, reachedStepLimit, errors, globals } = evaluation;
 
   const hasErrors = errors && errors.length > 0;
   const stuckTermId = errors?.[0]?.stuckTermId;
   // Whatever `result` holds when reduction stopped without erroring — only actually a normal
   // form (nothing left to reduce) if it got there on its own, not because we cut it off.
-  const isFullyReduced = !reachedStepLimit && !divergence;
+  const isFullyReduced = !reachedStepLimit;
 
   const bindingsAtCurrentStep = useMemo(
     () => accumulateBindings(steps, stepIndex),
@@ -780,22 +796,38 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
     <div className="flex flex-col gap-4 h-full overflow-y-auto">
       {/* Navigation */}
       <div className="flex items-center justify-between gap-3 sticky top-0 backdrop-blur-sm py-1 z-10">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-          disabled={isFirstStep}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          {t("evalSteps.prev")}
-        </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8"
+            onClick={() => setStepIndex(0)}
+            disabled={isFirstStep}
+            title={t("evalSteps.first")}
+            aria-label={t("evalSteps.first")}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+            disabled={isFirstStep}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            {t("evalSteps.prev")}
+          </Button>
+        </div>
 
-        <div className="flex flex-col items-center gap-1.5 flex-1">
+        <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
           <span className="text-sm font-medium">
             {t("evalSteps.stepOf", {current: stepIndex + 1, total: steps.length})}
           </span>
-          <div className="flex gap-1">
-            {steps.map((_, i) => {
+          <div className="flex items-center gap-1">
+            {visibleDotIndexes(steps.length, stepIndex).map((i, slot) => {
+              if (i === null) {
+                return <span key={`gap-${slot}`} className="text-xs leading-none text-muted-foreground/60">…</span>;
+              }
               const isLast = i === steps.length - 1;
               const isActive = i === stepIndex;
               return (
@@ -819,15 +851,28 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           </div>
         </div>
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
-          disabled={isLastStep}
-        >
-          {t("evalSteps.next")}
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))}
+            disabled={isLastStep}
+          >
+            {t("evalSteps.next")}
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8"
+            onClick={() => setStepIndex(steps.length - 1)}
+            disabled={isLastStep}
+            title={t("evalSteps.last")}
+            aria-label={t("evalSteps.last")}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Step display */}

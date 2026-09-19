@@ -101,7 +101,7 @@ export function useTermHooks() {
     if (!targetAst) return;
 
     // Otherwise a stale message from a previous run (a different strategy, a since-fixed
-    // divergence, ...) sticks around forever, piling up alongside whatever this run produces.
+    // ...) sticks around forever, piling up alongside whatever this run produces.
     dispatch(clearProcessingErrors());
 
     try {
@@ -116,18 +116,6 @@ export function useTermHooks() {
         dispatch(
           pushProcessingError(
             new Error("Evaluation reached the step limit — expression may not be fully reduced"),
-          ),
-        );
-      }
-
-      if (evaluationResult.divergence) {
-        const {kind, atStep} = evaluationResult.divergence;
-        const reason = kind === "cycle"
-          ? "it started repeating the exact same term forever"
-          : "the term kept growing without ever settling down";
-        dispatch(
-          pushProcessingError(
-            new Error(`Evaluation stopped early after ${atStep} step${atStep === 1 ? "" : "s"} — ${reason}, so it will never reach a value`),
           ),
         );
       }
