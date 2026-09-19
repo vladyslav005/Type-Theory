@@ -6,6 +6,7 @@ import {EvaluationStrategy, type EvaluationResult} from "@vladyslav005/tt-core";
 import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
 import {
   buildStudentNode,
+  type ConstraintPair,
   type ContextBinding,
   diffAgainstAnswer,
   findStudentNode,
@@ -150,6 +151,7 @@ const counterSlice = createSlice({
       node.chosenRule = action.payload.rule;
       node.ruleCheck = undefined;
       node.typeCheck = undefined;
+      node.constraintCheck = undefined;
     },
 
     revealPremise: (state, action: { payload: { premiseId: string } }) => {
@@ -175,6 +177,22 @@ const counterSlice = createSlice({
       node.contextCheck = undefined;
     },
 
+    setNodeConstraints: (state, action: { payload: { nodeId: string; constraints: ConstraintPair[] } }) => {
+      const node = state.buildMode.studentTree && findStudentNode(state.buildMode.studentTree, action.payload.nodeId);
+      if (!node) return;
+
+      node.writtenConstraints = action.payload.constraints;
+      node.constraintCheck = undefined;
+    },
+
+    setNodeScheme: (state, action: { payload: { nodeId: string; scheme: Type } }) => {
+      const node = state.buildMode.studentTree && findStudentNode(state.buildMode.studentTree, action.payload.nodeId);
+      if (!node) return;
+
+      node.writtenScheme = action.payload.scheme;
+      node.generalizeCheck = undefined;
+    },
+
     // Clears this node's own progress and re-hides its direct premises.
     resetNode: (state, action: { payload: { nodeId: string } }) => {
       const node = state.buildMode.studentTree && findStudentNode(state.buildMode.studentTree, action.payload.nodeId);
@@ -186,6 +204,10 @@ const counterSlice = createSlice({
       node.typeCheck = undefined;
       node.writtenBindings = undefined;
       node.contextCheck = undefined;
+      node.writtenConstraints = undefined;
+      node.constraintCheck = undefined;
+      node.writtenScheme = undefined;
+      node.generalizeCheck = undefined;
       node.premises.forEach((premise) => { premise.revealed = false; });
     },
 
@@ -246,6 +268,8 @@ export const {
   revealPremise,
   setNodeType,
   setNodeContext,
+  setNodeConstraints,
+  setNodeScheme,
   resetNode,
   checkProof,
   pushProcessingError,

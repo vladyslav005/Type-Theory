@@ -1,10 +1,16 @@
-import {type ProofTree, Rule, type TypeScheme} from "@vladyslav005/tt-core";
+import {type InferProofTree, type ProofTree, Rule, type TypeScheme} from "@vladyslav005/tt-core";
+import {isCtRule, isVarRule} from "@/shared/ui-state/ruleFamilies.ts";
 import type {Type} from "@vladyslav005/tt-core";
 import {termIndexEquals, TexMapper} from "@vladyslav005/tt-core";
 
 export interface ContextBinding {
   name: string;
   type: Type;
+}
+
+export interface ConstraintPair {
+  left: Type;
+  right: Type;
 }
 
 // The student's in-progress manual derivation for "Build & Check" mode. Mirrors the frozen
@@ -22,6 +28,14 @@ export interface StudentProofNode {
   requiresContextBuild?: boolean;
   writtenBindings?: ContextBinding[];
   contextCheck?: "valid" | "invalid";
+  // Set on every constraint-typing (CT-*) node — its judgement carries a constraint set C.
+  requiresConstraints?: boolean;
+  writtenConstraints?: ConstraintPair[];
+  constraintCheck?: "valid" | "invalid";
+  // Set on a CT-Let node — the generalize(T, Γ) = S step between its value and body premises.
+  requiresGeneralize?: boolean;
+  writtenScheme?: Type;
+  generalizeCheck?: "valid" | "invalid";
   premises: StudentProofNode[];
 }
 
@@ -38,11 +52,13 @@ export function buildStudentNode(
 ): StudentProofNode {
   const requiresContextBuild = Object.entries(answer.gamma).some(([k, v]) => isRebound(k, v, parentGamma));
   // A T-Var's "jump to definition" premise has its own unrelated scope.
-  const childParentGamma = (p: ProofTree) => answer.rule === Rule.Var ? p.gamma : answer.gamma;
+  const childParentGamma = (p: ProofTree) => isVarRule(answer.rule) ? p.gamma : answer.gamma;
   return {
     id: answer.id ?? crypto.randomUUID(),
     revealed,
     requiresContextBuild: requiresContextBuild || undefined,
+    requiresConstraints: isCtRule(answer.rule) || undefined,
+    requiresGeneralize: (answer.rule === Rule.CtLet && answer.premises.length === 2) || undefined,
     premises: answer.premises.map((p) => buildStudentNode(p, false, childParentGamma(p))),
   };
 }
@@ -179,42 +195,34 @@ function flexibleTypeEquals(
   }
 }
 
-// Maps each constraint-mode (Ct*) rule to its plain equivalent, since the rule picker only offers
-// plain ones — comparisons must normalize both sides first.
-const CT_TO_PLAIN_RULE: Partial<Record<Rule, Rule>> = {
-  [Rule.CtVarLet]: Rule.Var,
-  [Rule.CtVar]: Rule.Var,
-  [Rule.CtAbs]: Rule.Abs,
-  [Rule.CtAbsInf]: Rule.Abs,
-  [Rule.CtApp]: Rule.App,
-  [Rule.CtLit]: Rule.Lit,
-  [Rule.CtIf]: Rule.If,
-  [Rule.CtInl]: Rule.Inl,
-  [Rule.CtInr]: Rule.Inr,
-  [Rule.CtCase]: Rule.Case,
-  [Rule.CtVariantCase]: Rule.VariantCase,
-  [Rule.CtVariant]: Rule.Variant,
-  [Rule.CtAscribe]: Rule.Ascribe,
-  [Rule.CtTuple]: Rule.Tuple,
-  [Rule.CtTupleProjection]: Rule.TupleProjection,
-  [Rule.CtRecord]: Rule.Record,
-  [Rule.CtRecordProjection]: Rule.RecordProjection,
-  [Rule.CtSequencing]: Rule.Sequencing,
-  [Rule.CtDummyAbs]: Rule.DummyAbs,
-  [Rule.CtLet]: Rule.Let,
-  [Rule.CtBinOp]: Rule.BinOp,
-  [Rule.CtFix]: Rule.Fix,
-  [Rule.CtNil]: Rule.Nil,
-  [Rule.CtCons]: Rule.Cons,
-  [Rule.CtIsNil]: Rule.IsNil,
-  [Rule.CtHead]: Rule.Head,
-  [Rule.CtTail]: Rule.Tail,
-  [Rule.CtFold]: Rule.Fold,
-  [Rule.CtUnfold]: Rule.Unfold,
-};
+// Order-insensitive multiset match — each equation may be written either way round, since
+// unification treats A = B and B = A alike.
+function constraintsMatch(written: ConstraintPair[], expected: {left: Type; right: Type}[]): boolean {
+  if (written.length !== expected.length) return false;
+  const remaining = [...written];
+  return expected.every((e) => {
+    const i = remaining.findIndex((w) =>
+      (flexibleTypeEquals(w.left, e.left) && flexibleTypeEquals(w.right, e.right))
+      || (flexibleTypeEquals(w.left, e.right) && flexibleTypeEquals(w.right, e.left)));
+    if (i < 0) return false;
+    remaining.splice(i, 1);
+    return true;
+  });
+}
 
+// The scheme `generalize` produced for a CT-Let's binder — read off the body's own Γ.
+export function expectedGeneralizedScheme(letNode: ProofTree): Type | undefined {
+  const body = letNode.premises[1];
+  const name = (letNode.term as {name?: string}).name;
+  if (!body || name === undefined) return undefined;
+  const bound = body.gamma[name];
+  if (!bound) return undefined;
+  return bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound;
+}
+
+// Annotated and unannotated abstractions are one rule as far as the UI goes (CT-Abs).
 function canonicalRule(rule: Rule): Rule {
-  return CT_TO_PLAIN_RULE[rule] ?? rule;
+  return rule === Rule.CtAbsInf ? Rule.CtAbs : rule;
 }
 
 // Diffs filled-in nodes against the answer key, stamping ruleCheck/typeCheck/
@@ -239,10 +247,18 @@ export function diffAgainstAnswer(
       });
     student.contextCheck = bindingsMatch(student.writtenBindings, expected) ? "valid" : "invalid";
   }
+  if (student.requiresConstraints && student.writtenConstraints !== undefined) {
+    const expected = (answer as InferProofTree).constraints ?? [];
+    student.constraintCheck = constraintsMatch(student.writtenConstraints, expected) ? "valid" : "invalid";
+  }
+  if (student.requiresGeneralize && student.writtenScheme !== undefined) {
+    const expected = expectedGeneralizedScheme(answer);
+    student.generalizeCheck = expected && flexibleTypeEquals(student.writtenScheme, expected) ? "valid" : "invalid";
+  }
   student.premises.forEach((premise, index) => {
     const answerPremise = answer.premises[index];
     if (!answerPremise) return;
-    const childParentGamma = answer.rule === Rule.Var ? answerPremise.gamma : answer.gamma;
+    const childParentGamma = isVarRule(answer.rule) ? answerPremise.gamma : answer.gamma;
     diffAgainstAnswer(premise, answerPremise, childParentGamma);
   });
 }
@@ -261,11 +277,21 @@ export function summarizeStudentTree(node: StudentProofNode): ProofBuildSummary 
 
   const contextFilled = !node.requiresContextBuild || node.writtenBindings !== undefined;
   const contextOk = !node.requiresContextBuild || node.contextCheck !== "invalid";
-  const isFilled = node.chosenRule !== undefined && node.writtenType !== undefined && contextFilled;
-  const isValid = node.ruleCheck === "valid" && node.typeCheck === "valid" && contextOk;
+  const constraintsFilled = !node.requiresConstraints || node.writtenConstraints !== undefined;
+  const constraintsOk = !node.requiresConstraints || node.constraintCheck !== "invalid";
+  const generalizeFilled = !node.requiresGeneralize || node.writtenScheme !== undefined;
+  const generalizeOk = !node.requiresGeneralize || node.generalizeCheck !== "invalid";
+  const isFilled = node.chosenRule !== undefined && node.writtenType !== undefined
+    && contextFilled && constraintsFilled && generalizeFilled;
+  const isValid = node.ruleCheck === "valid" && node.typeCheck === "valid"
+    && contextOk && constraintsOk && generalizeOk
+    && (!node.requiresConstraints || node.constraintCheck === "valid")
+    && (!node.requiresGeneralize || node.generalizeCheck === "valid");
   const isInvalid = node.ruleCheck === "invalid"
     || node.typeCheck === "invalid"
-    || (node.requiresContextBuild && node.contextCheck === "invalid");
+    || (node.requiresContextBuild && node.contextCheck === "invalid")
+    || (node.requiresConstraints && node.constraintCheck === "invalid")
+    || (node.requiresGeneralize && node.generalizeCheck === "invalid");
 
   return {
     total: 1 + sum((s) => s.total),

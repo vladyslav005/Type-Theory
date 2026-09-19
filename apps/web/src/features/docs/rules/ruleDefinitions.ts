@@ -298,14 +298,7 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
         id: "CT-Abs",
         premisesTex: ["\\Gamma, x{:}T_1 \\vdash t : T_2 \\mid C"],
         conclusionTex: "\\Gamma \\vdash \\lambda x{:}T_1.\\, t : T_1 \\to T_2 \\mid C",
-        description: "Annotated lambda — the constraint set just passes through from the body.",
-        wide: true,
-      },
-      {
-        id: "CT-AbsInf",
-        premisesTex: ["\\Gamma, x{:}X \\vdash t : T \\mid C"],
-        conclusionTex: "\\Gamma \\vdash \\lambda x.\\, t : X \\to T \\mid C",
-        description: "Unannotated lambda — the parameter gets a fresh type variable X for unification to pin down.",
+        description: "Lambda — the constraint set just passes through from the body. If the parameter has no annotation, T₁ is a fresh type variable for unification to pin down.",
         wide: true,
       },
       {

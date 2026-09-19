@@ -504,7 +504,20 @@
     "labelPlaceholder": "label",
     "fromContext": "From context",
     "pickRule": "pick rule",
-    "noMatchingRules": "No matching rules"
+    "noMatchingRules": "No matching rules",
+    "constraintRules": "Constraint typing",
+    "constraintsQuestion": "Which constraints does this judgement carry?",
+    "constraintsHint": "C is the union of the premises' constraint sets plus the equations this rule adds itself (e.g. CT-App adds T₁ = T₂ → X). Use ∅ if there are none.",
+    "addConstraint": "+ Equation",
+    "removeConstraint": "Remove this equation",
+    "setConstraints": "Set constraints",
+    "instantiateHint": "Instantiate: replace every ∀-bound variable of the scheme in Γ with a fresh type variable, then write the resulting type.",
+    "generalizeQuestion": "What does generalize produce?",
+    "generalizeHint": "Quantify (∀) the type variables that are free in the value's type but not free in Γ. Write the resulting type scheme.",
+    "setScheme": "Set scheme",
+    "freshVariableHint": "This λ has no parameter annotation, so its parameter gets a fresh type variable (e.g. X) — use that variable in the type.",
+    "typeVariables": "Type variables",
+    "wrapInForall": "Quantify this type with ∀"
   },
   "conclusion": {
     "error": "Error",

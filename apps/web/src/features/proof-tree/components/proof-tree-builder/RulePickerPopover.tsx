@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import {Fragment, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import type {ReactNode} from "react";
 import {Popover, PopoverContent, PopoverTrigger} from "@/shared/components/ui/popover.tsx";
@@ -6,6 +6,7 @@ import {Input} from "@/shared/components/ui/input.tsx";
 import {Rule} from "@vladyslav005/tt-core";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {chooseRule} from "@/shared/ui-state/termSlice.ts";
+import {isCtRule} from "@/shared/ui-state/ruleFamilies.ts";
 import {RULE_LABELS, rulesForTheories} from "@/features/proof-tree/components/proof-tree-builder/ruleLabels.ts";
 
 interface RulePickerPopoverProps {
@@ -53,15 +54,19 @@ export function RulePickerPopover({nodeId, children}: RulePickerPopoverProps) {
           {filtered.length === 0 && (
             <p className="text-xs text-muted-foreground px-2 py-1.5">{t("proofBuilder.noMatchingRules")}</p>
           )}
-          {filtered.map((rule) => (
-            <button
-              key={rule}
-              type="button"
-              onClick={() => pick(rule)}
-              className="w-full text-left font-mono text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors"
-            >
-              {RULE_LABELS[rule]}
-            </button>
+          {filtered.map((rule, i) => (
+            <Fragment key={rule}>
+              {isCtRule(rule) && (i === 0 || !isCtRule(filtered[i - 1])) && (
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground px-2 pt-2 pb-1">{t("proofBuilder.constraintRules")}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => pick(rule)}
+                className="w-full text-left font-mono text-xs px-2 py-1.5 rounded hover:bg-accent transition-colors"
+              >
+                {RULE_LABELS[rule]}
+              </button>
+            </Fragment>
           ))}
         </div>
       </PopoverContent>

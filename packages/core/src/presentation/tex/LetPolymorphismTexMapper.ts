@@ -251,10 +251,9 @@ export class LetPolymorphismTexMapper {
   }
 
   private visitAbs(node: InferProofTree): TexTree {
-    const rule = node.rule === Rule.CtAbsInf ? "CT-AbsInf" : "CT-Abs";
     return {
       ...this.judgements(node),
-      rule,
+      rule: "CT-Abs",
       children: this.childrenWithKind(node),
     };
   }

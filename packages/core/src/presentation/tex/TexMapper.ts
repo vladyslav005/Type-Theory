@@ -34,6 +34,11 @@ const BINOP_RULE_NAMES: Record<BinaryOperator, string> = {
   "!=": "Neq",
 };
 
+// An inference variable ('A) must render like the checker's own (\text{'A}), not as a bare prime.
+function binderTex(name: string): string {
+  return name.startsWith("'") ? `\\text{${name}}` : name;
+}
+
 export class TexMapper extends ProofTreeVisitor<TexTree> {
 
   private readonly gammaRegistry: GammaRegistry;
@@ -730,7 +735,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "RecordType":
         return `\\{ ${type.fields.map((f) => `${f.label}:${this.typeToTex(f.type)}`).join(", ")} \\}`
       case "TyForall":
-        return `\\forall ${type.typeVariable}.\\, ${this.typeToTex(type.type)}`
+        return `\\forall ${binderTex(type.typeVariable)}.\\, ${this.typeToTex(type.type)}`
       case "TyConstructorAbs":
         return `\\lambda ${type.typeParam} : ${kindToTex(type.paramKind)} .\\, ${this.typeToTex(type.body)}`
       case "TyConstructorApp":
@@ -797,7 +802,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
         return segs;
       }
       case "TyForall":
-        return [t(`\\forall ${type.typeVariable}.\\, `), ...rec(type.type)];
+        return [t(`\\forall ${binderTex(type.typeVariable)}.\\, `), ...rec(type.type)];
       case "TyConstructorAbs":
         return [t(`\\lambda ${type.typeParam} : ${kindToTex(type.paramKind)} .\\, `), ...rec(type.body)];
       case "TyConstructorApp":

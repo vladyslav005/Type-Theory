@@ -28,7 +28,29 @@ export type DraftType =
 // valid leaf, so there's no null state to track the way DraftType needs one.
 export type DraftKind = {kind: "star"} | {kind: "arrow"; from: DraftKind; to: DraftKind};
 
+// First inference variable ('A, ...) used anywhere in the draft — the natural one to quantify over.
+function firstInferenceVariable(draft: DraftType | null): string | undefined {
+  if (!draft) return undefined;
+  switch (draft.kind) {
+    case "base":
+      return draft.name.startsWith("'") ? draft.name : undefined;
+    case "arrow":
+      return firstInferenceVariable(draft.from) ?? firstInferenceVariable(draft.to);
+    case "sum":
+      return firstInferenceVariable(draft.left) ?? firstInferenceVariable(draft.right);
+    case "tuple":
+      return draft.elements.map(firstInferenceVariable).find((v) => v !== undefined);
+    case "list":
+      return firstInferenceVariable(draft.elementType);
+    default:
+      return undefined;
+  }
+}
+
 export const BASE_TYPES = ["Nat", "Bool", "Unit"] as const;
+
+// Same notation the checker uses for the inference variables it introduces ('A, 'B, ...).
+const TYPE_VARIABLE_CHIPS = ["'A", "'B", "'C"] as const;
 
 function draftKindToKind(k: DraftKind): Kind {
   if (k.kind === "star") return {kind: "StarKind", id: crypto.randomUUID()};
@@ -54,6 +76,7 @@ export function typeLabel(type: Type): string {
       return `${from} → ${typeLabel(type.to)}`;
     }
     case "TyIdentifier":
+    case "TyMetaVar":
       return type.name;
     case "TupleType":
       return `⟨${type.elements.map(typeLabel).join(", ")}⟩`;
@@ -87,7 +110,12 @@ export function draftToType(draft: DraftType): Type | null {
   switch (draft.kind) {
     case "base": {
       const name = draft.name.trim();
-      return name ? {kind: "TyIdentifier", id: crypto.randomUUID(), name} : null;
+      if (!name) return null;
+      // A leading ' marks an inference variable — kept as a real TyMetaVar so it renders exactly
+      // like the automatic tree's.
+      return name.startsWith("'")
+        ? {kind: "TyMetaVar", id: crypto.randomUUID(), name}
+        : {kind: "TyIdentifier", id: crypto.randomUUID(), name};
     }
     case "arrow": {
       if (!draft.from || !draft.to) return null;
@@ -182,6 +210,7 @@ export function typeToDraft(type: Type): DraftType {
     case "TyArrow":
       return {kind: "arrow", from: typeToDraft(type.from), to: typeToDraft(type.to)};
     case "TyIdentifier":
+    case "TyMetaVar":
       return {kind: "base", name: type.name};
     case "TupleType":
       return {kind: "tuple", elements: type.elements.map(typeToDraft)};
@@ -250,6 +279,10 @@ interface TypeSlotPickerProps {
 
 export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = true, enabledTheories = DEFAULT_TYPE_THEORY_CONFIG}: TypeSlotPickerProps) {
   const {t} = useTranslation();
+  // Under let-polymorphism / inference, a hand-typed type name is a type variable — keep the
+  // checker's own ' notation ('A). System F keeps plain names (X), so it opts out.
+  const forcesVariableNotation = (enabledTheories.letPolymorphism || enabledTheories.typeInference) && !enabledTheories.systemF;
+  const asVariable = (name: string) => (forcesVariableNotation && name && !name.startsWith("'") ? `'${name}` : name);
   const [customOpen, setCustomOpen] = useState(false);
   const [customName, setCustomName] = useState("");
 
@@ -286,6 +319,23 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
             {name}
           </Button>
         ))}
+        {(enabledTheories.letPolymorphism || enabledTheories.typeInference || enabledTheories.systemF) && (
+          <>
+            <span className="w-full text-[10px] uppercase tracking-wide text-muted-foreground">{t("proofBuilder.typeVariables")}</span>
+            {TYPE_VARIABLE_CHIPS.map((name) => (
+              <Button
+                key={name}
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 text-xs font-mono italic"
+                onClick={() => onChange({kind: "base", name})}
+              >
+                {name}
+              </Button>
+            ))}
+          </>
+        )}
         {customOpen ? (
           <span className="inline-flex items-center gap-1">
             <Input
@@ -295,7 +345,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
               onKeyDown={(e) => {
                 if (e.key === "Enter" && customName.trim()) {
                   e.preventDefault();
-                  onChange({kind: "base", name: customName.trim()});
+                  onChange({kind: "base", name: asVariable(customName.trim())});
                   setCustomName("");
                   setCustomOpen(false);
                 }
@@ -310,7 +360,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
               className="h-7 px-2 text-xs"
               disabled={!customName.trim()}
               onClick={() => {
-                onChange({kind: "base", name: customName.trim()});
+                onChange({kind: "base", name: asVariable(customName.trim())});
                 setCustomName("");
                 setCustomOpen(false);
               }}
@@ -380,7 +430,23 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
   const wrapInArrow = () => onChange({kind: "arrow", from: value, to: null});
   const isComplete = draftToType(value) !== null;
 
+  const canQuantify = enabledTheories.systemF || enabledTheories.letPolymorphism;
+  const wrapInForall = () => onChange({kind: "forall", typeVariable: firstInferenceVariable(value) ?? "", type: value});
+
   const wrapButton = topLevel && isComplete && (
+    <>
+      {canQuantify && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={wrapInForall}
+          className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
+          title={t("proofBuilder.wrapInForall")}
+        >
+          ∀
+        </Button>
+      )}
     <Button
       type="button"
       size="sm"
@@ -391,6 +457,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
     >
       →
     </Button>
+    </>
   );
 
   const clearButton = (
@@ -517,7 +584,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
           <span className="text-muted-foreground text-xs">{isForall ? "∀" : "μ"}</span>
           <Input
             value={value.typeVariable}
-            onChange={(e) => onChange({...value, typeVariable: e.target.value} as DraftType)}
+            onChange={(e) => onChange({...value, typeVariable: isForall ? asVariable(e.target.value.trim()) : e.target.value} as DraftType)}
             placeholder="X"
             className="h-6 w-10 text-xs font-mono px-1"
           />

@@ -3,13 +3,14 @@ import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import {RotateCcw} from "lucide-react";
 import type {ProofTree, TypeScheme} from "@vladyslav005/tt-core";
-import {Rule} from "@vladyslav005/tt-core";
 import type {Type} from "@vladyslav005/tt-core";
 import type {StudentProofNode} from "@/shared/ui-state/studentProof.ts";
-import {ConclusionBuilder, gammaRefTex} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
+import {variableMembershipJudgement} from "@/features/proof-tree/components/proof-tree-builder/variableMembership.ts";
+import {GeneralizeLeaf} from "@/features/proof-tree/components/proof-tree-builder/GeneralizeLeaf.tsx";
+import {isVarRule} from "@/shared/ui-state/ruleFamilies.ts";
+import {ConclusionBuilder} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
 import {RulePickerPopover} from "@/features/proof-tree/components/proof-tree-builder/RulePickerPopover.tsx";
 import {RULE_LABELS} from "@/features/proof-tree/components/proof-tree-builder/ruleLabels.ts";
-import {TexMapper} from "@vladyslav005/tt-core";
 import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
 import {resetNode} from "@/shared/ui-state/termSlice.ts";
 import {cn} from "@/shared/lib/utils.ts";
@@ -30,9 +31,8 @@ interface ProofTreeBuilderNodeProps {
 // A local variable's Γ membership is a given fact, shown as a static leaf.
 // A global reference has a real "jump to definition" premise instead (see
 // isLocalVar below).
-function VariableMembershipLeaf({answerNode, registry}: { answerNode: ProofTree; registry: GammaRegistry }) {
-  const name = (answerNode.term as {name?: string}).name ?? "?";
-  const judgement = `${name} : ${TexMapper.typeToTex(answerNode.type)} \\in ${gammaRefTex(answerNode.gamma, registry, false)}`;
+function VariableMembershipLeaf({studentNode, answerNode, registry}: { studentNode: StudentProofNode; answerNode: ProofTree; registry: GammaRegistry }) {
+  const judgement = variableMembershipJudgement(studentNode, answerNode, registry);
   return (
     <div className="proof-node">
       <div className="conclusion not-root leaf-node">
@@ -56,7 +56,7 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
   const dispatch = useAppDispatch();
   const hasChosenRule = studentNode.chosenRule !== undefined;
   // Keyed off the real rule/premise count, not the student's guess.
-  const isLocalVar = hasChosenRule && answerNode.rule === Rule.Var && answerNode.premises.length === 0;
+  const isLocalVar = hasChosenRule && isVarRule(answerNode.rule) && answerNode.premises.length === 0;
   const isLeaf = hasChosenRule && studentNode.premises.length === 0;
   const showDashedPlaceholder = !hasChosenRule;
   // Original index, not position in this filtered list — premises can be
@@ -68,8 +68,10 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
     : [];
 
   const contextFilled = !studentNode.requiresContextBuild || studentNode.writtenBindings !== undefined;
+  const generalizeFilled = !studentNode.requiresGeneralize || studentNode.writtenScheme !== undefined;
   const typeSlotUnlocked = hasChosenRule
     && contextFilled
+    && generalizeFilled
     && studentNode.premises.every((p) => p.writtenType !== undefined);
 
   const isItRoot = root ? "root" : "not-root";
@@ -79,10 +81,12 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
 
   const anyInvalid = studentNode.ruleCheck === "invalid"
     || studentNode.typeCheck === "invalid"
-    || studentNode.contextCheck === "invalid";
+    || studentNode.contextCheck === "invalid"
+    || studentNode.constraintCheck === "invalid";
   const allValid = studentNode.ruleCheck === "valid"
     && studentNode.typeCheck === "valid"
-    && (!studentNode.requiresContextBuild || studentNode.contextCheck === "valid");
+    && (!studentNode.requiresContextBuild || studentNode.contextCheck === "valid")
+    && (!studentNode.requiresConstraints || studentNode.constraintCheck === "valid");
 
   return (
     <div className="proof-node">
@@ -90,12 +94,12 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
         className="premises"
         style={showDashedPlaceholder ? {borderBottomStyle: "dashed", opacity: 0.5} : undefined}
       >
-        {isLocalVar && <VariableMembershipLeaf answerNode={answerNode} registry={registry}/>}
+        {isLocalVar && <VariableMembershipLeaf studentNode={studentNode} answerNode={answerNode} registry={registry}/>}
         {!isLocalVar && premisesToShow.map(({premise, originalIndex}, displayIndex) => {
           const answerPremise = answerNode.premises[originalIndex];
           if (!answerPremise) return null;
           // A global var's jump-to-definition premise has its own unrelated scope.
-          const childParentGamma = answerNode.rule === Rule.Var ? answerPremise.gamma : answerNode.gamma;
+          const childParentGamma = isVarRule(answerNode.rule) ? answerPremise.gamma : answerNode.gamma;
           return (
             <Fragment key={premise.id}>
               <ProofTreeBuilderNode
@@ -106,6 +110,17 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
                 registry={registry}
                 highlightMistakes={highlightMistakes}
               />
+              {originalIndex === 0 && studentNode.requiresGeneralize && (
+                <>
+                  <div className="inter-proof"/>
+                  <GeneralizeLeaf
+                    letStudentNode={studentNode}
+                    letAnswerNode={answerNode}
+                    registry={registry}
+                    highlightMistakes={highlightMistakes}
+                  />
+                </>
+              )}
               {displayIndex !== premisesToShow.length - 1 && <div className="inter-proof"/>}
             </Fragment>
           );

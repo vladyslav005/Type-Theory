@@ -3,18 +3,20 @@ import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {Rule} from "@vladyslav005/tt-core";
-import type {ContextBinding, StudentProofNode} from "@/shared/ui-state/studentProof.ts";
+import type {ConstraintPair, ContextBinding, StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import {TexMapper} from "@vladyslav005/tt-core";
 import type {GammaRegistry} from "@vladyslav005/tt-core";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {revealPremise, setNodeContext, setNodeType} from "@/shared/ui-state/termSlice.ts";
+import {revealPremise, setNodeConstraints, setNodeContext, setNodeType} from "@/shared/ui-state/termSlice.ts";
+import {isVarRule} from "@/shared/ui-state/ruleFamilies.ts";
 import {Popover, PopoverAnchor, PopoverContent} from "@/shared/components/ui/popover.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Input} from "@/shared/components/ui/input.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import type {TypeScheme} from "@vladyslav005/tt-core";
 import type {Type} from "@vladyslav005/tt-core";
-import {BASE_TYPES, type DraftType, draftToType, typeLabel, TypeSlotPicker, typeToDraft} from "@/features/proof-tree/components/proof-tree-builder/TypeSlotPicker.tsx";
+import {type DraftType, draftToType, TypeSlotPicker, typeToDraft} from "@/features/proof-tree/components/proof-tree-builder/TypeSlotPicker.tsx";
+import {buildTypeSuggestions} from "@/features/proof-tree/components/proof-tree-builder/typeSuggestions.ts";
 import {useTexRefExpansion} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
 
 interface ConclusionBuilderProps {
@@ -41,18 +43,12 @@ export function gammaRefTex(
   return hrefKey ? `\\href{${hrefKey}}{${content}}` : content;
 }
 
-// Distinct non-base types already visible in Γ, offered as quick-pick chips.
-function contextTypeOptions(gamma: Record<string, Type | TypeScheme>): Type[] {
-  const seen = new Map<string, Type>();
-  for (const value of Object.values(gamma)) {
-    const type = value.kind === "TypeScheme" ? value.type : value;
-    if (type.kind === "TyIdentifier" && (BASE_TYPES as readonly string[]).includes(type.name)) continue;
-    seen.set(typeLabel(type), type);
-  }
-  return [...seen.values()];
-}
+type EditorKind = "type" | "context" | "constraints" | null;
 
-type EditorKind = "type" | "context" | null;
+interface ConstraintDraft {
+  left: DraftType | null;
+  right: DraftType | null;
+}
 
 // Renders one node's judgement as a single MathJax expression, with each
 // interactive slot wrapped in \href{key}{...} (gamma/context/type/premise:N)
@@ -66,8 +62,15 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
   const [typeDraft, setTypeDraft] = useState<DraftType | null>(null);
   const [bindingName, setBindingName] = useState("");
   const [bindingTypeDraft, setBindingTypeDraft] = useState<DraftType | null>(null);
+  const [constraintDrafts, setConstraintDrafts] = useState<ConstraintDraft[]>([]);
 
   const hasChosenRule = studentNode.chosenRule !== undefined;
+  const nearbyWritten = [
+    studentNode.writtenType,
+    ...(studentNode.writtenBindings ?? []).map((b) => b.type),
+    ...(studentNode.writtenConstraints ?? []).flatMap((c) => [c.left, c.right]),
+    ...studentNode.premises.flatMap((p) => [p.writtenType, ...(p.writtenConstraints ?? []).flatMap((c) => [c.left, c.right])]),
+  ];
   const gammaKey = `${studentNode.id}:gamma`;
 
   const unrevealedPremiseIndices = new Set(
@@ -77,7 +80,7 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
   );
 
   // A global var's premise is revealed by clicking the whole term (no sub-term to click).
-  const isGlobalVarRef = answerNode.rule === Rule.Var && answerNode.premises.length > 0;
+  const isGlobalVarRef = isVarRule(answerNode.rule) && answerNode.premises.length > 0;
 
   const termTex = unrevealedPremiseIndices.size === 0
     ? TexMapper.termToTex(answerNode.term)
@@ -106,7 +109,16 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
     ? (parentGammaTex ? `${parentGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
     : gammaRefTex(answerNode.gamma, registry, isExpanded(gammaKey), "gamma");
 
-  const judgement = `${gammaSegment} \\vdash ${termTex} : ${typeSlotUnlocked ? `\\href{type}{${rhsTex}}` : rhsTex}`;
+  const constraintsTex = studentNode.writtenConstraints === undefined
+    ? "?"
+    : studentNode.writtenConstraints.length === 0
+      ? "\\emptyset"
+      : `\\{ ${studentNode.writtenConstraints.map((c) => `${TexMapper.typeToTex(c.left)} = ${TexMapper.typeToTex(c.right)}`).join(", ")} \\}`;
+  const constraintsSegment = studentNode.requiresConstraints
+    ? ` \\mid ${typeSlotUnlocked ? `\\href{constraints}{${constraintsTex}}` : constraintsTex}`
+    : "";
+
+  const judgement = `${gammaSegment} \\vdash ${termTex} : ${typeSlotUnlocked ? `\\href{type}{${rhsTex}}` : rhsTex}${constraintsSegment}`;
 
   const openTypeEditor = useCallback(() => {
     setTypeDraft(studentNode.writtenType ? typeToDraft(studentNode.writtenType) : null);
@@ -119,6 +131,13 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
     setBindingTypeDraft(existing ? typeToDraft(existing.type) : null);
     setOpenEditor("context");
   }, [studentNode.writtenBindings]);
+
+  const openConstraintsEditor = useCallback(() => {
+    setConstraintDrafts(
+      (studentNode.writtenConstraints ?? []).map((c) => ({left: typeToDraft(c.left), right: typeToDraft(c.right)})),
+    );
+    setOpenEditor("constraints");
+  }, [studentNode.writtenConstraints]);
 
   const onJudgementClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const anchor = (e.target as HTMLElement).closest("a");
@@ -136,6 +155,11 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
       e.preventDefault();
       e.stopPropagation();
       openTypeEditor();
+    } else if (key === "constraints") {
+      if (!typeSlotUnlocked) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openConstraintsEditor();
     } else if (key === "context") {
       e.preventDefault();
       e.stopPropagation();
@@ -147,7 +171,7 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
       const premise = studentNode.premises[idx];
       if (premise) dispatch(revealPremise({premiseId: premise.id}));
     }
-  }, [typeSlotUnlocked, openTypeEditor, openContextEditor, studentNode.premises, dispatch, gammaKey, toggle]);
+  }, [typeSlotUnlocked, openTypeEditor, openContextEditor, openConstraintsEditor, studentNode.premises, dispatch, gammaKey, toggle]);
 
   const typeDraftAsType = typeDraft ? draftToType(typeDraft) : null;
   const submitType = useCallback(() => {
@@ -165,6 +189,18 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
     setOpenEditor(null);
   }, [canSubmitBinding, bindingTypeAsType, bindingName, dispatch, studentNode.id]);
 
+  const completedConstraints = constraintDrafts.map((d) => ({
+    left: d.left ? draftToType(d.left) : null,
+    right: d.right ? draftToType(d.right) : null,
+  }));
+  const constraintsComplete = completedConstraints.every((c) => c.left !== null && c.right !== null);
+  const submitConstraints = useCallback((pairs: ConstraintPair[]) => {
+    dispatch(setNodeConstraints({nodeId: studentNode.id, constraints: pairs}));
+    setOpenEditor(null);
+  }, [dispatch, studentNode.id]);
+  const updateConstraintDraft = (index: number, patch: Partial<ConstraintDraft>) =>
+    setConstraintDrafts((drafts) => drafts.map((d, i) => (i === index ? {...d, ...patch} : d)));
+
   return (
     <Popover open={openEditor !== null} onOpenChange={(o) => !o && setOpenEditor(null)}>
       <PopoverAnchor asChild>
@@ -181,8 +217,55 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
         {openEditor === "type" && (
           <>
             <p className="text-xs font-medium text-muted-foreground">{t("proofBuilder.buildJudgementType")}</p>
-            <TypeSlotPicker value={typeDraft} onChange={setTypeDraft} contextTypes={contextTypeOptions(answerNode.gamma)} enabledTheories={enabledTheories}/>
+            {answerNode.rule === Rule.CtAbsInf && (
+              <p className="text-[11px] text-muted-foreground max-w-72">{t("proofBuilder.freshVariableHint")}</p>
+            )}
+            {answerNode.rule === Rule.CtVarLet && (
+              <p className="text-[11px] text-muted-foreground max-w-72">{t("proofBuilder.instantiateHint")}</p>
+            )}
+            <TypeSlotPicker value={typeDraft} onChange={setTypeDraft} contextTypes={buildTypeSuggestions(answerNode.gamma, nearbyWritten)} enabledTheories={enabledTheories}/>
             <Button size="sm" className="w-full" disabled={!typeDraftAsType} onClick={submitType}>{t("proofBuilder.setType")}</Button>
+          </>
+        )}
+        {openEditor === "constraints" && (
+          <>
+            <p className="text-xs font-medium text-muted-foreground">{t("proofBuilder.constraintsQuestion")}</p>
+            <p className="text-[11px] text-muted-foreground max-w-72">{t("proofBuilder.constraintsHint")}</p>
+            <div className="space-y-2">
+              {constraintDrafts.map((draft, i) => (
+                <div key={i} className="flex items-start gap-1.5">
+                  <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                    <TypeSlotPicker value={draft.left} onChange={(left) => updateConstraintDraft(i, {left})} contextTypes={buildTypeSuggestions(answerNode.gamma, nearbyWritten)} enabledTheories={enabledTheories}/>
+                    <span className="text-muted-foreground text-xs font-mono">=</span>
+                    <TypeSlotPicker value={draft.right} onChange={(right) => updateConstraintDraft(i, {right})} contextTypes={buildTypeSuggestions(answerNode.gamma, nearbyWritten)} enabledTheories={enabledTheories}/>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-destructive text-xs px-1"
+                    title={t("proofBuilder.removeConstraint")}
+                    onClick={() => setConstraintDrafts((drafts) => drafts.filter((_, j) => j !== i))}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-1.5">
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => setConstraintDrafts((drafts) => [...drafts, {left: null, right: null}])}>
+                {t("proofBuilder.addConstraint")}
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1 font-mono" onClick={() => submitConstraints([])}>
+                ∅
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={constraintDrafts.length === 0 || !constraintsComplete}
+              onClick={() => submitConstraints(completedConstraints.map((c) => ({left: c.left!, right: c.right!})))}
+            >
+              {t("proofBuilder.setConstraints")}
+            </Button>
           </>
         )}
         {openEditor === "context" && (
@@ -197,7 +280,7 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
                 className="h-7 w-20 text-xs font-mono px-1"
               />
               <span className="text-muted-foreground text-xs">:</span>
-              <TypeSlotPicker value={bindingTypeDraft} onChange={setBindingTypeDraft} contextTypes={contextTypeOptions(parentGamma)} enabledTheories={enabledTheories}/>
+              <TypeSlotPicker value={bindingTypeDraft} onChange={setBindingTypeDraft} contextTypes={buildTypeSuggestions(parentGamma, nearbyWritten)} enabledTheories={enabledTheories}/>
             </div>
             <Button size="sm" className="w-full" disabled={!canSubmitBinding} onClick={submitBinding}>{t("proofBuilder.setBinding")}</Button>
           </>

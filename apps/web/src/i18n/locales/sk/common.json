@@ -504,7 +504,20 @@
     "labelPlaceholder": "označenie",
     "fromContext": "Z kontextu",
     "pickRule": "zvoľte pravidlo",
-    "noMatchingRules": "Žiadne zodpovedajúce pravidlá"
+    "noMatchingRules": "Žiadne zodpovedajúce pravidlá",
+    "constraintRules": "Typovanie s obmedzeniami",
+    "constraintsQuestion": "Aké obmedzenia nesie tento súd?",
+    "constraintsHint": "C je zjednotenie množín obmedzení premís plus rovnice, ktoré pridáva samotné pravidlo (napr. CT-App pridá T₁ = T₂ → X). Ak žiadne nie sú, použite ∅.",
+    "addConstraint": "+ Rovnica",
+    "removeConstraint": "Odstrániť túto rovnicu",
+    "setConstraints": "Nastaviť obmedzenia",
+    "instantiateHint": "Inštanciácia: nahraďte každú ∀-viazanú premennú schémy v Γ novou typovou premennou a napíšte výsledný typ.",
+    "generalizeQuestion": "Čo vytvorí generalize?",
+    "generalizeHint": "Kvantifikujte (∀) typové premenné, ktoré sú voľné v type hodnoty, ale nie sú voľné v Γ. Napíšte výslednú typovú schému.",
+    "setScheme": "Nastaviť schému",
+    "freshVariableHint": "Toto λ nemá anotáciu parametra, preto parameter dostane novú typovú premennú (napr. X) — použite ju v type.",
+    "typeVariables": "Typové premenné",
+    "wrapInForall": "Kvantifikovať tento typ pomocou ∀"
   },
   "conclusion": {
     "error": "Chyba",
