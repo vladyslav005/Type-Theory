@@ -71,8 +71,7 @@ export class GammaRegistry {
     const key = `G${index}`;
     const shortTex = `\\Gamma_{${index}}`;
 
-    // A rebound name must first be removed from the parent — Γ holds one entry per name, so a bare
-    // Γ_p ∪ {x : T} would leave two entries for x.
+    // Γ holds one entry per name, so a rebound name is removed before the union
     const changedTexParts = [...freshEntries, ...reboundEntries].map(([name, t]) => {
       const label = `${name} : ${entryToTex(t)}`;
       return parentNames.has(name) ? `\\underline{${label}}` : label;

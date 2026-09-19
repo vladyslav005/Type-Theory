@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { Term, Type } from "@vladyslav005/tt-core";
 import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
@@ -11,7 +11,8 @@ import { churchNumeralValue } from "@/features/evaluation/churchNumeral.ts";
 import { expandTypeAliases, normalizeType, typeEquals } from "@vladyslav005/tt-core";
 
 // Lets TypeView (nested deep in TermView) resolve type aliases without threading a prop through every case.
-const TypeAliasesContext = createContext<Record<string, Type>>({});
+// eslint-disable-next-line react-refresh/only-export-components -- shared with the practice mode
+export const TypeAliasesContext = createContext<Record<string, Type>>({});
 
 function TypeView({ type }: { type: Type }) {
   const { t } = useTranslation();
@@ -131,17 +132,73 @@ function TypeView({ type }: { type: Type }) {
   }
 }
 
-function TermView({
-  term,
-  selectedId,
-  resultId,
-  errorId,
-}: {
+interface TermViewProps {
   term: Term;
   selectedId?: string;
   resultId?: string;
   errorId?: string;
-}) {
+}
+
+export interface TermPick {
+  pickedId?: string;
+  verdict?: "valid" | "invalid";
+  onPick: (id: string, shiftKey: boolean) => void;
+  hoveredId?: string;
+  onHover?: (id: string | undefined) => void;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- shared with the practice mode
+export const TermPickContext = createContext<TermPick | undefined>(undefined);
+
+export function TermPickProvider({ value, children }: { value: TermPick | undefined; children: ReactNode }) {
+  const [hoveredId, setHoveredId] = useState<string | undefined>();
+  if (!value) return <TermPickContext.Provider value={undefined}>{children}</TermPickContext.Provider>;
+  return (
+    <TermPickContext.Provider value={{ ...value, hoveredId, onHover: setHoveredId }}>
+      <span onMouseLeave={() => setHoveredId(undefined)}>{children}</span>
+    </TermPickContext.Provider>
+  );
+}
+
+export function TermView(props: TermViewProps) {
+  const pick = useContext(TermPickContext);
+  const node = <TermNodeView {...props} />;
+  if (!pick) return node;
+
+  const isPicked = pick.pickedId === props.term.id;
+  const isHovered = !isPicked && pick.hoveredId === props.term.id;
+  return (
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+        pick.onPick(props.term.id, e.shiftKey);
+      }}
+      onMouseOver={(e) => {
+        e.stopPropagation();
+        pick.onHover?.(props.term.id);
+      }}
+      // solid fills: the token colors inside a term would wash out against a tint
+      className={cn(
+        "cursor-pointer rounded-sm px-px",
+        isHovered && "bg-sky-200 ring-2 ring-sky-500 [&_*]:!text-sky-950 text-sky-950 dark:bg-sky-900 dark:text-sky-50 dark:[&_*]:!text-sky-50",
+        isPicked && (pick.verdict === "valid"
+          ? "bg-emerald-600 ring-2 ring-emerald-300 text-white [&_*]:!text-white"
+          : pick.verdict === "invalid"
+            ? "bg-red-600 ring-2 ring-red-300 text-white [&_*]:!text-white"
+            : "bg-sky-600 ring-2 ring-sky-300 text-white [&_*]:!text-white"),
+      )}
+    >
+      {node}
+    </span>
+  );
+}
+
+function TermNodeView({
+  term,
+  selectedId,
+  resultId,
+  errorId,
+}: TermViewProps) {
   const isError = errorId !== undefined && term.id === errorId;
   const isResult = !isError && resultId !== undefined && term.id === resultId;
   const isSelected = !isError && !isResult && selectedId !== undefined && term.id === selectedId;
@@ -666,8 +723,7 @@ function ChurchNumeralHint({ term }: { term: Term }) {
 
 const DOT_WINDOW = 4;
 
-// Long traces (up to 500 steps) can't render one dot each without overflowing the panel — keep
-// the first/last step plus a window around the current one, with null marking an elided gap.
+// long traces can't render one dot each; keep a window around the current step
 function visibleDotIndexes(total: number, current: number): (number | null)[] {
   if (total <= 2 * DOT_WINDOW + 5) return Array.from({length: total}, (_, i) => i);
   const from = Math.max(1, current - DOT_WINDOW);

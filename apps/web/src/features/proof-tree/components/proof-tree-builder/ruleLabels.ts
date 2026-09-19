@@ -35,8 +35,6 @@ export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.TPiApp]: "T-PiApp",
 };
 
-// Constraint-typing family — what the checker emits inside a `let` (or everywhere, with type
-// inference on), matching the CT-* names shown in the automatic proof tree.
 const CT_LABELS: Partial<Record<Rule, string>> = {
   [Rule.CtVar]: "CT-Var",
   [Rule.CtVarLet]: "CT-VarLet",

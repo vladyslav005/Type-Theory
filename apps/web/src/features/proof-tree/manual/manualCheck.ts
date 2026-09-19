@@ -20,8 +20,6 @@ import {
   termKey,
 } from "@/shared/lib/manualParse.ts";
 
-// ===== type matching, up to a consistent renaming of inference variables ===========
-
 interface Renaming {
   expectedToWritten: Map<string, string>;
   writtenToExpected: Map<string, string>;
@@ -52,7 +50,7 @@ function matchAll(written: Type[], expected: Type[], ren: Renaming): boolean {
   return written.length === expected.length && expected.every((e, i) => matchType(written[i], e, ren));
 }
 
-// A plain identifier never stands in for an inference variable — 'A and Nat are different things.
+// a plain identifier never matches an inference variable
 function matchType(written: Type, expected: Type, ren: Renaming): boolean {
   if (expected.kind === "TyMetaVar") {
     return written.kind === "TyMetaVar" && bindVariable(written.name, expected.name, ren);
@@ -99,8 +97,7 @@ function matchType(written: Type, expected: Type, ren: Renaming): boolean {
   }
 }
 
-// Runs a match on a scratch copy of the renaming and keeps it only when it succeeds, so a failed
-// field never leaves half a mapping behind.
+// keeps the renaming only when the match succeeds
 function tryMatch(ren: Renaming, attempt: (scratch: Renaming) => boolean): boolean {
   const scratch = cloneRenaming(ren);
   if (!attempt(scratch)) return false;
@@ -113,7 +110,6 @@ interface Pair {
   right: Type;
 }
 
-// Order-insensitive, and each equation may be written either way round.
 function solveConstraints(written: Pair[], expected: Pair[], index: number, used: Set<number>, ren: Renaming): Renaming | null {
   if (index === expected.length) return ren;
   const e = expected[index];
@@ -132,8 +128,6 @@ function solveConstraints(written: Pair[], expected: Pair[], index: number, used
   return null;
 }
 
-// ===== expected structure ==========================================================
-
 type ExpectedFact =
   | {form: "membership"; name: string; type: Type}
   | {form: "instantiate"; name: string; scheme: Type}
@@ -145,7 +139,6 @@ function entryType(value: Type | TypeScheme): Type {
   return value.kind === "TypeScheme" ? typeSchemeToDisplayType(value) : value;
 }
 
-// The premises the automatic tree draws, including the side conditions it synthesizes.
 function expectedChildren(answer: ProofTree): ExpectedChild[] {
   if (isVarRule(answer.rule) && answer.premises.length === 0) {
     const name = (answer.term as {name?: string}).name ?? "";
@@ -190,8 +183,6 @@ function acceptedRuleNames(answer: ProofTree): string[] {
 
 const normalizeRule = (text: string) => text.replace(/[\s–—−_-]/g, "").toLowerCase();
 
-// ===== checking ====================================================================
-
 function contextOf(node: ProofTree): ContextEntriesExpected {
   return new Map(Object.entries(node.gamma).map(([name, value]) => [name, entryType(value)]));
 }
@@ -234,8 +225,7 @@ function checkFact(node: ManualNode, expected: ExpectedFact, ren: Renaming): Man
   return {fact: ok ? "valid" : "invalid", messages: ok ? [] : [{code: "factMismatch"}]};
 }
 
-// The constraint sets C₁, C₂, ... a union may refer to — one per judgement premise, in order. A
-// premise whose own set can't be read simply has none to refer to.
+// C₁, C₂, ... refer to the judgement premises in order
 function premiseConstraintSets(node: ManualNode, definitions: Definitions): (ConstraintPairText[] | undefined)[] {
   return node.premises
     .filter((p) => p.kind === "judgement")

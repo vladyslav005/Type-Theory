@@ -3,8 +3,7 @@ import type {Program, Term, Type} from "@vladyslav005/tt-core";
 
 const parser = new AntlrParserAdapter();
 
-// The surface grammar has no notation for inference variables, so 'A is lexed as an ordinary
-// identifier under this prefix and turned back into a TyMetaVar after parsing.
+// 'A is lexed as an identifier with this prefix and decoded back to a TyMetaVar after parsing
 const MV_PREFIX = "__mv_";
 
 export class ManualParseError extends Error {}
@@ -58,7 +57,6 @@ export function parseTermProgram(text: string): Program {
   }
 }
 
-// Canonical text of a term, so two spellings of the same term compare equal.
 export function termKey(term: Term): string {
   return astToText({kind: "Program", id: "term-key", globals: [], term} as Program).trim().replace(/;$/, "").trim();
 }
@@ -90,7 +88,6 @@ function stripBraces(text: string): string {
   return trimmed.startsWith("{") && trimmed.endsWith("}") ? trimmed.slice(1, -1) : trimmed;
 }
 
-// Splits on a top-level union symbol, so "Γ_1 ∪ {x : T}" is two operands.
 function splitUnion(text: string): string[] {
   const parts: string[] = [];
   let depth = 0;
@@ -115,7 +112,6 @@ const EMPTY_SET = new Set(["", "∅", "\\emptyset", "empty"]);
 const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
 const subscriptToNumber = (s: string) => Number([...s].map((c) => SUBSCRIPT_DIGITS.indexOf(c)).join(""));
 
-// Γ, Γ_1, Γ₁, Γ_{12}, \Gamma1, ... — the index is undefined for a bare Γ.
 const GAMMA_REF = /^(?:Γ|\\Gamma|Gamma)(?:_?\{?(\d+)\}?|([₀-₉]+))?$/;
 const CONSTRAINT_REF = /^C(?:_?\{?(\d+)\}?|([₀-₉]+))$/;
 
@@ -125,8 +121,6 @@ function refIndex(match: RegExpExecArray): number | undefined {
   return undefined;
 }
 
-// Named sets the student defined once and reuses (Γ_1 = {x : 'A}, C_1 = {...}), kept as raw text and
-// expanded on use so a reference is judged by what it stands for.
 export interface Definitions {
   contexts: Map<number, string>;
   constraints: Map<number, string>;
@@ -159,7 +153,6 @@ export function parseDefinitions(text: string): {definitions: Definitions; error
     target.set(index, match[4]);
   });
 
-  // Surface a definition that can't be read (or refers in circles) right where it's written.
   const lines = text.split("\n");
   const lineOf = (kind: "Γ" | "C", index: number) =>
     lines.findIndex((l) => { const m = DEFINITION_LINE.exec(l.trim()); return m && (m[1] === "C" ? "C" : "Γ") === kind && (m[2] !== undefined ? Number(m[2]) : subscriptToNumber(m[3])) === index; }) + 1;
@@ -182,8 +175,6 @@ export function parseDefinitions(text: string): {definitions: Definitions; error
 
 export type ContextEntries = Map<string, Type>;
 
-// "x : T, y : U", "∅", an extension of the parent's context ("Γ, x : T"), or a union of these
-// ("Γ_1 ∪ {x : T}").
 export function parseContextText(
   text: string,
   parent: ContextEntries,
@@ -208,7 +199,7 @@ function parseContextOperand(text: string, parent: ContextEntries, definitions: 
       const definition = index === undefined ? undefined : definitions.contexts.get(index);
       if (index !== undefined && definition !== undefined) {
         if (expanding.includes(index)) throw new ManualParseError(`Γ_${index} is defined in terms of itself`);
-        // A definition stands alone — there is no parent context inside it.
+        // a definition has no parent context
         parseContextText(definition, new Map(), definitions, [...expanding, index]).forEach((type, name) => entries.set(name, type));
       } else if (index !== undefined) {
         throw new ManualParseError(`Γ_${index} isn't defined — add it under Definitions`);
@@ -232,8 +223,6 @@ export interface ConstraintPairText {
 }
 
 
-// "{A = B, ...}", "∅", or a union of these — where C₁, C₂, ... stand for the constraint sets of the
-// premises, in order ("C₁ ∪ C₂ ∪ {T₁ = T₂ → X}").
 export function parseConstraintsText(
   text: string,
   premiseSets: (ConstraintPairText[] | undefined)[] = [],

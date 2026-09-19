@@ -33,9 +33,6 @@ function collectVariables(type: Type, out: Type[]): void {
   }
 }
 
-// Everything worth offering as a one-click chip: what Γ already mentions, plus whatever the student
-// has written on nearby nodes (their own types, never the answer key's), each with its inference
-// variables ('A, ...) broken out so they can be reused without retyping.
 export function buildTypeSuggestions(
   gamma: Record<string, Type | TypeScheme>,
   written: (Type | undefined)[] = [],

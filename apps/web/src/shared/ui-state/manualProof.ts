@@ -1,5 +1,3 @@
-// Fully manual Build & Check: the student grows the tree themselves and types every field.
-
 export type ManualVerdict = "valid" | "invalid";
 
 export interface ManualMessage {
@@ -20,14 +18,13 @@ export interface ManualNodeResult {
 
 export interface ManualNode {
   id: string;
-  // A side condition (membership / instantiate / generalize) is one free-text fact, not a judgement.
   kind: "judgement" | "fact";
   rule: string;
   gamma: string;
   term: string;
   type: string;
   constraints: string;
-  // Whether this judgement carries a constraint set C — undefined follows the enabled theories.
+  // undefined follows the enabled theories
   constraintsShown?: boolean;
   fact: string;
   premises: ManualNode[];

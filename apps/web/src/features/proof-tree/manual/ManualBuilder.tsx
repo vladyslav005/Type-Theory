@@ -9,6 +9,8 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
 import {parseDefinitions} from "@/shared/lib/manualParse.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
+import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
+import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
 
 export function ManualBuilder() {
@@ -18,6 +20,7 @@ export function ManualBuilder() {
   const theories = useAppSelector((state) => state.term.enabledTheories);
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
 
+  const definitionsHistory = useUndoableText(manualDefinitions ?? "", (next) => dispatch(setManualDefinitions(next)));
   const parsedDefinitions = useMemo(() => parseDefinitions(manualDefinitions ?? ""), [manualDefinitions]);
 
   if (!manualTree || !answerKey) return null;
@@ -58,14 +61,18 @@ export function ManualBuilder() {
           {(manualDefinitions ?? "").trim() && ` (${(manualDefinitions ?? "").split("\n").filter((l) => l.trim()).length})`}
         </summary>
         <p className="mt-2 text-xs text-muted-foreground">{t("manualBuilder.definitionsHint")}</p>
-        <textarea
-          value={manualDefinitions ?? ""}
-          onChange={(e) => dispatch(setManualDefinitions(applyShortcuts(e.target.value)))}
-          rows={3}
-          spellCheck={false}
-          placeholder={"Γ_1 = {x : 'A}\nC_1 = {'A → 'A = Nat → 'B}"}
-          className="mt-2 w-full rounded border bg-background p-2 font-mono text-xs outline-none focus:ring-1 focus:ring-ring"
-        />
+        <div className="mt-2">
+          <BracketTextarea
+            value={manualDefinitions ?? ""}
+            onChange={(e) => definitionsHistory.change(applyShortcuts(e.target.value))}
+            onKeyDown={definitionsHistory.onKeyDown}
+            minRows={3}
+            spellCheck={false}
+            placeholder={"Γ_1 = {x : 'A}\nC_1 = {'A → 'A = Nat → 'B}"}
+            textClassName="p-2 font-mono text-xs leading-normal"
+            className="rounded border outline-none focus:ring-1 focus:ring-ring"
+          />
+        </div>
         {parsedDefinitions.errors.length > 0 && (
           <ul className="mt-1 space-y-0.5 text-[11px] text-destructive">
             {parsedDefinitions.errors.map((e, i) => (

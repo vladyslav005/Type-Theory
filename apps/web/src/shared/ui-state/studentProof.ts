@@ -28,11 +28,9 @@ export interface StudentProofNode {
   requiresContextBuild?: boolean;
   writtenBindings?: ContextBinding[];
   contextCheck?: "valid" | "invalid";
-  // Set on every constraint-typing (CT-*) node — its judgement carries a constraint set C.
   requiresConstraints?: boolean;
   writtenConstraints?: ConstraintPair[];
   constraintCheck?: "valid" | "invalid";
-  // Set on a CT-Let node — the generalize(T, Γ) = S step between its value and body premises.
   requiresGeneralize?: boolean;
   writtenScheme?: Type;
   generalizeCheck?: "valid" | "invalid";
@@ -195,8 +193,6 @@ function flexibleTypeEquals(
   }
 }
 
-// Order-insensitive multiset match — each equation may be written either way round, since
-// unification treats A = B and B = A alike.
 function constraintsMatch(written: ConstraintPair[], expected: {left: Type; right: Type}[]): boolean {
   if (written.length !== expected.length) return false;
   const remaining = [...written];
@@ -210,7 +206,6 @@ function constraintsMatch(written: ConstraintPair[], expected: {left: Type; righ
   });
 }
 
-// The scheme `generalize` produced for a CT-Let's binder — read off the body's own Γ.
 export function expectedGeneralizedScheme(letNode: ProofTree): Type | undefined {
   const body = letNode.premises[1];
   const name = (letNode.term as {name?: string}).name;
@@ -220,7 +215,7 @@ export function expectedGeneralizedScheme(letNode: ProofTree): Type | undefined 
   return bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound;
 }
 
-// Annotated and unannotated abstractions are one rule as far as the UI goes (CT-Abs).
+// CT-AbsInf is folded into CT-Abs in the UI
 function canonicalRule(rule: Rule): Rule {
   return rule === Rule.CtAbsInf ? Rule.CtAbs : rule;
 }

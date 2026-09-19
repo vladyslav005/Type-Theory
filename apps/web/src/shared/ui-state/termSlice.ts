@@ -27,10 +27,8 @@ export type BuildModeKind = "semi" | "manual";
 interface BuildModeState {
   active: boolean;
   mode?: BuildModeKind;
-  // Fully manual mode: the tree the student grows themselves, and the verdicts of the last check.
   manualTree?: ManualNode;
   manualResults?: Record<string, ManualNodeResult>;
-  // One "Γ_n = …" / "C_n = …" definition per line.
   manualDefinitions?: string;
   // Frozen snapshot of `proof` so the answer can't drift mid-exercise.
   answerKey?: ProofTree;
@@ -150,8 +148,7 @@ const counterSlice = createSlice({
     enterBuildMode: (state, action: { payload: BuildModeKind | undefined }) => {
       if (!state.proof) return;
       const mode: BuildModeKind = action.payload ?? "semi";
-      // With inference on, students derive first and solve afterwards — the key is the tree before
-      // its constraints were solved, like the automatic tree's default view.
+      // with inference on the key is the tree before its constraints are solved
       const usesInference = state.enabledTheories.letPolymorphism || state.enabledTheories.typeInference;
       const unresolved = usesInference && state.inferenceSteps.length > 0
         ? state.inferenceProofSnapshots[0]

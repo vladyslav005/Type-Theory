@@ -107,9 +107,7 @@ export function ProofTreeVisualisation({
 
   // While stepping through inference, render the partially-solved snapshot instead of the
   // final proof — same tree shape, so this is the only thing that needs to change.
-  // With inference on, the derivation is shown as the checker builds it — before its constraints
-  // are solved (fresh variables 'A, 'B, ...); stepping through the solving is opt-in. A failed
-  // solve keeps the final tree, since only that one carries the error.
+  // a failed solve keeps the final tree, since only it carries the error
   const showUnresolved = hasInferenceSteps && !!proof && countProofErrors(proof) === 0;
   const displayedProof = isInferenceStepping
     ? inferenceProofSnapshots[clampedInferenceIndex]

@@ -448,7 +448,7 @@
   },
   "proofTree": {
     "tabAutomatic": "Automaticky",
-    "tabBuildCheck": "Zostaviť a skontrolovať",
+    "tabBuildCheck": "Precvičovanie",
     "tabLogic": "Curry–Howardova korešpondencia",
     "tabLogicShort": "Logika",
     "logicUnavailableNonStlc": "Tento výraz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie",
@@ -482,7 +482,7 @@
     "collapseContext": "Zbaliť kontext"
   },
   "proofBuilder": {
-    "emptyNeedsTerm": "Najprv napíšte platný výraz — Zostaviť a skontrolovať potrebuje výraz, ktorý už prejde typovou kontrolou.",
+    "emptyNeedsTerm": "Najprv napíšte platný výraz — Precvičovanie potrebuje výraz, ktorý už prejde typovou kontrolou.",
     "emptyHasErrors": "Tento výraz zatiaľ neprešiel typovou kontrolou — najprv opravte chyby a potom sa vráťte zostaviť jeho dôkaz.",
     "emptyInstructions": "Zostavte typové odvodenie aktuálneho výrazu sami a potom ho porovnajte so správnym.",
     "startBuilding": "Začať zostavovať",
@@ -715,7 +715,7 @@
         "description": "Textové, AST a dôkazové pohľady sú navrhnuté tak, aby reprezentovali ten istý výraz."
       },
       "exercises": {
-        "title": "Cvičenia Zostaviť a skontrolovať",
+        "title": "Cvičenia v režime Precvičovanie",
         "description": "Zostavte typové odvodenie sami, pravidlo po pravidle, a porovnajte ho so správnou odpoveďou so zvýraznením chýb."
       },
       "theories": {
@@ -812,5 +812,52 @@
     "definitions": "Definície",
     "definitionsHint": "Množinu pomenujte raz a použite opakovane: jedna definícia na riadok, napr. Γ_1 = {x : 'A} alebo C_1 = {…}. Potom píšte Γ_1 alebo C_1 do ľubovoľného poľa. Samotné Γ stále znamená kontext rodiča.",
     "definitionError": "Riadok {{line}}: {{message}}"
+  },
+  "evalPractice": {
+    "stepOf": "Krok {{current}} z {{total}}",
+    "writePlaceholder": "napr. λ y . y",
+    "finishedNormalForm": "Normálny tvar dosiahnutý — nič sa už nedá redukovať.",
+    "finishedStuck": "Vyhodnocovanie tu uviazlo — žiadne pravidlo neplatí, ale term nie je hodnota.",
+    "finishedLimit": "Priebeh sa zastavil na limite krokov — term sa môže redukovať ďalej.",
+    "hint": {
+      "NORMAL": "Normálne poradie redukuje najľavejší vonkajší redex a redukuje aj pod λ.",
+      "CALL_BY_NAME": "Call by name redukuje najľavejší vonkajší redex, ale nikdy pod λ a argumenty najprv nevyhodnocuje.",
+      "CALL_BY_VALUE": "Call by value pred aplikáciou zredukuje funkciu a potom argument na hodnoty a nikdy nejde pod λ."
+    },
+    "msg": {
+      "pickWrong": "Tento podterm sa neredukuje ako ďalší.",
+      "writeParse": "Nepodarilo sa to prečítať ako term: {{detail}}",
+      "writeWrong": "Na toto sa tento podterm nezredukuje. Dosaďte argument za parameter v tele (viazané premenné sa môžu premenovať).",
+      "correct": "Správne.",
+      "pickCorrect": "Toto je ďalší redex."
+    },
+    "tabAutomatic": "Automaticky",
+    "tabPractice": "Precvičovanie",
+    "stepsDone": "{{done}}/{{total}} krokov hotových",
+    "complete": "dokončené",
+    "emptyNeedsEvaluation": "Najprv vyhodnoťte výraz — Precvičovanie potrebuje redukciu, s ktorou porovná vašu prácu.",
+    "insertRedex": "Vložiť redukovaný podterm",
+    "insertDefinition": "Vložiť definíciu {{name}}",
+    "context": "Kontext Γ",
+    "insert": "Vložiť",
+    "insertName": "Vložiť meno {{name}}",
+    "startTerm": "Začiatok",
+    "restart": "Znova",
+    "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte, na čo sa zredukuje ďalší redex. Kliknutím na časť termu ju vyberiete (Shift+klik ju hneď vloží); označenie redexu aj kontrola sú voliteľné.",
+    "check": "Skontrolovať",
+    "nextStep": "Ďalší krok",
+    "finish": "Dokončiť",
+    "correctCount": "{{count}} správne",
+    "statusCorrect": "Zodpovedá skutočnému kroku",
+    "statusWrong": "Líši sa od skutočného kroku",
+    "statusSkipped": "Preskočené",
+    "youWrote": "Napísali ste: {{text}}",
+    "summary": "{{correct}} z {{total}} krokov zodpovedalo skutočnej redukcii.",
+    "writeHint": "Kontrola je voliteľná — Enterom alebo tlačidlom Skontrolovať zistíte, ako vám to ide, alebo len pokračujte. Môžete napísať zredukovaný podterm alebo celý ďalší term.",
+    "showResults": "Ukázať, ako mi to šlo",
+    "selected": "Vybrané:",
+    "insertSelection": "Vložiť",
+    "isRedex": "Je to redex?",
+    "clearSelection": "Zrušiť výber"
   }
 }

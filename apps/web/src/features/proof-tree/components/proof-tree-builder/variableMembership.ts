@@ -3,8 +3,7 @@ import {Rule, TexMapper} from "@vladyslav005/tt-core";
 import type {StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import {gammaRefTex} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
 
-// The type is the student's own answer (or "?"), never the answer key's — the leaf must not give
-// away what they haven't written yet.
+// uses the student's own type, never the key's, so nothing leaks early
 export function variableMembershipJudgement(
   studentNode: StudentProofNode,
   answerNode: ProofTree,

@@ -28,7 +28,6 @@ export type DraftType =
 // valid leaf, so there's no null state to track the way DraftType needs one.
 export type DraftKind = {kind: "star"} | {kind: "arrow"; from: DraftKind; to: DraftKind};
 
-// First inference variable ('A, ...) used anywhere in the draft — the natural one to quantify over.
 function firstInferenceVariable(draft: DraftType | null): string | undefined {
   if (!draft) return undefined;
   switch (draft.kind) {
@@ -49,7 +48,7 @@ function firstInferenceVariable(draft: DraftType | null): string | undefined {
 
 export const BASE_TYPES = ["Nat", "Bool", "Unit"] as const;
 
-// Same notation the checker uses for the inference variables it introduces ('A, 'B, ...).
+// the checker's own notation for inference variables
 const TYPE_VARIABLE_CHIPS = ["'A", "'B", "'C"] as const;
 
 function draftKindToKind(k: DraftKind): Kind {
@@ -111,8 +110,7 @@ export function draftToType(draft: DraftType): Type | null {
     case "base": {
       const name = draft.name.trim();
       if (!name) return null;
-      // A leading ' marks an inference variable — kept as a real TyMetaVar so it renders exactly
-      // like the automatic tree's.
+      // kept as a real TyMetaVar so it renders like the automatic tree
       return name.startsWith("'")
         ? {kind: "TyMetaVar", id: crypto.randomUUID(), name}
         : {kind: "TyIdentifier", id: crypto.randomUUID(), name};
@@ -279,8 +277,7 @@ interface TypeSlotPickerProps {
 
 export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = true, enabledTheories = DEFAULT_TYPE_THEORY_CONFIG}: TypeSlotPickerProps) {
   const {t} = useTranslation();
-  // Under let-polymorphism / inference, a hand-typed type name is a type variable — keep the
-  // checker's own ' notation ('A). System F keeps plain names (X), so it opts out.
+  // System F keeps plain names, so it opts out of the ' notation
   const forcesVariableNotation = (enabledTheories.letPolymorphism || enabledTheories.typeInference) && !enabledTheories.systemF;
   const asVariable = (name: string) => (forcesVariableNotation && name && !name.startsWith("'") ? `'${name}` : name);
   const [customOpen, setCustomOpen] = useState(false);

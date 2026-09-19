@@ -20,8 +20,6 @@ interface GeneralizeLeafProps {
   highlightMistakes: boolean;
 }
 
-// The generalize(T, Γ) = S premise of CT-Let — the dual of instantiate(...) at each CT-VarLet.
-// It sits between the let's value and body, exactly where the automatic tree draws it.
 export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlightMistakes}: GeneralizeLeafProps) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
@@ -35,7 +33,7 @@ export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlig
   const scheme = letStudentNode.writtenScheme;
 
   const valueTex = valueType ? TexMapper.typeToTex(valueType) : "?";
-  // The automatic tree writes a bare Γ when the context is empty.
+  // an empty context prints as a bare Γ, like the automatic tree
   const gammaTex = letAnswerNode.gamma && Object.keys(letAnswerNode.gamma).length > 0 ? gammaRefTex(letAnswerNode.gamma, registry, false) : "\\Gamma";
   const schemeTex = scheme ? TexMapper.typeToTex(scheme) : "?";
   const judgement = `\\mathit{generalize}(${valueTex}, ${gammaTex}) = ${unlocked ? `\\href{scheme}{${schemeTex}}` : schemeTex}`;

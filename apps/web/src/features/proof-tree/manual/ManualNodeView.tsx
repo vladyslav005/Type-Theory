@@ -6,6 +6,8 @@ import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
 import {addManualPremise, removeManualPremise, setManualConstraintsShown, setManualField} from "@/shared/ui-state/termSlice.ts";
 import {cn} from "@/shared/lib/utils.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
+import {BracketInput} from "@/shared/components/BracketInput.tsx";
+import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
 
 const verdictClass = (verdict: ManualVerdict | undefined) =>
@@ -26,20 +28,40 @@ interface FieldProps {
 }
 
 function Field({value, placeholder, title, width, verdict, readOnly, onChange}: FieldProps) {
+  const history = useUndoableText(value, onChange);
   return (
-    <input
+    <BracketInput
       value={value}
       readOnly={readOnly}
       placeholder={placeholder}
       title={title}
       spellCheck={false}
-      onChange={(e) => onChange(applyShortcuts(e.target.value))}
+      onChange={(e) => history.change(applyShortcuts(e.target.value))}
+      onKeyDown={history.onKeyDown}
+      wrapperStyle={{width}}
+      textClassName="px-1.5 font-mono text-xs"
       className={cn(
-        "h-7 rounded border bg-background px-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
+        "h-7 rounded border outline-none focus:ring-1 focus:ring-ring",
         verdictClass(verdict),
         readOnly && "opacity-80",
       )}
-      style={{width}}
+    />
+  );
+}
+
+function RuleInput({value, placeholder, verdict, onChange}: {value: string; placeholder: string; verdict?: ManualVerdict; onChange: (value: string) => void}) {
+  const history = useUndoableText(value, onChange);
+  return (
+    <input
+      value={value}
+      placeholder={placeholder}
+      spellCheck={false}
+      onChange={(e) => history.change(e.target.value)}
+      onKeyDown={history.onKeyDown}
+      className={cn(
+        "rule-name h-6 w-24 rounded border bg-background px-1 font-mono text-[11px] outline-none focus:ring-1 focus:ring-ring",
+        verdictClass(verdict),
+      )}
     />
   );
 }
@@ -149,15 +171,11 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
           {removeButton}
         </div>
         <div className="conclusion-right">
-          <input
+          <RuleInput
             value={node.rule}
             placeholder={t("manualBuilder.rulePlaceholder")}
-            spellCheck={false}
-            onChange={(e) => set("rule")(e.target.value)}
-            className={cn(
-              "rule-name h-6 w-24 rounded border bg-background px-1 font-mono text-[11px] outline-none focus:ring-1 focus:ring-ring",
-              verdictClass(result?.rule),
-            )}
+            verdict={result?.rule}
+            onChange={set("rule")}
           />
         </div>
       </div>

@@ -34,7 +34,7 @@ const BINOP_RULE_NAMES: Record<BinaryOperator, string> = {
   "!=": "Neq",
 };
 
-// An inference variable ('A) must render like the checker's own (\text{'A}), not as a bare prime.
+// 'A must render like the checker's \text{'A}, not as a bare prime
 function binderTex(name: string): string {
   return name.startsWith("'") ? `\\text{${name}}` : name;
 }

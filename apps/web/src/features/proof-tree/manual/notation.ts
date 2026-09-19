@@ -1,4 +1,3 @@
-// Lets students type the notation without hunting for symbols: \forall, ->, \Gamma, ...
 const SHORTCUTS: [RegExp, string][] = [
   [/\\forall\s?/g, "∀"],
   [/\\Gamma\s?/g, "Γ"],

@@ -448,7 +448,7 @@
   },
   "proofTree": {
     "tabAutomatic": "Automatic",
-    "tabBuildCheck": "Build & Check",
+    "tabBuildCheck": "Practice",
     "tabLogic": "Curry–Howard correspondence",
     "tabLogicShort": "Logic",
     "logicUnavailableNonStlc": "This term uses rules outside plain STLC, so it has no clean Curry-Howard reading",
@@ -482,7 +482,7 @@
     "collapseContext": "Collapse context"
   },
   "proofBuilder": {
-    "emptyNeedsTerm": "Type a valid expression first — Build & Check needs a term that already type-checks.",
+    "emptyNeedsTerm": "Type a valid expression first — Practice needs a term that already type-checks.",
     "emptyHasErrors": "This term doesn't type-check yet — fix the errors first, then come back to build its proof yourself.",
     "emptyInstructions": "Construct the typing derivation for the current term yourself, then check it against the real one.",
     "startBuilding": "Start Building",
@@ -713,7 +713,7 @@
         "description": "Text/AST/proof views are designed to represent the same underlying term."
       },
       "exercises": {
-        "title": "Build & Check exercises",
+        "title": "Practice exercises",
         "description": "Construct a typing derivation yourself, rule by rule, and check it against the real answer with mistake highlighting."
       },
       "theories": {
@@ -810,5 +810,52 @@
     "definitions": "Definitions",
     "definitionsHint": "Name a set once and reuse it: one definition per line, like Γ_1 = {x : 'A} or C_1 = {…}. Then write Γ_1 or C_1 in any field. A plain Γ still means the parent's context.",
     "definitionError": "Line {{line}}: {{message}}"
+  },
+  "evalPractice": {
+    "stepOf": "Step {{current}} of {{total}}",
+    "writePlaceholder": "e.g. λ y . y",
+    "finishedNormalForm": "Normal form reached — nothing can be reduced any further.",
+    "finishedStuck": "The evaluation is stuck here — no rule applies, but the term isn't a value.",
+    "finishedLimit": "The trace stops at the step limit — the term may reduce further.",
+    "hint": {
+      "NORMAL": "Normal order reduces the leftmost, outermost redex, and it also reduces under a λ.",
+      "CALL_BY_NAME": "Call by name reduces the leftmost, outermost redex, but never under a λ, and it doesn't evaluate arguments first.",
+      "CALL_BY_VALUE": "Call by value reduces the function, then the argument, to values before applying it, and never under a λ."
+    },
+    "msg": {
+      "pickWrong": "That isn't the sub-term reduced next.",
+      "writeParse": "Couldn't read that as a term: {{detail}}",
+      "writeWrong": "That's not what this sub-term reduces to. Substitute the argument for the parameter in the body (bound variables may be renamed).",
+      "correct": "Correct.",
+      "pickCorrect": "That's the next redex."
+    },
+    "tabAutomatic": "Automatic",
+    "tabPractice": "Practice",
+    "stepsDone": "{{done}}/{{total}} steps done",
+    "complete": "complete",
+    "emptyNeedsEvaluation": "Evaluate an expression first — Practice needs a reduction to check your work against.",
+    "insertRedex": "Insert the sub-term being reduced",
+    "insertDefinition": "Insert the definition of {{name}}",
+    "context": "Context Γ",
+    "insert": "Insert",
+    "insertName": "Insert the name {{name}}",
+    "startTerm": "Start",
+    "restart": "Restart",
+    "instruction": "Work out the next {{strategy}} step: write what the next redex reduces to. Click a part of the term to select it (Shift+click inserts it right away); selecting the redex and checking are optional.",
+    "check": "Check",
+    "nextStep": "Next step",
+    "finish": "Finish",
+    "correctCount": "{{count}} correct",
+    "statusCorrect": "Matches the real step",
+    "statusWrong": "Different from the real step",
+    "statusSkipped": "Skipped",
+    "youWrote": "You wrote: {{text}}",
+    "summary": "{{correct}} of {{total}} steps matched the real reduction.",
+    "writeHint": "Checking is optional — press Enter or Check to see how you're doing, or just go on. You can write the reduced sub-term or the whole next term.",
+    "showResults": "Show how I did",
+    "selected": "Selected:",
+    "insertSelection": "Insert",
+    "isRedex": "Is this the redex?",
+    "clearSelection": "Clear selection"
   }
 }
