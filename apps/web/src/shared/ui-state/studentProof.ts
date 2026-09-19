@@ -38,7 +38,7 @@ export interface StudentProofNode {
 }
 
 // A key present in both gammas but bound to a different type (shadowing) still counts as
-// "new" — comparing by name alone would miss a rebound variable entirely.
+// "new" — comparing by name alone would miss a rebound variable entirely
 function isRebound(name: string, value: Type | TypeScheme, parentGamma: Record<string, Type | TypeScheme>): boolean {
   return !(name in parentGamma) || TexMapper.typeToTex(value) !== TexMapper.typeToTex(parentGamma[name]);
 }
