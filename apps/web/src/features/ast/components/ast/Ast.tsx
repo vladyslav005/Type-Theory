@@ -253,6 +253,7 @@ export function Ast({
         onNodeMouseLeave={handleNodeMouseLeave}
         nodeTypes={nodeTypes}
         nodesConnectable={false}
+        panActivationKeyCode={null}
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         fitView
       >

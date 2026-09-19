@@ -29,6 +29,8 @@ const AUTO_BUILD_DEBOUNCE_MS = 400;
 
 const FONT_SIZES = [12, 13, 14, 16, 18, 20, 24];
 
+const NO_OPTIONS: Record<string, any> = {};
+
 export interface TextEditorProps {
   defaultValue?: string;
   value?: string; // controlled mode
@@ -60,7 +62,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     onMount,
     readOnly = false,
     className,
-    options = {},
+    options = NO_OPTIONS,
     hideActions = false,
   }: TextEditorProps,
   ref,
