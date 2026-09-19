@@ -16,6 +16,7 @@ import {
   parseFactText,
   parseTermProgram,
   parseTypeText,
+  splitDefinition,
   programTermKey,
   termKey,
 } from "@/shared/lib/manualParse.ts";
@@ -320,8 +321,33 @@ function checkJudgement(
 
 export type ManualResults = Record<string, ManualNodeResult>;
 
-export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesConstraints: boolean, definitions: Definitions = NO_DEFINITIONS): ManualResults {
+// Definitions written inline in fields join the ones from the Definitions box; a name defined twice
+// with different content is reported on the node that repeats it.
+function withInlineDefinitions(root: ManualNode, base: Definitions): {definitions: Definitions; duplicates: Map<string, string[]>} {
+  const definitions: Definitions = {contexts: new Map(base.contexts), constraints: new Map(base.constraints)};
+  const duplicates = new Map<string, string[]>();
+  const note = (nodeId: string, name: string) => duplicates.set(nodeId, [...(duplicates.get(nodeId) ?? []), name]);
+
+  const visit = (node: ManualNode) => {
+    if (node.kind === "judgement") {
+      for (const [text, kind] of [[node.gamma, "Γ"], [node.constraints, "C"]] as const) {
+        const def = splitDefinition(text);
+        if (!def || def.kind !== kind) continue;
+        const target = kind === "C" ? definitions.constraints : definitions.contexts;
+        const existing = target.get(def.index);
+        if (existing !== undefined && existing.trim() !== def.rhs.trim()) note(node.id, `${kind}_${def.index}`);
+        else target.set(def.index, def.rhs);
+      }
+    }
+    node.premises.forEach(visit);
+  };
+  visit(root);
+  return {definitions, duplicates};
+}
+
+export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesConstraints: boolean, boxDefinitions: Definitions = NO_DEFINITIONS): ManualResults {
   const results: ManualResults = {};
+  const {definitions, duplicates} = withInlineDefinitions(root, boxDefinitions);
   const ren = emptyRenaming();
 
   const visit = (node: ManualNode, expected: ExpectedChild, parentContext: ContextEntries) => {
@@ -338,6 +364,11 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
     }
 
     const {result, context} = checkJudgement(node, expected.node, parentContext, ren, usesConstraints, definitions);
+    for (const name of duplicates.get(node.id) ?? []) {
+      result.messages.push({code: "definitionDuplicate", params: {name}});
+      if (name.startsWith("C")) result.constraints = "invalid";
+      else result.gamma = "invalid";
+    }
     results[node.id] = result;
     const children = expectedChildren(expected.node);
     node.premises.forEach((premise, i) => {

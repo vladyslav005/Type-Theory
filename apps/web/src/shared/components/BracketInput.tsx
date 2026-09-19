@@ -1,4 +1,4 @@
-import {forwardRef, useImperativeHandle, useRef, useState} from "react";
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from "react";
 import type {InputHTMLAttributes, ReactNode} from "react";
 import {analyzeBrackets} from "@/shared/lib/bracketMatch.ts";
 import {cn} from "@/shared/lib/utils.ts";
@@ -20,6 +20,21 @@ export const BracketInput = forwardRef<HTMLInputElement, BracketInputProps>(func
   const [caret, setCaret] = useState<number | null>(null);
   const [focused, setFocused] = useState(false);
   const [scrollLeft, setScrollLeft] = useState(0);
+
+  // wheel/trackpad scrolls overflowing text sideways; a native listener because React's are passive
+  useEffect(() => {
+    const el = inner.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return;
+      e.preventDefault();
+      e.stopPropagation();
+      el.scrollLeft += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      setScrollLeft(el.scrollLeft);
+    };
+    el.addEventListener("wheel", onWheel, {passive: false});
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   const sync = (el: HTMLInputElement) => {
     setCaret(el.selectionStart);

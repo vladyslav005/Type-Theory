@@ -801,7 +801,8 @@
       "factForm": "A different kind of side condition is needed here.",
       "factMismatch": "This side condition doesn't match.",
       "constraintsRequired": "This rule carries a constraint set C — add it.",
-      "constraintsNotExpected": "This rule has no constraint set — remove C."
+      "constraintsNotExpected": "This rule has no constraint set — remove C.",
+      "definitionDuplicate": "{{name}} is defined more than once with different content."
     },
     "clearMarks": "Clear marks",
     "removeConstraints": "Remove the constraint set from this judgement",

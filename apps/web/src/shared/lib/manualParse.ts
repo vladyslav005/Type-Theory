@@ -133,7 +133,14 @@ export interface DefinitionError {
   message: string;
 }
 
-const DEFINITION_LINE = /^(Γ|\\Gamma|Gamma|C)\s*(?:_?\{?(\d+)\}?|([₀-₉]+))\s*(?::=|=)\s*(.*)$/;
+export const DEFINITION_LINE = /^(Γ|\\Gamma|Gamma|C)\s*(?:_?\{?(\d+)\}?|([₀-₉]+))\s*(?::=|=)\s*(.*)$/;
+
+// "Γ_2 = {x : 'B}" written straight in a field: it is that node's value and also defines Γ_2.
+export function splitDefinition(text: string): {kind: "Γ" | "C"; index: number; rhs: string} | null {
+  const m = DEFINITION_LINE.exec(text.trim());
+  if (!m) return null;
+  return {kind: m[1] === "C" ? "C" : "Γ", index: m[2] !== undefined ? Number(m[2]) : subscriptToNumber(m[3]), rhs: m[4]};
+}
 
 export function parseDefinitions(text: string): {definitions: Definitions; errors: DefinitionError[]} {
   const definitions: Definitions = {contexts: new Map(), constraints: new Map()};
@@ -181,6 +188,8 @@ export function parseContextText(
   definitions: Definitions = NO_DEFINITIONS,
   expanding: readonly number[] = [],
 ): ContextEntries {
+  const inline = splitDefinition(text);
+  if (inline?.kind === "Γ") return parseContextText(inline.rhs, parent, definitions, [...expanding, inline.index]);
   const entries: ContextEntries = new Map();
   for (const operand of splitUnion(text)) {
     parseContextOperand(operand, parent, definitions, expanding).forEach((type, name) => entries.set(name, type));
@@ -229,6 +238,8 @@ export function parseConstraintsText(
   definitions: Definitions = NO_DEFINITIONS,
   expanding: readonly number[] = [],
 ): ConstraintPairText[] {
+  const inline = splitDefinition(text);
+  if (inline?.kind === "C") return parseConstraintsText(inline.rhs, premiseSets, definitions, [...expanding, inline.index]);
   return splitUnion(text).flatMap((operand) => {
     const ref = CONSTRAINT_REF.exec(operand);
     if (ref) {

@@ -803,7 +803,8 @@
       "factForm": "Tu je potrebný iný druh vedľajšej podmienky.",
       "factMismatch": "Táto vedľajšia podmienka nesedí.",
       "constraintsRequired": "Toto pravidlo nesie množinu obmedzení C — pridajte ju.",
-      "constraintsNotExpected": "Toto pravidlo nemá množinu obmedzení — odstráňte C."
+      "constraintsNotExpected": "Toto pravidlo nemá množinu obmedzení — odstráňte C.",
+      "definitionDuplicate": "{{name}} je definované viackrát s rôznym obsahom."
     },
     "clearMarks": "Vymazať označenia",
     "removeConstraints": "Odstrániť množinu obmedzení z tohto súdu",

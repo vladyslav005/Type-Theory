@@ -9,6 +9,7 @@ import {
   parseTermProgram,
   parseTypeText,
   refIndex,
+  splitDefinition,
   splitEquation,
   splitTopLevel,
   splitUnion,
@@ -87,12 +88,20 @@ export function manualNodeToExportTree(
     return {judgement: orRaw(node.fact, () => factTex(node.fact)), rule: "", id: node.id, highlight};
   }
 
-  const gamma = orRaw(node.gamma, () => splitUnion(node.gamma).map(contextOperandTex).join(" \\cup ") || "\\emptyset");
+  const contextTex = (text: string) => splitUnion(text).map(contextOperandTex).join(" \\cup ") || "\\emptyset";
+  const constraintSetTex = (text: string) => splitUnion(text).map(constraintOperandTex).join(" \\cup ") || "\\emptyset";
+  const gammaDefinition = splitDefinition(node.gamma);
+  const gamma = orRaw(node.gamma, () => (gammaDefinition?.kind === "Γ"
+    ? `\\Gamma_{${gammaDefinition.index}} = ${contextTex(gammaDefinition.rhs)}`
+    : contextTex(node.gamma)));
   const term = orRaw(node.term, () => TexMapper.termToTex(parseTermProgram(node.term).term!));
   const type = orRaw(node.type, () => typeTex(node.type));
   const constraintsShown = node.constraintsShown ?? usesConstraints;
+  const constraintDefinition = splitDefinition(node.constraints);
   const constraints = constraintsShown
-    ? ` \\mid ${orRaw(node.constraints, () => splitUnion(node.constraints).map(constraintOperandTex).join(" \\cup ") || "\\emptyset")}`
+    ? ` \\mid ${orRaw(node.constraints, () => (constraintDefinition?.kind === "C"
+      ? `C_{${constraintDefinition.index}} = ${constraintSetTex(constraintDefinition.rhs)}`
+      : constraintSetTex(node.constraints)))}`
     : "";
 
   return {
