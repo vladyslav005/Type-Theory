@@ -260,6 +260,14 @@ const counterSlice = createSlice({
       state.buildMode.manualResults = {};
     },
 
+    loadManualProof: (state, action: { payload: { tree: ManualNode; definitions: string } }) => {
+      if (state.buildMode.mode !== "manual") return;
+
+      state.buildMode.manualTree = action.payload.tree;
+      state.buildMode.manualDefinitions = action.payload.definitions;
+      state.buildMode.manualResults = {};
+    },
+
     setManualDefinitions: (state, action: { payload: string }) => {
       state.buildMode.manualDefinitions = action.payload;
     },
@@ -351,6 +359,7 @@ export const {
   removeManualPremise,
   setManualResults,
   setManualDefinitions,
+  loadManualProof,
   resetNode,
   checkProof,
   pushProcessingError,

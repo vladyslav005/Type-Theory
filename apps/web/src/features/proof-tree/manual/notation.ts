@@ -5,6 +5,7 @@ const SHORTCUTS: [RegExp, string][] = [
   [/\\in\b\s?/g, "∈"],
   [/\\lambda\s?/g, "λ"],
   [/\\cup\b\s?/g, "∪"],
+  [/\\setminus\b\s?/g, "∖"],
   [/->/g, "→"],
   [/⟨/g, "<"],
   [/⟩/g, ">"],

@@ -43,6 +43,12 @@ function isRebound(name: string, value: Type | TypeScheme, parentGamma: Record<s
   return !(name in parentGamma) || TexMapper.typeToTex(value) !== TexMapper.typeToTex(parentGamma[name]);
 }
 
+export function reboundNames(bindings: ContextBinding[] | undefined, parentGamma: Record<string, Type | TypeScheme>): string[] {
+  return (bindings ?? [])
+    .filter((b) => b.name in parentGamma && TexMapper.typeToTex(b.type) !== TexMapper.typeToTex(parentGamma[b.name]))
+    .map((b) => b.name);
+}
+
 export function buildStudentNode(
   answer: ProofTree,
   revealed: boolean,

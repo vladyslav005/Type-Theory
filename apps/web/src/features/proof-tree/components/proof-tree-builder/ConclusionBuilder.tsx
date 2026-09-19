@@ -3,6 +3,7 @@ import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {Rule} from "@vladyslav005/tt-core";
+import {reboundNames} from "@/shared/ui-state/studentProof.ts";
 import type {ConstraintPair, ContextBinding, StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import {TexMapper} from "@vladyslav005/tt-core";
 import type {GammaRegistry} from "@vladyslav005/tt-core";
@@ -104,9 +105,13 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
     ? `\\href{gamma}{${isExpanded(gammaKey) ? parentGammaRef.fullTex : parentGammaRef.shortTex}}`
     : null;
   const bindingSetTex = `\\{\\href{context}{${bindingTex}}\\}`;
+  const rebound = reboundNames(studentNode.writtenBindings, parentGamma);
+  const baseGammaTex = parentGammaTex && rebound.length > 0
+    ? `( ${parentGammaTex} - \\{ ${rebound.join(", ")} \\} )`
+    : parentGammaTex;
 
   const gammaSegment = studentNode.requiresContextBuild
-    ? (parentGammaTex ? `${parentGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
+    ? (baseGammaTex ? `${baseGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
     : gammaRefTex(answerNode.gamma, registry, isExpanded(gammaKey), "gamma");
 
   const constraintsTex = studentNode.writtenConstraints === undefined

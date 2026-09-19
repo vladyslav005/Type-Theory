@@ -1,16 +1,22 @@
 import {useTranslation} from "react-i18next";
 import {TransformComponent, TransformWrapper} from "react-zoom-pan-pinch";
-import {Crosshair, ZoomIn, ZoomOut} from "lucide-react";
+import {Crosshair, Download, Upload, ZoomIn, ZoomOut} from "lucide-react";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {useMemo} from "react";
-import {exitBuildMode, setManualDefinitions, setManualResults} from "@/shared/ui-state/termSlice.ts";
+import {useMemo, useRef} from "react";
+import type {ChangeEvent} from "react";
+import {toast} from "sonner";
+import {exitBuildMode, loadManualProof, setManualDefinitions, setManualResults} from "@/shared/ui-state/termSlice.ts";
 import {countManualNodes} from "@/shared/ui-state/manualProof.ts";
 import {ExportLatexButtons} from "@/features/proof-tree/components/ExportLatexButtons.tsx";
 import {TexRefExpansionProvider} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
 import {manualNodeToExportTree} from "@/features/proof-tree/manual/manualToTex.ts";
+import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
+import {parseManualProof, serializeManualProof} from "@/features/proof-tree/manual/manualFile.ts";
+import {termKey} from "@/shared/lib/manualParse.ts";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
-import {parseDefinitions} from "@/shared/lib/manualParse.ts";
+import {parseDefinitions, setRequireTypeVariableTick} from "@/shared/lib/manualParse.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
@@ -23,8 +29,12 @@ export function ManualBuilder() {
   const theories = useAppSelector((state) => state.term.enabledTheories);
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const definitionsHistory = useUndoableText(manualDefinitions ?? "", (next) => dispatch(setManualDefinitions(next)));
-  const parsedDefinitions = useMemo(() => parseDefinitions(manualDefinitions ?? ""), [manualDefinitions]);
+  const parsedDefinitions = useMemo(() => {
+    setRequireTypeVariableTick(usesConstraints);
+    return parseDefinitions(manualDefinitions ?? "");
+  }, [manualDefinitions, usesConstraints]);
 
   if (!manualTree || !answerKey) return null;
 
@@ -32,6 +42,32 @@ export function ManualBuilder() {
   const checked = Object.keys(results).length > 0;
   const nodeResults = Object.values(results);
   const invalid = nodeResults.filter((r) => Object.values(r).some((v) => v === "invalid")).length;
+
+  const download = () => {
+    downloadTextFile(
+      "proof-tree-manual.json",
+      serializeManualProof({term: termKey(answerKey.term), tree: manualTree, definitions: manualDefinitions ?? ""}),
+      "application/json",
+    );
+  };
+
+  const upload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      const loaded = parseManualProof(await file.text());
+      if (loaded.term !== termKey(answerKey.term)) {
+        toast.error(t("manualBuilder.toastWrongTerm"));
+        return;
+      }
+      dispatch(loadManualProof({tree: loaded.tree, definitions: loaded.definitions}));
+      toast.success(t("manualBuilder.toastLoaded"));
+    } catch (err) {
+      console.error("Failed to load manual proof", err);
+      toast.error(t("manualBuilder.toastInvalidFile"));
+    }
+  };
 
   const check = () => dispatch(setManualResults(checkManualTree(manualTree, answerKey, usesConstraints, parsedDefinitions.definitions)));
 
@@ -50,6 +86,27 @@ export function ManualBuilder() {
           )}
         </p>
         <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={download}>
+                  <Download className="h-3.5 w-3.5"/>
+                  {t("manualBuilder.btnDownloadJson")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{t("manualBuilder.downloadJson")}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-3.5 w-3.5"/>
+                  {t("manualBuilder.btnUploadJson")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{t("manualBuilder.uploadJson")}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={upload}/>
           <Button size="sm" onClick={check}>{t("proofBuilder.checkProof")}</Button>
           {checked && (
             <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>

@@ -10,10 +10,13 @@ import {
   parseTypeText,
   refIndex,
   splitDefinition,
+  parseNameSet,
+  splitDifference,
   splitEquation,
   splitTopLevel,
   splitUnion,
   stripBraces,
+  unwrapParens,
 } from "@/shared/lib/manualParse.ts";
 
 const escapeText = (raw: string) => `\\text{${raw.replace(/[\\{}_%&#$^~]/g, (c) => (c === "\\" ? "\\textbackslash{}" : `\\${c}`))}}`;
@@ -36,6 +39,12 @@ function indexed(symbol: string, match: RegExpExecArray): string {
 }
 
 function contextOperandTex(operand: string): string {
+  const inner = unwrapParens(operand);
+  if (inner !== null) return `( ${splitUnion(inner).map(contextOperandTex).join(" \\cup ") || "\\emptyset"} )`;
+  const [base, ...removals] = splitDifference(operand);
+  if (removals.length > 0) {
+    return [contextOperandTex(base), ...removals.map((names) => `\\{ ${parseNameSet(names).join(", ")} \\}`)].join(" - ");
+  }
   const body = stripBraces(operand);
   if (EMPTY_SET.has(body.trim())) return "\\emptyset";
   const items = splitTopLevel(body, ",");
@@ -65,9 +74,10 @@ function constraintOperandTex(operand: string): string {
 
 function factTex(text: string): string {
   const fact = parseFactText(text);
-  if (fact.form === "membership") return `${fact.name} : ${TexMapper.typeToTex(fact.type)} \\in \\Gamma`;
-  if (fact.form === "instantiate") return `\\mathit{instantiate}(${fact.name} : ${TexMapper.typeToTex(fact.scheme)} \\in \\Gamma)`;
-  return `\\mathit{generalize}(${TexMapper.typeToTex(fact.type)}, \\Gamma) = ${TexMapper.typeToTex(fact.scheme)}`;
+  const context = splitUnion(fact.context).map(contextOperandTex).join(" \\cup ") || "\\emptyset";
+  if (fact.form === "membership") return `${fact.name} : ${TexMapper.typeToTex(fact.type)} \\in ${context}`;
+  if (fact.form === "instantiate") return `\\mathit{instantiate}(${fact.name} : ${TexMapper.typeToTex(fact.scheme)} \\in ${context})`;
+  return `\\mathit{generalize}(${TexMapper.typeToTex(fact.type)}, ${context}) = ${TexMapper.typeToTex(fact.scheme)}`;
 }
 
 function highlightOf(result: ManualNodeResult | undefined): ExportTree["highlight"] {
@@ -92,7 +102,7 @@ export function manualNodeToExportTree(
   const constraintSetTex = (text: string) => splitUnion(text).map(constraintOperandTex).join(" \\cup ") || "\\emptyset";
   const gammaDefinition = splitDefinition(node.gamma);
   const gamma = orRaw(node.gamma, () => (gammaDefinition?.kind === "Γ"
-    ? `\\Gamma_{${gammaDefinition.index}} = ${contextTex(gammaDefinition.rhs)}`
+    ? `${gammaDefinition.index === null ? "\\Gamma" : `\\Gamma_{${gammaDefinition.index}}`} = ${contextTex(gammaDefinition.rhs)}`
     : contextTex(node.gamma)));
   const term = orRaw(node.term, () => TexMapper.termToTex(parseTermProgram(node.term).term!));
   const type = orRaw(node.type, () => typeTex(node.type));

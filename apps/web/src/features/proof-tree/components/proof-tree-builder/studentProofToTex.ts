@@ -1,5 +1,6 @@
 import type {ProofTree, TypeScheme} from "@vladyslav005/tt-core";
 import type {Type} from "@vladyslav005/tt-core";
+import {reboundNames} from "@/shared/ui-state/studentProof.ts";
 import type {StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import type {GammaRegistry} from "@vladyslav005/tt-core";
 import type {ExportTree} from "@vladyslav005/tt-core";
@@ -51,8 +52,13 @@ export function studentNodeToExportTree(
   const parentGammaTex = parentGammaRef ? gammaRefTex(parentGamma, registry, gammaExpanded) : null;
   const bindingSetTex = `\\{${bindingTex}\\}`;
 
+  const rebound = reboundNames(studentNode.writtenBindings, parentGamma);
+  const baseGammaTex = parentGammaTex && rebound.length > 0
+    ? `( ${parentGammaTex} - \\{ ${rebound.join(", ")} \\} )`
+    : parentGammaTex;
+
   const gammaSegment = studentNode.requiresContextBuild
-    ? (parentGammaTex ? `${parentGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
+    ? (baseGammaTex ? `${baseGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
     : gammaRefTex(answerNode.gamma, registry, gammaExpanded);
 
   const constraintsTex = studentNode.writtenConstraints === undefined

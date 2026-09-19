@@ -7,8 +7,10 @@ import {RULE_LABELS} from "@/features/proof-tree/components/proof-tree-builder/r
 import {
   type ConstraintPairText,
   type ContextEntries,
+  type ContextKey,
   type Definitions,
   ManualParseError,
+  definitionName,
   NO_DEFINITIONS,
   type ParsedFact,
   parseConstraintsText,
@@ -18,6 +20,7 @@ import {
   parseTypeText,
   splitDefinition,
   programTermKey,
+  setRequireTypeVariableTick,
   termKey,
 } from "@/shared/lib/manualParse.ts";
 
@@ -132,7 +135,7 @@ function solveConstraints(written: Pair[], expected: Pair[], index: number, used
 type ExpectedFact =
   | {form: "membership"; name: string; type: Type}
   | {form: "instantiate"; name: string; scheme: Type}
-  | {form: "generalize"; type: Type; scheme: Type};
+  | {form: "generalize"; name: string; type: Type; scheme: Type};
 
 type ExpectedChild = {kind: "proof"; node: ProofTree} | {kind: "fact"; fact: ExpectedFact};
 
@@ -156,7 +159,7 @@ function expectedChildren(answer: ProofTree): ExpectedChild[] {
     const scheme = body.gamma[name];
     return [
       {kind: "proof", node: value},
-      {kind: "fact", fact: {form: "generalize", type: value.type, scheme: scheme ? entryType(scheme) : value.type}},
+      {kind: "fact", fact: {form: "generalize", name, type: value.type, scheme: scheme ? entryType(scheme) : value.type}},
       {kind: "proof", node: body},
     ];
   }
@@ -201,7 +204,68 @@ function parseOrNull<T>(parse: () => T, messages: ManualMessage[], code: string)
   }
 }
 
-function checkFact(node: ManualNode, expected: ExpectedFact, ren: Renaming): ManualNodeResult {
+function showContext(entries: ContextEntries): string {
+  return entries.size === 0 ? "∅" : [...entries].map(([name, type]) => `${name} : ${typeToString(type)}`).join(", ");
+}
+
+type GeneralizeFact = Extract<ParsedFact, {form: "generalize"}>;
+
+function generalizeContextProblem(parsed: GeneralizeFact, context: ContextEntries, letContext: ContextEntries): ManualMessage | null {
+  const same = context.size === letContext.size
+    && [...letContext].every(([name, type]) => context.has(name) && typeToString(context.get(name)!) === typeToString(type));
+  if (same) return null;
+  return {code: "factContextDiffers", params: {context: parsed.context, contents: showContext(context), expected: showContext(letContext)}};
+}
+
+// T must be the type written in the value premise, and the scheme what the body's Γ binds the let variable to.
+function checkGeneralizeLinks(
+  node: ManualNode,
+  parsed: GeneralizeFact,
+  expected: Extract<ExpectedFact, {form: "generalize"}>,
+  letNode: ManualNode | null,
+  definitions: Definitions,
+): ManualMessage | null {
+  if (!letNode) return null;
+  const at = letNode.premises.findIndex((p) => p.id === node.id);
+  const value = letNode.premises[at - 1];
+  const body = letNode.premises[at + 1];
+
+  if (value?.kind === "judgement" && value.type.trim() !== "") {
+    try {
+      const written = typeToString(parseTypeText(value.type));
+      if (written !== typeToString(parsed.type)) {
+        return {code: "generalizeType", params: {given: typeToString(parsed.type), premise: written}};
+      }
+    } catch (error) {
+      if (!(error instanceof ManualParseError)) throw error;
+    }
+  }
+
+  if (body?.kind === "judgement" && body.gamma.trim() !== "") {
+    let bodyContext: ContextEntries | null = null;
+    try {
+      bodyContext = parseContextText(body.gamma, definitions);
+    } catch (error) {
+      if (!(error instanceof ManualParseError)) throw error;
+    }
+    if (bodyContext) {
+      const bound = bodyContext.get(expected.name);
+      if (!bound) return {code: "generalizeBodyMissing", params: {name: expected.name, contents: showContext(bodyContext)}};
+      if (typeToString(bound) !== typeToString(parsed.scheme)) {
+        return {code: "generalizeScheme", params: {name: expected.name, given: typeToString(parsed.scheme), bound: typeToString(bound)}};
+      }
+    }
+  }
+  return null;
+}
+
+function checkFact(
+  node: ManualNode,
+  expected: ExpectedFact,
+  ren: Renaming,
+  parent: {node: ManualNode | null; context: ContextEntries; contextParsed: boolean},
+  definitions: Definitions,
+): ManualNodeResult {
   const messages: ManualMessage[] = [];
   const parsed: ParsedFact | null = parseOrNull(() => parseFactText(node.fact), messages, "factParse");
   if (!parsed) return {fact: "invalid", messages};
@@ -209,6 +273,34 @@ function checkFact(node: ManualNode, expected: ExpectedFact, ren: Renaming): Man
   const shape = expected.form === "membership" ? "factMembership" : expected.form === "instantiate" ? "factInstantiate" : "factGeneralize";
   if (parsed.form !== expected.form) {
     return {fact: "invalid", messages: [{code: "factForm", params: {form: shape}}]};
+  }
+
+  // The context written after ∈ (or as generalize's second argument) must really be one, and for
+  // membership and instantiate it must contain the very binding the fact claims.
+  let context: ContextEntries;
+  try {
+    context = parseContextText(parsed.context, definitions);
+  } catch (error) {
+    const detail = error instanceof ManualParseError ? error.message : String(error);
+    return {fact: "invalid", messages: [{code: "factContextParse", params: {detail}}]};
+  }
+  if (parsed.form !== "generalize") {
+    const bound = context.get(parsed.name);
+    if (!bound) {
+      return {fact: "invalid", messages: [{code: "factContextMissing", params: {name: parsed.name, context: parsed.context, contents: showContext(context)}}]};
+    }
+    const claimed = parsed.form === "membership" ? parsed.type : parsed.scheme;
+    if (typeToString(bound) !== typeToString(claimed)) {
+      const params = {name: parsed.name, context: parsed.context, actual: typeToString(bound), claimed: typeToString(claimed)};
+      return {fact: "invalid", messages: [{code: "factContextType", params}]};
+    }
+  }
+
+  if (parsed.form === "generalize") {
+    const problem = parent.contextParsed ? generalizeContextProblem(parsed, context, parent.context) : null;
+    if (problem) return {fact: "invalid", messages: [problem]};
+    const linked = checkGeneralizeLinks(node, parsed, expected as Extract<ExpectedFact, {form: "generalize"}>, parent.node, definitions);
+    if (linked) return {fact: "invalid", messages: [linked]};
   }
 
   const ok = tryMatch(ren, (scratch) => {
@@ -242,11 +334,10 @@ function premiseConstraintSets(node: ManualNode, definitions: Definitions): (Con
 function checkJudgement(
   node: ManualNode,
   answer: ProofTree,
-  parentContext: ContextEntries,
   ren: Renaming,
   usesConstraints: boolean,
   definitions: Definitions,
-): {result: ManualNodeResult; context: ContextEntries} {
+): {result: ManualNodeResult; context: ContextEntries; contextParsed: boolean} {
   const messages: ManualMessage[] = [];
   const result: ManualNodeResult = {messages};
 
@@ -264,7 +355,7 @@ function checkJudgement(
   }
 
   let context: ContextEntries = new Map();
-  const parsedContext = parseOrNull(() => parseContextText(node.gamma, parentContext, definitions), messages, "gammaParse");
+  const parsedContext = parseOrNull(() => parseContextText(node.gamma, definitions), messages, "gammaParse");
   if (parsedContext) {
     context = parsedContext;
     const expected = contextOf(answer);
@@ -275,7 +366,16 @@ function checkJudgement(
     result.gamma = ok ? "valid" : "invalid";
     if (missing.length > 0) messages.push({code: "gammaMissing", params: {names: missing.join(", ")}});
     if (extra.length > 0) messages.push({code: "gammaExtra", params: {names: extra.join(", ")}});
-    if (!ok && missing.length === 0 && extra.length === 0) messages.push({code: "gammaTypes"});
+    if (!ok && missing.length === 0 && extra.length === 0) {
+      const trial = cloneRenaming(ren);
+      const differing = [...expected].filter(([name, type]) => {
+        const attempt = cloneRenaming(trial);
+        if (!matchType(parsedContext.get(name)!, type, attempt)) return true;
+        commit(trial, attempt);
+        return false;
+      }).map(([name]) => name);
+      messages.push(differing.length > 0 ? {code: "gammaTypes", params: {names: differing.join(", ")}} : {code: "gammaInconsistent"});
+    }
   } else {
     result.gamma = "invalid";
   }
@@ -316,7 +416,7 @@ function checkJudgement(
     messages.push({code: "premiseCount", params: {expected: expectedCount, written: node.premises.length}});
   }
 
-  return {result, context};
+  return {result, context, contextParsed: parsedContext !== null};
 }
 
 export type ManualResults = Record<string, ManualNodeResult>;
@@ -333,9 +433,9 @@ function withInlineDefinitions(root: ManualNode, base: Definitions): {definition
       for (const [text, kind] of [[node.gamma, "Γ"], [node.constraints, "C"]] as const) {
         const def = splitDefinition(text);
         if (!def || def.kind !== kind) continue;
-        const target = kind === "C" ? definitions.constraints : definitions.contexts;
+        const target: Map<ContextKey, string> = kind === "C" ? definitions.constraints : definitions.contexts;
         const existing = target.get(def.index);
-        if (existing !== undefined && existing.trim() !== def.rhs.trim()) note(node.id, `${kind}_${def.index}`);
+        if (existing !== undefined && existing.trim() !== def.rhs.trim()) note(node.id, definitionName(def.kind, def.index));
         else target.set(def.index, def.rhs);
       }
     }
@@ -347,13 +447,14 @@ function withInlineDefinitions(root: ManualNode, base: Definitions): {definition
 
 export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesConstraints: boolean, boxDefinitions: Definitions = NO_DEFINITIONS): ManualResults {
   const results: ManualResults = {};
+  setRequireTypeVariableTick(usesConstraints);
   const {definitions, duplicates} = withInlineDefinitions(root, boxDefinitions);
   const ren = emptyRenaming();
 
-  const visit = (node: ManualNode, expected: ExpectedChild, parentContext: ContextEntries) => {
+  const visit = (node: ManualNode, expected: ExpectedChild, parent: {node: ManualNode | null; context: ContextEntries; contextParsed: boolean}) => {
     if (expected.kind === "fact") {
       results[node.id] = node.kind === "fact"
-        ? checkFact(node, expected.fact, ren)
+        ? checkFact(node, expected.fact, ren, parent, definitions)
         : {fact: "invalid", messages: [{code: "expectedSideCondition"}]};
       return;
     }
@@ -363,7 +464,7 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
       return;
     }
 
-    const {result, context} = checkJudgement(node, expected.node, parentContext, ren, usesConstraints, definitions);
+    const {result, context, contextParsed} = checkJudgement(node, expected.node, ren, usesConstraints, definitions);
     for (const name of duplicates.get(node.id) ?? []) {
       result.messages.push({code: "definitionDuplicate", params: {name}});
       if (name.startsWith("C")) result.constraints = "invalid";
@@ -372,11 +473,11 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
     results[node.id] = result;
     const children = expectedChildren(expected.node);
     node.premises.forEach((premise, i) => {
-      if (children[i]) visit(premise, children[i], context);
+      if (children[i]) visit(premise, children[i], {node, context, contextParsed});
       else results[premise.id] = {messages: [{code: "extraPremise"}]};
     });
   };
 
-  visit(root, {kind: "proof", node: answerKey}, new Map());
+  visit(root, {kind: "proof", node: answerKey}, {node: null, context: new Map(), contextParsed: true});
   return results;
 }
