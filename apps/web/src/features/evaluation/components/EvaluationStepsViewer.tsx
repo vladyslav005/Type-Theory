@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowDown, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { useAppSelector } from "@/shared/hooks/reduxHooks.ts";
+import { churchNumeralValue } from "@/features/evaluation/churchNumeral.ts";
 import { expandTypeAliases, normalizeType, typeEquals } from "@vladyslav005/tt-core";
 
 // Lets TypeView (nested deep in TermView) resolve type aliases without threading a prop through every case.
@@ -650,6 +652,18 @@ interface EvaluationStepsViewerProps {
 }
 
 // Wraps EvaluationStepsViewerInner so its early returns don't each need the provider individually.
+function ChurchNumeralHint({ term }: { term: Term }) {
+  const { t } = useTranslation();
+  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
+  const value = isUntyped ? churchNumeralValue(term) : null;
+  if (value === null) return null;
+  return (
+    <div className="mt-2 text-xs text-muted-foreground">
+      {t("evalSteps.churchNumeral")}: <span className="font-mono font-semibold text-foreground">{value}</span>
+    </div>
+  );
+}
+
 const DOT_WINDOW = 4;
 
 // Long traces (up to 500 steps) can't render one dot each without overflowing the panel — keep
@@ -713,6 +727,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
           </p>
         </div>
         <TermBox term={result} label={hasErrors ? t("evalSteps.stuckTerm") : t("evalSteps.normalForm")} errorId={stuckTermId} hasError={hasErrors} />
+        {!hasErrors && <ChurchNumeralHint term={result} />}
         {hasErrors && (
           <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
             <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -772,6 +787,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
             <div className="font-mono text-sm overflow-x-auto">
               <TermView term={result} />
             </div>
+            <ChurchNumeralHint term={result} />
           </div>
         )}
 
@@ -923,6 +939,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
               <div className="font-mono text-sm overflow-x-auto">
                 <TermView term={result} />
               </div>
+              <ChurchNumeralHint term={result} />
             </div>
           )}
         </div>

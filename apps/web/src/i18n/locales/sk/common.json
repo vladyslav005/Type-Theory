@@ -628,6 +628,7 @@
     "next": "Ďalej",
     "first": "Prvý krok",
     "last": "Posledný krok",
+    "churchNumeral": "Churchovo číslo",
     "stepOf": "Krok {{current}} z {{total}}",
     "goToStep": "Prejsť na krok {{n}}",
     "before": "Pred",

@@ -628,6 +628,7 @@
     "next": "Далі",
     "first": "Перший крок",
     "last": "Останній крок",
+    "churchNumeral": "Число Черча",
     "stepOf": "Крок {{current}} з {{total}}",
     "goToStep": "Перейти до кроку {{n}}",
     "before": "До",

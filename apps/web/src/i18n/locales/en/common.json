@@ -628,6 +628,7 @@
     "next": "Next",
     "first": "First step",
     "last": "Last step",
+    "churchNumeral": "Church numeral",
     "stepOf": "Step {{current}} of {{total}}",
     "goToStep": "Go to step {{n}}",
     "before": "Before",

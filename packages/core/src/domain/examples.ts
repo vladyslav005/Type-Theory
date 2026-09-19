@@ -189,7 +189,7 @@ three = succ two;
 // Apply s, m times, then n more times, on top of z — m + n applications total.
 plus = λ m . λ n . λ s . λ z . m s (n s z);
 
-(plus two three) succ zero;`,
+plus two three succ zero;`,
       },
       {
         label: "Church Arithmetic: Multiplication (times)",
