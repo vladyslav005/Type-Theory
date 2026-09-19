@@ -93,7 +93,10 @@
     "autoBuildTooltip": "Automatically parse, type-check, and evaluate as you type — disables the Parse & Evaluate buttons",
     "font": "Font",
     "fontSize": "Font size",
-    "fontSizeTooltip": "Editor font size"
+    "fontSizeTooltip": "Editor font size",
+    "download": "Download .tt file",
+    "downloadTooltip": "Download as .tt file.",
+    "downloadVscodeLink": "Get the VS Code extension"
   },
   "evalStrategy": {
     "heading": "Evaluation strategy",

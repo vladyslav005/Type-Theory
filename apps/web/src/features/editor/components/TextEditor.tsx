@@ -16,6 +16,7 @@ import {setAutoBuild, setFontSize, setTermText} from "@/shared/ui-state/termSlic
 import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import type {SourcePosition} from "@vladyslav005/tt-core";
+import {DownloadButton} from "@/features/editor/components/DownloadButton.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
@@ -76,6 +77,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   const { parseAndTypeCheck, evaluateTerm } = useTermHooks();
   const errorMarkers = useAppSelector((state) => state.term.errorMarkers);
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
+  const termText = useAppSelector((state) => state.term.termText);
   const evaluationStrategy = useAppSelector((state) => state.term.evaluationStrategy);
   // Gate auto-evaluate on `proof`, not `ast` — matches the Evaluate button's own disabled
   // condition, so auto-build doesn't try to evaluate declarations with no final term yet.
@@ -344,6 +346,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                 </div>
               </TooltipProvider>
             </div>
+            <DownloadButton getText={() => editorRef.current?.getValue() ?? termText ?? ""}/>
             <Button
               variant="ghost"
               size="icon"

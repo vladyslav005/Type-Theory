@@ -93,7 +93,10 @@
     "autoBuildTooltip": "Automaticky analyzovať, kontrolovať typy a vyhodnocovať počas písania — vypne tlačidlá Analyzovať a Vyhodnotiť",
     "font": "Písmo",
     "fontSize": "Veľkosť písma",
-    "fontSizeTooltip": "Veľkosť písma editora"
+    "fontSizeTooltip": "Veľkosť písma editora",
+    "download": "Stiahnuť súbor .tt",
+    "downloadTooltip": "Stiahnuť ako súbor .tt.",
+    "downloadVscodeLink": "Získať rozšírenie pre VS Code"
   },
   "evalStrategy": {
     "heading": "Stratégia vyhodnocovania",
