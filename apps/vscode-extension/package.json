@@ -2,7 +2,7 @@
   "name": "tt-vscode-extension",
   "displayName": "Type Theory (tt)",
   "description": "Syntax highlighting, diagnostics, completions, and interactive AST/proof-tree/evaluation panels for the tt (typed lambda calculus) language.",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "MIT",
   "publisher": "vladyslav005",
   "icon": "icon.png",
