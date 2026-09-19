@@ -1,5 +1,6 @@
 import {useEffect, useState, type ReactNode} from "react";
 import {Link} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import {ArrowRight, BookOpen, ChevronDown, ListTree, Sparkles} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
@@ -64,6 +65,7 @@ export interface TocItem {
 
 // Right-rail "on this page" nav — highlights whichever heading is currently topmost in view.
 export function TableOfContents({items}: {items: TocItem[]}) {
+  const {t} = useTranslation();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,9 +100,9 @@ export function TableOfContents({items}: {items: TocItem[]}) {
     );
 
   return (
-    <nav aria-label="On this page" className="hidden xl:block print:hidden w-52 shrink-0">
+    <nav aria-label={t("lectureBlocks.onThisPage")} className="hidden xl:block print:hidden w-52 shrink-0">
       <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 pl-3">On this page</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 pl-3">{t("lectureBlocks.onThisPage")}</p>
         <ul>
           {items.map((item) => (
             <li key={item.id}>
@@ -125,12 +127,13 @@ export function TableOfContents({items}: {items: TocItem[]}) {
 // Collapsible "on this page" nav for viewports too narrow for the sticky right rail —
 // placed at the top of the article, since a below-the-fold TOC on mobile is dead weight.
 export function MobileTableOfContents({items}: {items: TocItem[]}) {
+  const {t} = useTranslation();
   return (
     <details className="group xl:hidden print:hidden rounded-xl border bg-card">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold min-h-11">
         <span className="flex items-center gap-2">
           <ListTree className="h-4 w-4 text-muted-foreground"/>
-          On this page
+          {t("lectureBlocks.onThisPage")}
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180"/>
       </summary>
@@ -202,9 +205,10 @@ export function RuleAnatomy() {
 // Proof Tree panel") — meaningless once printed, so it's print:hidden rather than just
 // print:break-inside-avoid like the other boxed blocks.
 export function TryItBox({steps}: {steps: ReactNode[]}) {
+  const {t} = useTranslation();
   return (
     <div className="rounded-xl border bg-muted/20 p-4 print:hidden">
-      <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">Try it</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-3">{t("lectureBlocks.tryIt")}</p>
       <ol className="space-y-2.5 text-sm">
         {steps.map((step, i) => (
           <li key={i} className="flex gap-3">
@@ -220,14 +224,15 @@ export function TryItBox({steps}: {steps: ReactNode[]}) {
 }
 
 export function RuleCardStrip({ruleIds}: {ruleIds: string[]}) {
+  const {t} = useTranslation();
   const rules = ruleIds.map(findRule).filter((r): r is NonNullable<typeof r> => Boolean(r));
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Rules</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("lectureBlocks.rules")}</p>
         <Link to="/docs/rules" className="text-xs text-muted-foreground hover:text-foreground hover:underline print:hidden">
-          Full reference →
+          {t("lectureBlocks.fullReference")}
         </Link>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -258,10 +263,11 @@ export function Callout({title, children, screenOnly}: {title: string; children:
   );
 }
 
-export function GrammarBox({grammar, title = "Grammar covered so far"}: {grammar: string; title?: string}) {
+export function GrammarBox({grammar, title}: {grammar: string; title?: string}) {
+  const {t} = useTranslation();
   return (
     <div className="rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{title}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{title ?? t("lectureBlocks.grammarCoveredSoFar")}</p>
       <pre className="font-mono text-sm overflow-x-auto leading-relaxed">{grammar}</pre>
     </div>
   );
@@ -273,13 +279,14 @@ export interface SummaryPoint {
 }
 
 export function SummaryBox({id, points, next}: {id?: string; points: SummaryPoint[]; next?: ReactNode}) {
+  const {t} = useTranslation();
   return (
     <div
       id={id}
       className="scroll-mt-24 rounded-xl border bg-muted/10 p-4 print:break-inside-avoid"
-      {...(id ? {"data-toc-level": "1", "data-toc-title": "Summary"} : {})}
+      {...(id ? {"data-toc-level": "1", "data-toc-title": t("lectureBlocks.summary")} : {})}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Summary</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">{t("lectureBlocks.summary")}</p>
       <ul className="space-y-1.5 text-sm">
         {points.map((point) => (
           <li key={point.label}>
@@ -299,15 +306,16 @@ export interface ReferenceEntry {
 }
 
 export function ReferenceList({id, entries}: {id?: string; entries: ReferenceEntry[]}) {
+  const {t} = useTranslation();
   return (
     <div
       id={id}
       className="scroll-mt-24 rounded-xl border border-dashed bg-transparent p-4 print:break-inside-avoid"
-      {...(id ? {"data-toc-level": "1", "data-toc-title": "Sources"} : {})}
+      {...(id ? {"data-toc-level": "1", "data-toc-title": t("lectureBlocks.sources")} : {})}
     >
       <div className="flex items-center gap-1.5 mb-2.5">
         <BookOpen className="h-3.5 w-3.5 text-muted-foreground"/>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sources for this text</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("lectureBlocks.sourcesForThisText")}</p>
       </div>
       <ol className="space-y-1.5 text-sm list-decimal list-inside marker:text-muted-foreground marker:text-xs">
         {entries.map((entry) => (

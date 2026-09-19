@@ -8,6 +8,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Callout, MobileTableOfContents, TableOfContents, type TocItem} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
 import {mdxComponents} from "@/features/docs/lectures/mdxComponents.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {extractOutline} from "@/features/docs/lectures/extractOutline.ts";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
 import {resolveLectureContent} from "@/features/docs/lectureContent.ts";
@@ -54,9 +55,10 @@ export function DocsLecturePage() {
   if (!lecture || !text) {
     return (
       <motion.div initial="initial" animate="animate" variants={fadeInUp} className="space-y-4">
-        <h1 className="text-2xl font-bold">Lecture not found</h1>
+        <h1 className="text-2xl font-bold">{t("docsLecture.notFoundTitle")}</h1>
         <p className="text-muted-foreground">
-          There's no lecture at this address. <Link to="/docs" className="text-primary hover:underline">Back to the Guide</Link>.
+          {t("docsLecture.notFoundMessage")}{" "}
+          <Link to="/docs" className="text-primary hover:underline">{t("docsLecture.backToGuide")}</Link>.
         </p>
       </motion.div>
     );
@@ -76,14 +78,21 @@ export function DocsLecturePage() {
             see the PDF-export postmortem in project memory for why. isFallback ⇒ the on-screen
             content is the English file, so the generated PDF is filed under "en" too. */}
         {resolved && (
-          <a
-            href={`/lectures-pdf/${resolved.isFallback ? "en" : i18n.language}/${lecture.slug}.pdf`}
-            download
-            className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Download className="h-4 w-4"/>
-            Download PDF
-          </a>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <a
+                  href={`/lectures-pdf/${resolved.isFallback ? "en" : i18n.language}/${lecture.slug}.pdf`}
+                  download
+                  className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <Download className="h-4 w-4"/>
+                  {t("docsLecture.downloadPdf")}
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{t("docsLecture.downloadPdfTooltip")}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 

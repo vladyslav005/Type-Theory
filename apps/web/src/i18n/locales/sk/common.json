@@ -35,6 +35,44 @@
     "appendix": "Príloha",
     "rulesReference": "Prehľad pravidiel"
   },
+  "docsIndex": {
+    "title": "Príručka",
+    "description": "Praktický úvod do typovaného lambda kalkulu, vyučovaný popri tejto aplikácii. Každá prednáška spája stručné vysvetlenie konceptu s konkrétnymi krokmi na vyskúšanie v editore, takže teória a nástroj zostávajú prepojené.",
+    "downloadComplete": "Stiahnuť kompletnú príručku",
+    "downloadCompleteTooltip": "Stiahnuť všetky prednášky ako jeden PDF súbor, v poradí čítania",
+    "lecturesHeading": "Prednášky",
+    "comingSoon": "Pripravuje sa",
+    "referenceHeading": "Referencie",
+    "rulesCardTitle": "Pravidlá",
+    "rulesCardDescription": "Každé typové a evaluačné pravidlo predstavené naprieč prednáškami, zhromaždené v jednej referenčnej sade.",
+    "grammarCardTitle": "Gramatika a symboly",
+    "grammarCardDescription": "Gramatika jazyka v EBNF, plus každý špeciálny symbol a spôsob jeho zápisu."
+  },
+  "docsLayout": {
+    "overview": "Prehľad",
+    "lectures": "Prednášky",
+    "reference": "Referencie",
+    "rules": "Pravidlá",
+    "grammar": "Gramatika a symboly",
+    "menu": "Menu príručky"
+  },
+  "docsLecture": {
+    "notFoundTitle": "Prednáška sa nenašla",
+    "notFoundMessage": "Na tejto adrese sa nenachádza žiadna prednáška.",
+    "backToGuide": "Späť na príručku",
+    "downloadPdf": "Stiahnuť PDF",
+    "downloadPdfTooltip": "Stiahnuť túto prednášku ako PDF, naformátované na tlač"
+  },
+  "lectureBlocks": {
+    "onThisPage": "Na tejto stránke",
+    "tryIt": "Vyskúšaj si to",
+    "rules": "Pravidlá",
+    "fullReference": "Celá referencia →",
+    "grammarCoveredSoFar": "Doteraz prebratá gramatika",
+    "summary": "Zhrnutie",
+    "sources": "Zdroje",
+    "sourcesForThisText": "Zdroje k tomuto textu"
+  },
   "actions": {
     "typeCheck": "Analyzovať a skontrolovať typy",
     "typeCheckTooltip": "Analyzovať a typovo skontrolovať aktuálny výraz — zostaví AST, strom dôkazu a Curry–Howardov pohľad",

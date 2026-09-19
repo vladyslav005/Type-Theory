@@ -35,6 +35,44 @@
     "appendix": "Appendix",
     "rulesReference": "Rules Reference"
   },
+  "docsIndex": {
+    "title": "Guide",
+    "description": "A hands-on introduction to typed lambda calculus, taught alongside this app. Each lecture pairs a short concept explanation with concrete steps to try in the editor, so the theory and the tool stay attached to each other.",
+    "downloadComplete": "Download Complete Guide",
+    "downloadCompleteTooltip": "Download every lecture as one PDF, in reading order",
+    "lecturesHeading": "Lectures",
+    "comingSoon": "Coming soon",
+    "referenceHeading": "Reference",
+    "rulesCardTitle": "Rules",
+    "rulesCardDescription": "Every typing and evaluation rule introduced across the lectures, collected into one reference deck.",
+    "grammarCardTitle": "Grammar & Symbols",
+    "grammarCardDescription": "The language's grammar in EBNF, plus every special symbol and how to type it."
+  },
+  "docsLayout": {
+    "overview": "Overview",
+    "lectures": "Lectures",
+    "reference": "Reference",
+    "rules": "Rules",
+    "grammar": "Grammar & Symbols",
+    "menu": "Guide Menu"
+  },
+  "docsLecture": {
+    "notFoundTitle": "Lecture not found",
+    "notFoundMessage": "There's no lecture at this address.",
+    "backToGuide": "Back to the Guide",
+    "downloadPdf": "Download PDF",
+    "downloadPdfTooltip": "Download this lecture as a PDF, formatted for printing"
+  },
+  "lectureBlocks": {
+    "onThisPage": "On this page",
+    "tryIt": "Try it",
+    "rules": "Rules",
+    "fullReference": "Full reference →",
+    "grammarCoveredSoFar": "Grammar covered so far",
+    "summary": "Summary",
+    "sources": "Sources",
+    "sourcesForThisText": "Sources for this text"
+  },
   "actions": {
     "typeCheck": "Parse & Type Check",
     "typeCheckTooltip": "Parse & type-check the current expression — builds the AST, proof tree and Curry–Howard view",

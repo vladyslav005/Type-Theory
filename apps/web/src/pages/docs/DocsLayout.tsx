@@ -15,7 +15,7 @@ const navLinkClass = ({isActive}: {isActive: boolean}) =>
   );
 
 function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
-  const {i18n} = useTranslation();
+  const {t, i18n} = useTranslation();
   const visibleLectures = LECTURE_REGISTRY.filter((lecture) => lecture.visible);
 
   return (
@@ -24,14 +24,14 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
         <NavLink to="/docs" end className={navLinkClass} onClick={onNavigate}>
           <span className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 shrink-0"/>
-            Overview
+            {t("docsLayout.overview")}
           </span>
         </NavLink>
       </div>
 
       <div>
         <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Lectures
+          {t("docsLayout.lectures")}
         </p>
         <ol className="space-y-1">
           {visibleLectures.map((lecture, index) => (
@@ -51,19 +51,19 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
 
       <div>
         <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Reference
+          {t("docsLayout.reference")}
         </p>
         <div className="space-y-1">
           <NavLink to="/docs/rules" className={navLinkClass} onClick={onNavigate}>
             <span className="flex items-center gap-2">
               <ScrollText className="h-4 w-4 shrink-0"/>
-              Rules
+              {t("docsLayout.rules")}
             </span>
           </NavLink>
           <NavLink to="/docs/grammar" className={navLinkClass} onClick={onNavigate}>
             <span className="flex items-center gap-2">
               <Sigma className="h-4 w-4 shrink-0"/>
-              Grammar & Symbols
+              {t("docsLayout.grammar")}
             </span>
           </NavLink>
         </div>
@@ -73,6 +73,7 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
 }
 
 export function DocsLayout() {
+  const {t} = useTranslation();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const location = useLocation();
 
@@ -88,7 +89,7 @@ export function DocsLayout() {
             onClick={() => setIsMobileNavOpen((v) => !v)}
           >
             {isMobileNavOpen ? <X className="h-4 w-4"/> : <Menu className="h-4 w-4"/>}
-            Guide Menu
+            {t("docsLayout.menu")}
           </Button>
         </div>
 
