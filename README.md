@@ -1,4 +1,4 @@
-# tt — an interactive typed lambda calculus playground
+# TT — an interactive lambda calculus playground
 
 [![License: MIT](https://img.shields.io/github/license/vladyslav005/Type-Theory)](LICENSE)
 [![npm](https://img.shields.io/npm/v/@vladyslav005/tt-core)](https://www.npmjs.com/package/@vladyslav005/tt-core)
