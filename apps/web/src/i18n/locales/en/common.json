@@ -453,6 +453,7 @@
     "tabLogicShort": "Logic",
     "logicUnavailableNonStlc": "This term uses rules outside plain STLC, so it has no clean Curry-Howard reading",
     "logicUnavailableExtensions": "Only available for plain STLC — turn off the active type system extensions to use it",
+    "buildCheckUnavailableUntyped": "Not available for untyped lambda calculus — there are no typing rules to build a derivation from",
     "stepByStep": "Step by step",
     "highlightInEditor": "Highlight in editor",
     "showInferenceSteps": "Show inference steps",

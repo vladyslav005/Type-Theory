@@ -453,6 +453,7 @@
     "tabLogicShort": "Logika",
     "logicUnavailableNonStlc": "Tento výraz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie",
     "logicUnavailableExtensions": "Dostupné len pre čisté STLC — vypnite aktívne rozšírenia typového systému",
+    "buildCheckUnavailableUntyped": "Nedostupné pre netypovaný lambda kalkul — nie sú tu typovacie pravidlá, z ktorých by sa dalo zostaviť odvodenie",
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",
     "showInferenceSteps": "Zobraziť kroky inferencie",

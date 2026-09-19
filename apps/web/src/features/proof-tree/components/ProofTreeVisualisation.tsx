@@ -99,7 +99,10 @@ export function ProofTreeVisualisation({
   const showLogicTab = hasProof
     ? isPlainStlcProof(proof)
     : isPlainStlc(enabledTheories);
-  const effectiveTab = activeTab === "logic" && !showLogicTab ? "automatic" : activeTab;
+  const effectiveTab: ProofTreeTab =
+    (activeTab === "logic" && !showLogicTab) || (activeTab === "build-check" && enabledTheories.untyped)
+      ? "automatic"
+      : activeTab;
 
   // While stepping through inference, render the partially-solved snapshot instead of the
   // final proof — same tree shape, so this is the only thing that needs to change.
@@ -144,10 +147,23 @@ export function ProofTreeVisualisation({
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
+              <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
                   <TabsTrigger value="automatic">{t("proofTree.tabAutomatic")}</TabsTrigger>
-                  <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
+                  {enabledTheories.untyped ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex">
+                            <TabsTrigger value="build-check" disabled>{t("proofTree.tabBuildCheck")}</TabsTrigger>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">{t("proofTree.buildCheckUnavailableUntyped")}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
+                  )}
                   {showLogicTab ? (
                     <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
                   ) : (
