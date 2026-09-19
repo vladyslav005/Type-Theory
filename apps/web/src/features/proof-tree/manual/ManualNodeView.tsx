@@ -59,7 +59,7 @@ function RuleInput({value, placeholder, verdict, onChange}: {value: string; plac
       onChange={(e) => history.change(e.target.value)}
       onKeyDown={history.onKeyDown}
       className={cn(
-        "rule-name h-6 w-24 rounded border bg-background px-1 font-mono text-[11px] outline-none focus:ring-1 focus:ring-ring",
+        "ml-2 h-7 w-36 self-center rounded border bg-background px-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
         verdictClass(verdict),
       )}
     />
@@ -158,7 +158,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
                 <X className="h-3 w-3"/>
               </button>
             </>
-          ) : usesConstraints && (
+          ) : (
             <button
               type="button"
               className="shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-mono hover:bg-accent"

@@ -13,6 +13,7 @@ import {
   type StudentProofNode,
 } from "@/shared/ui-state/studentProof.ts";
 import {
+  contextToText,
   createManualNode,
   findManualNode,
   type ManualField,
@@ -159,8 +160,9 @@ const counterSlice = createSlice({
           active: true,
           mode,
           answerKey,
-          manualTree: createManualNode("judgement", termKey(answerKey.term)),
+          manualTree: {...createManualNode("judgement", termKey(answerKey.term)), gamma: "Γ_1"},
           manualResults: {},
+          manualDefinitions: `Γ_1 = ${contextToText(answerKey.gamma, true)}`,
         };
         return;
       }

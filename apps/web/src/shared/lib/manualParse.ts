@@ -65,7 +65,7 @@ export function programTermKey(program: Program): string {
   return termKey(program.term as Term);
 }
 
-function splitTopLevel(text: string, separator: string): string[] {
+export function splitTopLevel(text: string, separator: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let current = "";
@@ -83,12 +83,12 @@ function splitTopLevel(text: string, separator: string): string[] {
   return parts.map((p) => p.trim()).filter((p) => p.length > 0);
 }
 
-function stripBraces(text: string): string {
+export function stripBraces(text: string): string {
   const trimmed = text.trim();
   return trimmed.startsWith("{") && trimmed.endsWith("}") ? trimmed.slice(1, -1) : trimmed;
 }
 
-function splitUnion(text: string): string[] {
+export function splitUnion(text: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let current = "";
@@ -108,14 +108,14 @@ function splitUnion(text: string): string[] {
   return parts.map((p) => p.trim()).filter((p) => p.length > 0);
 }
 
-const EMPTY_SET = new Set(["", "∅", "\\emptyset", "empty"]);
+export const EMPTY_SET = new Set(["", "∅", "\\emptyset", "empty"]);
 const SUBSCRIPT_DIGITS = "₀₁₂₃₄₅₆₇₈₉";
 const subscriptToNumber = (s: string) => Number([...s].map((c) => SUBSCRIPT_DIGITS.indexOf(c)).join(""));
 
-const GAMMA_REF = /^(?:Γ|\\Gamma|Gamma)(?:_?\{?(\d+)\}?|([₀-₉]+))?$/;
-const CONSTRAINT_REF = /^C(?:_?\{?(\d+)\}?|([₀-₉]+))$/;
+export const GAMMA_REF = /^(?:Γ|\\Gamma|Gamma)(?:_?\{?(\d+)\}?|([₀-₉]+))?$/;
+export const CONSTRAINT_REF = /^C(?:_?\{?(\d+)\}?|([₀-₉]+))$/;
 
-function refIndex(match: RegExpExecArray): number | undefined {
+export function refIndex(match: RegExpExecArray): number | undefined {
   if (match[1] !== undefined) return Number(match[1]);
   if (match[2] !== undefined) return subscriptToNumber(match[2]);
   return undefined;
@@ -256,7 +256,7 @@ function parseConstraintOperand(text: string): ConstraintPairText[] {
   });
 }
 
-function splitEquation(item: string): [string, string] | null {
+export function splitEquation(item: string): [string, string] | null {
   let depth = 0;
   for (let i = 0; i < item.length; i++) {
     const ch = item[i];

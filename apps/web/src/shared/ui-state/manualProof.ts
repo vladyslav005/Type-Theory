@@ -1,3 +1,7 @@
+import type {Type, TypeScheme} from "@vladyslav005/tt-core";
+import {typeToString} from "@vladyslav005/tt-core";
+import {typeSchemeToDisplayType} from "@/shared/ui-state/studentProof.ts";
+
 export type ManualVerdict = "valid" | "invalid";
 
 export interface ManualMessage {
@@ -31,6 +35,15 @@ export interface ManualNode {
 }
 
 export type ManualField = "rule" | "gamma" | "term" | "type" | "constraints" | "fact";
+
+export function contextToText(gamma: Record<string, Type | TypeScheme>, braces = false): string {
+  const entries = Object.entries(gamma);
+  if (entries.length === 0) return "∅";
+  const text = entries
+    .map(([name, value]) => `${name} : ${typeToString(value.kind === "TypeScheme" ? typeSchemeToDisplayType(value) : value)}`)
+    .join(", ");
+  return braces ? `{${text}}` : text;
+}
 
 export function createManualNode(kind: ManualNode["kind"] = "judgement", term = ""): ManualNode {
   return {

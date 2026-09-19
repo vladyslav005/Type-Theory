@@ -149,7 +149,7 @@ export function Topbar({editorRef}: TopbarProps) {
                 size="icon"
                 className="rounded-lg size-11 md:size-9"
                 aria-label={t("topbar.openGithub")}
-                onClick={() => window.location.assign("https://github.com/vladyslav005/tt")}
+                onClick={() => window.location.assign("https://github.com/vladyslav005/Type-Theory")}
               >
                 <Github className="h-4 w-4"/>
               </Button>

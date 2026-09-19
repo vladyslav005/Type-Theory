@@ -5,6 +5,9 @@ import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useMemo} from "react";
 import {exitBuildMode, setManualDefinitions, setManualResults} from "@/shared/ui-state/termSlice.ts";
 import {countManualNodes} from "@/shared/ui-state/manualProof.ts";
+import {ExportLatexButtons} from "@/features/proof-tree/components/ExportLatexButtons.tsx";
+import {TexRefExpansionProvider} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
+import {manualNodeToExportTree} from "@/features/proof-tree/manual/manualToTex.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
 import {parseDefinitions} from "@/shared/lib/manualParse.ts";
@@ -55,7 +58,7 @@ export function ManualBuilder() {
         </div>
       </div>
 
-      <details className="rounded-xl border bg-muted/30 px-3 py-2 text-sm">
+      <details open className="rounded-xl border bg-muted/30 px-3 py-2 text-sm">
         <summary className="cursor-pointer text-muted-foreground">
           {t("manualBuilder.definitions")}
           {(manualDefinitions ?? "").trim() && ` (${(manualDefinitions ?? "").split("\n").filter((l) => l.trim()).length})`}
@@ -94,8 +97,12 @@ export function ManualBuilder() {
           limitToBounds={false}
         >
           {({zoomIn, zoomOut, centerView}) => (
-            <>
+            <TexRefExpansionProvider key={answerKey.id ?? "none"}>
               <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <ExportLatexButtons
+                  buildTree={() => manualNodeToExportTree(manualTree, results, usesConstraints)}
+                  filename="proof-tree-manual.tex"
+                />
                 <Button size="icon" variant="secondary" onClick={() => zoomIn()} title={t("proofTreeCanvas.zoomIn")}>
                   <ZoomIn className="h-4 w-4"/>
                 </Button>
@@ -115,7 +122,7 @@ export function ManualBuilder() {
                   <ManualNodeView node={manualTree} results={results} usesConstraints={usesConstraints}/>
                 </div>
               </TransformComponent>
-            </>
+            </TexRefExpansionProvider>
           )}
         </TransformWrapper>
       </div>
