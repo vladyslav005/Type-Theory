@@ -8,7 +8,8 @@
   "icon": "icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vladyslav005/tt/tree/main/apps/vscode-extension"
+    "url": "git+https://github.com/vladyslav005/Type-Theory.git",
+    "directory": "apps/vscode-extension"
   },
   "engines": {
     "vscode": "^1.134.0"

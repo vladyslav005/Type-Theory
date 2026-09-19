@@ -85,7 +85,7 @@ export function ErrorPage() {
           <p className="text-sm text-muted-foreground">
             {t("errorPage.persists")}{" "}
             <a
-              href="https://github.com/vladyslav005/tt/issues"
+              href="https://github.com/vladyslav005/Type-Theory/issues"
               className="text-primary hover:underline"
             >
               {t("errorPage.openIssue")}

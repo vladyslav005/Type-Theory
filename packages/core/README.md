@@ -1,7 +1,7 @@
 # @vladyslav005/tt-core
 
 [![npm](https://img.shields.io/npm/v/@vladyslav005/tt-core)](https://www.npmjs.com/package/@vladyslav005/tt-core)
-[![License: MIT](https://img.shields.io/github/license/vladyslav005/tt)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/vladyslav005/Type-Theory)](LICENSE)
 
 A pure TypeScript engine for a typed lambda calculus: parser, type checker (STLC + optional
 extensions), evaluator, proof-tree generator, and LaTeX/pretty-printer output. No React, no DOM,
@@ -310,7 +310,7 @@ npm run gen-grammar    # regenerate src/antlr/* from src/antlr/Lambda.g4
 
 ## Related
 
-- **Source**: [github.com/vladyslav005/tt/tree/main/packages/core](https://github.com/vladyslav005/tt/tree/main/packages/core)
-- **Main project**: [tt](https://github.com/vladyslav005/tt) — the interactive web UI built on this library
+- **Source**: [github.com/vladyslav005/Type-Theory/tree/main/packages/core](https://github.com/vladyslav005/Type-Theory/tree/main/packages/core)
+- **Main project**: [tt](https://github.com/vladyslav005/Type-Theory) — the interactive web UI built on this library
 - **Live demo**: [type-theory.dev](https://type-theory.dev) / [tt-woad.vercel.app](https://tt-woad.vercel.app/)
 - **NPM**: [npmjs.com/package/@vladyslav005/tt-core](https://www.npmjs.com/package/@vladyslav005/tt-core)

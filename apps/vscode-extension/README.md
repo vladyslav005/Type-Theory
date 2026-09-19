@@ -1,7 +1,7 @@
 # tt for VS Code
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/vladyslav005.tt-vscode-extension)](https://marketplace.visualstudio.com/items?itemName=vladyslav005.tt-vscode-extension)
-[![License: MIT](https://img.shields.io/github/license/vladyslav005/tt)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/vladyslav005/Type-Theory)](LICENSE)
 
 **[Install from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=vladyslav005.tt-vscode-extension)**
 
@@ -91,7 +91,7 @@ None beyond VS Code itself — no external tooling or language server to install
 
 ## Related
 
-- **Source**: [github.com/vladyslav005/tt/tree/main/apps/vscode-extension](https://github.com/vladyslav005/tt/tree/main/apps/vscode-extension)
+- **Source**: [github.com/vladyslav005/Type-Theory/tree/main/apps/vscode-extension](https://github.com/vladyslav005/Type-Theory/tree/main/apps/vscode-extension)
 - Web playground: **[type-theory.dev](https://type-theory.dev)** /
   **[tt-woad.vercel.app](https://tt-woad.vercel.app/)**
 - [`@vladyslav005/tt-core`](https://www.npmjs.com/package/@vladyslav005/tt-core) — the language engine

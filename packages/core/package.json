@@ -10,9 +10,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vladyslav005/tt/tree/main/packages/core"
+    "url": "git+https://github.com/vladyslav005/Type-Theory.git",
+    "directory": "packages/core"
   },
-  "homepage": "https://github.com/vladyslav005/tt/tree/main/packages/core",
+  "homepage": "https://github.com/vladyslav005/Type-Theory/tree/main/packages/core",
   "keywords": [
     "lambda-calculus",
     "type-checker",
