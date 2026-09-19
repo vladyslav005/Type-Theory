@@ -71,15 +71,20 @@ export class GammaRegistry {
     const key = `G${index}`;
     const shortTex = `\\Gamma_{${index}}`;
 
-    // A rebound entry is underlined in the recipe (visual emphasis) rather than given its own
-    // notation — it stays inside the same ∪ {...} set as a fresh entry, just marked.
+    // A rebound name must first be removed from the parent — Γ holds one entry per name, so a bare
+    // Γ_p ∪ {x : T} would leave two entries for x.
     const changedTexParts = [...freshEntries, ...reboundEntries].map(([name, t]) => {
       const label = `${name} : ${entryToTex(t)}`;
       return parentNames.has(name) ? `\\underline{${label}}` : label;
     });
 
+    let base = parentReg?.shortTex ?? "";
+    if (parentReg && reboundEntries.length > 0) {
+      base = `( ${parentReg.shortTex} - \\{ ${reboundEntries.map(([name]) => name).join(", ")} \\} )`;
+    }
+
     const recipe = changedTexParts.length > 0
-      ? (parentReg ? `${parentReg.shortTex} \\cup \\{ ${changedTexParts.join(", ")} \\}` : `\\{ ${changedTexParts.join(", ")} \\}`)
+      ? (parentReg ? `${base} \\cup \\{ ${changedTexParts.join(", ")} \\}` : `\\{ ${changedTexParts.join(", ")} \\}`)
       : parentReg
         ? parentReg.shortTex
         : `\\{ ${entries.map(([name, t]) => `${name} : ${entryToTex(t)}`).join(", ")} \\}`;
