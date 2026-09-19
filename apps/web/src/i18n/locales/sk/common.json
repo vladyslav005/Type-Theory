@@ -456,7 +456,8 @@
     "buildCheckUnavailableUntyped": "Nedostupné pre netypovaný lambda kalkul — nie sú tu typovacie pravidlá, z ktorých by sa dalo zostaviť odvodenie",
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",
-    "showInferenceSteps": "Zobraziť kroky inferencie",
+    "showInferenceSteps": "Kroky riešenia",
+    "showInferenceStepsTooltip": "Odvodenie je zobrazené pred vyriešením obmedzení. Zapnite, aby ste videli ich riešenie krok za krokom.",
     "showConstraintList": "Zobraziť zoznam obmedzení",
     "constraintListHeader": "Obmedzenia",
     "resizePanel": "Ťahaním zmeníte veľkosť",
@@ -517,7 +518,11 @@
     "setScheme": "Nastaviť schému",
     "freshVariableHint": "Toto λ nemá anotáciu parametra, preto parameter dostane novú typovú premennú (napr. X) — použite ju v type.",
     "typeVariables": "Typové premenné",
-    "wrapInForall": "Kvantifikovať tento typ pomocou ∀"
+    "wrapInForall": "Kvantifikovať tento typ pomocou ∀",
+    "modeSemi": "Polomanuálny",
+    "modeSemiHint": "Klikacie zostavovanie: vyberáte pravidlá a vypĺňate vedené polia — tvar stromu je daný",
+    "modeManual": "Plne manuálny",
+    "modeManualHint": "Každý súd píšete sami a sami určujete počet premís pravidla"
   },
   "conclusion": {
     "error": "Chyba",
@@ -764,5 +769,48 @@
   },
   "meta": {
     "main": "tt — Interaktívne ihrisko typovaného lambda kalkulu"
+  },
+  "manualBuilder": {
+    "summary": "{{count}} uzlov",
+    "allValid": "všetko sedí",
+    "nodesWithMistakes": "{{count}} uzlov s chybami",
+    "removePremise": "Odstrániť túto premisu",
+    "addPremise": "premisa",
+    "addSideCondition": "vedľajšia podmienka",
+    "premiseCount": "{{count}} premís",
+    "termPlaceholder": "term",
+    "typePlaceholder": "typ",
+    "rulePlaceholder": "pravidlo",
+    "factPlaceholder": "x : T ∈ Γ   |   instantiate(x : S ∈ Γ)   |   generalize(T, Γ) = S",
+    "msg": {
+      "ruleMissing": "Napíšte názov pravidla (napr. T-App alebo CT-Var).",
+      "ruleMismatch": "Toto pravidlo nepasuje na tento term.",
+      "termParse": "Term sa nepodarilo prečítať: {{detail}}",
+      "termMismatch": "Toto nie je podterm, ktorý má táto premisa odvodiť.",
+      "gammaParse": "Γ sa nepodarilo prečítať: {{detail}}",
+      "gammaMissing": "V Γ chýba: {{names}}.",
+      "gammaExtra": "Γ obsahuje väzby, ktoré sem nepatria: {{names}}.",
+      "gammaTypes": "Γ má správne premenné, ale niektorý typ sa líši (alebo je názov premennej použitý nekonzistentne).",
+      "typeParse": "Typ sa nepodarilo prečítať: {{detail}}",
+      "typeMismatch": "Typ nezodpovedá záveru tohto pravidla.",
+      "constraintsParse": "C sa nepodarilo prečítať: {{detail}}",
+      "constraintsMismatch": "C nesedí: očakávaný počet rovníc {{expected}}, nájdených {{written}}. C = obmedzenia premís plus to, čo pridáva toto pravidlo.",
+      "premiseCount": "Toto pravidlo tu potrebuje {{expected}} premís, máte {{written}}.",
+      "extraPremise": "Táto premisa nie je potrebná.",
+      "expectedSideCondition": "Tu patrí vedľajšia podmienka (príslušnosť, instantiate alebo generalize), nie súd.",
+      "expectedJudgement": "Tu patrí úplný súd, nie vedľajšia podmienka.",
+      "factParse": "Vedľajšiu podmienku sa nepodarilo prečítať: {{detail}}",
+      "factForm": "Tu je potrebný iný druh vedľajšej podmienky.",
+      "factMismatch": "Táto vedľajšia podmienka nesedí.",
+      "constraintsRequired": "Toto pravidlo nesie množinu obmedzení C — pridajte ju.",
+      "constraintsNotExpected": "Toto pravidlo nemá množinu obmedzení — odstráňte C."
+    },
+    "clearMarks": "Vymazať označenia",
+    "removeConstraints": "Odstrániť množinu obmedzení z tohto súdu",
+    "addConstraints": "Pridať množinu obmedzení C k tomuto súdu",
+    "constraintsPlaceholder": "Píšte C₁, C₂ … pre množinu premisy, alebo definujte C_n v poli Definície (definícia má prednosť).",
+    "definitions": "Definície",
+    "definitionsHint": "Množinu pomenujte raz a použite opakovane: jedna definícia na riadok, napr. Γ_1 = {x : 'A} alebo C_1 = {…}. Potom píšte Γ_1 alebo C_1 do ľubovoľného poľa. Samotné Γ stále znamená kontext rodiča.",
+    "definitionError": "Riadok {{line}}: {{message}}"
   }
 }

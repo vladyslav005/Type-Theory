@@ -15,6 +15,7 @@ import type {RefObject} from "react";
 import {useFullscreen} from "@/shared/hooks/useFullscreen";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
+import {countProofErrors} from "@/shared/ui-state/studentProof.ts";
 import {ProofTreeBuilder} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilder.tsx";
 import {InferenceConstraintList} from "@/features/proof-tree/components/InferenceConstraintList.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
@@ -106,7 +107,13 @@ export function ProofTreeVisualisation({
 
   // While stepping through inference, render the partially-solved snapshot instead of the
   // final proof — same tree shape, so this is the only thing that needs to change.
-  const displayedProof = isInferenceStepping ? inferenceProofSnapshots[clampedInferenceIndex] : proof;
+  // With inference on, the derivation is shown as the checker builds it — before its constraints
+  // are solved (fresh variables 'A, 'B, ...); stepping through the solving is opt-in. A failed
+  // solve keeps the final tree, since only that one carries the error.
+  const showUnresolved = hasInferenceSteps && !!proof && countProofErrors(proof) === 0;
+  const displayedProof = isInferenceStepping
+    ? inferenceProofSnapshots[clampedInferenceIndex]
+    : showUnresolved ? inferenceProofSnapshots[0] : proof;
   const texTree = displayedProof ? toTexTree(displayedProof) : null;
   const logicTree = proof && showLogicTab ? toLogicTree(proof) : null;
   // undefined at the initial (nothing solved yet) step — there's no "just solved" constraint yet.
@@ -186,19 +193,26 @@ export function ProofTreeVisualisation({
               </Tabs>
 
               {effectiveTab === "automatic" && hasProof && hasInferenceSteps && (
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="show-inference-steps"
-                    checked={showInferenceSteps}
-                    onCheckedChange={(checked) => {
-                      setShowInferenceSteps(checked);
-                      if (checked) setStepByStep(false);
-                    }}
-                  />
-                  <Label htmlFor="show-inference-steps" className="text-sm text-muted-foreground whitespace-nowrap">
-                    {t("proofTree.showInferenceSteps")}
-                  </Label>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="show-inference-steps"
+                          checked={showInferenceSteps}
+                          onCheckedChange={(checked) => {
+                            setShowInferenceSteps(checked);
+                            if (checked) setStepByStep(false);
+                          }}
+                        />
+                        <Label htmlFor="show-inference-steps" className="text-sm text-muted-foreground whitespace-nowrap">
+                          {t("proofTree.showInferenceSteps")}
+                        </Label>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-64">{t("proofTree.showInferenceStepsTooltip")}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
 
               {effectiveTab === "automatic" && isInferenceStepping && (

@@ -12,9 +12,26 @@ import {
   findStudentNode,
   type StudentProofNode,
 } from "@/shared/ui-state/studentProof.ts";
+import {
+  createManualNode,
+  findManualNode,
+  type ManualField,
+  type ManualNode,
+  type ManualNodeResult,
+  removeManualNode,
+} from "@/shared/ui-state/manualProof.ts";
+import {termKey} from "@/shared/lib/manualParse.ts";
+
+export type BuildModeKind = "semi" | "manual";
 
 interface BuildModeState {
   active: boolean;
+  mode?: BuildModeKind;
+  // Fully manual mode: the tree the student grows themselves, and the verdicts of the last check.
+  manualTree?: ManualNode;
+  manualResults?: Record<string, ManualNodeResult>;
+  // One "Γ_n = …" / "C_n = …" definition per line.
+  manualDefinitions?: string;
   // Frozen snapshot of `proof` so the answer can't drift mid-exercise.
   answerKey?: ProofTree;
   studentTree?: StudentProofNode;
@@ -130,12 +147,31 @@ const counterSlice = createSlice({
       state.enabledTheories[id] = true;
     },
 
-    enterBuildMode: (state) => {
+    enterBuildMode: (state, action: { payload: BuildModeKind | undefined }) => {
       if (!state.proof) return;
+      const mode: BuildModeKind = action.payload ?? "semi";
+      // With inference on, students derive first and solve afterwards — the key is the tree before
+      // its constraints were solved, like the automatic tree's default view.
+      const usesInference = state.enabledTheories.letPolymorphism || state.enabledTheories.typeInference;
+      const unresolved = usesInference && state.inferenceSteps.length > 0
+        ? state.inferenceProofSnapshots[0]
+        : undefined;
+      const answerKey = unresolved ?? state.proof;
+      if (mode === "manual") {
+        state.buildMode = {
+          active: true,
+          mode,
+          answerKey,
+          manualTree: createManualNode("judgement", termKey(answerKey.term)),
+          manualResults: {},
+        };
+        return;
+      }
       state.buildMode = {
         active: true,
-        answerKey: state.proof,
-        studentTree: buildStudentNode(state.proof, true),
+        mode,
+        answerKey,
+        studentTree: buildStudentNode(answerKey, true),
       };
     },
 
@@ -191,6 +227,46 @@ const counterSlice = createSlice({
 
       node.writtenScheme = action.payload.scheme;
       node.generalizeCheck = undefined;
+    },
+
+    setManualField: (state, action: { payload: { nodeId: string; field: ManualField; value: string } }) => {
+      const node = state.buildMode.manualTree && findManualNode(state.buildMode.manualTree, action.payload.nodeId);
+      if (!node) return;
+
+      node[action.payload.field] = action.payload.value;
+      if (state.buildMode.manualResults) delete state.buildMode.manualResults[node.id];
+    },
+
+    setManualConstraintsShown: (state, action: { payload: { nodeId: string; shown: boolean } }) => {
+      const node = state.buildMode.manualTree && findManualNode(state.buildMode.manualTree, action.payload.nodeId);
+      if (!node) return;
+
+      node.constraintsShown = action.payload.shown;
+      if (!action.payload.shown) node.constraints = "";
+      if (state.buildMode.manualResults) delete state.buildMode.manualResults[node.id];
+    },
+
+    addManualPremise: (state, action: { payload: { parentId: string; kind: ManualNode["kind"] } }) => {
+      const parent = state.buildMode.manualTree && findManualNode(state.buildMode.manualTree, action.payload.parentId);
+      if (!parent) return;
+
+      parent.premises.push(createManualNode(action.payload.kind));
+      if (state.buildMode.manualResults) delete state.buildMode.manualResults[parent.id];
+    },
+
+    removeManualPremise: (state, action: { payload: { nodeId: string } }) => {
+      if (!state.buildMode.manualTree) return;
+
+      removeManualNode(state.buildMode.manualTree, action.payload.nodeId);
+      state.buildMode.manualResults = {};
+    },
+
+    setManualDefinitions: (state, action: { payload: string }) => {
+      state.buildMode.manualDefinitions = action.payload;
+    },
+
+    setManualResults: (state, action: { payload: Record<string, ManualNodeResult> }) => {
+      state.buildMode.manualResults = action.payload;
     },
 
     // Clears this node's own progress and re-hides its direct premises.
@@ -270,6 +346,12 @@ export const {
   setNodeContext,
   setNodeConstraints,
   setNodeScheme,
+  setManualField,
+  setManualConstraintsShown,
+  addManualPremise,
+  removeManualPremise,
+  setManualResults,
+  setManualDefinitions,
   resetNode,
   checkProof,
   pushProcessingError,

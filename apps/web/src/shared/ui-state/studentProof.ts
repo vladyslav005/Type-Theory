@@ -81,7 +81,7 @@ function bindingsMatch(written: ContextBinding[], expected: ContextBinding[]): b
 // wrapping the (still metavar-laden) body — flexibleTypeEquals treats every TyMetaVar as a
 // flexible position regardless of name, so no renaming is needed here, only the ∀ structure
 // itself, which forces the student's answer to be recognizably a polymorphic scheme.
-function typeSchemeToDisplayType(scheme: TypeScheme): Type {
+export function typeSchemeToDisplayType(scheme: TypeScheme): Type {
   return scheme.vars.reduceRight(
     (acc, v): Type => ({kind: "TyForall", id: crypto.randomUUID(), typeVariable: v, type: acc}),
     scheme.type,

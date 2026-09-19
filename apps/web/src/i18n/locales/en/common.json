@@ -456,7 +456,8 @@
     "buildCheckUnavailableUntyped": "Not available for untyped lambda calculus — there are no typing rules to build a derivation from",
     "stepByStep": "Step by step",
     "highlightInEditor": "Highlight in editor",
-    "showInferenceSteps": "Show inference steps",
+    "showInferenceSteps": "Solving steps",
+    "showInferenceStepsTooltip": "The derivation is shown before its constraints are solved. Turn this on to watch them being solved, step by step.",
     "showConstraintList": "Show constraint list",
     "constraintListHeader": "Constraints",
     "resizePanel": "Drag to resize",
@@ -517,7 +518,11 @@
     "setScheme": "Set scheme",
     "freshVariableHint": "This λ has no parameter annotation, so its parameter gets a fresh type variable (e.g. X) — use that variable in the type.",
     "typeVariables": "Type variables",
-    "wrapInForall": "Quantify this type with ∀"
+    "wrapInForall": "Quantify this type with ∀",
+    "modeSemi": "Semi-manual",
+    "modeSemiHint": "Click-to-build: pick rules and fill guided slots — the tree's shape is given",
+    "modeManual": "Fully manual",
+    "modeManualHint": "Type every judgement yourself and decide how many premises each rule has"
   },
   "conclusion": {
     "error": "Error",
@@ -762,5 +767,48 @@
   },
   "meta": {
     "main": "tt — Interactive Typed Lambda Calculus Playground"
+  },
+  "manualBuilder": {
+    "summary": "{{count}} nodes",
+    "allValid": "everything matches",
+    "nodesWithMistakes": "{{count}} nodes with mistakes",
+    "removePremise": "Remove this premise",
+    "addPremise": "premise",
+    "addSideCondition": "side condition",
+    "premiseCount": "{{count}} premises",
+    "termPlaceholder": "term",
+    "typePlaceholder": "type",
+    "rulePlaceholder": "rule",
+    "factPlaceholder": "x : T ∈ Γ   |   instantiate(x : S ∈ Γ)   |   generalize(T, Γ) = S",
+    "msg": {
+      "ruleMissing": "Write the rule name (e.g. T-App or CT-Var).",
+      "ruleMismatch": "This rule doesn't fit this term.",
+      "termParse": "Couldn't read the term: {{detail}}",
+      "termMismatch": "This isn't the sub-term this premise should derive.",
+      "gammaParse": "Couldn't read Γ: {{detail}}",
+      "gammaMissing": "Γ is missing: {{names}}.",
+      "gammaExtra": "Γ has bindings that don't belong here: {{names}}.",
+      "gammaTypes": "Γ has the right variables, but a type differs (or a variable name is reused inconsistently).",
+      "typeParse": "Couldn't read the type: {{detail}}",
+      "typeMismatch": "The type doesn't match this rule's conclusion.",
+      "constraintsParse": "Couldn't read C: {{detail}}",
+      "constraintsMismatch": "C doesn't match: expected {{expected}} equation(s), found {{written}}. Remember C = the premises' constraints plus what this rule adds.",
+      "premiseCount": "This rule needs {{expected}} premise(s) here, you have {{written}}.",
+      "extraPremise": "This premise isn't needed.",
+      "expectedSideCondition": "A side condition (membership, instantiate or generalize) belongs here, not a judgement.",
+      "expectedJudgement": "A full judgement belongs here, not a side condition.",
+      "factParse": "Couldn't read the side condition: {{detail}}",
+      "factForm": "A different kind of side condition is needed here.",
+      "factMismatch": "This side condition doesn't match.",
+      "constraintsRequired": "This rule carries a constraint set C — add it.",
+      "constraintsNotExpected": "This rule has no constraint set — remove C."
+    },
+    "clearMarks": "Clear marks",
+    "removeConstraints": "Remove the constraint set from this judgement",
+    "addConstraints": "Add a constraint set C to this judgement",
+    "constraintsPlaceholder": "Write C₁, C₂ … for a premise's set, or define C_n in the Definitions box (a definition wins).",
+    "definitions": "Definitions",
+    "definitionsHint": "Name a set once and reuse it: one definition per line, like Γ_1 = {x : 'A} or C_1 = {…}. Then write Γ_1 or C_1 in any field. A plain Γ still means the parent's context.",
+    "definitionError": "Line {{line}}: {{message}}"
   }
 }

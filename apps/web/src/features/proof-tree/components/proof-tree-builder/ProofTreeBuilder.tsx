@@ -16,16 +16,19 @@ import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
 import {ZoomIn, ZoomOut, Crosshair, Hammer} from "lucide-react";
 import {env} from "@/shared/lib/env.ts";
+import {ManualBuilder} from "@/features/proof-tree/manual/ManualBuilder.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 
 export function ProofTreeBuilder() {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
-  const {studentTree, answerKey} = useAppSelector((state) => state.term.buildMode);
+  const {studentTree, answerKey, mode} = useAppSelector((state) => state.term.buildMode);
   const proof = useAppSelector((state) => state.term.proof);
   const [highlightMistakes, setHighlightMistakes] = useState(false);
   // Hook must run unconditionally, before the early return below.
   const registry = useMemo(() => (answerKey ? buildGammaRegistry(answerKey) : new GammaRegistry()), [answerKey]);
+
+  if (mode === "manual" && answerKey) return <ManualBuilder/>;
 
   if (!studentTree || !answerKey) {
     const hasErrors = !proof || countProofErrors(proof) > 0;
@@ -41,13 +44,25 @@ export function ProofTreeBuilder() {
                 : t("proofBuilder.emptyInstructions")
           }
         >
-          <Button
-            size="sm"
-            disabled={hasErrors}
-            onClick={() => dispatch(enterBuildMode())}
-          >
-            {t("proofBuilder.startBuilding")}
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button
+              size="sm"
+              disabled={hasErrors}
+              title={t("proofBuilder.modeSemiHint")}
+              onClick={() => dispatch(enterBuildMode("semi"))}
+            >
+              {t("proofBuilder.modeSemi")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={hasErrors}
+              title={t("proofBuilder.modeManualHint")}
+              onClick={() => dispatch(enterBuildMode("manual"))}
+            >
+              {t("proofBuilder.modeManual")}
+            </Button>
+          </div>
         </EmptyState>
       </div>
     );
