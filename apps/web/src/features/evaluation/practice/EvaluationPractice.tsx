@@ -11,6 +11,7 @@ import {BracketInput} from "@/shared/components/BracketInput.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {TermPickProvider, TermView, TypeAliasesContext} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {findTermById, termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
+import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
 
 interface EvaluationPracticeProps {
   evaluation: EvaluationResult;
@@ -50,6 +51,11 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
   const [caretRequest, setCaretRequest] = useState<{position: number; id: number} | undefined>();
 
   const history = useUndoableText(input, setInput);
+
+  useEffect(() => {
+    setEvaluationPracticeSnapshot({strategy, stepIndex, total, pickedId, pickVerdict, answers, input, checkedText});
+  }, [strategy, stepIndex, total, pickedId, pickVerdict, answers, input, checkedText]);
+  useEffect(() => () => setEvaluationPracticeSnapshot(undefined), []);
 
   const done = stepIndex >= total;
   const step = done ? undefined : steps[stepIndex];

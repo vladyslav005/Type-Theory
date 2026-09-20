@@ -12,27 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import {buildBugReportAttachments} from "@/shared/lib/bugReportAttachments.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-
-const toBase64 = (text: string) => {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return btoa(binary);
-};
-
-const stringify = (value: unknown) => {
-  const seen = new WeakSet<object>();
-  return JSON.stringify(value, (_k, v) => {
-    if (typeof v === "bigint") return v.toString();
-    if (v instanceof Error) return {name: v.name, message: v.message};
-    if (v && typeof v === "object") {
-      if (seen.has(v)) return "[circular]";
-      seen.add(v);
-    }
-    return v;
-  }, 2);
-};
 
 export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChange: (open: boolean) => void}) {
   const {t, i18n} = useTranslation();
@@ -46,28 +27,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
   const submit = async () => {
     setSending(true);
     try {
-      const attachments: {name: string; type: string; base64: string}[] = [];
-      if (attachState) {
-        const {buildMode, ast, evaluation, termText} = term;
-        const entries: [string, string | undefined][] = [
-          ["program.tt", termText],
-          ["ast.json", ast && stringify(ast)],
-          ["evaluation.json", evaluation && stringify(evaluation)],
-          ["student-proof-trees.json", buildMode.active ? stringify({...buildMode, answerKey: undefined}) : undefined],
-        ];
-        for (const [name, content] of entries) {
-          if (content) attachments.push({name, type: name.endsWith(".json") ? "application/json" : "text/plain", base64: toBase64(content)});
-        }
-      }
-      const res = await fetch("/api/bug-report", {
-        method: "POST",
-        headers: {"content-type": "application/json"},
-        body: JSON.stringify({
-          description,
-          contact,
-          website,
-          files: attachments,
-          context: {
+      const context = {
             url: location.href,
             userAgent: navigator.userAgent,
             language: i18n.resolvedLanguage,
@@ -78,7 +38,17 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
               ...(term.processingErrors ?? []).map((e) => e.message),
               ...term.errorMarkers.map((m) => m.message),
             ],
-          },
+          };
+      const attachments = buildBugReportAttachments(term, context, attachState);
+      const res = await fetch("/api/bug-report", {
+        method: "POST",
+        headers: {"content-type": "application/json"},
+        body: JSON.stringify({
+          description,
+          contact,
+          website,
+          files: attachments,
+          context,
         }),
       });
       if (res.status === 413) {

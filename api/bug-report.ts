@@ -1,4 +1,4 @@
-const MAX_FILES = 5;
+const MAX_FILES = 8;
 const MAX_TOTAL_BYTES = 3 * 1024 * 1024;
 const MAX_DESCRIPTION = 4000;
 
@@ -43,23 +43,43 @@ export async function POST(request: Request): Promise<Response> {
     return json(413, {error: "too_large"});
   }
 
-  const contextJson = JSON.stringify(report.context ?? {}, null, 2);
+  const context = report.context ?? {};
+  const now = new Date();
+  const unix = Math.floor(now.getTime() / 1000);
+  const firstLine = description.split("\n")[0].trim();
+  const summary = firstLine.length > 80 ? `${firstLine.slice(0, 77)}…` : firstLine;
+  const theories = context.enabledTheories && typeof context.enabledTheories === "object"
+    ? Object.entries(context.enabledTheories as Record<string, boolean>).filter(([, on]) => on).map(([id]) => id)
+    : [];
+  const errors = Array.isArray(context.errors) ? context.errors.map(String) : [];
+  const field = (name: string, value: unknown, inline = true) =>
+    value ? [{name, value: String(value).slice(0, 1000), inline}] : [];
+
   const form = new FormData();
   form.append("payload_json", JSON.stringify({
+    username: "Bug Reporter",
     allowed_mentions: {parse: []},
     embeds: [{
-      title: "Bug report",
-      description: description.slice(0, MAX_DESCRIPTION),
+      title: `🐞 ${summary}`,
+      description: `>>> ${description.slice(0, MAX_DESCRIPTION)}`,
       color: 0xe5484d,
-      fields: report.contact?.trim()
-        ? [{name: "Contact", value: report.contact.trim().slice(0, 200)}]
-        : [],
-      timestamp: new Date().toISOString(),
+      thumbnail: {url: "https://twemoji.maxcdn.com/v/latest/72x72/1f41b.png"},
+      fields: [
+        ...field("🕒 Time", `<t:${unix}:F> (<t:${unix}:R>)`, false),
+        ...field("✉️ Contact", report.contact?.trim().slice(0, 200)),
+        ...field("🌐 Page", context.url),
+        ...field("🈯 Language", context.language),
+        ...field("🧪 Theories", theories.length ? theories.join(", ") : "STLC"),
+        ...field("⚙️ Strategy", context.evaluationStrategy),
+        ...field("🖥️ Viewport", context.viewport),
+        ...field("❗ Errors", errors.length ? "```\n" + errors.join("\n").slice(0, 900) + "\n```" : "", false),
+      ],
+      footer: {text: `📎 ${decoded.map((f) => f.name).join(", ") || "no attachments"}`},
+      timestamp: now.toISOString(),
     }],
   }));
-  form.append("files[0]", new Blob([contextJson], {type: "application/json"}), "context.json");
   decoded.forEach((f, i) => {
-    form.append(`files[${i + 1}]`, new Blob([new Uint8Array(f.bytes)], {type: f.type || "application/octet-stream"}), f.name);
+    form.append(`files[${i}]`, new Blob([new Uint8Array(f.bytes)], {type: f.type || "application/octet-stream"}), f.name);
   });
 
   const res = await fetch(webhook, {method: "POST", body: form});
