@@ -112,8 +112,8 @@ znamená, že iný term už nevznikne.
 <RuleCardStrip
   rules={[
     {id: "S-Zero", conclusion: "0 \\in Term", description: "Axióma. Rovnako S-True a S-False."},
-    {id: "S-Succ", premises: ["t_1 \\in Term"], conclusion: "\\mathit{succ}\\ t_1 \\in Term", description: "Rovnako S-Pred a S-IsZero."},
-    {id: "S-If", premises: ["t_1 \\in Term", "t_2 \\in Term", "t_3 \\in Term"], conclusion: "\\mathit{if}\\ t_1\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\in Term", description: "Podmienka aj obe vetvy musia byť termy.", wide: true},
+    {id: "S-Succ", premises: ["t_1 \\in Term"], conclusion: "\\text{succ}\\ t_1 \\in Term", description: "Rovnako S-Pred a S-IsZero."},
+    {id: "S-If", premises: ["t_1 \\in Term", "t_2 \\in Term", "t_3 \\in Term"], conclusion: "\\text{if}\\ t_1\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\in Term", description: "Podmienka aj obe vetvy musia byť termy.", wide: true},
   ]}
 />
 
@@ -125,7 +125,7 @@ Pravidlá syntaxe označujeme S-…, aby sa nepomýlili s typovacími pravidlami
 
 Zoberme term
 
-<MathBlock>{"t = \\mathit{succ}(\\mathit{pred}(\\mathit{if}\\ \\mathit{iszero}(\\mathit{pred}\\ 0)\\ \\mathit{then}\\ \\mathit{succ}\\ 0\\ \\mathit{else}\\ \\mathit{succ}(\\mathit{succ}\\ 0)))"}</MathBlock>
+<MathBlock>{"t = \\text{succ}(\\text{pred}(\\text{if}\\ \\text{iszero}(\\text{pred}\\ 0)\\ \\text{then}\\ \\text{succ}\\ 0\\ \\text{else}\\ \\text{succ}(\\text{succ}\\ 0)))"}</MathBlock>
 
 Jeho abstraktný strom má v koreni `succ`, ten obsahuje `pred`, ten `if` s podmienkou `iszero (pred 0)`
 a vetvami `succ 0` a `succ (succ 0)`.
@@ -158,9 +158,9 @@ Ak výpočet k hodnote nedôjde (nedá sa použiť žiadne pravidlo), term nemá
 
 <RuleCardStrip
   rules={[
-    {id: "E-IfTrue", conclusion: "\\mathit{if}\\ \\mathit{true}\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to t_2", description: "Pravdivá podmienka vyberie prvú vetvu."},
-    {id: "E-IfFalse", conclusion: "\\mathit{if}\\ \\mathit{false}\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to t_3", description: "Nepravdivá vyberie druhú."},
-    {id: "E-If", premises: ["t_1 \\to t_1'"], conclusion: "\\mathit{if}\\ t_1\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to \\mathit{if}\\ t_1'\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3", description: "Kým podmienka nie je hodnotou, vyhodnocuje sa ona.", wide: true},
+    {id: "E-IfTrue", conclusion: "\\text{if}\\ \\text{true}\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\to t_2", description: "Pravdivá podmienka vyberie prvú vetvu."},
+    {id: "E-IfFalse", conclusion: "\\text{if}\\ \\text{false}\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\to t_3", description: "Nepravdivá vyberie druhú."},
+    {id: "E-If", premises: ["t_1 \\to t_1'"], conclusion: "\\text{if}\\ t_1\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\to \\text{if}\\ t_1'\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3", description: "Kým podmienka nie je hodnotou, vyhodnocuje sa ona.", wide: true},
   ]}
 />
 
@@ -168,11 +168,11 @@ Pravidlá pre čísla (`nv` je číselná hodnota):
 
 <RuleCardStrip
   rules={[
-    {id: "E-PredZero", conclusion: "\\mathit{pred}\\ 0 \\to 0", description: "Predchodca nuly je nula."},
-    {id: "E-PredSucc", conclusion: "\\mathit{pred}\\ (\\mathit{succ}\\ nv) \\to nv", description: "pred zruší succ."},
-    {id: "E-IsZeroZero", conclusion: "\\mathit{iszero}\\ 0 \\to \\mathit{true}", description: "Nula je nula."},
-    {id: "E-IsZeroSucc", conclusion: "\\mathit{iszero}\\ (\\mathit{succ}\\ nv) \\to \\mathit{false}", description: "Nasledovník nie je nula."},
-    {id: "E-Succ", premises: ["t_1 \\to t_1'"], conclusion: "\\mathit{succ}\\ t_1 \\to \\mathit{succ}\\ t_1'", description: "Rovnako E-Pred a E-IsZero: najprv sa vyhodnotí argument.", wide: true},
+    {id: "E-PredZero", conclusion: "\\text{pred}\\ 0 \\to 0", description: "Predchodca nuly je nula."},
+    {id: "E-PredSucc", conclusion: "\\text{pred}\\ (\\text{succ}\\ nv) \\to nv", description: "pred zruší succ."},
+    {id: "E-IsZeroZero", conclusion: "\\text{iszero}\\ 0 \\to \\text{true}", description: "Nula je nula."},
+    {id: "E-IsZeroSucc", conclusion: "\\text{iszero}\\ (\\text{succ}\\ nv) \\to \\text{false}", description: "Nasledovník nie je nula."},
+    {id: "E-Succ", premises: ["t_1 \\to t_1'"], conclusion: "\\text{succ}\\ t_1 \\to \\text{succ}\\ t_1'", description: "Rovnako E-Pred a E-IsZero: najprv sa vyhodnotí argument.", wide: true},
   ]}
 />
 
@@ -195,7 +195,7 @@ použije „skutočné“ pravidlo:
 <ConceptSection id="nbl-stuck" title="Nezmyselné termy">
 
 Netypovaný NBL dovoľuje napísať term `succ true`. Je syntakticky správny (dá sa dokázať
-<Math>{"\\mathit{succ}\\ \\mathit{true} \\in Term"}</Math>), no žiadne pravidlo sa naň nedá použiť —
+<Math>{"\\text{succ}\\ \\text{true} \\in Term"}</Math>), no žiadne pravidlo sa naň nedá použiť —
 vyhodnotenie sa **zasekne** (*stuck*) a term nemá význam.
 
 Pridanie **typového systému** dokáže takéto termy odhaliť už pri kontrole, pred spustením. Presne na

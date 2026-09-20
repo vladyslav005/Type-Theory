@@ -16,6 +16,7 @@ interface ReductionStrategyExplorerProps {
   hint?: string;
 }
 
+const PREVIEW_STEPS = 6;
 const STRATEGIES = Object.values(EvaluationStrategy);
 
 export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplorerProps) {
@@ -24,6 +25,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
   const [strategy, setStrategy] = useState<EvaluationStrategy>(EvaluationStrategy.CALL_BY_VALUE);
   const [steps, setSteps] = useState<ReductionStep[] | undefined>();
   const [resultTex, setResultTex] = useState<string | undefined>();
+  const [diverged, setDiverged] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
   const run = () => {
@@ -31,7 +33,8 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
       const ast = parser.parseExpression(term);
       const evaluation = evaluator.evaluate(ast, strategy);
       setSteps(evaluation.steps);
-      setResultTex(TexMapper.termToTex(evaluation.result));
+      setDiverged(evaluation.reachedStepLimit);
+      setResultTex(evaluation.reachedStepLimit ? undefined : TexMapper.termToTex(evaluation.result));
       setError(evaluation.errors?.[0]?.message);
     } catch (e) {
       setSteps(undefined);
@@ -43,6 +46,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
   const reset = () => {
     setSteps(undefined);
     setResultTex(undefined);
+    setDiverged(false);
     setError(undefined);
     setStrategy(EvaluationStrategy.CALL_BY_VALUE);
   };
@@ -71,11 +75,13 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
 
       {steps && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">
-            {t("lectureWidgets.steps", {count: steps.length, strategy: t(`evalStrategy.${strategy}.label`)})}
+          <p className={diverged ? "text-xs text-amber-600 dark:text-amber-400" : "text-xs text-muted-foreground"}>
+            {diverged
+              ? t("lectureWidgets.diverges", {count: steps.length})
+              : t("lectureWidgets.steps", {count: steps.length, strategy: t(`evalStrategy.${strategy}.label`)})}
           </p>
           <ol className="space-y-1.5 text-sm">
-            {steps.map((step, i) => (
+            {steps.slice(0, diverged ? PREVIEW_STEPS : undefined).map((step, i) => (
               <li key={i} className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs text-muted-foreground w-4 shrink-0">{i + 1}.</span>
                 <MathJax inline>{`\\(${TexMapper.termToTex(step.before)}\\)`}</MathJax>
@@ -83,6 +89,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
                 <MathJax inline>{`\\(${TexMapper.termToTex(step.after)}\\)`}</MathJax>
               </li>
             ))}
+            {diverged && <li className="text-muted-foreground pl-6">⋯</li>}
           </ol>
           {resultTex && (
             <p className="text-sm pt-1">

@@ -1011,6 +1011,7 @@
       "conclusion": "conclusion",
       "note": "Read bottom-up: if every premise above the line holds, then the conclusion below it holds. The label is just the rule's name."
     },
-    "trace": "Reduction steps"
+    "trace": "Reduction steps",
+    "diverges": "The evaluation didn't stop — it was cut off after {{count}} steps. This term keeps reducing forever (it diverges) under this strategy."
   }
 }

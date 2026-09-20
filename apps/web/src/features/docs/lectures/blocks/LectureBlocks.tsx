@@ -230,7 +230,7 @@ export interface InlineRule {
   wide?: boolean;
 }
 
-// `rules` defines lecture-local rules (e.g. NBL) inline; `descriptions` overrides the (English)
+// `rules` defines lecture-local rules (e.g. NBL) inline; an axiom keeps the (empty) premise line, as in the rules appendix; `descriptions` overrides the (English)
 // registry text of `ruleIds` entries so a translated lecture can show its own wording.
 export function RuleCardStrip({ruleIds = [], rules: inline = [], descriptions = {}, wide}: {
   ruleIds?: string[];
@@ -245,7 +245,7 @@ export function RuleCardStrip({ruleIds = [], rules: inline = [], descriptions = 
     .map((r) => ({...r, description: descriptions[r.id] ?? r.description}));
   const local: RuleDefinition[] = inline.map((r) => ({
     id: r.id,
-    premisesTex: r.premises ?? [],
+    premisesTex: r.premises ?? [""],
     conclusionTex: r.conclusion,
     description: r.description ?? "",
     wide: r.wide,

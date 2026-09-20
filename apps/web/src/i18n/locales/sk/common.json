@@ -1014,6 +1014,7 @@
       "conclusion": "záver",
       "note": "Čítajte zdola nahor: ak platia všetky predpoklady nad čiarou, platí aj záver pod ňou. Názov je len označenie pravidla."
     },
-    "trace": "Kroky redukcie"
+    "trace": "Kroky redukcie",
+    "diverges": "Vyhodnotenie sa nezastavilo — prerušili sme ho po {{count}} krokoch. Tento term sa pri tejto stratégii redukuje donekonečna (diverguje)."
   }
 }
