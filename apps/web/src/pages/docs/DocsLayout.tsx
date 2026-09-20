@@ -1,7 +1,7 @@
-import {useState} from "react";
+import {useState, type ReactNode} from "react";
 import {NavLink, Outlet, useLocation} from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import {BookOpen, FlaskConical, GraduationCap, Menu, ScrollText, Sigma, X} from "lucide-react";
+import {BookOpen, ChevronDown, FlaskConical, GraduationCap, Hourglass, Menu, ScrollText, Sigma, X} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
@@ -14,6 +14,59 @@ const navLinkClass = ({isActive}: {isActive: boolean}) =>
       ? "bg-primary text-primary-foreground font-medium"
       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
   );
+
+function SoonMark() {
+  const {t} = useTranslation();
+  return <Hourglass className="ml-auto mt-0.5 h-3.5 w-3.5 shrink-0" aria-label={t("docsIndex.comingSoon")}/>;
+}
+
+const COLLAPSE_KEY = "tt-docs-sidebar-collapsed";
+
+function readCollapsed(): Record<string, boolean> {
+  try {
+    return JSON.parse(localStorage.getItem(COLLAPSE_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function SidebarSection({id, icon, title, children}: {id: string; icon?: ReactNode; title: string; children: ReactNode}) {
+  const [collapsed, setCollapsed] = useState(() => !!readCollapsed()[id]);
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify({...readCollapsed(), [id]: next}));
+    } catch {
+      // storage unavailable: the section still toggles for this visit
+    }
+  };
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={!collapsed}
+        className="mb-2 flex w-full items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+      >
+        {icon}
+        {title}
+        <ChevronDown className={cn("ml-auto h-3.5 w-3.5 shrink-0 transition-transform", collapsed && "-rotate-90")}/>
+      </button>
+      <div
+        inert={collapsed}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+          collapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100",
+        )}
+      >
+        <div className="overflow-hidden">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
   const {t, i18n} = useTranslation();
@@ -31,54 +84,45 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
         </NavLink>
       </div>
 
-      <div>
-        <p className="flex items-center gap-1.5 px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <GraduationCap className="h-3.5 w-3.5 shrink-0"/>
-          {t("docsLayout.lectures")}
-        </p>
+      <SidebarSection id="lectures" icon={<GraduationCap className="h-3.5 w-3.5 shrink-0"/>} title={t("docsLayout.lectures")}>
         <ol className="space-y-1">
           {visibleLectures.map((lecture, index) => (
             <li key={lecture.slug}>
-              <NavLink to={`/docs/${lecture.slug}`} className={navLinkClass} onClick={onNavigate}>
+              <NavLink to={`/docs/${lecture.slug}`} className={(state) => cn(navLinkClass(state), !lecture.openable && !state.isActive && "opacity-60")} onClick={onNavigate}>
                 <span className="flex gap-2.5">
                   <span className="text-muted-foreground/60 tabular-nums shrink-0">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   {getLectureText(lecture, i18n.language).title}
+                  {!lecture.openable && <SoonMark/>}
                 </span>
               </NavLink>
             </li>
           ))}
         </ol>
-      </div>
+      </SidebarSection>
 
       {visibleLabs.length > 0 && (
-        <div>
-          <p className="flex items-center gap-1.5 px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <FlaskConical className="h-3.5 w-3.5 shrink-0"/>
-            {t("docsLayout.labs")}
-          </p>
+        <SidebarSection id="labs" icon={<FlaskConical className="h-3.5 w-3.5 shrink-0"/>} title={t("docsLayout.labs")}>
           <ol className="space-y-1">
             {visibleLabs.map((lab, index) => (
               <li key={lab.slug}>
-                <NavLink to={`/docs/labs/${lab.slug}`} className={navLinkClass} onClick={onNavigate}>
+                <NavLink to={`/docs/labs/${lab.slug}`} className={(state) => cn(navLinkClass(state), !lab.openable && !state.isActive && "opacity-60")} onClick={onNavigate}>
                   <span className="flex gap-2.5">
                     <span className="text-muted-foreground/60 tabular-nums shrink-0">
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     {getLabText(lab, i18n.language).title}
+                    {!lab.openable && <SoonMark/>}
                   </span>
                 </NavLink>
               </li>
             ))}
           </ol>
-        </div>
+        </SidebarSection>
       )}
 
-      <div>
-        <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("docsLayout.reference")}
-        </p>
+      <SidebarSection id="reference" title={t("docsLayout.reference")}>
         <div className="space-y-1">
           <NavLink to="/docs/rules" className={navLinkClass} onClick={onNavigate}>
             <span className="flex items-center gap-2">
@@ -93,7 +137,7 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
             </span>
           </NavLink>
         </div>
-      </div>
+      </SidebarSection>
     </nav>
   );
 }
