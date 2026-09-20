@@ -53,16 +53,14 @@ function computeMissing(term: TermState) {
   return {ast, proof, evaluation, inferenceSteps, typeAliases, errors};
 }
 
-export function buildBugReportAttachments(term: TermState, context: unknown, includeState: boolean): BugReportFile[] {
-  const {ast, proof, evaluation, inferenceSteps, typeAliases, errors} = includeState
-    ? computeMissing(term)
-    : {ast: undefined, proof: undefined, evaluation: undefined, inferenceSteps: undefined, typeAliases: undefined, errors: []};
-  const practice = includeState ? getEvaluationPracticeSnapshot() : undefined;
-  const proofBuild = includeState && term.buildMode.active ? {...term.buildMode, answerKey: undefined} : undefined;
+export function buildBugReportAttachments(term: TermState, context: unknown): BugReportFile[] {
+  const {ast, proof, evaluation, inferenceSteps, typeAliases, errors} = computeMissing(term);
+  const practice = getEvaluationPracticeSnapshot();
+  const proofBuild = term.buildMode.active ? {...term.buildMode, answerKey: undefined} : undefined;
 
   const entries: [string, string | undefined][] = [
     ["context.json", stringify(context)],
-    ["program.tt", includeState ? term.termText : undefined],
+    ["program.tt", term.termText],
     ["ast.json", ast && stringify(ast)],
     ["proof-tree.json", proof && stringify({proof, typeAliases, inferenceSteps})],
     ["evaluation.json", evaluation && stringify(evaluation)],

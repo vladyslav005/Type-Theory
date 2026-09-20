@@ -13,7 +13,7 @@
     "button": "Report bug",
     "aria": "Report a bug",
     "title": "Report a bug",
-    "description": "Sent straight to the developer. Your program and settings are attached automatically.",
+    "description": "Sent straight to the developer. Tick the box below to also attach your program and app state.",
     "whatHappened": "What went wrong?",
     "placeholder": "Steps to reproduce, what you expected, what happened instead…",
     "contact": "Contact (optional)",
@@ -24,7 +24,18 @@
     "sending": "Sending…",
     "cancel": "Cancel",
     "sent": "Thanks! Your report was sent.",
-    "failed": "Couldn't send the report. Please try again later."
+    "failed": "Couldn't send the report. Please try again later.",
+    "attachInfoLabel": "What will be sent",
+    "attachInfoIntro": "Sent as one bug-report.zip:",
+    "attachInfoOff": "Unchecked: no files are attached (only your message, contact and page/browser details).",
+    "attachInfo": {
+      "program": "program.tt – the editor text",
+      "ast": "ast.json – the parsed AST",
+      "proofTree": "proof-tree.json – proof tree, type aliases, inference steps",
+      "evaluation": "evaluation.json – evaluation steps and result",
+      "studentWork": "student-work.json – your proof-building and evaluation-practice progress",
+      "context": "context.json – page, browser, theories, strategy, errors"
+    }
   },
   "nav": {
     "editor": "Editor",

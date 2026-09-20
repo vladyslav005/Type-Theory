@@ -13,7 +13,7 @@
     "button": "Nahlásiť chybu",
     "aria": "Nahlásiť chybu",
     "title": "Nahlásiť chybu",
-    "description": "Odošle sa priamo vývojárovi. Váš program a nastavenia sa priložia automaticky.",
+    "description": "Odošle sa priamo vývojárovi. Zaškrtnutím políčka nižšie priložíte aj svoj program a stav aplikácie.",
     "whatHappened": "Čo sa pokazilo?",
     "placeholder": "Kroky na reprodukciu, čo ste očakávali, čo sa stalo namiesto toho…",
     "contact": "Kontakt (voliteľné)",
@@ -24,7 +24,18 @@
     "sending": "Odosielanie…",
     "cancel": "Zrušiť",
     "sent": "Ďakujeme! Hlásenie bolo odoslané.",
-    "failed": "Hlásenie sa nepodarilo odoslať. Skúste to neskôr."
+    "failed": "Hlásenie sa nepodarilo odoslať. Skúste to neskôr.",
+    "attachInfoLabel": "Čo sa odošle",
+    "attachInfoIntro": "Odošle sa ako jeden súbor bug-report.zip:",
+    "attachInfoOff": "Nezaškrtnuté: nepriložia sa žiadne súbory (len správa, kontakt a údaje o stránke/prehliadači).",
+    "attachInfo": {
+      "program": "program.tt – text z editora",
+      "ast": "ast.json – rozparsovaný AST",
+      "proofTree": "proof-tree.json – dôkazový strom, aliasy typov, kroky inferencie",
+      "evaluation": "evaluation.json – kroky a výsledok vyhodnotenia",
+      "studentWork": "student-work.json – váš postup pri budovaní dôkazu a precvičovaní vyhodnotenia",
+      "context": "context.json – stránka, prehliadač, teórie, stratégia, chyby"
+    }
   },
   "nav": {
     "editor": "Editor",

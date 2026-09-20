@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {Info} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {toast} from "sonner";
 import {Button} from "@/shared/components/ui/button";
@@ -12,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/components/ui/dialog";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {buildBugReportAttachments} from "@/shared/lib/bugReportAttachments.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 
@@ -39,7 +41,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
               ...term.errorMarkers.map((m) => m.message),
             ],
           };
-      const attachments = buildBugReportAttachments(term, context, attachState);
+      const attachments = attachState ? buildBugReportAttachments(term, context) : [];
       const res = await fetch("/api/bug-report", {
         method: "POST",
         headers: {"content-type": "application/json"},
@@ -120,6 +122,24 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
             <Label htmlFor="bug-attach-state" className="font-normal">
               {t("bugReport.attachState")}
             </Label>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label={t("bugReport.attachInfoLabel")} className="text-muted-foreground">
+                    <Info className="size-4"/>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs space-y-1">
+                  <p>{t("bugReport.attachInfoIntro")}</p>
+                  <ul className="list-disc pl-4">
+                    {["program", "ast", "proofTree", "evaluation", "studentWork", "context"].map((k) => (
+                      <li key={k}>{t(`bugReport.attachInfo.${k}`)}</li>
+                    ))}
+                  </ul>
+                  <p>{t("bugReport.attachInfoOff")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
