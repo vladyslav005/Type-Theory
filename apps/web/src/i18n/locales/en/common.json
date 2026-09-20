@@ -124,7 +124,8 @@
     "fontSizeTooltip": "Editor font size",
     "download": "Download .tt file",
     "downloadTooltip": "Download as .tt file.",
-    "downloadVscodeLink": "Get the VS Code extension"
+    "downloadVscodeLink": "Get the VS Code extension",
+    "lockedWhileBuilding": "The editor is locked while you build a proof. Click “Exit” in the proof panel to edit again."
   },
   "evalStrategy": {
     "heading": "Evaluation strategy",
@@ -853,7 +854,46 @@
     "uploadJson": "Continue from a saved JSON file (it must be for the current term)",
     "toastLoaded": "Proof loaded from file",
     "toastInvalidFile": "Invalid proof file",
-    "toastWrongTerm": "This file was saved for a different term"
+    "toastWrongTerm": "This file was saved for a different term",
+    "guide": {
+      "open": "How does this work?",
+      "title": "Building a proof by hand",
+      "intro": "You write every judgement yourself. The checker only tells you afterwards, so take your time.",
+      "steps": {
+        "root": {
+          "title": "Start at the bottom",
+          "body": "The bottom judgement already holds your term. Fill in Γ, its type and the rule you apply, e.g. `T-App`."
+        },
+        "premises": {
+          "title": "Add premises above it",
+          "body": "Click “premise” to add a sub-derivation. Each premise is a judgement `Γ ⊢ term : type` of its own; how many you need depends on the rule."
+        },
+        "sideConditions": {
+          "title": "Use side conditions for leaves",
+          "body": "Rules like `T-Var` need a side condition instead of a premise (“side condition”). Forms: `x : T ∈ Γ`, and with let-polymorphism `instantiate(x : S ∈ Γ)` and `generalize(T, Γ) = S`."
+        },
+        "notation": {
+          "title": "Type symbols quickly",
+          "body": "`\\lambda` `\\forall` `\\Gamma` `\\in` `->` turn into λ ∀ Γ ∈ →."
+        },
+        "definitions": {
+          "title": "Name contexts once",
+          "body": "Put `Γ_1 = {x : 'A}` in the Definitions box, then write `Γ_1` in any field. Works for `C_1` too."
+        },
+        "constraints": {
+          "title": "Constraint sets",
+          "body": "With let-polymorphism or type inference on, judgements also carry a set `C`. Add it with the button on the judgement."
+        },
+        "check": {
+          "title": "Check your work",
+          "body": "“Check proof” marks each field green or red and lists what's wrong under the node. “Clear marks” removes them."
+        },
+        "save": {
+          "title": "Save and continue later",
+          "body": "“Download JSON” saves your work; “Upload JSON” restores it for the same term."
+        }
+      }
+    }
   },
   "evalPractice": {
     "stepOf": "Step {{current}} of {{total}}",
@@ -861,45 +901,69 @@
     "finishedNormalForm": "Normal form reached — nothing can be reduced any further.",
     "finishedStuck": "The evaluation is stuck here — no rule applies, but the term isn't a value.",
     "finishedLimit": "The trace stops at the step limit — the term may reduce further.",
-    "hint": {
-      "NORMAL": "Normal order reduces the leftmost, outermost redex, and it also reduces under a λ.",
-      "CALL_BY_NAME": "Call by name reduces the leftmost, outermost redex, but never under a λ, and it doesn't evaluate arguments first.",
-      "CALL_BY_VALUE": "Call by value reduces the function, then the argument, to values before applying it, and never under a λ."
-    },
     "msg": {
-      "pickWrong": "That isn't the sub-term reduced next.",
       "writeParse": "Couldn't read that as a term: {{detail}}",
-      "writeWrong": "That's not what this sub-term reduces to. Substitute the argument for the parameter in the body (bound variables may be renamed).",
-      "correct": "Correct.",
-      "pickCorrect": "That's the next redex."
+      "writeWrong": "That's not what the next step gives. Substitute the argument for the parameter in the body (bound variables may be renamed).",
+      "correct": "Correct."
     },
     "tabAutomatic": "Automatic",
     "tabPractice": "Practice",
     "stepsDone": "{{done}}/{{total}} steps done",
     "complete": "complete",
     "emptyNeedsEvaluation": "Evaluate an expression first — Practice needs a reduction to check your work against.",
-    "insertRedex": "Insert the sub-term being reduced",
     "insertDefinition": "Insert the definition of {{name}}",
     "context": "Context Γ",
     "insert": "Insert",
     "insertName": "Insert the name {{name}}",
     "startTerm": "Start",
     "restart": "Restart",
-    "instruction": "Work out the next {{strategy}} step: write what the next redex reduces to. Click a part of the term to select it (Shift+click inserts it right away); selecting the redex and checking are optional.",
+    "instruction": "Work out the next {{strategy}} step: write the whole term you get after one reduction step. Click a part of the term to insert it into your answer.",
     "check": "Check",
     "nextStep": "Next step",
     "finish": "Finish",
-    "correctCount": "{{count}} correct",
     "statusCorrect": "Matches the real step",
     "statusWrong": "Different from the real step",
-    "statusSkipped": "Skipped",
     "youWrote": "You wrote: {{text}}",
-    "summary": "{{correct}} of {{total}} steps matched the real reduction.",
-    "writeHint": "Checking is optional — press Enter or Check to see how you're doing, or just go on. You can write the reduced sub-term or the whole next term.",
-    "showResults": "Show how I did",
-    "selected": "Selected:",
-    "insertSelection": "Insert",
-    "isRedex": "Is this the redex?",
-    "clearSelection": "Clear selection"
+    "writeHint": "Checking is optional. Whatever you write becomes the term for the next step — even if it's wrong, you carry on from it. Click the eye on a finished row to see whether it was right and what the correct result was.",
+    "showResults": "Compare with the real evaluation",
+    "guide": {
+      "open": "How does this work?",
+      "title": "Practising evaluation",
+      "intro": "You reduce the term yourself, one step at a time. Checking is always optional.",
+      "steps": {
+        "read": {
+          "title": "Read the trace",
+          "body": "The top row is the starting term; each row below is the term you wrote for a step. Only the next step is open for you to work out."
+        },
+        "write": {
+          "title": "Write the next term",
+          "body": "Type the whole term you get after one reduction step. Substitute the argument for the parameter in the body; bound variables may be renamed."
+        },
+        "insert": {
+          "title": "Insert instead of retyping",
+          "body": "Click any part of the term to insert it into your answer. In Context Γ, use the chips to insert a name or its definition. `\\lambda` and `->` become λ and →."
+        },
+        "check": {
+          "title": "Go on, check later",
+          "body": "“Next step” accepts any answer that parses and continues from what you wrote, even if it's wrong. Click the eye on a finished row to see if it matched and what the correct result was. “Check” tells you right away, without showing the answer."
+        },
+        "finish": {
+          "title": "See how you did",
+          "body": "When your term can't be reduced any further, “Compare with the real evaluation” lists your terms next to the real ones and shows where you first went off track. “Restart” begins again."
+        }
+      }
+    },
+    "correctResult": "Correct:",
+    "revealRow": "Check this step and show the correct result",
+    "compare": {
+      "title": "Your evaluation vs the real one",
+      "you": "You",
+      "real": "Real",
+      "summary": "{{matched}} of {{total}} steps are identical to the real evaluation.",
+      "diverged": "Your evaluation first differs at step {{step}}.",
+      "lengths": "You took {{yours}} steps; the real evaluation takes {{real}}.",
+      "verdictCorrect": "Your evaluation is correct.",
+      "verdictWrong": "Your evaluation is not correct."
+    }
   }
 }

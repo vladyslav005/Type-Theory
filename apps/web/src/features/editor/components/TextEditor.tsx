@@ -31,6 +31,8 @@ const FONT_SIZES = [12, 13, 14, 16, 18, 20, 24];
 
 const NO_OPTIONS: Record<string, any> = {};
 
+const ARROW_REPLACEMENTS: Record<string, string> = {"-": "→", "=": "⇒"};
+
 export interface TextEditorProps {
   defaultValue?: string;
   value?: string; // controlled mode
@@ -136,6 +138,23 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
       }
     });
 
+    editor.onDidChangeModelContent((e) => {
+      if (e.isUndoing || e.isRedoing || e.isFlush) return;
+      const model = editor.getModel();
+      if (!model) return;
+      const edits: {range: import("monaco-editor").IRange; text: string}[] = [];
+      for (const change of e.changes) {
+        if (change.text !== ">" || change.rangeLength !== 0) continue;
+        const {startLineNumber: line, startColumn: col} = change.range;
+        const before = model.getLineContent(line).slice(0, col - 1);
+        const arrow = ARROW_REPLACEMENTS[before.slice(-1)];
+        const prefix = before.slice(0, -1);
+        if (!arrow || prefix.includes("//") || (prefix.match(/"/g)?.length ?? 0) % 2 === 1) continue;
+        edits.push({range: {startLineNumber: line, startColumn: col - 1, endLineNumber: line, endColumn: col + 1}, text: arrow});
+      }
+      if (edits.length > 0) queueMicrotask(() => editor.executeEdits("arrow-replace", edits));
+    });
+
     if (onMount) {
       onMount(editor, monaco);
     }
@@ -210,6 +229,8 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     roundedSelection: true,
     scrollBeyondLastLine: false,
     readOnly,
+    readOnlyMessage: {value: t("editor.lockedWhileBuilding")},
+    fixedOverflowWidgets: true,
     minimap: {
       enabled: true,
     },
@@ -220,7 +241,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     automaticLayout: true,
     accessibilitySupport: "off" as const,
     ...options,
-  }), [readOnly, options, fontSize]);
+  }), [readOnly, options, fontSize, t]);
 
   useImperativeHandle(ref, () => ({
     setValue: (text: string) => {

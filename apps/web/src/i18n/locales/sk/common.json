@@ -124,7 +124,8 @@
     "fontSizeTooltip": "Veľkosť písma editora",
     "download": "Stiahnuť súbor .tt",
     "downloadTooltip": "Stiahnuť ako súbor .tt.",
-    "downloadVscodeLink": "Získať rozšírenie pre VS Code"
+    "downloadVscodeLink": "Získať rozšírenie pre VS Code",
+    "lockedWhileBuilding": "Editor je zamknutý počas budovania dôkazu. Na úpravy znova kliknite na „Exit“ v paneli dôkazu."
   },
   "evalStrategy": {
     "heading": "Stratégia vyhodnocovania",
@@ -855,7 +856,46 @@
     "uploadJson": "Pokračovať zo uloženého súboru JSON (musí byť pre aktuálny term)",
     "toastLoaded": "Dôkaz načítaný zo súboru",
     "toastInvalidFile": "Neplatný súbor s dôkazom",
-    "toastWrongTerm": "Tento súbor bol uložený pre iný term"
+    "toastWrongTerm": "Tento súbor bol uložený pre iný term",
+    "guide": {
+      "open": "Ako to funguje?",
+      "title": "Ručné budovanie dôkazu",
+      "intro": "Každý súd píšete sami. Kontrola vám povie výsledok až potom, takže sa nemusíte ponáhľať.",
+      "steps": {
+        "root": {
+          "title": "Začnite dole",
+          "body": "Spodný súd už obsahuje váš term. Doplňte Γ, jeho typ a použité pravidlo, napr. `T-App`."
+        },
+        "premises": {
+          "title": "Pridajte premisy nad neho",
+          "body": "Kliknutím na „premise“ pridáte čiastkové odvodenie. Každá premisa je samostatný súd `Γ ⊢ term : typ`; koľko ich treba, závisí od pravidla."
+        },
+        "sideConditions": {
+          "title": "Listy riešte vedľajšími podmienkami",
+          "body": "Pravidlá ako `T-Var` potrebujú namiesto premisy vedľajšiu podmienku („side condition“). Tvary: `x : T ∈ Γ` a pri let-polymorfizme `instantiate(x : S ∈ Γ)` a `generalize(T, Γ) = S`."
+        },
+        "notation": {
+          "title": "Rýchle písanie symbolov",
+          "body": "`\\lambda` `\\forall` `\\Gamma` `\\in` `->` sa zmenia na λ ∀ Γ ∈ →."
+        },
+        "definitions": {
+          "title": "Pomenujte kontexty raz",
+          "body": "Do poľa Definitions napíšte `Γ_1 = {x : 'A}` a potom používajte `Γ_1` v ľubovoľnom poli. Funguje aj pre `C_1`."
+        },
+        "constraints": {
+          "title": "Množiny obmedzení",
+          "body": "Pri zapnutom let-polymorfizme alebo inferencii typov nesú súdy aj množinu `C`. Pridáte ju tlačidlom pri súde."
+        },
+        "check": {
+          "title": "Skontrolujte prácu",
+          "body": "„Check proof“ označí každé pole zelenou alebo červenou a pod uzlom vypíše, čo je zle. „Clear marks“ označenia zruší."
+        },
+        "save": {
+          "title": "Uložte a pokračujte neskôr",
+          "body": "„Download JSON“ uloží vašu prácu; „Upload JSON“ ju obnoví pre ten istý term."
+        }
+      }
+    }
   },
   "evalPractice": {
     "stepOf": "Krok {{current}} z {{total}}",
@@ -863,45 +903,69 @@
     "finishedNormalForm": "Normálny tvar dosiahnutý — nič sa už nedá redukovať.",
     "finishedStuck": "Vyhodnocovanie tu uviazlo — žiadne pravidlo neplatí, ale term nie je hodnota.",
     "finishedLimit": "Priebeh sa zastavil na limite krokov — term sa môže redukovať ďalej.",
-    "hint": {
-      "NORMAL": "Normálne poradie redukuje najľavejší vonkajší redex a redukuje aj pod λ.",
-      "CALL_BY_NAME": "Call by name redukuje najľavejší vonkajší redex, ale nikdy pod λ a argumenty najprv nevyhodnocuje.",
-      "CALL_BY_VALUE": "Call by value pred aplikáciou zredukuje funkciu a potom argument na hodnoty a nikdy nejde pod λ."
-    },
     "msg": {
-      "pickWrong": "Tento podterm sa neredukuje ako ďalší.",
       "writeParse": "Nepodarilo sa to prečítať ako term: {{detail}}",
-      "writeWrong": "Na toto sa tento podterm nezredukuje. Dosaďte argument za parameter v tele (viazané premenné sa môžu premenovať).",
-      "correct": "Správne.",
-      "pickCorrect": "Toto je ďalší redex."
+      "writeWrong": "Toto ďalší krok nedáva. Dosaďte argument za parameter v tele (viazané premenné sa môžu premenovať).",
+      "correct": "Správne."
     },
     "tabAutomatic": "Automaticky",
     "tabPractice": "Precvičovanie",
     "stepsDone": "{{done}}/{{total}} krokov hotových",
     "complete": "dokončené",
     "emptyNeedsEvaluation": "Najprv vyhodnoťte výraz — Precvičovanie potrebuje redukciu, s ktorou porovná vašu prácu.",
-    "insertRedex": "Vložiť redukovaný podterm",
     "insertDefinition": "Vložiť definíciu {{name}}",
     "context": "Kontext Γ",
     "insert": "Vložiť",
     "insertName": "Vložiť meno {{name}}",
-    "startTerm": "Začiatok",
+    "startTerm": "Štart",
     "restart": "Znova",
-    "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte, na čo sa zredukuje ďalší redex. Kliknutím na časť termu ju vyberiete (Shift+klik ju hneď vloží); označenie redexu aj kontrola sú voliteľné.",
+    "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte celý term, ktorý dostanete po jednom kroku redukcie. Kliknutím na časť termu ju vložíte do odpovede.",
     "check": "Skontrolovať",
     "nextStep": "Ďalší krok",
     "finish": "Dokončiť",
-    "correctCount": "{{count}} správne",
     "statusCorrect": "Zodpovedá skutočnému kroku",
     "statusWrong": "Líši sa od skutočného kroku",
-    "statusSkipped": "Preskočené",
     "youWrote": "Napísali ste: {{text}}",
-    "summary": "{{correct}} z {{total}} krokov zodpovedalo skutočnej redukcii.",
-    "writeHint": "Kontrola je voliteľná — Enterom alebo tlačidlom Skontrolovať zistíte, ako vám to ide, alebo len pokračujte. Môžete napísať zredukovaný podterm alebo celý ďalší term.",
-    "showResults": "Ukázať, ako mi to šlo",
-    "selected": "Vybrané:",
-    "insertSelection": "Vložiť",
-    "isRedex": "Je to redex?",
-    "clearSelection": "Zrušiť výber"
+    "writeHint": "Kontrola je voliteľná. Čokoľvek napíšete, stane sa termom pre ďalší krok — aj keď je to chybné, pokračujete z neho. Kliknutím na oko pri hotovom riadku zistíte, či bol správny a aký bol správny výsledok.",
+    "showResults": "Porovnať so skutočným vyhodnotením",
+    "guide": {
+      "open": "Ako to funguje?",
+      "title": "Precvičovanie vyhodnocovania",
+      "intro": "Term redukujete sami, krok po kroku. Kontrola je vždy voliteľná.",
+      "steps": {
+        "read": {
+          "title": "Prečítajte si priebeh",
+          "body": "Horný riadok je východiskový term; každý riadok pod ním je term, ktorý ste napísali v danom kroku. Otvorený je len ďalší krok, ktorý máte vypočítať."
+        },
+        "write": {
+          "title": "Napíšte ďalší term",
+          "body": "Napíšte celý term, ktorý dostanete po jednom kroku redukcie. Dosaďte argument za parameter v tele; viazané premenné sa môžu premenovať."
+        },
+        "insert": {
+          "title": "Vkladajte namiesto prepisovania",
+          "body": "Kliknutím na ľubovoľnú časť termu ju vložíte do odpovede. V Kontexte Γ vložíte tlačidlami meno alebo jeho definíciu. `\\lambda` a `->` sa zmenia na λ a →."
+        },
+        "check": {
+          "title": "Pokračujte, skontrolujte neskôr",
+          "body": "„Ďalší krok“ prijme každú odpoveď, ktorá sa dá prečítať, a pokračuje z toho, čo ste napísali, aj keď je chybná. Kliknutím na oko pri hotovom riadku uvidíte, či zodpovedal, a aký bol správny výsledok. „Skontrolovať“ povie hneď, bez zobrazenia odpovede."
+        },
+        "finish": {
+          "title": "Pozrite si výsledok",
+          "body": "Keď sa váš term už nedá redukovať, „Porovnať so skutočným vyhodnotením“ zobrazí vaše termy vedľa skutočných a ukáže, kde ste sa prvýkrát odchýlili. „Znova“ začne odznova."
+        }
+      }
+    },
+    "correctResult": "Správne:",
+    "revealRow": "Skontrolovať tento krok a ukázať správny výsledok",
+    "compare": {
+      "title": "Vaše vyhodnotenie vs skutočné",
+      "you": "Vy",
+      "real": "Reálne",
+      "summary": "{{matched}} z {{total}} krokov je totožných so skutočným vyhodnotením.",
+      "diverged": "Vaše vyhodnotenie sa prvýkrát líši v kroku {{step}}.",
+      "lengths": "Vy ste urobili {{yours}} krokov; skutočné vyhodnotenie má {{real}}.",
+      "verdictCorrect": "Vaše vyhodnotenie je správne.",
+      "verdictWrong": "Vaše vyhodnotenie nie je správne."
+    }
   }
 }

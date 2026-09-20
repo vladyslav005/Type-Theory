@@ -1,9 +1,10 @@
 import {useEffect, useMemo, useRef, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {ArrowRight, CheckCircle2, CircleAlert, CircleMinus, RotateCcw} from "lucide-react";
-import type {EvaluationResult, Term, Type} from "@vladyslav005/tt-core";
-import {accumulateBindings} from "@vladyslav005/tt-core";
+import {ArrowRight, CheckCircle2, CircleAlert, Eye, Info, RotateCcw} from "lucide-react";
+import type {EvaluationResult, ReductionStep, Term, Type} from "@vladyslav005/tt-core";
+import {accumulateBindings, Evaluator} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
+import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {ManualParseError, parseTermProgram, termKey} from "@/shared/lib/manualParse.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
@@ -24,21 +25,32 @@ interface Feedback {
 }
 
 interface Answer {
-  status: "correct" | "wrong" | "skipped";
+  status: "correct" | "wrong";
   text: string;
-  checked: boolean;
+  term: Term;
+  step: ReductionStep;
+  revealed: boolean;
 }
+
+const evaluator = new Evaluator();
+
+// Γ's local bindings go in as globals: a student may write a name the real trace already substituted away.
+const traceFrom = (evaluation: EvaluationResult, term: Term, bindings: {name: string; value: Term}[]): EvaluationResult => {
+  const scope = {...evaluation.globals, ...Object.fromEntries(bindings.map((b) => [b.name, b.value]))};
+  return evaluator.evaluate({
+    kind: "Program",
+    id: "practice",
+    globals: Object.entries(scope).map(([name, value]) => ({kind: "FunDecl" as const, id: `global-${name}`, name, value})),
+    term,
+  }, evaluation.strategy);
+};
+
+const GUIDE_STEPS = ["read", "write", "insert", "check", "finish"];
 
 export function EvaluationPractice({evaluation, typeAliases}: EvaluationPracticeProps) {
   const {t} = useTranslation();
-  const {steps, result, strategy} = evaluation;
-  const total = steps.length;
-  const stuck = (evaluation.errors?.length ?? 0) > 0;
-  const truncated = evaluation.reachedStepLimit;
+  const {strategy} = evaluation;
 
-  const [stepIndex, setStepIndex] = useState(0);
-  const [pickedId, setPickedId] = useState<string | undefined>();
-  const [pickVerdict, setPickVerdict] = useState<"valid" | "invalid" | undefined>();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [checkedText, setCheckedText] = useState<string | undefined>();
   const [showAllResults, setShowAllResults] = useState(false);
@@ -53,21 +65,34 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
   const history = useUndoableText(input, setInput);
 
   useEffect(() => {
-    setEvaluationPracticeSnapshot({strategy, stepIndex, total, pickedId, pickVerdict, answers, input, checkedText});
-  }, [strategy, stepIndex, total, pickedId, pickVerdict, answers, input, checkedText]);
+    setEvaluationPracticeSnapshot({
+      strategy,
+      answers: answers.map((a) => ({text: a.text, status: a.status, revealed: a.revealed, correctResult: termKey(a.step.after)})),
+      input,
+      checkedText,
+    });
+  }, [strategy, answers, input, checkedText]);
   useEffect(() => () => setEvaluationPracticeSnapshot(undefined), []);
 
-  const done = stepIndex >= total;
-  const step = done ? undefined : steps[stepIndex];
-  const expected = step?.resultId ? findTermById(step.after, step.resultId) : undefined;
-  const startTerm: Term = steps[0]?.before ?? result;
-  const completed = useMemo(() => steps.slice(0, stepIndex), [steps, stepIndex]);
-  const bindings = useMemo(() => accumulateBindings(steps, stepIndex), [steps, stepIndex]);
+  const startTerm: Term = evaluation.steps[0]?.before ?? evaluation.result;
+  const current = answers.length > 0 ? answers[answers.length - 1].term : startTerm;
+  const trace = useMemo(
+    () => (answers.length === 0 ? evaluation : traceFrom(evaluation, current, accumulateBindings(answers.map((a) => a.step), answers.length))),
+    [evaluation, answers, current],
+  );
+  const step: ReductionStep | undefined = trace.steps[0];
+  const done = !step;
+  const stepIndex = answers.length;
+  const total = evaluation.steps.length;
+  const stuck = (trace.errors?.length ?? 0) > 0;
+  const truncated = trace.reachedStepLimit;
+  const bindings = useMemo(() => {
+    const taken = [...answers.map((a) => a.step), ...(step ? [step] : [])];
+    return accumulateBindings(taken, taken.length);
+  }, [answers, step]);
   const globals = Object.entries(evaluation.globals ?? {});
 
   const resetStepState = () => {
-    setPickedId(undefined);
-    setPickVerdict(undefined);
     setInput("");
     setFeedback(undefined);
     setCheckedText(undefined);
@@ -78,22 +103,34 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
     try {
       const written = parseTermProgram(text).term;
       if (!written || !step) return "mismatch";
-      return (expected && termsAlphaEqual(written, expected)) || termsAlphaEqual(written, step.after) ? "match" : "mismatch";
+      return termsAlphaEqual(written, step.after) ? "match" : "mismatch";
     } catch {
       return "unreadable";
     }
   };
 
+  const readError = (text: string) => {
+    try { parseTermProgram(text); } catch (error) { return error instanceof ManualParseError ? error.message : String(error); }
+    return "";
+  };
+
   const next = () => {
     const text = input.trim();
-    const status: Answer["status"] = !text ? "skipped" : matches(text) === "match" ? "correct" : "wrong";
-    setAnswers((a) => [...a, {status, text, checked: checkedText !== undefined && checkedText === text}]);
-    setStepIndex((i) => i + 1);
+    if (!text || !step) return;
+    let written: Term | undefined;
+    try {
+      written = parseTermProgram(text).term;
+    } catch {
+      setFeedback({verdict: "invalid", messages: [{code: "writeParse", params: {detail: readError(text)}}]});
+      return;
+    }
+    if (!written) return;
+    const status: Answer["status"] = termsAlphaEqual(written, step.after) ? "correct" : "wrong";
+    setAnswers((a) => [...a, {status, text, term: written, step, revealed: checkedText !== undefined && checkedText === text}]);
     resetStepState();
   };
 
   const restart = () => {
-    setStepIndex(0);
     setAnswers([]);
     setShowAllResults(false);
     resetStepState();
@@ -108,30 +145,7 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({block: "nearest", behavior: "smooth"});
-  }, [stepIndex]);
-
-  const select = (id: string, shiftKey: boolean) => {
-    if (!step) return;
-    if (shiftKey) {
-      const sub = findTermById(step.before, id);
-      if (sub) insertText(termKey(sub));
-      return;
-    }
-    setPickedId(id);
-    setPickVerdict(undefined);
-    setFeedback(undefined);
-  };
-
-  const askIfRedex = () => {
-    if (!step || pickedId === undefined) return;
-    if (pickedId === step.selectedId) {
-      setPickVerdict("valid");
-      setFeedback({verdict: "valid", messages: [{code: "pickCorrect"}]});
-    } else {
-      setPickVerdict("invalid");
-      setFeedback({verdict: "invalid", messages: [{code: "pickWrong"}, {code: `evalPractice.hint.${strategy}`}]});
-    }
-  };
+  }, [answers.length]);
 
   const check = () => {
     const outcome = matches(input);
@@ -140,9 +154,7 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
     if (outcome === "match") {
       setFeedback({verdict: "valid", messages: [{code: "correct"}]});
     } else if (outcome === "unreadable") {
-      let detail = "";
-      try { parseTermProgram(input); } catch (error) { detail = error instanceof ManualParseError ? error.message : String(error); }
-      setFeedback({verdict: "invalid", messages: [{code: "writeParse", params: {detail}}]});
+      setFeedback({verdict: "invalid", messages: [{code: "writeParse", params: {detail: readError(input)}}]});
     } else {
       setFeedback({verdict: "invalid", messages: [{code: "writeWrong"}]});
     }
@@ -161,20 +173,22 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
   const insertFrom = (root: Term) => (!done
     ? {onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }}
     : undefined);
-  // hidden until the redex is confirmed, or it would give the pick away
-  const redex = step && pickVerdict === "valid" ? findTermById(step.before, step.selectedId) : undefined;
-  const selectedTerm = step && pickedId !== undefined ? findTermById(step.before, pickedId) : undefined;
-  const visible = (answer: Answer | undefined) => !!answer && (answer.checked || showAllResults);
-  const correctCount = answers.filter((a) => a.status === "correct").length;
-  const anyVerdictShown = answers.some(visible);
+  const visible = (answer: Answer | undefined) => !!answer && (answer.revealed || showAllResults);
+  const toggleReveal = (index: number) => setAnswers((list) => list.map((a, i) => (i === index ? {...a, revealed: !a.revealed} : a)));
 
-  const progress = total === 0 ? 100 : Math.round((Math.min(stepIndex, total) / total) * 100);
+  const progress = total === 0 ? 100 : Math.min(100, Math.round((answers.length / total) * 100));
+  const realSteps = evaluation.steps;
+  const comparedRows = Math.max(realSteps.length, answers.length);
+  const sameAsReal = (i: number) => !!answers[i] && !!realSteps[i] && termsAlphaEqual(answers[i].term, realSteps[i].after);
+  const matchedReal = Array.from({length: comparedRows}, (_, i) => sameAsReal(i)).filter(Boolean).length;
+  const firstDifference = Array.from({length: comparedRows}, (_, i) => i).find((i) => !sameAsReal(i));
+
+  const allCorrect = firstDifference === undefined;
 
   const marker = (answer: Answer | undefined) => {
     if (!answer || !visible(answer)) return null;
     if (answer.status === "correct") return <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-label={t("evalPractice.statusCorrect")}/>;
-    if (answer.status === "wrong") return <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-label={t("evalPractice.statusWrong")}/>;
-    return <CircleMinus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-label={t("evalPractice.statusSkipped")}/>;
+    return <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-label={t("evalPractice.statusWrong")}/>;
   };
 
   return (
@@ -183,20 +197,15 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
         <div className="rounded-xl border bg-muted/30 p-3">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              {t("evalPractice.stepsDone", {done: Math.min(stepIndex, total), total})}
-              {anyVerdictShown && (
-                <>
-                  {" — "}
-                  <span className="text-emerald-600 dark:text-emerald-400">
-                    {t("evalPractice.correctCount", {count: answers.filter((a) => visible(a) && a.status === "correct").length})}
-                  </span>
-                </>
-              )}
+              {t("evalPractice.stepsDone", {done: answers.length, total})}
             </p>
-            <Button size="sm" variant="ghost" className="gap-1" onClick={restart}>
-              <RotateCcw className="h-3.5 w-3.5"/>
-              {t("evalPractice.restart")}
-            </Button>
+            <div className="flex items-center gap-1">
+              <GuideDialog i18nPrefix="evalPractice.guide" steps={GUIDE_STEPS}/>
+              <Button size="sm" variant="ghost" className="gap-1" onClick={restart}>
+                <RotateCcw className="h-3.5 w-3.5"/>
+                {t("evalPractice.restart")}
+              </Button>
+            </div>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-orange-500 transition-all duration-300" style={{width: `${progress}%`}}/>
@@ -206,47 +215,81 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
         <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2">
           <ol className="space-y-1.5 font-mono text-xs">
             <li className="flex gap-2 rounded-lg border bg-muted/20 px-3 py-2">
-              <span className="w-12 shrink-0 text-muted-foreground">{t("evalPractice.startTerm")}</span>
+              <span className="w-14 shrink-0 text-muted-foreground">{t("evalPractice.startTerm")}</span>
               <span className="min-w-0 flex-1 overflow-x-auto">
                 <TermPickProvider value={insertFrom(startTerm)}>
                   <TermView term={startTerm}/>
                 </TermPickProvider>
               </span>
             </li>
-            {completed.map((s, i) => (
-              <li key={i} className="flex gap-2 rounded-lg border bg-muted/20 px-3 py-2">
-                <span className="w-12 shrink-0 text-muted-foreground">{i + 1}.</span>
-                <span className="min-w-0 flex-1 overflow-x-auto">
-                  <TermPickProvider value={insertFrom(s.after)}>
-                    <TermView term={s.after} resultId={s.resultId}/>
-                  </TermPickProvider>
-                  {visible(answers[i]) && answers[i].status === "wrong" && (
-                    <span className="mt-1 block text-[11px] text-amber-700 dark:text-amber-400">
-                      {t("evalPractice.youWrote", {text: answers[i].text})}
+            {answers.map((a, i) => (
+              <li key={i} className="flex flex-col gap-1 rounded-lg border bg-muted/20 px-3 py-2">
+                <div className="flex gap-2">
+                  <span className="w-14 shrink-0 text-muted-foreground">{i + 1}.</span>
+                  <span className="min-w-0 flex-1 overflow-x-auto">
+                    <TermPickProvider value={insertFrom(a.term)}>
+                      <TermView term={a.term}/>
+                    </TermPickProvider>
+                  </span>
+                  {marker(a)}
+                  <button
+                    type="button"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
+                    title={t("evalPractice.revealRow")}
+                    aria-label={t("evalPractice.revealRow")}
+                    onClick={() => toggleReveal(i)}
+                  >
+                    <Eye className="h-3.5 w-3.5"/>
+                  </button>
+                </div>
+                {visible(a) && a.status === "wrong" && (
+                  <div className="flex gap-2 text-[11px]">
+                    <span className="w-14 shrink-0 text-amber-700 dark:text-amber-400">{t("evalPractice.correctResult")}</span>
+                    <span className="min-w-0 flex-1 overflow-x-auto">
+                      <TermView term={a.step.after} resultId={a.step.resultId}/>
                     </span>
-                  )}
+                  </div>
+                )}
+              </li>
+            ))}
+            {showAllResults && realSteps.slice(answers.length).map((r, j) => (
+              <li key={`missed-${j}`} className="flex gap-2 rounded-lg border border-dashed bg-muted/10 px-3 py-2">
+                <span className="w-14 shrink-0 text-muted-foreground">{answers.length + j + 1}.</span>
+                <span className="min-w-0 flex-1 overflow-x-auto">
+                  <TermView term={r.after} resultId={r.resultId}/>
                 </span>
-                {marker(answers[i])}
+                <CircleAlert className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-label={t("evalPractice.statusWrong")}/>
               </li>
             ))}
           </ol>
 
           {done ? (
-            <div className="flex flex-col gap-1 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-400">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0"/>
+            <>
+              <div className="flex items-center gap-2 rounded-xl border bg-muted/30 p-3 text-sm text-muted-foreground">
+                <Info className="h-4 w-4 shrink-0"/>
                 {stuck ? t("evalPractice.finishedStuck") : truncated ? t("evalPractice.finishedLimit") : t("evalPractice.finishedNormalForm")}
               </div>
-              {total > 0 && (showAllResults
-                ? <span className="pl-6 text-xs">{t("evalPractice.summary", {correct: correctCount, total})}</span>
-                : (
-                  <div className="pl-6">
-                    <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowAllResults(true)}>
-                      {t("evalPractice.showResults")}
-                    </Button>
-                  </div>
-                ))}
-            </div>
+              {answers.length > 0 && !showAllResults && (
+                <div className="flex justify-end">
+                  <Button size="sm" className="gap-1" onClick={() => setShowAllResults(true)}>
+                    <Eye className="h-3.5 w-3.5"/>
+                    {t("evalPractice.showResults")}
+                  </Button>
+                </div>
+              )}
+              {answers.length > 0 && showAllResults && (
+                <div className="flex flex-col gap-1 rounded-xl border p-3 text-sm">
+                  <p className={cn("font-medium", allCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400")}>
+                    {allCorrect ? t("evalPractice.compare.verdictCorrect") : t("evalPractice.compare.verdictWrong")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("evalPractice.compare.summary", {matched: matchedReal, total: realSteps.length})}
+                    {firstDifference !== undefined && ` ${t("evalPractice.compare.diverged", {step: firstDifference + 1})}`}
+                    {answers.length !== realSteps.length && ` ${t("evalPractice.compare.lengths", {yours: answers.length, real: realSteps.length})}`}
+                  </p>
+                </div>
+              )}
+            </>
           ) : (
             <div className="rounded-xl border p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between gap-2">
@@ -260,45 +303,14 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
               </p>
 
               <div className="p-3 rounded-lg border font-mono text-sm leading-relaxed overflow-x-auto bg-muted/30">
-                <TermPickProvider value={{pickedId, verdict: pickVerdict, onPick: select}}>
+                <TermPickProvider value={insertFrom(step!.before)}>
                   <TermView term={step!.before}/>
                 </TermPickProvider>
               </div>
 
-              {selectedTerm && (
-                <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs">
-                  <span className="text-muted-foreground">{t("evalPractice.selected")}</span>
-                  <code className="min-w-0 max-w-full truncate rounded bg-background px-1.5 py-0.5 font-mono">{termKey(selectedTerm)}</code>
-                  <div className="ml-auto flex items-center gap-1.5">
-                    <Button size="sm" variant="secondary" className="h-7 px-2 text-xs" onClick={() => insertText(termKey(selectedTerm))}>
-                      {t("evalPractice.insertSelection")}
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={askIfRedex}>
-                      {t("evalPractice.isRedex")}
-                    </Button>
-                    <button
-                      type="button"
-                      className="px-1 text-muted-foreground hover:text-foreground"
-                      title={t("evalPractice.clearSelection")}
-                      onClick={() => { setPickedId(undefined); setPickVerdict(undefined); setFeedback(undefined); }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              )}
-
               <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {redex && (
-                    <Button size="sm" variant="secondary" className="h-7 px-2 text-xs" onClick={() => insertText(termKey(redex))}>
-                      {t("evalPractice.insertRedex")}
-                    </Button>
-                  )}
-                </div>
-
                 {(bindings.length > 0 || globals.length > 0) && (
-                  <details open className="rounded-lg border bg-muted/20 p-2.5 text-xs">
+                  <details className="rounded-lg border bg-muted/20 p-2.5 text-xs">
                     <summary className="cursor-pointer font-medium uppercase tracking-wide text-muted-foreground">
                       {t("evalPractice.context")}
                     </summary>
@@ -364,15 +376,15 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
               {feedback && (
                 <ul className={cn("space-y-0.5 text-xs", feedback.verdict === "valid" ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
                   {feedback.messages.map((m, i) => (
-                    <li key={i}>{t(m.code.startsWith("evalPractice.") ? m.code : `evalPractice.msg.${m.code}`, m.params)}</li>
+                    <li key={i}>{t(`evalPractice.msg.${m.code}`, m.params)}</li>
                   ))}
                 </ul>
               )}
 
               <div className="flex items-center justify-end gap-2">
                 <Button size="sm" variant="outline" disabled={!input.trim()} onClick={check}>{t("evalPractice.check")}</Button>
-                <Button size="sm" className="gap-1" onClick={next}>
-                  {stepIndex + 1 >= total ? t("evalPractice.finish") : t("evalPractice.nextStep")}
+                <Button size="sm" className="gap-1" disabled={!input.trim()} onClick={next}>
+                  {trace.steps.length <= 1 ? t("evalPractice.finish") : t("evalPractice.nextStep")}
                   <ArrowRight className="h-3.5 w-3.5"/>
                 </Button>
               </div>

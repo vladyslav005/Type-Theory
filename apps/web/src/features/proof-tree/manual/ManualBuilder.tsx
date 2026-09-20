@@ -15,12 +15,15 @@ import {parseManualProof, serializeManualProof} from "@/features/proof-tree/manu
 import {termKey} from "@/shared/lib/manualParse.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
+import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
 import {parseDefinitions, setRequireTypeVariableTick} from "@/shared/lib/manualParse.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
+
+const GUIDE_STEPS = ["root", "premises", "sideConditions", "notation", "definitions", "constraints", "check", "save"];
 
 export function ManualBuilder() {
   const {t} = useTranslation();
@@ -107,6 +110,7 @@ export function ManualBuilder() {
             </Tooltip>
           </TooltipProvider>
           <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={upload}/>
+          <GuideDialog i18nPrefix="manualBuilder.guide" steps={GUIDE_STEPS}/>
           <Button size="sm" onClick={check}>{t("proofBuilder.checkProof")}</Button>
           {checked && (
             <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>
