@@ -9,6 +9,23 @@
     "button": "Spätná väzba",
     "aria": "Odoslať spätnú väzbu"
   },
+  "bugReport": {
+    "button": "Nahlásiť chybu",
+    "aria": "Nahlásiť chybu",
+    "title": "Nahlásiť chybu",
+    "description": "Odošle sa priamo vývojárovi. Váš program a nastavenia sa priložia automaticky.",
+    "whatHappened": "Čo sa pokazilo?",
+    "placeholder": "Kroky na reprodukciu, čo ste očakávali, čo sa stalo namiesto toho…",
+    "contact": "Kontakt (voliteľné)",
+    "contactPlaceholder": "E-mail alebo Discord, ak chcete odpoveď",
+    "attachState": "Priložiť stav aplikácie (program, AST, vyhodnotenie, dôkazové stromy)",
+    "tooLarge": "Prílohy sú príliš veľké na odoslanie.",
+    "send": "Odoslať hlásenie",
+    "sending": "Odosielanie…",
+    "cancel": "Zrušiť",
+    "sent": "Ďakujeme! Hlásenie bolo odoslané.",
+    "failed": "Hlásenie sa nepodarilo odoslať. Skúste to neskôr."
+  },
   "nav": {
     "editor": "Editor",
     "docs": "Príručka",

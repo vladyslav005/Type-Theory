@@ -9,6 +9,23 @@
     "button": "Feedback",
     "aria": "Send feedback"
   },
+  "bugReport": {
+    "button": "Report bug",
+    "aria": "Report a bug",
+    "title": "Report a bug",
+    "description": "Sent straight to the developer. Your program and settings are attached automatically.",
+    "whatHappened": "What went wrong?",
+    "placeholder": "Steps to reproduce, what you expected, what happened instead…",
+    "contact": "Contact (optional)",
+    "contactPlaceholder": "Email or Discord handle, if you'd like a reply",
+    "attachState": "Attach app state (program, AST, evaluation, proof trees)",
+    "tooLarge": "Attachments are too large to send.",
+    "send": "Send report",
+    "sending": "Sending…",
+    "cancel": "Cancel",
+    "sent": "Thanks! Your report was sent.",
+    "failed": "Couldn't send the report. Please try again later."
+  },
   "nav": {
     "editor": "Editor",
     "docs": "Guide",
