@@ -9,6 +9,7 @@ import {
   ReferenceList,
   RuleAnatomy,
   RuleCardStrip,
+  ScreenOnly,
   SectionHeading,
   SummaryBox,
   TryItBox,
@@ -114,8 +115,12 @@ programov:
 if true then 1 else 2;
 ```
 
+<ScreenOnly>
+
 Skúste upraviť pole nižšie — je to ten istý živý kontrolór, aký používa zvyšok prednášky,
 zatiaľ len s konštantami, bez `λ`:
+
+</ScreenOnly>
 
 </ConceptSection>
 
@@ -185,8 +190,13 @@ Z úvodnej prednášky poznáte rozdiel medzi konkrétnou a abstraktnou syntaxou
 typovej kontrole a vyhodnocovaču strom, v ktorom je formátovanie zahodené. Term `(λ x : Bool . x) true`
 sa stane **aplikáciou**, ktorej potomkovia sú **abstrakcia** (parameter `x`, typ `Bool`, telo `x`) a
 **literál** (`true`). Každé pravidlo — typovacie aj vyhodnocovacie — sa definuje porovnávaním
-tvaru tohto stromu. Panel **AST** ho ukazuje naživo; skúste ten istý strom zostaviť ručne nižšie,
-len z doteraz predstavených kúskov.
+tvaru tohto stromu. Panel **AST** ho ukazuje naživo.
+
+<ScreenOnly>
+
+Skúste ten istý strom zostaviť ručne nižšie, len z doteraz predstavených kúskov.
+
+</ScreenOnly>
 
 </ConceptSection>
 
@@ -258,7 +268,11 @@ zatiaľ nechajte všetko vypnuté. Táto prednáška potrebuje len čisté STLC.
   ]}
 />
 
+<ScreenOnly>
+
 Tá istá myšlienka, bez opustenia tejto stránky — upravte term a skontrolujte jeho typ:
+
+</ScreenOnly>
 
 <MiniWorkspace
   initialTerm={"(λ x : Bool . x) true;"}
@@ -304,8 +318,13 @@ deklarácie `let`/funkcií v rozsahu platnosti.
 Aplikácia podporuje stratégie z úvodnej prednášky: **volanie hodnotou** (predvolené), **volanie
 menom** a **normálne poradie**. Rozdiel je pozorovateľný aj na dobre typovaných termoch: ak sa
 parameter v tele používa viackrát, volanie menom dosadí nevyhodnotený argument na *každé* použitie
-a zakaždým ho znova zredukuje, kým volanie hodnotou ho zredukuje raz, hneď na začiatku. Vyskúšajte
-term nižšie pri každej stratégii a porovnajte počty krokov:
+a zakaždým ho znova zredukuje, kým volanie hodnotou ho zredukuje raz, hneď na začiatku.
+
+<ScreenOnly>
+
+Vyskúšajte term nižšie pri každej stratégii a porovnajte počty krokov:
+
+</ScreenOnly>
 
 </ConceptSection>
 

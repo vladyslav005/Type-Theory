@@ -14,7 +14,7 @@
     {
       "slug": "church-encodings",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Churchove kódovania, rekurzia",
@@ -25,11 +25,99 @@
     {
       "slug": "stlc-basics",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Základy STLC",
           "summary": "Termy, typy a úsudok Γ ⊢ t : T — základ, na ktorom stojí všetko ostatné."
+        }
+      }
+    },
+    {
+      "slug": "typed-unit-products",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Jednotkový typ, odvodené tvary termov, súčinové typy",
+          "summary": "Jednotkový typ, odvodené tvary termov a súčinové typy."
+        }
+      }
+    },
+    {
+      "slug": "sum-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Súčtové typy",
+          "summary": "Súčtové typy a práca s nimi."
+        }
+      }
+    },
+    {
+      "slug": "recursion-lists-recursive-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Rekurzia v typovanom λ-kalkule, zoznamy, rekurzívne typy",
+          "summary": "Rekurzia v typovanom λ-kalkule, zoznamy a rekurzívne typy."
+        }
+      }
+    },
+    {
+      "slug": "type-inference",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Odvodenie typu",
+          "summary": "Odvodenie typu."
+        }
+      }
+    },
+    {
+      "slug": "system-f-let",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Systém F a let polymorfizmus",
+          "summary": "Systém F a let polymorfizmus."
+        }
+      }
+    },
+    {
+      "slug": "system-f-omega",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Systém λω",
+          "summary": "Systém λω."
+        }
+      }
+    },
+    {
+      "slug": "system-lambda-p",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Systém λP",
+          "summary": "Systém λP."
+        }
+      }
+    },
+    {
+      "slug": "curry-howard",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Curry–Howardova korešpondencia",
+          "summary": "Curry–Howardova korešpondencia."
         }
       }
     }

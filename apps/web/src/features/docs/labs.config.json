@@ -1,0 +1,114 @@
+{
+  "labs": [
+    {
+      "slug": "nbl",
+      "visible": true,
+      "translations": {
+        "sk": {
+          "title": "Netypovaný jazyk NBL",
+          "summary": "Syntaktická analýza termov, overenie ich korektnosti, veľkosť, hĺbka, konštanty a vyhodnotenie."
+        }
+      },
+      "openable": true
+    },
+    {
+      "slug": "lambda-church",
+      "visible": true,
+      "translations": {
+        "sk": {
+          "title": "λ-kalkul, Churchove kódovanie",
+          "summary": "Zátvorky, voľné a viazané premenné, vyhodnotenie λ-termov a programovanie v λ-kalkule."
+        }
+      },
+      "openable": false
+    },
+    {
+      "slug": "recursion-untyped",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Rekurzia v netypovanom λ-kalkule",
+          "summary": "Rekurzia v netypovanom λ-kalkule."
+        }
+      }
+    },
+    {
+      "slug": "typed-nbl-stlc",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Typovaný NBL a jednoducho typovaný λ-kalkul",
+          "summary": "Typovaný NBL a jednoducho typovaný λ-kalkul."
+        }
+      }
+    },
+    {
+      "slug": "let-products",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Väzba let a súčinové typy",
+          "summary": "Väzba let a súčinové typy."
+        }
+      }
+    },
+    {
+      "slug": "sum-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Súčtové typy",
+          "summary": "Súčtové typy."
+        }
+      }
+    },
+    {
+      "slug": "recursion-lists",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Rekurzia a zoznamy",
+          "summary": "Rekurzia a zoznamy."
+        }
+      }
+    },
+    {
+      "slug": "recursive-types",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Rekurzívne typy",
+          "summary": "Rekurzívne typy."
+        }
+      }
+    },
+    {
+      "slug": "type-inference",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Odvodenie typu",
+          "summary": "Odvodenie typu."
+        }
+      }
+    },
+    {
+      "slug": "let-polymorphism-system-f",
+      "visible": true,
+      "openable": false,
+      "translations": {
+        "sk": {
+          "title": "Let polymorfizmus a Systém F",
+          "summary": "Let polymorfizmus a Systém F."
+        }
+      }
+    }
+  ]
+}

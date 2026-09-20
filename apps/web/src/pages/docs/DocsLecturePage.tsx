@@ -3,9 +3,9 @@ import {motion} from "framer-motion";
 import {Link, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {MDXProvider} from "@mdx-js/react";
-import {BookOpen, Download} from "lucide-react";
+import {Download} from "lucide-react";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
-import {EmptyState} from "@/shared/components/EmptyState.tsx";
+import {ComingSoonPanel} from "@/shared/components/ComingSoonPanel.tsx";
 import {Callout, MobileTableOfContents, TableOfContents, type TocItem} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
 import {mdxComponents} from "@/features/docs/lectures/mdxComponents.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
@@ -22,6 +22,8 @@ export function DocsLecturePage() {
   // A hidden lecture doesn't exist as far as the reader is concerned — same as no slug match.
   const lecture = entry?.visible ? entry : undefined;
   const text = lecture ? getLectureText(lecture, i18n.language) : undefined;
+  const openable = LECTURE_REGISTRY.filter((l) => l.visible && l.openable);
+  const nearestOpenable = [...openable.filter((l) => LECTURE_REGISTRY.indexOf(l) < index).reverse(), ...openable.filter((l) => LECTURE_REGISTRY.indexOf(l) > index)][0];
   const resolved = lecture?.openable && slug ? resolveLectureContent(slug, i18n.language) : undefined;
 
   // Derived from the rendered MDX (see extractOutline.ts) rather than a hand-maintained
@@ -97,10 +99,8 @@ export function DocsLecturePage() {
       </div>
 
       {!resolved ? (
-        <EmptyState
-          icon={BookOpen}
-          message="This lecture hasn't been written yet — check back soon."
-          className="min-h-64"
+        <ComingSoonPanel
+          continueTo={nearestOpenable && {to: `/docs/${nearestOpenable.slug}`, title: getLectureText(nearestOpenable, i18n.language).title}}
         />
       ) : (
         <div className="xl:flex xl:gap-8">

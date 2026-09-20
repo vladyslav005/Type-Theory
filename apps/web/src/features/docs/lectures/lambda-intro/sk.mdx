@@ -8,6 +8,7 @@ import {
   ReferenceList,
   RuleAnatomy,
   RuleCardStrip,
+  ScreenOnly,
   SectionHeading,
   SummaryBox,
   TryItBox,
@@ -130,18 +131,42 @@ Zoberme term
 Jeho abstraktný strom má v koreni `succ`, ten obsahuje `pred`, ten `if` s podmienkou `iszero (pred 0)`
 a vetvami `succ 0` a `succ (succ 0)`.
 
+Pri kreslení stromu pamätajte: `true`, `false` a `0` sú listy (bez potomkov), `succ`, `pred` a `iszero`
+majú **jedného** potomka a `if` má **troch** — podmienku, vetvu *then* a vetvu *else*.
+
 Že <Math>{"t \\in Term"}</Math>, dokážeme **odvodzovacím stromom**:
 
 - v koreni je dokazované tvrdenie <Math>{"t \\in Term"}</Math>,
 - v každom kroku použijeme jedno pravidlo (S-Succ, S-Pred, S-If, …) a rozpadneme term na podtermy,
 - dôkaz je hotový, keď sú **všetky listy axiómy** (S-Zero, S-True, S-False).
 
-**Veľkosť termu** (počet uzlov stromu) sa definuje rekurzívne podľa tvaru: konštanta má veľkosť 1,
-`succ t`, `pred t` a `iszero t` majú <Math>{"size(t) + 1"}</Math> a `if` má súčet veľkostí troch
-podtermov plus 1. Náš term má teda veľkosť **11**. Podobne sa definuje aj **hĺbka** (najdlhšia
-vetva, u nás 6) a **množina konštánt** (u nás len <Math>{"\\{0\\}"}</Math>). Takto definované funkcie sa
-používajú na dôkazy vlastností jazyka pomocou *štrukturálnej indukcie*, napríklad že počet rôznych
-konštánt v terme nie je väčší ako jeho veľkosť.
+Krátky príklad na termu `succ (pred 0)`, od koreňa k listom:
+
+<ReductionTrace
+  title="Dôkaz, že succ (pred 0) ∈ Term"
+  steps={[
+    {term: "succ (pred 0) ∈ Term"},
+    {term: "pred 0 ∈ Term", rule: "S-Succ"},
+    {term: "0 ∈ Term", rule: "S-Pred"},
+    {term: "hotovo — 0 je axióma", rule: "S-Zero"},
+  ]}
+/>
+
+Že term nie je platný, sa prejaví tak, že sa dôkaz nedá dokončiť: napríklad `if true then 0 else 0 else 0`
+má navyše `else`, a preto nezodpovedá žiadnemu pravidlu.
+
+Každý term sa dá **zmerať** troma vlastnosťami, ktoré sa počítajú rekurzívne podľa jeho tvaru:
+
+| Tvar termu | Veľkosť (počet uzlov) | Hĺbka (najdlhšia vetva) | Konštanty |
+|------------|-----------------------|-------------------------|-----------|
+| `true`, `false`, `0` | 1 | 1 | samotná konštanta |
+| `succ t`, `pred t`, `iszero t` | <Math>{"size(t) + 1"}</Math> | <Math>{"depth(t) + 1"}</Math> | konštanty z `t` |
+| `if t₁ then t₂ else t₃` | súčet veľkostí troch podtermov + 1 | najväčšia hĺbka z troch podtermov + 1 | zjednotenie konštánt z troch podtermov |
+
+Pre náš term je veľkosť **11**, hĺbka **6** (najdlhšia vetva vedie cez `succ`, `pred`, `if`, `iszero`,
+`pred`, `0`) a množina konštánt <Math>{"\\{0\\}"}</Math>. Funkcie definované takto po častiach sa používajú na dôkazy
+vlastností jazyka pomocou *štrukturálnej indukcie*, napríklad že počet rôznych konštánt v terme
+nie je väčší ako jeho veľkosť.
 
 </ConceptSection>
 
@@ -196,7 +221,8 @@ použije „skutočné“ pravidlo:
 
 Netypovaný NBL dovoľuje napísať term `succ true`. Je syntakticky správny (dá sa dokázať
 <Math>{"\\text{succ}\\ \\text{true} \\in Term"}</Math>), no žiadne pravidlo sa naň nedá použiť —
-vyhodnotenie sa **zasekne** (*stuck*) a term nemá význam.
+vyhodnotenie sa **zasekne** (*stuck*) a term nemá význam. Podobne sa zasekne `pred false` alebo
+`iszero true`: pravidlá počítajú len s číselnými hodnotami `nv`.
 
 Pridanie **typového systému** dokáže takéto termy odhaliť už pri kontrole, pred spustením. Presne na
 to slúži zvyšok kurzu.
@@ -371,7 +397,11 @@ vo vnútri abstrakcie. Podčiarknutý je vždy redex, ktorý sa práve redukuje.
   ]}
 />
 
+<ScreenOnly>
+
 Vyskúšajte to sami a porovnajte stratégie:
+
+</ScreenOnly>
 
 <ReductionStrategyExplorer
   term={"id = λ x . x;\nid (id (λ z . id z));"}

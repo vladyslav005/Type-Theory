@@ -183,6 +183,11 @@ export function PipelineDiagram({steps}: {steps: PipelineStep[]}) {
 }
 
 // Unlabeled example rule, teaching the premises/line/conclusion convention before real ones show up.
+// Wraps text that points at an interactive widget (print:hidden) so no dangling "try it below" reaches a PDF.
+export function ScreenOnly({children}: {children: ReactNode}) {
+  return <div className="space-y-4 print:hidden">{children}</div>;
+}
+
 export function RuleAnatomy() {
   const {t} = useTranslation();
   return (
@@ -354,7 +359,7 @@ export function SummaryBox({id, points, next}: {id?: string; points: SummaryPoin
           </li>
         ))}
       </ul>
-      {next && <p className="text-sm text-muted-foreground mt-3 pt-3 border-t">{next}</p>}
+      {next && <p className="text-sm text-muted-foreground mt-3 pt-3 border-t print:hidden">{next}</p>}
     </div>
   );
 }

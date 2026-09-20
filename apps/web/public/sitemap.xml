@@ -2,26 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://type-theory.dev/</loc>
-    <lastmod>2026-09-15</lastmod>
+    <lastmod>2026-09-20</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs</loc>
-    <lastmod>2026-09-15</lastmod>
+    <lastmod>2026-09-20</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs/rules</loc>
-    <lastmod>2026-09-15</lastmod>
+    <lastmod>2026-09-20</lastmod>
   </url>
   <url>
     <loc>https://type-theory.dev/docs/grammar</loc>
-    <lastmod>2026-09-15</lastmod>
+    <lastmod>2026-09-20</lastmod>
   </url>
   <url>
-    <loc>https://type-theory.dev/docs/church-encodings</loc>
-    <lastmod>2026-09-15</lastmod>
-  </url>
-  <url>
-    <loc>https://type-theory.dev/docs/stlc-basics</loc>
-    <lastmod>2026-09-15</lastmod>
+    <loc>https://type-theory.dev/docs/lambda-intro</loc>
+    <lastmod>2026-09-20</lastmod>
   </url>
 </urlset>

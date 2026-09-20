@@ -1,0 +1,56 @@
+export const terms = [
+  "if iszero 0 then true else false",
+  "if iszero (pred (succ 0)) then true else false",
+  "succ( if iszero (succ (succ 0)) then false else (pred (succ (succ 0))))",
+  "pred( iszero( if iszero (pred (succ (succ (succ 0)))) then true else (succ (succ 0))))",
+  "succ( if iszero (succ (succ (pred (succ (succ (succ 0)))))) then (succ (succ (pred (succ 0)))) else (pred (succ (succ 0))) else (pred (succ (succ 0))))",
+]
+
+## Ciele
+
+Po tomto cvičení viete: spracovať term jazyka NBL do syntaktického stromu, overiť, či patrí do
+množiny `Term`, určiť jeho veľkosť, hĺbku a množinu konštánt a vyhodnotiť ho.
+
+
+## Krok 1
+
+Majme dané nasledujúce termy jazyka NBL.
+
+<NblTerms terms={terms} />
+
+### Úloha 1.1
+
+Zostrojte abstraktný syntaktický strom pre každý z termov.
+
+<NblTask type="tree" terms={terms} />
+
+### Úloha 1.2
+
+Overte, či všetky termy patria do množiny `Term` jazyka NBL.
+
+<NblTask type="valid" terms={terms} />
+
+### Úloha 1.3
+
+Vypočítajte veľkosť každého termu.
+
+<NblTask type="size" terms={terms} />
+
+### Úloha 1.4
+
+Určte hĺbku každého termu.
+
+<NblTask type="depth" terms={terms} />
+
+### Úloha 1.5
+
+Určte množinu konštánt jednotlivých termov.
+
+<NblTask type="constants" terms={terms} />
+
+### Úloha 1.6
+
+Vyhodnoťte všetky termy: zapisujte term po každom kroku vyhodnotenia a na konci určte, či výpočet
+skončil hodnotou, alebo sa zasekol.
+
+<NblTask type="evaluate" terms={terms} />

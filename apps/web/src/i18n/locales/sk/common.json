@@ -82,7 +82,8 @@
     "reference": "Referencie",
     "rules": "Pravidlá",
     "grammar": "Gramatika a symboly",
-    "menu": "Menu príručky"
+    "menu": "Menu príručky",
+    "labs": "Cvičenia"
   },
   "docsLecture": {
     "notFoundTitle": "Prednáška sa nenašla",
@@ -91,7 +92,10 @@
     "downloadPdf": "Stiahnuť PDF",
     "notTranslatedTitle": "Zatiaľ nepreložené",
     "notTranslatedMessage": "Táto prednáška zatiaľ nie je dostupná vo vašom jazyku — zobrazuje sa verzia: {{language}}.",
-    "downloadPdfTooltip": "Stiahnuť túto prednášku ako PDF, naformátované na tlač"
+    "downloadPdfTooltip": "Stiahnuť túto prednášku ako PDF, naformátované na tlač",
+    "comingSoonTitle": "Táto prednáška sa pripravuje",
+    "comingSoonBody": "Obsah zatiaľ nie je zverejnený. Medzitým môžete pokračovať inou prednáškou alebo sa vrátiť na prehľad.",
+    "comingSoonContinue": "Pokračovať: {{title}}"
   },
   "lectureBlocks": {
     "onThisPage": "Na tejto stránke",
@@ -1016,5 +1020,54 @@
     },
     "trace": "Kroky redukcie",
     "diverges": "Vyhodnotenie sa nezastavilo — prerušili sme ho po {{count}} krokoch. Tento term sa pri tejto stratégii redukuje donekonečna (diverguje)."
+  },
+  "docsLab": {
+    "lab": "Cvičenie",
+    "notFoundTitle": "Cvičenie sa nenašlo",
+    "notFoundMessage": "Na tejto adrese nie je žiadne cvičenie.",
+    "comingSoonTitle": "Toto cvičenie sa pripravuje",
+    "comingSoonBody": "Obsah zatiaľ nie je zverejnený. Medzitým môžete pokračovať iným cvičením alebo sa vrátiť na prehľad."
+  },
+  "labWidgets": {
+    "pickNode": "vyberte…",
+    "check": "Skontrolovať",
+    "tryAgain": "Ešte nie — skúste znova.",
+    "correct": "Správne.",
+    "showSolution": "Ukázať riešenie",
+    "hideSolution": "Skryť riešenie",
+    "belongs": "Patrí do Term",
+    "notBelongs": "Nepatrí",
+    "validYes": "Áno, patrí do Term.",
+    "validNo": "Nie, nie je platný term: {{detail}}.",
+    "notInTerm": "Tento term nepatrí do Term ({{detail}}), preto pre neho úloha nemá odpoveď.",
+    "unknownConstant": "„{{name}}“ nie je konštanta NBL (0, true, false).",
+    "treeIncomplete": "Najprv vyplňte všetky uzly stromu.",
+    "noStepLeft": "Už sa nedá nič zredukovať — ukončite nižšie.",
+    "cannotRead": "Tento term sa nedá prečítať: {{detail}}.",
+    "notNextStep": "Toto nie je výsledok jedného kroku vyhodnotenia.",
+    "stepRule": "Správne — pravidlo {{rule}}.",
+    "canStillReduce": "Term sa dá ešte zredukovať.",
+    "endedValue": "Vyhodnotenie končí hodnotou {{value}}.",
+    "endedStuck": "Vyhodnotenie sa zasekne pri {{term}} — žiadne pravidlo sa nedá použiť a nie je to hodnota.",
+    "nextStepPlaceholder": "term po jednom kroku",
+    "itIsValue": "Je to hodnota",
+    "itIsStuck": "Zasekne sa",
+    "parensChanged": "To je iný term — pridanie zátvoriek nesmie zmeniť význam.",
+    "parensMissing_one": "Ten istý term, ale ešte chýba {{count}} pár zátvoriek.",
+    "parensMissing_few": "Ten istý term, ale ešte chýbajú {{count}} páry zátvoriek.",
+    "parensMissing_other": "Ten istý term, ale ešte chýba {{count}} párov zátvoriek.",
+    "parensOk": "Správne — každá aplikácia aj operand je v zátvorkách.",
+    "scopeWrong": "Niektoré výskyty sú nesprávne (alebo ešte neoznačené) — červený rámik znamená chybu.",
+    "scopeToggleHint": "Kliknutím prepnete: neoznačená → voľná → viazaná",
+    "scopeLegend": "Kliknutím na každý výskyt premennej ho označte: oranžová = voľná, modrá = viazaná.",
+    "diverges": "Tento term nedospeje k normálnej forme.",
+    "afterEta": "po η-redukcii:",
+    "normalFormPlaceholder": "normálna forma",
+    "churchPlaceholder": "napr. true, 3 alebo λ-term",
+    "definePlaceholder": "napíšte λ-term, napr. λ x . x",
+    "runTests": "Spustiť testy",
+    "testsPassed": "Prešlo {{passed}} z {{total}} testov.",
+    "practiceSteps": "Krok za krokom",
+    "hideSteps": "Skryť kroky"
   }
 }

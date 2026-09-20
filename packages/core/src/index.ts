@@ -50,3 +50,4 @@ export {
   texTreeToEbproofDocument,
   type ExportTree,
 } from "@/presentation/tex/ebproofExport";
+export * from "@/nbl/nbl";

@@ -1,10 +1,11 @@
 import {useState} from "react";
 import {NavLink, Outlet, useLocation} from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import {BookOpen, Menu, ScrollText, Sigma, X} from "lucide-react";
+import {BookOpen, FlaskConical, GraduationCap, Menu, ScrollText, Sigma, X} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
+import {LAB_REGISTRY, getLabText} from "@/features/docs/labs/labRegistry.ts";
 
 const navLinkClass = ({isActive}: {isActive: boolean}) =>
   cn(
@@ -17,6 +18,7 @@ const navLinkClass = ({isActive}: {isActive: boolean}) =>
 function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
   const {t, i18n} = useTranslation();
   const visibleLectures = LECTURE_REGISTRY.filter((lecture) => lecture.visible);
+  const visibleLabs = LAB_REGISTRY.filter((lab) => lab.visible);
 
   return (
     <nav className="space-y-6">
@@ -30,7 +32,8 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
       </div>
 
       <div>
-        <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="flex items-center gap-1.5 px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <GraduationCap className="h-3.5 w-3.5 shrink-0"/>
           {t("docsLayout.lectures")}
         </p>
         <ol className="space-y-1">
@@ -48,6 +51,29 @@ function SidebarContent({onNavigate}: {onNavigate?: () => void}) {
           ))}
         </ol>
       </div>
+
+      {visibleLabs.length > 0 && (
+        <div>
+          <p className="flex items-center gap-1.5 px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <FlaskConical className="h-3.5 w-3.5 shrink-0"/>
+            {t("docsLayout.labs")}
+          </p>
+          <ol className="space-y-1">
+            {visibleLabs.map((lab, index) => (
+              <li key={lab.slug}>
+                <NavLink to={`/docs/labs/${lab.slug}`} className={navLinkClass} onClick={onNavigate}>
+                  <span className="flex gap-2.5">
+                    <span className="text-muted-foreground/60 tabular-nums shrink-0">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    {getLabText(lab, i18n.language).title}
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       <div>
         <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">

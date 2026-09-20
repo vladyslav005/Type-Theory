@@ -82,7 +82,8 @@
     "reference": "Reference",
     "rules": "Rules",
     "grammar": "Grammar & Symbols",
-    "menu": "Guide Menu"
+    "menu": "Guide Menu",
+    "labs": "Labs"
   },
   "docsLecture": {
     "notFoundTitle": "Lecture not found",
@@ -91,7 +92,10 @@
     "downloadPdf": "Download PDF",
     "notTranslatedTitle": "Not yet translated",
     "notTranslatedMessage": "This lecture isn't available in your language yet — showing the {{language}} version.",
-    "downloadPdfTooltip": "Download this lecture as a PDF, formatted for printing"
+    "downloadPdfTooltip": "Download this lecture as a PDF, formatted for printing",
+    "comingSoonTitle": "This lecture is being prepared",
+    "comingSoonBody": "The content isn't published yet. Until then, you can continue with another lecture or go back to the overview.",
+    "comingSoonContinue": "Continue with: {{title}}"
   },
   "lectureBlocks": {
     "onThisPage": "On this page",
@@ -1013,5 +1017,53 @@
     },
     "trace": "Reduction steps",
     "diverges": "The evaluation didn't stop — it was cut off after {{count}} steps. This term keeps reducing forever (it diverges) under this strategy."
+  },
+  "docsLab": {
+    "lab": "Lab",
+    "notFoundTitle": "Lab not found",
+    "notFoundMessage": "There's no lab at this address.",
+    "comingSoonTitle": "This lab is being prepared",
+    "comingSoonBody": "The content isn't published yet. Until then, you can continue with another lab or go back to the overview."
+  },
+  "labWidgets": {
+    "pickNode": "choose…",
+    "check": "Check",
+    "tryAgain": "Not quite — try again.",
+    "correct": "Correct.",
+    "showSolution": "Show solution",
+    "hideSolution": "Hide solution",
+    "belongs": "Belongs to Term",
+    "notBelongs": "Does not belong",
+    "validYes": "Yes, it belongs to Term.",
+    "validNo": "No, it is not a valid term: {{detail}}.",
+    "notInTerm": "This term is not in Term ({{detail}}), so this task has no answer for it.",
+    "unknownConstant": "“{{name}}” is not a constant of NBL (0, true, false).",
+    "treeIncomplete": "Fill in every node of the tree first.",
+    "noStepLeft": "Nothing can be reduced any further — finish below.",
+    "cannotRead": "Couldn't read that term: {{detail}}.",
+    "notNextStep": "That's not what one evaluation step gives.",
+    "stepRule": "Correct — rule {{rule}}.",
+    "canStillReduce": "The term can still be reduced.",
+    "endedValue": "The evaluation ends in the value {{value}}.",
+    "endedStuck": "The evaluation gets stuck at {{term}} — no rule applies and it is not a value.",
+    "nextStepPlaceholder": "the term after one step",
+    "itIsValue": "It's a value",
+    "itIsStuck": "It gets stuck",
+    "parensChanged": "That's a different term — adding parentheses must not change the meaning.",
+    "parensMissing_one": "Same term, but {{count}} pair of parentheses is still missing.",
+    "parensMissing_other": "Same term, but {{count}} pairs of parentheses are still missing.",
+    "parensOk": "Correct — every application and operand is parenthesized.",
+    "scopeWrong": "Some occurrences are wrong (or not marked yet) — red ring means wrong.",
+    "scopeToggleHint": "Click to switch: unmarked → free → bound",
+    "scopeLegend": "Click each variable occurrence to mark it: orange = free, blue = bound.",
+    "diverges": "This term does not reach a normal form.",
+    "afterEta": "after η-reduction:",
+    "normalFormPlaceholder": "the normal form",
+    "churchPlaceholder": "e.g. true, 3, or a λ-term",
+    "definePlaceholder": "write a λ-term, e.g. λ x . x",
+    "runTests": "Run tests",
+    "testsPassed": "{{passed}} of {{total}} tests passed.",
+    "practiceSteps": "Step by step",
+    "hideSteps": "Hide steps"
   }
 }
