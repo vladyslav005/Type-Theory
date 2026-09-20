@@ -1,13 +1,24 @@
 {
   "lectures": [
     {
+      "slug": "lambda-intro",
+      "visible": true,
+      "openable": true,
+      "translations": {
+        "sk": {
+          "title": "Úvod, jazyk NBL, λ-kalkul",
+          "summary": "Typové systémy, formálna definícia syntaxe a sémantiky na jazyku NBL a netypovaný λ-kalkul: substitúcia, β-redukcia a redukčné stratégie."
+        }
+      }
+    },
+    {
       "slug": "church-encodings",
       "visible": true,
       "openable": true,
       "translations": {
-        "en": {
-          "title": "Church encodings, Recursion",
-          "summary": "Church encodings, Recursion"
+        "sk": {
+          "title": "Churchove kódovania, rekurzia",
+          "summary": "Churchove kódovania, rekurzia"
         }
       }
     },
@@ -16,9 +27,9 @@
       "visible": true,
       "openable": true,
       "translations": {
-        "en": {
-          "title": "STLC Basics",
-          "summary": "Terms, types, and the Γ ⊢ t : T judgement — the foundation everything else builds on."
+        "sk": {
+          "title": "Základy STLC",
+          "summary": "Termy, typy a úsudok Γ ⊢ t : T — základ, na ktorom stojí všetko ostatné."
         }
       }
     }

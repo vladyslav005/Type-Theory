@@ -75,14 +75,14 @@ export function DocsLecturePage() {
           <p className="text-muted-foreground mt-2 max-w-2xl leading-relaxed">{text.summary}</p>
         </div>
         {/* Pre-rendered at build time (scripts/gen-lecture-pdfs.mjs), not generated client-side —
-            see the PDF-export postmortem in project memory for why. isFallback ⇒ the on-screen
-            content is the English file, so the generated PDF is filed under "en" too. */}
+            see the PDF-export postmortem in project memory for why. The PDF is filed under
+            the locale of the file actually on screen, which differs from the UI language on a fallback. */}
         {resolved && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  href={`/lectures-pdf/${resolved.isFallback ? "en" : i18n.language}/${lecture.slug}.pdf`}
+                  href={`/lectures-pdf/${resolved.locale}/${lecture.slug}.pdf`}
                   download
                   className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
@@ -110,8 +110,8 @@ export function DocsLecturePage() {
             )}
 
             {resolved.isFallback && (
-              <Callout title="Not yet translated">
-                This lecture isn't translated into your language yet — showing the English version.
+              <Callout title={t("docsLecture.notTranslatedTitle")}>
+                {t("docsLecture.notTranslatedMessage", {language: t(`language.${resolved.locale}`, resolved.locale)})}
               </Callout>
             )}
 

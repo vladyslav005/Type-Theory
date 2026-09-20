@@ -1,0 +1,352 @@
+import {Link} from "react-router-dom";
+import {
+  Callout,
+  ConceptSection,
+  GrammarBox,
+  Math,
+  MathBlock,
+  PipelineDiagram,
+  ReferenceList,
+  RuleAnatomy,
+  RuleCardStrip,
+  SectionHeading,
+  SummaryBox,
+  TryItBox,
+} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {MiniWorkspace} from "@/features/docs/workspace/MiniWorkspace.tsx";
+import {PredictThenVerify} from "@/features/docs/workspace/PredictThenVerify.tsx";
+import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
+import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
+
+Táto prednáška nadväzuje na dve predchádzajúce: v úvodnej ste si definovali λ-kalkul a jeho
+redukciu (voľné a viazané premenné, substitúciu, β-redukciu, stratégie) a v Churchových
+kódovaniach ste na netypovanom kalkule postavili booleovské hodnoty, čísla a rekurziu. Teraz
+pribudnú **typy** — a s nimi odpoveď na to, čo tam bolo vidieť: netypový kalkul dovolí napísať aj
+zmysluplné, aj nezmyselné termy a ani nezaručí, že výpočet skončí. Celá prednáška stojí na troch otázkach: ako vyzerá term, dáva zmysel a čo robí, keď
+sa spustí? To je syntax, typovanie a sémantika — tie isté tri otázky, na ktoré odpovedá
+každý jazyk v tejto aplikácii (aj v tomto kurze), len s pribúdajúcim aparátom z prednášky
+na prednášku. Nechajte si čas: každá myšlienka nižšie dostane najprv analógiu z bežného
+života ešte pred zápisom a niečo, čo si môžete reálne spustiť, skôr než vás požiadame, aby ste jej verili.
+
+<SectionHeading id="why-any-of-this" index="0" title="Načo to všetko?" blurb="Chvíľka kontextu, kým sa začne formalizmus." />
+
+<ConceptSection id="what-is-stlc" title='Čo vlastne znamená „STLC"?'>
+
+STLC je skratka pre **Simply Typed Lambda Calculus** (jednoducho typovaný lambda kalkul) — tri slová, tri myšlienky, čítané sprava doľava:
+
+- **Lambda kalkul** je drobný jazyk funkcií, na ktorom stojí celý tento kurz.
+  `λ` je len grécke písmeno, ktoré si Alonzo Church vybral v 30. rokoch 20. storočia na
+  označenie „tu prichádza funkcia".
+- **Typovaný** znamená, že každá časť programu musí mať jeden konkrétny, vopred overený
+  typ — nikdy odhad, nikdy „uvidíme za behu".
+- **Jednoducho** znamená najmenšiu užitočnú verziu „typovania": žiadne generiká, žiadne
+  pokročilé triky. Len toľko, aby to bolo skutočné. Všetko sofistikovanejšie (neskoršie prednášky) sa pridáva navrch, jedna myšlienka za druhou.
+
+</ConceptSection>
+
+<ConceptSection id="types-and-grammars" title="Typy a gramatiky jednoducho">
+
+- **Typ** je sľub o hodnote: „toto je `Bool`" znamená, že je to vždy `true` alebo
+  `false`, nikdy omylom číslo. **Typová kontrola** je len mechanické overenie, že
+  každý sľub v programe je dodržaný — ešte predtým, než sa čokoľvek spustí.
+- **Gramatika** je súbor pravidiel o tom, čo je platná veta — rovnako ako „mačka
+  sedela" je v slovenčine v poriadku, ale „sedela mačka the" nie. Gramatika tejto prednášky robí
+  to isté pre termy: rozhoduje, ktoré reťazce symbolov je vôbec zmysluplné skúmať z hľadiska typu.
+
+</ConceptSection>
+
+<ConceptSection id="flavors-of-typing" title="Kde sa jazyk aplikácie nachádza medzi typovými systémami">
+
+Z úvodnej prednášky poznáte delenie jazykov na statické/dynamické, silné/slabé a
+implicitné/explicitné. Jazyk tejto aplikácie je dnes **statický, silný a explicitný** — najprísnejší a najdôslednejšie
+vypísaný kút tohto priestoru, a práve preto je najprehľadnejším miestom, kde začať. „Explicitný"
+znamená, že typ píšete sami, tak ako `λx:Bool. x` nižšie; odvodzovanie typov (neskoršia
+prednáška) urobí z neho aj implicitný jazyk.
+
+</ConceptSection>
+
+<ConceptSection id="where-youll-see-this-again" title="Kde sa s tým stretnete znova">
+
+Každý staticky typovaný jazyk, ktorý ste použili, už spúšťa nejakú verziu toho, čo
+učí táto aplikácia — zvyčajne skrytú za kompilátorom. Pár myšlienok, ktoré stojí za to pomenovať už teraz,
+lebo ste ich pravdepodobne stretli aj bez názvu:
+
+- **Odvodzovanie typov** — TypeScript, Rust a Kotlin, ktoré odhadnú typ, ktorý ste
+  nenapísali — je úsudok Γ ⊢ t : T, riešené automaticky namiesto kontroly
+  voči anotácii (neskoršia prednáška).
+- **Generiká** — explicitné typové parametre ako `T` v Jave, TypeScripte či Ruste —
+  sú explicitný polymorfizmus (neskoršia prednáška) s prívetivejšou syntaxou.
+- **Option/Result** typy — dôvod, prečo moderné jazyky nepadajú na null — sú
+  súčtové typy (neskoršia prednáška), ktoré odvádzajú skutočnú prácu.
+
+Nič z toho si tu netreba pamätať — stačí to neskôr spoznať, keď už poznáte mechanizmus, ktorý sa za tým skrýva.
+
+</ConceptSection>
+
+<PipelineDiagram
+  steps={[
+    {label: "Zdrojový text", detail: "čo napíšete"},
+    {label: "AST", detail: "spracovaný tvar"},
+    {label: "Γ ⊢ t : T", detail: "prejde typovou kontrolou?"},
+    {label: "Hodnota", detail: "na čo sa vyhodnotí"},
+  ]}
+/>
+
+<SectionHeading id="syntax" index="1" title="Syntax" blurb="Ako vyzerá term a aký je jeho tvar pod povrchom?" />
+
+<Callout title="Aplikácia popri tejto stránke" screenOnly>
+
+Všetko tu sa dá skúsiť v skutočnej aplikácii — otvorte **Editor** v hornej navigácii
+a sledujte. Je to jedna obrazovka: textový editor vľavo a panely vpravo
+(**AST**, **Strom dôkazu**, **Vyhodnotenie**), ktoré sa aktualizujú naživo, ako píšete. Táto
+prednáška predstavuje každý panel samostatne, práve tam, kde sa stáva relevantným.
+
+</Callout>
+
+<ConceptSection id="warm-up" title="Rozcvička: počítanie bez akýchkoľvek funkcií">
+
+Skôr než do hry vstúpia funkcie, gramatika aplikácie už ponúka drobnú
+kalkulačku, ktorá rozumie aj otázkam áno/nie — `true`, `false`, čísla, `if ...
+then ... else ...` a `+ - * /`. To už stačí na napísanie skutočných, kontrolovateľných
+programov:
+
+```
+if true then 1 else 2;
+```
+
+Skúste upraviť pole nižšie — je to ten istý živý kontrolór, aký používa zvyšok prednášky,
+zatiaľ len s konštantami, bez `λ`:
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"if true then 1 else 2;"}
+  label="Vyskúšajte — funkcie netreba"
+  hint='Teraz skúste `true + 1;`. Parsuje sa bez problémov — gramaticky je „true plus jedna" úplne platný tvar termu — ale kontrola ho odmietne. Práve tento rozdiel medzi „parsuje sa" a „dáva zmysel" je dôvod, prečo existujú typovacie pravidlá, ktoré prídu v ďalšej časti.'
+/>
+
+<ConceptSection id="terms" title="Termy">
+
+**Term** je jeden kúsok programového textu — predstavte si ho ako jednu LEGO
+kocku alebo jednu surovinu v recepte. Sám o sebe je už správne utvorený; celý
+program zostavíte skladaním termov dokopy. `5`, `true` a `x` sú každý sám o sebe
+termy; rovnako ako celá funkcia `λx:Bool. x`.
+
+Každý term, ktorému aplikácia rozumie, je postavený len z štyroch tvarov:
+
+- `x` — **premenná**, ktorá zastupuje to, na čo je viazaná.
+- `λx:T. t` — **abstrakcia**: funkcia s parametrom `x` typu `T` a telom `t`.
+- `t u` — **aplikácia**: term `t` zavolaný s argumentom `u`. Žiadny symbol pre
+  „volanie" — oba termy jednoducho napíšete vedľa seba, s medzerou. Reťaz troch
+  termov sa zoskupuje zľava, takže `t u v` znamená `(t u) v` — najprv zavolajte
+  `t` s `u`, potom to, čo sa vráti, zavolajte s `v`.
+- `true`, `false`, čísla a `if ... then ... else` — konštanty z rozcvičky vyššie,
+  formálne súčasť tej istej gramatiky ako všetko ostatné.
+
+To je všetko — všetko v ďalších prednáškach (n-tice, zoznamy, rekurzívne typy,
+polymorfizmus...) sú ďalšie tvary pridané navrch týchto štyroch. Úplná gramatika
+je vždy na stránke [Gramatika a symboly](/docs/grammar); nižšie je len výsek, ktorý táto prednáška používa.
+
+</ConceptSection>
+
+<ConceptSection id="the-arrow" title="Šípka: ako sa zapisuje typ funkcie">
+
+Typ `λx:T1. t2` sa zapisuje `T1 -> T2` — „funkcia, ktorá berie `T1` a vracia
+`T2`". Predstavte si otvor v automate na nápoje: vhodíte presne `T1` (správnu
+mincu) a máte zaručené, že dostanete `T2`, nech sa vo vnútri deje čokoľvek.
+
+`->` je **pravo-asociatívna**, takže `T1 -> T2 -> T3` znamená `T1 -> (T2 -> T3)` — „funkcia,
+ktorá berie `T1` a vracia *ďalšiu funkciu* z `T2` do `T3`".
+Presne takto vyzerá viacparametrová funkcia zapísaná ako
+vnorené abstrakcie s jedným parametrom:
+
+- `λ x : Bool . λ y : Bool . x` má typ `Bool -> Bool -> Bool`, teda
+  `Bool -> (Bool -> Bool)` — dáte jej jeden `Bool` a dostanete funkciu, ktorá stále čaká
+  na druhý.
+
+Každá šípka odoberie presne jeden argument — ten istý trik, z ktorého je postavená každá curryovaná funkcia
+v TS, Haskelli či Ruste.
+
+</ConceptSection>
+
+<GrammarBox grammar={`term ::= ID                                     (* premenná *)
+       | 'λ' ID ':' type '.' term               (* abstrakcia *)
+       | term term                              (* aplikácia *)
+       | term ('+'|'-'|'*'|'/') term             (* aritmetika *)
+       | 'if' term 'then' term 'else' term
+       | 'true' | 'false' | natural-number
+       | '(' term ')'
+
+type ::= ID | 'Bool' | 'Nat' | type '->' type          (* pravo-asociatívna *)`} />
+
+<ConceptSection id="text-to-tree" title="Od textu k stromu">
+
+Z úvodnej prednášky poznáte rozdiel medzi konkrétnou a abstraktnou syntaxou. Parser odovzdá
+typovej kontrole a vyhodnocovaču strom, v ktorom je formátovanie zahodené. Term `(λ x : Bool . x) true`
+sa stane **aplikáciou**, ktorej potomkovia sú **abstrakcia** (parameter `x`, typ `Bool`, telo `x`) a
+**literál** (`true`). Každé pravidlo — typovacie aj vyhodnocovacie — sa definuje porovnávaním
+tvaru tohto stromu. Panel **AST** ho ukazuje naživo; skúste ten istý strom zostaviť ručne nižšie,
+len z doteraz predstavených kúskov.
+
+</ConceptSection>
+
+{/* typeVar is included only because param type is a connectable node, not an inline field. */}
+
+<AstBuilder
+  allowedTypes={["abstraction", "application", "variable", "literal", "typeVar"]}
+  instructions="Zostavte (λ x : Bool . x) true: Aplikáciu, ktorej dvaja potomkovia sú Abstrakcia (parameter x : Bool, telo je Premenná x) a Bool Literál (true). Paleta nižšie ponúka len to, čo prednáška doteraz pokryla — bez skákania dopredu."
+/>
+
+<SectionHeading id="typing" index="2" title="Typovanie" blurb="Vzhľadom na tvar vyššie: dáva tento konkrétny term zmysel?" />
+
+<ConceptSection id="why-bother" title="Načo sa s tým trápiť?">
+
+Pamätáte si `true + 1` z rozcvičky, alebo zaseknuté `succ true` z jazyka NBL? Gramatika vám
+nebráni v napísaní takého termu, ale nič neznamená a pri vyhodnotení sa **zasekne**: nie je hodnotou
+a nevzťahuje sa naň žiadne pravidlo. Typovanie to zachytí *predtým*, než sa čokoľvek spustí, tak, že
+pre každý podterm odpovie na jednu otázku: pri tom, čo je v rozsahu platnosti, dáva to zmysel a čo to
+produkuje? Táto otázka má názov — **typovací úsudok**:
+
+<MathBlock>{"\\Gamma \\vdash t : T"}</MathBlock>
+
+- Čítajte ho ako „v kontexte Γ má term `t` typ `T`".
+- `Γ` (veľké gama) je **kontext** — zoznam parametrov, ktoré sú práve v rozsahu platnosti, každý
+  spárovaný so svojím typom, tak ako signatúra funkcie hovorí, čo je dostupné v jej tele.
+- Uzavretý term (kombinátor z úvodnej prednášky) sa dá kontrolovať voči prázdnemu kontextu; term s
+  voľnými premennými potrebuje Γ, ktoré povie, čo sú zač.
+
+</ConceptSection>
+
+<ConceptSection id="how-to-read-a-rule" title="Ako čítať typovacie pravidlo">
+
+Pravidlo je recept: krátky zoznam vecí, ktoré už musia platiť — **premisy**,
+nad čiarou — a to, čo z nich vyplýva — **záver**, pod ňou. Presne ako skutočný recept: „ak máte tieto suroviny
+pripravené (premisy), môžete uvariť toto jedlo (záver)." Žiadne premisy znamenajú
+jednoducho „platí vždy" — recept, ktorý nepotrebuje nič.
+
+</ConceptSection>
+
+<RuleAnatomy />
+
+Štyri takéto pravidlá pokrývajú všetko podstatné, čo gramatika tejto prednášky dokáže vyjadriť — jedno pre každý tvar termu (konštanty majú triviálne vlastné pravidlá):
+
+<RuleCardStrip
+  ruleIds={["T-Var", "T-Abs", "T-App", "T-If"]}
+  descriptions={{
+    "T-Var": "Typ premennej je to, čo o nej hovorí kontext.",
+    "T-Abs": "Telo sa kontroluje s parametrom pridaným do kontextu; výsledkom je typ funkcie.",
+    "T-App": "Typ argumentu musí zodpovedať typu, ktorý funkcia očakáva.",
+    "T-If": "Podmienka je Bool a obe vetvy majú ten istý typ.",
+  }}
+/>
+
+<Callout title="Príklady a zostať pri čistom STLC" screenOnly>
+
+Rozbaľovací zoznam **Príklady** v hornej lište obsahuje vopred pripravené termy, ak radšej
+jeden načítate, než by ste ho písali. Vedľa neho **Rozšírenia** umožňuje zapnúť
+funkcie neskorších prednášok (polymorfizmus, rekurzívne typy, závislé typy...) —
+zatiaľ nechajte všetko vypnuté. Táto prednáška potrebuje len čisté STLC.
+
+</Callout>
+
+<TryItBox
+  steps={[
+    <>Otvorte <strong>Editor</strong>, vymažte ho a napíšte <code>(λ x : Bool . x) true;</code>.</>,
+    <>Pozrite sa na panel <strong>AST</strong> — ten istý tvar aplikácia/abstrakcia/literál, ktorý ste práve zostavili ručne.</>,
+    <>Prepnite na panel <strong>Strom dôkazu</strong> — je to úsudok Γ ⊢ t : T zostavené naživo, jedno pravidlo na uzol, zodpovedajúce kartám T-App/T-Abs/T-Var/T-Const vyššie.</>,
+    <>Zámerne to pokazte: zmeňte <code>true</code> na <code>5</code>. Premisa T-App, že typ argumentu sa zhoduje s typom parametra, teraz zlyhá a chyba presne ukáže kde.</>,
+  ]}
+/>
+
+Tá istá myšlienka, bez opustenia tejto stránky — upravte term a skontrolujte jeho typ:
+
+<MiniWorkspace
+  initialTerm={"(λ x : Bool . x) true;"}
+  hint="Skúste nahradiť `true` číslom alebo úplne vynechať argument a pozrite sa, ktorej premisy pravidla sa to dotkne."
+/>
+
+<PredictThenVerify
+  term={"λ f : Bool -> Bool . λ x : Bool . f x;"}
+  prompt="Kontrolný bod: táto funkcia berie ďalšiu funkciu a Bool. Zistite jej typ ešte pred odhalením — T-Abs použité dvakrát, zvnútra von."
+/>
+
+<SectionHeading id="semantics" index="3" title="Sémantika" blurb="Term prešiel typovou kontrolou — čo teda vlastne robí, keď sa spustí?" />
+
+<ConceptSection id="evaluation-rule-meaning" title="Vyhodnocovanie: tie isté pravidlá, teraz na typovaných termoch">
+
+Vyhodnocovanie sa oproti úvodnej prednáške nemení: β-redukcia `(λx:T. t) v → [x ↦ v] t`
+s substitúciou, ktorú už poznáte, a pravidlá pre volanie hodnotou. Zmenilo sa len to, že
+parameter má typ. Pripomeňme si: **hodnota** je hotový term (`true`, `5`, neaplikovaná funkcia
+`λx:Bool. x`), `3 + 1` hodnotou nie je. Najprv sa zredukuje pozícia funkcie, potom argument a
+až potom prebehne β-krok:
+
+</ConceptSection>
+
+<RuleCardStrip
+  rules={[
+    {id: "E-App1", premises: ["t_1 \\to t_1'"], conclusion: "t_1\\ t_2 \\to t_1'\\ t_2", description: "Najprv sa zredukuje funkcia."},
+    {id: "E-App2", premises: ["v_1 \\text{ je hodnota}", "t_2 \\to t_2'"], conclusion: "v_1\\ t_2 \\to v_1\\ t_2'", description: "Keď je funkcia hodnotou, zredukuje sa argument."},
+    {id: "E-AppAbs", conclusion: "(\\lambda x.\\, t_{12})\\ v_2 \\to [x \\mapsto v_2]\\, t_{12}", description: "Keď sú funkcia aj argument hodnoty, vykoná sa β-krok.", wide: true},
+  ]}
+/>
+
+<Callout title="Panel Vyhodnotenie" screenOnly>
+
+Späť v aplikácii, panel **Vyhodnotenie** má vlastný výber stratégie, prepínač
+**Krok**/**Všetko** na prechádzanie jednej redukcie po druhej alebo zobrazenie celého
+priebehu naraz a prepínač **Kontext Γ**, ktorý pri každom kroku zobrazuje všetky globálne
+deklarácie `let`/funkcií v rozsahu platnosti.
+
+</Callout>
+
+<ConceptSection id="evaluation-strategies" title="Stratégie vyhodnocovania na typovaných termoch">
+
+Aplikácia podporuje stratégie z úvodnej prednášky: **volanie hodnotou** (predvolené), **volanie
+menom** a **normálne poradie**. Rozdiel je pozorovateľný aj na dobre typovaných termoch: ak sa
+parameter v tele používa viackrát, volanie menom dosadí nevyhodnotený argument na *každé* použitie
+a zakaždým ho znova zredukuje, kým volanie hodnotou ho zredukuje raz, hneď na začiatku. Vyskúšajte
+term nižšie pri každej stratégii a porovnajte počty krokov:
+
+</ConceptSection>
+
+<ReductionStrategyExplorer
+  term={"(λ x : Nat . x + x) ((λ y : Nat . y + 1) 3);"}
+  hint="x sa v tele používa dvakrát — sledujte, koľkokrát sa vnútorné (λy:Nat.y+1) 3 zredukuje pri každej stratégii."
+/>
+
+<ConceptSection id="non-termination" title="Prečo typy zaručia ukončenie">
+
+V úvodnej prednáške ste videli, že `ω ω` sa v netypovanom kalkule zacyklí. Skúste však dať `x x`
+typ v jazyku tejto prednášky a zaseknete sa: `x` by musel byť nejaký typ `T` *a zároveň* funkcia
+`T -> T2` — čisté STLC takýto typ nemá, takže `ω` sa nikdy nepreloží. Nie je to náhoda, je to veta o
+**silnej normalizácii**: každý dobre typovaný term STLC sa zaručene dokončí pri *každej* stratégii
+(to je viac než slabá normalizácia, kde stačí, aby sa dokončila nejaká stratégia). Za túto záruku
+platíme výrazovou silou: čisté STLC nevie napísať cyklus ani rekurziu, ktorú sme v Churchových
+kódovaniach obchádzali kombinátorom pevného bodu. Cyklus sa do typovaného jazyka vracia zámerne,
+novou konštrukciou `fix`, neskôr v kurze.
+
+</ConceptSection>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "Typové systémy", detail: "jazyk aplikácie je statický, silný a explicitný — kontroluje sa pred spustením, nikdy sa potichu neprevádza a je (zatiaľ) plne ručne anotovaný."},
+    {label: "Syntax", detail: "term je premenná, abstrakcia, aplikácia alebo konštanta."},
+    {label: "Typovanie", detail: "Γ ⊢ t : T sa pýta, či term dáva zmysel; štyri pravidlá pokrývajú každý podstatný tvar, ktorý gramatika tejto prednášky pripúšťa."},
+    {label: "Sémantika", detail: "vyhodnocovanie zostáva β-redukciou z úvodnej prednášky; stratégia vyberá poradie redexov, Church–Rosser zaručuje rovnakú odpoveď, a silná normalizácia zaručuje, že dobre typovaný term sa vždy dokončí."},
+  ]}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "Kurz Teória typov na TUKE — Prednáška 1 (Úvod, jazyk NBL, λ-kalkul)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/01.html#:~:text=%2D-,kalkul,-Je%20univerz%C3%A1lny%20form%C3%A1lny,",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages (MIT Press, 2002)",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+  ]}
+/>

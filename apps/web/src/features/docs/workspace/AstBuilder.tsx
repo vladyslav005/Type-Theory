@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {useCallback, useRef, useState} from "react";
 import {Lightbulb} from "lucide-react";
 import {ReactFlowProvider} from "@xyflow/react";
@@ -25,7 +26,8 @@ interface AstBuilderProps {
 }
 
 // Standalone, Redux-free instance of the main app's AST editor.
-export function AstBuilder({label = "Build it yourself", instructions, allowedTypes}: AstBuilderProps) {
+export function AstBuilder({label, instructions, allowedTypes}: AstBuilderProps) {
+  const {t} = useTranslation();
   const astEditorRef = useRef<AstEditorHandle>(null);
 
   const [{ast, graph}, setState] = useState(emptyState);
@@ -43,11 +45,11 @@ export function AstBuilder({label = "Build it yourself", instructions, allowedTy
     <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label ?? t("lectureWidgets.buildYourself")}</p>
           {instructions && <p className="text-xs text-muted-foreground mt-1 max-w-xl">{instructions}</p>}
           <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium mt-1.5">
             <Lightbulb className="h-3.5 w-3.5 shrink-0"/>
-            Tip: drag from a node's edge and drop it on empty space to pick what to connect it to.
+            {t("lectureWidgets.astTip")}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -57,7 +59,7 @@ export function AstBuilder({label = "Build it yourself", instructions, allowedTy
               allowedTypes={allowedTypes}
             />
           </ButtonGroup>
-          <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>
+          <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
         </div>
       </div>
 
@@ -69,7 +71,7 @@ export function AstBuilder({label = "Build it yourself", instructions, allowedTy
 
       <p className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto min-h-[2.5rem]">
         {ast.globals.length === 0 && !ast.term ? (
-          <span className="text-muted-foreground">// add nodes above — the equivalent source text appears here</span>
+          <span className="text-muted-foreground">{t("lectureWidgets.astEmpty")}</span>
         ) : (
           astToText(ast)
         )}

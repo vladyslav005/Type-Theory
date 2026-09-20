@@ -1,0 +1,490 @@
+import {Link} from "react-router-dom";
+import {
+  ConceptSection,
+  GrammarBox,
+  Math,
+  MathBlock,
+  ReductionTrace,
+  ReferenceList,
+  RuleAnatomy,
+  RuleCardStrip,
+  SectionHeading,
+  SummaryBox,
+  TryItBox,
+} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
+
+Začneme tým, čo je typový systém,
+potom si na drobnom jazyku čísel a boolovských hodnôt (NBL) ukážeme, ako sa *presne* definuje
+jazyk — jeho tvar (syntax) aj správanie (sémantika) — a nakoniec to isté urobíme pre λ-kalkul,
+na ktorom stojí celá táto aplikácia. História je len naznačená; dôležité je, čo si môžete vyskúšať.
+
+<SectionHeading id="basics" index="0" title="Základné pojmy" blurb="Čo je typový systém a v čom sa jazyky líšia." />
+
+<ConceptSection id="type-system" title="Typ, typový systém, teória typov">
+
+**Typ** je množina hodnôt, ktoré sa dajú v počítači reprezentovať, spolu s operáciami, ktoré sa
+s nimi dajú robiť. Napríklad `Bool` má hodnoty `true` a `false`.
+
+**Typový systém** je metóda, ktorá:
+
+- zavádza základné typy jazyka a ich operácie,
+- popisuje, ako sa skladajú jednoduché a zložené typy,
+- priraďuje typ každej vypočítanej hodnote (typová anotácia),
+- dokazuje, že program sa nebude správať chybne (type checking).
+
+**Teória typov** študuje princípy a vlastnosti typových systémov — je to formálny popis nejakého
+typového systému.
+
+</ConceptSection>
+
+<ConceptSection id="typing-flavors" title="Tri voľby, ktoré robí každý jazyk">
+
+| Otázka | Jedna možnosť | Druhá možnosť |
+|--------|---------------|---------------|
+| **Kedy sa typy kontrolujú?** | **Staticky** — pred spustením, pri kompilácii. Chyby vidíte skôr. | **Dynamicky** — až za behu. Rýchlejšie prototypovanie, ale chyby môžu vyskočiť neskôr. |
+| **Ako prísne?** | **Silne** — operácia s nezhodnými typmi je chyba. | **Slabo** — typy sa potichu prevádzajú, čo môže priniesť prekvapivé výsledky. |
+| **Kto píše typy?** | **Explicitne** — programátor. | **Implicitne** — prekladač ich odvodí sám. |
+
+</ConceptSection>
+
+<ConceptSection id="history" title="Prečo práve λ-kalkul">
+
+Matematici sa v 30. rokoch 20. storočia pýtali, čo vlastne znamená „dá sa to vypočítať". Tri rôzne
+odpovede sa ukázali ako rovnocenné:
+
+| Model | Autor | Nápad |
+|-------|-------|-------|
+| **Turingov stroj** | Alan Turing, 1936 | Páska, hlava a konečný počet stavov. |
+| **Rekurzívne funkcie** | Gödel, Kleene | Funkcie na číslach z rekurzie, skladania a hľadania minima. |
+| **λ-kalkul** | Alonzo Church, 1929–1932 | Všetko je funkcia. |
+
+Zároveň sa ukázalo, že **neexistuje algoritmus**, ktorý by pre každé matematické tvrdenie rozhodol,
+či je pravdivé (Entscheidungsproblem; Turing to dokázal cez problém zastavenia), a že v
+dostatočne silných systémoch existujú tvrdenia, ktoré sa nedajú ani dokázať, ani vyvrátiť (Gödelove
+vety o neúplnosti). Pre nás z toho plynie jedno: λ-kalkul umožňuje nekonečné cykly, a preto pri ňom
+môže platiť, že výpočet neskončí. Zaujímavosť: Church bol Turingovým školiteľom a λ-kalkul
+sa stal základom funkcionálnych programovacích jazykov.
+
+</ConceptSection>
+
+<SectionHeading id="nbl" index="1" title="Jazyk NBL" blurb="Malý jazyk čísel a boolovských hodnôt — ako sa definuje syntax a sémantika." />
+
+<ConceptSection id="formal-definition" title="Čo znamená „definovať jazyk“">
+
+**Term** je syntaktická fráza, ktorá reprezentuje výpočet. Formálna definícia jazyka má dve časti:
+
+- **syntax** — ktoré termy sú platné (tvar programov),
+- **sémantika** — čo termy znamenajú, teda ako sa vyhodnocujú.
+
+Rozlišujeme dve úrovne syntaxe:
+
+- **konkrétna syntax** je presný zápis: znaky, kľúčové slová, zátvorky (to, čo píšete do editora),
+- **abstraktná syntax** je logická štruktúra kódu — strom, s ktorým pracuje prekladač alebo
+  interpreter (to, čo ukazuje panel **AST**).
+
+Formálne sa používa abstraktná syntax a dá sa zadať tromi spôsobmi: gramatikou v BNF,
+induktívne, alebo odvodzovacími pravidlami. Všetky tri si ukážeme na NBL.
+
+</ConceptSection>
+
+<ConceptSection id="nbl-syntax" title="Syntax NBL">
+
+Množinu platných termov nazveme <Math>{"Term"}</Math>. Gramatika v **Backusovej–Naurovej forme (BNF)**:
+
+<GrammarBox title="NBL — syntax" grammar={`t ::= true | false | 0
+    | succ t | pred t | iszero t
+    | if t then t else t`} />
+
+- `::=` oddeľuje ľavú a pravú stranu pravidla, `|` oddeľuje alternatívy.
+- `t` je **metapremenná**: za `t` môžete dosadiť ľubovoľný term. „Meta“ preto, že nepatrí do jazyka
+  NBL, ale do jazyka, ktorým NBL popisujeme.
+
+**Induktívne** to isté znie: <Math>{"Term"}</Math> je *najmenšia* množina, ktorá obsahuje `true`, `false`, `0`,
+s každým termom aj `succ t`, `pred t`, `iszero t` a s troma termami aj `if t then t else t`. Slovo „najmenšia“
+znamená, že iný term už nevznikne.
+
+**Odvodzovacie pravidlá** sú tretí zápis. Pravidlo má predpoklady nad čiarou a záver pod ňou; ak nemá
+žiadne predpoklady, nazýva sa **axióma**:
+
+<RuleAnatomy />
+
+<RuleCardStrip
+  rules={[
+    {id: "S-Zero", conclusion: "0 \\in Term", description: "Axióma. Rovnako S-True a S-False."},
+    {id: "S-Succ", premises: ["t_1 \\in Term"], conclusion: "\\mathit{succ}\\ t_1 \\in Term", description: "Rovnako S-Pred a S-IsZero."},
+    {id: "S-If", premises: ["t_1 \\in Term", "t_2 \\in Term", "t_3 \\in Term"], conclusion: "\\mathit{if}\\ t_1\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\in Term", description: "Podmienka aj obe vetvy musia byť termy.", wide: true},
+  ]}
+/>
+
+Pravidlá syntaxe označujeme S-…, aby sa nepomýlili s typovacími pravidlami T-… z ďalších prednášok.
+
+</ConceptSection>
+
+<ConceptSection id="nbl-proof" title="Príklad: strom a dôkaz, že term je platný">
+
+Zoberme term
+
+<MathBlock>{"t = \\mathit{succ}(\\mathit{pred}(\\mathit{if}\\ \\mathit{iszero}(\\mathit{pred}\\ 0)\\ \\mathit{then}\\ \\mathit{succ}\\ 0\\ \\mathit{else}\\ \\mathit{succ}(\\mathit{succ}\\ 0)))"}</MathBlock>
+
+Jeho abstraktný strom má v koreni `succ`, ten obsahuje `pred`, ten `if` s podmienkou `iszero (pred 0)`
+a vetvami `succ 0` a `succ (succ 0)`.
+
+Že <Math>{"t \\in Term"}</Math>, dokážeme **odvodzovacím stromom**:
+
+- v koreni je dokazované tvrdenie <Math>{"t \\in Term"}</Math>,
+- v každom kroku použijeme jedno pravidlo (S-Succ, S-Pred, S-If, …) a rozpadneme term na podtermy,
+- dôkaz je hotový, keď sú **všetky listy axiómy** (S-Zero, S-True, S-False).
+
+**Veľkosť termu** (počet uzlov stromu) sa definuje rekurzívne podľa tvaru: konštanta má veľkosť 1,
+`succ t`, `pred t` a `iszero t` majú <Math>{"size(t) + 1"}</Math> a `if` má súčet veľkostí troch
+podtermov plus 1. Náš term má teda veľkosť **11**. Podobne sa definuje aj **hĺbka** (najdlhšia
+vetva, u nás 6) a **množina konštánt** (u nás len <Math>{"\\{0\\}"}</Math>). Takto definované funkcie sa
+používajú na dôkazy vlastností jazyka pomocou *štrukturálnej indukcie*, napríklad že počet rôznych
+konštánt v terme nie je väčší ako jeho veľkosť.
+
+</ConceptSection>
+
+<ConceptSection id="nbl-semantics" title="Sémantika NBL: vyhodnocovanie po malých krokoch">
+
+Správanie jazyka opíšeme reláciou <Math>{"t \\to t'"}</Math> — „term <Math>{"t"}</Math> sa jedným krokom
+vyhodnotí na <Math>{"t'"}</Math>“. Tejto metóde sa hovorí **štrukturálna operačná sémantika** alebo
+*small-step semantics*. Výpočet skončí pri **hodnote** — termu, ktorý je už hotový:
+
+<GrammarBox title="NBL — hodnoty" grammar={`v  ::= true | false | nv
+nv ::= 0 | succ nv`} />
+
+Ak výpočet k hodnote nedôjde (nedá sa použiť žiadne pravidlo), term nemá význam. Pravidlá pre `if`:
+
+<RuleCardStrip
+  rules={[
+    {id: "E-IfTrue", conclusion: "\\mathit{if}\\ \\mathit{true}\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to t_2", description: "Pravdivá podmienka vyberie prvú vetvu."},
+    {id: "E-IfFalse", conclusion: "\\mathit{if}\\ \\mathit{false}\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to t_3", description: "Nepravdivá vyberie druhú."},
+    {id: "E-If", premises: ["t_1 \\to t_1'"], conclusion: "\\mathit{if}\\ t_1\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3 \\to \\mathit{if}\\ t_1'\\ \\mathit{then}\\ t_2\\ \\mathit{else}\\ t_3", description: "Kým podmienka nie je hodnotou, vyhodnocuje sa ona.", wide: true},
+  ]}
+/>
+
+Pravidlá pre čísla (`nv` je číselná hodnota):
+
+<RuleCardStrip
+  rules={[
+    {id: "E-PredZero", conclusion: "\\mathit{pred}\\ 0 \\to 0", description: "Predchodca nuly je nula."},
+    {id: "E-PredSucc", conclusion: "\\mathit{pred}\\ (\\mathit{succ}\\ nv) \\to nv", description: "pred zruší succ."},
+    {id: "E-IsZeroZero", conclusion: "\\mathit{iszero}\\ 0 \\to \\mathit{true}", description: "Nula je nula."},
+    {id: "E-IsZeroSucc", conclusion: "\\mathit{iszero}\\ (\\mathit{succ}\\ nv) \\to \\mathit{false}", description: "Nasledovník nie je nula."},
+    {id: "E-Succ", premises: ["t_1 \\to t_1'"], conclusion: "\\mathit{succ}\\ t_1 \\to \\mathit{succ}\\ t_1'", description: "Rovnako E-Pred a E-IsZero: najprv sa vyhodnotí argument.", wide: true},
+  ]}
+/>
+
+Vyhodnotenie znamená opakovať pravidlá, kým term nie je hodnotou. Pravidlá E-If, E-Succ, E-Pred a
+E-IsZero len posúvajú redukciu dovnútra termu; podčiarknutý je vždy ten kúsok, na ktorý sa práve
+použije „skutočné“ pravidlo:
+
+<ReductionTrace
+  steps={[
+    {term: "succ (pred (if iszero ([[pred 0]]) then succ 0 else succ (succ 0)))"},
+    {term: "succ (pred (if [[iszero 0]] then succ 0 else succ (succ 0)))", rule: "E-PredZero"},
+    {term: "succ (pred ([[if true then succ 0 else succ (succ 0)]]))", rule: "E-IsZeroZero"},
+    {term: "succ ([[pred (succ 0)]])", rule: "E-IfTrue"},
+    {term: "succ 0", rule: "E-PredSucc"},
+  ]}
+/>
+
+</ConceptSection>
+
+<ConceptSection id="nbl-stuck" title="Nezmyselné termy">
+
+Netypovaný NBL dovoľuje napísať term `succ true`. Je syntakticky správny (dá sa dokázať
+<Math>{"\\mathit{succ}\\ \\mathit{true} \\in Term"}</Math>), no žiadne pravidlo sa naň nedá použiť —
+vyhodnotenie sa **zasekne** (*stuck*) a term nemá význam.
+
+Pridanie **typového systému** dokáže takéto termy odhaliť už pri kontrole, pred spustením. Presne na
+to slúži zvyšok kurzu.
+
+</ConceptSection>
+
+<SectionHeading id="lambda" index="2" title="λ-kalkul" blurb="Všetko je funkcia: syntax, premenné, substitúcia a redukcia." />
+
+<ConceptSection id="lambda-what" title="Čo je λ-kalkul">
+
+λ-kalkul je **univerzálny výpočtový model** — dokáže simulovať ľubovoľný Turingov stroj a naopak.
+Dá sa chápať dvojako: ako najjednoduchší programovací jazyk, ktorý stačí na akýkoľvek výpočet,
+aj ako matematický objekt, o ktorom sa dajú dokazovať vlastnosti. Skladá sa z jediného tvaru
+definície funkcie a jediného pravidla výpočtu (nahradenie premenných).
+
+Základná myšlienka: **„Všetko je funkcia!“** Funkciu <Math>{"f(x) = x + 1"}</Math> zapíšeme ako
+<Math>{"f = \\lambda x.\\, x + 1"}</Math>, kde <Math>{"x"}</Math> je parameter a <Math>{"x + 1"}</Math> telo. Aplikáciu
+na argument <Math>{"3"}</Math> zapíšeme <Math>{"f\\ 3"}</Math> a vyhodnotí sa **substitúciou** —
+dosadením <Math>{"3"}</Math> za <Math>{"x"}</Math>: <Math>{"f\\ 3 = 3 + 1 = 4"}</Math>.
+
+</ConceptSection>
+
+<ConceptSection id="lambda-syntax" title="Syntax λ-kalkulu">
+
+Čistý (netypovaný) λ-kalkul má len tri tvary termov:
+
+<GrammarBox title="λ-kalkul — syntax" grammar={`t ::= x          (* premenná *)
+    | λx. t      (* abstrakcia: funkcia s parametrom x a telom t *)
+    | t t        (* aplikácia: prvý term sa aplikuje na druhý *)`} />
+
+Aby sme nemuseli písať veľa zátvoriek, platia konvencie:
+
+- vonkajšie zátvorky vynechávame: <Math>{"(t\\ u) = t\\ u"}</Math>,
+- aplikácia sa zoskupuje **zľava**: <Math>{"t\\ u\\ v = (t\\ u)\\ v"}</Math>,
+- telo abstrakcie siaha **čo najďalej doprava**: <Math>{"\\lambda x.\\, t\\ u = \\lambda x.\\, (t\\ u)"}</Math>,
+- vnorené abstrakcie sa dajú skrátiť: <Math>{"\\lambda x.\\lambda y.\\, t = \\lambda x\\ y.\\, t"}</Math>.
+
+**Funkcia viacerých premenných** je vnorená funkcia s jedným parametrom:
+
+| Matematika | λ-kalkul |
+|------------|----------|
+| <Math>{"f(x) = x"}</Math> | <Math>{"\\lambda x.\\, x"}</Math> |
+| <Math>{"f(x, y) = x"}</Math> | <Math>{"\\lambda x.\\lambda y.\\, x"}</Math> |
+| <Math>{"f(f(x))"}</Math> | <Math>{"\\lambda f.\\lambda x.\\, f\\ (f\\ x)"}</Math> |
+
+Aj operácie ako mínus sú v čistom λ-kalkule funkcie. Syntakticky správny term nemusí byť
+vypočítateľný.
+
+</ConceptSection>
+
+<ConceptSection id="free-bound" title="Voľné a viazané premenné, kombinátory">
+
+- Výskyt premennej <Math>{"x"}</Math> je **viazaný**, ak je v tele abstrakcie <Math>{"\\lambda x.\\, t"}</Math>.
+- Inak je **voľný**.
+
+Napríklad <Math>{"x"}</Math> je voľné v <Math>{"x\\ y"}</Math> aj v <Math>{"\\lambda y.\\, x\\ y"}</Math>, ale viazané v
+<Math>{"\\lambda x.\\, x"}</Math>. Term **bez voľných premenných** sa nazýva **uzavretý** a uzavreté termy sú
+**kombinátory**. Najznámejšie:
+
+| Názov | Term |
+|-------|------|
+| **I** | <Math>{"\\lambda x.\\, x"}</Math> |
+| **K** | <Math>{"\\lambda x.\\lambda y.\\, x"}</Math> |
+| **S** | <Math>{"\\lambda f.\\lambda g.\\lambda x.\\, f\\ x\\ (g\\ x)"}</Math> |
+| **Y** | <Math>{"\\lambda f.\\, (\\lambda x.\\, f\\ (x\\ x))\\ (\\lambda x.\\, f\\ (x\\ x))"}</Math> |
+
+Každý kombinátor sa dá vyjadriť pomocou S, K a I.
+
+</ConceptSection>
+
+<ConceptSection id="alpha-substitution" title="α-ekvivalencia a substitúcia">
+
+Meno viazanej premennej nezáleží: <Math>{"\\lambda x.\\, x"}</Math> a <Math>{"\\lambda y.\\, y"}</Math> sú tá istá funkcia.
+Premenovanie viazanej premennej sa nazýva **α-konverzia** (λ-kalkul používa statický rozsah
+viditeľnosti).
+
+**Substitúcia** <Math>{"[x \\mapsto s]\\, t"}</Math> nahradí v terme <Math>{"t"}</Math> všetky **voľné** výskyty
+<Math>{"x"}</Math> termom <Math>{"s"}</Math>. Rekurzívne podľa tvaru <Math>{"t"}</Math>:
+
+- premenná <Math>{"x"}</Math> sa zmení na <Math>{"s"}</Math>, iná premenná <Math>{"y"}</Math> ostane,
+- v abstrakcii <Math>{"\\lambda y.\\, t_1"}</Math> sa substituuje v tele (ak <Math>{"y \\neq x"}</Math> a <Math>{"y"}</Math> nie je voľné v <Math>{"s"}</Math>),
+- v aplikácii sa substituuje v oboch častiach.
+
+Príklady:
+
+- <Math>{"[x \\mapsto \\lambda x.\\, y]\\, (\\lambda x.\\, y) = \\lambda x.\\, y"}</Math> — <Math>{"x"}</Math> je tu viazané, nič sa nemení,
+- <Math>{"[y \\mapsto \\lambda x.\\, x]\\, (\\lambda x.\\, y) = \\lambda x.\\lambda x.\\, x"}</Math> — <Math>{"y"}</Math> je voľné, nahradí sa.
+
+</ConceptSection>
+
+<ConceptSection id="beta" title="β-redukcia: ako λ-kalkul počíta">
+
+Výpočet je opakované **aplikovanie funkcií na argumenty**. Ak je prvým členom aplikácie abstrakcia,
+argument sa dosadí za parameter v tele — to je **β-redukcia**:
+
+<MathBlock>{"(\\lambda x.\\, t_1)\\ t_2 \\to [x \\mapsto t_2]\\, t_1"}</MathBlock>
+
+<ReductionTrace
+  title="Príklad"
+  steps={[
+    {term: "[[(λ x . λ y . f x y) u]] v"},
+    {term: "[[(λ y . f u y) v]]", rule: "β"},
+    {term: "f u v", rule: "β"},
+  ]}
+/>
+
+- Každý term, ktorý sa dá zredukovať, je **redex**.
+- Term, ktorý sa už nedá zredukovať, je v **normálnej forme**. Napríklad `z y` je v normálnej forme,
+  `(λx. x y) z` nie je (zredukuje sa na `z y`).
+- Term je v **slabej normálnej forme**, ak sa už nedá redukovať navonok — je to premenná alebo
+  abstrakcia — hoci vnútri môže byť redex. Napríklad `λx. ((λy. y) z)` je v slabej normálnej forme,
+  ale nie v úplnej.
+
+</ConceptSection>
+
+<SectionHeading id="strategies" index="3" title="Redukčné stratégie" blurb="Ktorý redex zredukovať prvý — a čo z toho plynie." />
+
+<ConceptSection id="strict-lazy" title="Striktné vs. nestriktné vyhodnotenie">
+
+- **Striktné** (*eager*): argumenty sa vyhodnotia vždy, aj keď ich funkcia nepoužije.
+- **Nestriktné** (*lazy*): vyhodnotí sa len to, čo sa naozaj použije.
+
+| | Výhody | Nevýhody |
+|-|--------|----------|
+| **Striktné** | Jednoduchšie ladenie, predvídateľné správanie | Vyššia spotreba pamäte, nedá sa pracovať s nekonečnými štruktúrami |
+| **Nestriktné** | Úspornejšie na pamäť, nekonečné štruktúry sú možné | Ťažšie ladenie, vyššia latencia |
+
+</ConceptSection>
+
+<ConceptSection id="strategies-list" title="Štyri stratégie na jednom príklade">
+
+Term môže mať viac redexov naraz a λ-kalkul nehovorí, ktorý ísť prvý — je **nedeterministický**.
+O poradí rozhoduje **redukčná stratégia**. Nech <Math>{"id = \\lambda x.\\, x"}</Math> a skúmajme term
+<Math>{"id\\ (id\\ (\\lambda z.\\, id\\ z))"}</Math>. Má tri redexy: celý term, vnútorné `id (λz. id z)` a `id z`
+vo vnútri abstrakcie. Podčiarknutý je vždy redex, ktorý sa práve redukuje.
+
+- **Úplná β-redukcia:** v každom kroku sa vyberie ľubovoľný redex (napr. najprv ten vo vnútri).
+- **Normálna β-redukcia:** vždy ľavý vonkajší redex, aj vo vnútri abstrakcie.
+
+<ReductionTrace
+  title="Normálna redukcia"
+  steps={[
+    {term: "[[id (id (λz. id z))]]"},
+    {term: "[[id (λz. id z)]]"},
+    {term: "λz. [[id z]]"},
+    {term: "λz. z"},
+  ]}
+/>
+
+- **Volanie menom** (*call by name*, nestriktné): ľavý vonkajší redex, ale **nikdy vo vnútri abstrakcie**.
+  Po miernej úprave (*call by need*) ho používa Haskell.
+
+<ReductionTrace
+  title="Volanie menom"
+  steps={[
+    {term: "[[id (id (λz. id z))]]"},
+    {term: "[[id (λz. id z)]]"},
+    {term: "λz. id z"},
+  ]}
+/>
+
+- **Volanie hodnotou** (*call by value*, striktné): najprv sa úplne vyhodnotia argumenty, až potom sa
+  volá funkcia; opäť sa nezasahuje dovnútra abstrakcie. Výsledok môže byť v normálnej aj slabej
+  normálnej forme. Používa ho OCaml. **V tomto kurze (a v aplikácii) je predvolené práve ono.**
+
+<ReductionTrace
+  title="Volanie hodnotou"
+  steps={[
+    {term: "id ([[id (λz. id z)]])"},
+    {term: "[[id (λz. id z)]]"},
+    {term: "λz. id z"},
+  ]}
+/>
+
+Vyskúšajte to sami a porovnajte stratégie:
+
+<ReductionStrategyExplorer
+  term={"id = λ x . x;\nid (id (λ z . id z));"}
+  hint="Prepnite stratégiu a sledujte, ktorý redex sa redukuje a kde výpočet skončí."
+/>
+
+</ConceptSection>
+
+<ConceptSection id="cbv-rules" title="Pravidlá pre volanie hodnotou">
+
+Aj tu potrebujeme **hodnotu** <Math>{"v"}</Math> — v λ-kalkule je to term v normálnej forme. Vyhodnocovanie
+riadia tri pravidlá:
+
+<RuleCardStrip
+  rules={[
+    {id: "E-App1", premises: ["t_1 \\to t_1'"], conclusion: "t_1\\ t_2 \\to t_1'\\ t_2", description: "Najprv sa zredukuje funkcia."},
+    {id: "E-App2", premises: ["v_1 \\text{ je hodnota}", "t_2 \\to t_2'"], conclusion: "v_1\\ t_2 \\to v_1\\ t_2'", description: "Keď je funkcia hodnotou, zredukuje sa argument."},
+    {id: "E-AppAbs", conclusion: "(\\lambda x.\\, t_{12})\\ v_2 \\to [x \\mapsto v_2]\\, t_{12}", description: "Keď sú funkcia aj argument hodnoty, vykoná sa β-krok.", wide: true},
+  ]}
+/>
+
+Všimnite si, kde stoja `v` a `t`: práve to určuje, že ide o volanie hodnotou.
+
+</ConceptSection>
+
+<ConceptSection id="church-rosser" title="Mení stratégia výsledok?">
+
+**Church–Rosserova veta:** ak sa term dá zredukovať dvoma rôznymi cestami a obe dospejú k normálnej
+forme, dospejú k **tej istej** normálnej forme. Napríklad <Math>{"(\\lambda x.\\, x\\ x)\\ ((\\lambda x.\\, y)\\ z)"}</Math>
+má dva redexy; ktorýkoľvek zvolíte, výsledok je <Math>{"y\\ y"}</Math>.
+
+</ConceptSection>
+
+<ConceptSection id="non-termination" title="Keď výpočet nikdy neskončí">
+
+Nie každý term má normálnu formu. Nech <Math>{"\\omega = \\lambda x.\\, x\\ x"}</Math> a
+<Math>{"\\Omega = \\omega\\ \\omega"}</Math>. Substitúcia dá zas <Math>{"\\omega\\ \\omega"}</Math> — a tak donekonečna. Term
+**diverguje**.
+
+Či term skončí, môže závisieť od stratégie. Term <Math>{"(\\lambda x.\\, y)\\ \\Omega"}</Math> obsahuje funkciu, ktorá
+svoj argument ignoruje: pri normálnej redukcii dá <Math>{"y"}</Math>, no pri volaní hodnotou sa najprv snaží
+vyhodnotiť <Math>{"\\Omega"}</Math> a nikdy neskončí.
+
+<ReductionStrategyExplorer
+  term={"omega = λ x . x x;\n(λ x . λ a . a) (omega omega);"}
+  hint="Pri volaní hodnotou sa argument omega omega vyhodnocuje ako prvý a výpočet nikdy neskončí. Pri volaní menom sa argument nepoužije a výsledok príde hneď."
+/>
+
+Term **normalizuje** pod stratégiou, ak jeho redukcia vedie k normálnej forme:
+
+- **slabá normalizácia:** existuje aspoň jedna redukčná cesta k normálnej forme,
+- **silná normalizácia:** každá redukčná cesta vedie k normálnej forme.
+
+</ConceptSection>
+
+<ConceptSection id="alpha-eta" title="α-redukcia a η-redukcia">
+
+Ak by sa pri β-redukcii voľná premenná stala viazanou, treba najprv premenovať parameter (**α-redukcia**).
+V <Math>{"(\\lambda x.\\lambda y.\\, x\\ y)\\ y"}</Math> je vonkajšie <Math>{"y"}</Math> voľné, ale vnútorný parameter sa
+tiež volá <Math>{"y"}</Math>. Naivná redukcia by dala <Math>{"\\lambda y.\\, y\\ y"}</Math> — **nesprávne**. Správne:
+
+<ReductionTrace
+  steps={[
+    {term: "(λx. λy. x y) y"},
+    {term: "(λx. λz. x z) y", rule: "α"},
+    {term: "λz. y z", rule: "β"},
+    {term: "y", rule: "η"},
+  ]}
+/>
+
+Posledný krok je **η-redukcia**: <Math>{"\\lambda x.\\, t\\ x \\to t"}</Math>, ak <Math>{"x"}</Math> nie je voľné v <Math>{"t"}</Math>
+(funkcia, ktorá len preposiela argument, je to isté ako <Math>{"t"}</Math>).
+
+</ConceptSection>
+
+<TryItBox
+  steps={[
+    <>Otvorte <strong>Editor</strong>, v zozname <strong>Rozšírenia</strong> zapnite <strong>Netypovaný lambda kalkul</strong> a napíšte <code>(λ x . λ y . x) a b;</code> — v paneli <strong>AST</strong> uvidíte abstraktný strom.</>,
+    <>V paneli <strong>Vyhodnotenie</strong> prechádzajte redukciu krok za krokom a prepínajte medzi stratégiami.</>,
+    <>Napíšte <code>omega = λ x . x x;</code> a <code>omega omega;</code> — výpočet sa nikdy neskončí.</>,
+  ]}
+/>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "Typový systém", detail: "priraďuje typy a zachytáva chyby pred spustením; jazyky sa líšia tým, kedy, ako prísne a kto typy určuje."},
+    {label: "Definícia jazyka", detail: "syntax (BNF, induktívne, odvodzovacími pravidlami) a sémantika (vyhodnocovanie po malých krokoch)."},
+    {label: "NBL", detail: "malý netypovaný jazyk; nezmyselné termy ako succ true sa zaseknú."},
+    {label: "λ-kalkul", detail: "termy x, λx.t a t t; β-redukcia (λx.t₁) t₂ → [x ↦ t₂] t₁ je jediné pravidlo výpočtu."},
+    {label: "Stratégie", detail: "volanie hodnotou, menom a normálne poradie; Church–Rosser zaručuje rovnaký výsledok, ale Ω diverguje a ukončenie závisí od stratégie."},
+  ]}
+  next={<>Ďalej: <Link to="/docs/church-encodings">Churchove kódovania, rekurzia</Link> — čo všetko sa dá postaviť z čistých funkcií, a potom <Link to="/docs/stlc-basics">Základy STLC</Link> — pridanie typov.</>}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "Kurz Teória typov na TUKE — Prednáška 1 (Úvod, jazyk NBL, λ-kalkul)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/01.html",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages (MIT Press, 2002)",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+    {
+      label: "Selinger, P. — Lecture notes on the lambda calculus",
+      href: "https://www.irif.fr/~mellies/mpri/mpri-ens/biblio/Selinger-Lambda-Calculus-Notes.pdf",
+    },
+    {
+      label: "Wadler, P. — Propositions as Types",
+      href: "https://homepages.inf.ed.ac.uk/wadler/papers/propositions-as-types/propositions-as-types.pdf",
+    },
+  ]}
+/>

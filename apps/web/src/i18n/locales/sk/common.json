@@ -89,6 +89,8 @@
     "notFoundMessage": "Na tejto adrese sa nenachádza žiadna prednáška.",
     "backToGuide": "Späť na príručku",
     "downloadPdf": "Stiahnuť PDF",
+    "notTranslatedTitle": "Zatiaľ nepreložené",
+    "notTranslatedMessage": "Táto prednáška zatiaľ nie je dostupná vo vašom jazyku — zobrazuje sa verzia: {{language}}.",
     "downloadPdfTooltip": "Stiahnuť túto prednášku ako PDF, naformátované na tlač"
   },
   "lectureBlocks": {
@@ -983,5 +985,35 @@
       "verdictCorrect": "Vaše vyhodnotenie je správne.",
       "verdictWrong": "Vaše vyhodnotenie nie je správne."
     }
+  },
+  "lectureWidgets": {
+    "tryStrategies": "Vyskúšajte — redukčné stratégie",
+    "run": "Spustiť",
+    "reset": "Obnoviť",
+    "steps_one": "{{count}} krok pri stratégii {{strategy}}.",
+    "steps_few": "{{count}} kroky pri stratégii {{strategy}}.",
+    "steps_other": "{{count}} krokov pri stratégii {{strategy}}.",
+    "result": "Výsledok:",
+    "tryYourself": "Vyskúšajte sami",
+    "checkType": "Skontrolovať typ",
+    "type": "Typ:",
+    "checkpoint": "Kontrolný bod — tipnite si a overte",
+    "predictPrompt": "Aký typ má tento term?",
+    "predictPlaceholder": "napr. Bool -> Bool",
+    "tryAgain": "Skúsiť znova",
+    "reveal": "Odhaliť",
+    "actualType": "Skutočný typ:",
+    "looseMatch": "(porovnanie je voľné — na zátvorkách a medzerách nezáleží)",
+    "buildYourself": "Zostavte sami",
+    "astTip": "Tip: potiahnite z okraja uzla a pustite na prázdne miesto, aby ste vybrali, čo k nemu pripojiť.",
+    "astEmpty": "// pridajte uzly vyššie — zodpovedajúci zdrojový text sa zobrazí tu",
+    "anatomy": {
+      "premise1": "predpoklad 1",
+      "premise2": "predpoklad 2",
+      "name": "názov pravidla",
+      "conclusion": "záver",
+      "note": "Čítajte zdola nahor: ak platia všetky predpoklady nad čiarou, platí aj záver pod ňou. Názov je len označenie pravidla."
+    },
+    "trace": "Kroky redukcie"
   }
 }

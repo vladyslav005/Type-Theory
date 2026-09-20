@@ -5,7 +5,7 @@ import {MathJax} from "better-react-mathjax";
 import {ArrowRight, BookOpen, ChevronDown, ListTree, Sparkles} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {RuleCard} from "@/features/docs/rules/RuleCard.tsx";
-import {findRule} from "@/features/docs/rules/ruleDefinitions.ts";
+import {findRule, type RuleDefinition} from "@/features/docs/rules/ruleDefinitions.ts";
 
 // Real LaTeX in lecture prose — inline within a sentence: <Math>{"\\Gamma \\vdash t : T"}</Math>,
 // or as its own centered equation: <MathBlock>{"\\mathit{fix}\\ g = g\\ (\\mathit{fix}\\ g)"}</MathBlock>.
@@ -184,18 +184,17 @@ export function PipelineDiagram({steps}: {steps: PipelineStep[]}) {
 
 // Unlabeled example rule, teaching the premises/line/conclusion convention before real ones show up.
 export function RuleAnatomy() {
+  const {t} = useTranslation();
   return (
     <div className="rounded-xl border bg-muted/10 p-4 flex flex-col items-center gap-1.5 print:break-inside-avoid">
-      <span className="text-sm text-muted-foreground">premise 1&nbsp;&nbsp;&nbsp;&nbsp;premise 2&nbsp;&nbsp;&nbsp;&nbsp;...</span>
+      <span className="text-sm text-muted-foreground">{t("lectureWidgets.anatomy.premise1")}&nbsp;&nbsp;&nbsp;&nbsp;{t("lectureWidgets.anatomy.premise2")}&nbsp;&nbsp;&nbsp;&nbsp;...</span>
       <div className="flex items-center gap-2 w-full max-w-xs">
         <div className="flex-1 border-t border-foreground/50"/>
-        <span className="text-xs italic text-muted-foreground whitespace-nowrap">rule name</span>
+        <span className="text-xs italic text-muted-foreground whitespace-nowrap">{t("lectureWidgets.anatomy.name")}</span>
       </div>
-      <span className="text-sm font-medium">conclusion</span>
+      <span className="text-sm font-medium">{t("lectureWidgets.anatomy.conclusion")}</span>
       <p className="text-xs text-muted-foreground text-center mt-2 max-w-sm leading-relaxed">
-        Read bottom-up: <strong>if</strong> every premise above the line holds,{" "}
-        <strong>then</strong> the conclusion below it holds. The italic label is just the rule's
-        name — like a citation, not part of the logic.
+        {t("lectureWidgets.anatomy.note")}
       </p>
     </div>
   );
@@ -223,23 +222,83 @@ export function TryItBox({steps}: {steps: ReactNode[]}) {
   );
 }
 
-export function RuleCardStrip({ruleIds}: {ruleIds: string[]}) {
+export interface InlineRule {
+  id: string;
+  premises?: string[];
+  conclusion: string;
+  description?: string;
+  wide?: boolean;
+}
+
+// `rules` defines lecture-local rules (e.g. NBL) inline; `descriptions` overrides the (English)
+// registry text of `ruleIds` entries so a translated lecture can show its own wording.
+export function RuleCardStrip({ruleIds = [], rules: inline = [], descriptions = {}, wide}: {
+  ruleIds?: string[];
+  rules?: InlineRule[];
+  descriptions?: Record<string, string>;
+  wide?: boolean;
+}) {
   const {t} = useTranslation();
-  const rules = ruleIds.map(findRule).filter((r): r is NonNullable<typeof r> => Boolean(r));
+  const registered = ruleIds
+    .map(findRule)
+    .filter((r): r is RuleDefinition => Boolean(r))
+    .map((r) => ({...r, description: descriptions[r.id] ?? r.description}));
+  const local: RuleDefinition[] = inline.map((r) => ({
+    id: r.id,
+    premisesTex: r.premises ?? [],
+    conclusionTex: r.conclusion,
+    description: r.description ?? "",
+    wide: r.wide,
+  }));
+  const rules = [...registered, ...local];
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("lectureBlocks.rules")}</p>
-        <Link to="/docs/rules" className="text-xs text-muted-foreground hover:text-foreground hover:underline print:hidden">
-          {t("lectureBlocks.fullReference")}
-        </Link>
+        {ruleIds.length > 0 && (
+          <Link to="/docs/rules" className="text-xs text-muted-foreground hover:text-foreground hover:underline print:hidden">
+            {t("lectureBlocks.fullReference")}
+          </Link>
+        )}
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={cn("grid gap-4", wide ? "" : "sm:grid-cols-2")}>
         {rules.map((rule) => (
-          <RuleCard key={rule.id} rule={rule}/>
+          <RuleCard key={rule.id} rule={rule} className={rule.wide ? "sm:col-span-2" : undefined}/>
         ))}
       </div>
+    </div>
+  );
+}
+
+export interface TraceStep {
+  term: string;
+  rule?: string;
+}
+
+// Plain-text reduction: each row is a term, with the rule that produced it on the right.
+// `[[...]]` in a term underlines the redex about to be reduced.
+export function ReductionTrace({steps, title}: {steps: TraceStep[]; title?: string}) {
+  const {t} = useTranslation();
+  const renderTerm = (term: string) =>
+    term.split(/\[\[|\]\]/).map((part, i) =>
+      i % 2 === 1
+        ? <span key={i} className="underline decoration-primary decoration-2 underline-offset-4">{part}</span>
+        : <span key={i}>{part}</span>,
+    );
+
+  return (
+    <div className="rounded-xl border bg-muted/10 p-4 print:break-inside-avoid">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">{title ?? t("lectureWidgets.trace")}</p>
+      <ol className="space-y-2 font-mono text-sm">
+        {steps.map((step, i) => (
+          <li key={i} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+            <span className="w-4 shrink-0 text-muted-foreground">{i === 0 ? "" : "→"}</span>
+            <span className="min-w-0 break-words">{renderTerm(step.term)}</span>
+            {step.rule && <span className="ml-auto text-xs italic text-muted-foreground font-serif">{step.rule}</span>}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

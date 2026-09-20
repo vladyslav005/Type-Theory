@@ -6,9 +6,8 @@
 // outline rule, MathJax's SVG <use>/<defs> glyphs) — a real browser has none of those problems
 // because it's not re-implementing CSS/SVG parsing in JS.
 //
-// One PDF per (slug, locale) that has a real .mdx file, plus always an "en" one for every
-// written lecture (DocsLecturePage.tsx links to the "en" file whenever it's showing the
-// English-fallback content, which is guaranteed to exist for any lecture in the config below).
+// One PDF per (slug, locale) that has a real .mdx file. DocsLecturePage.tsx links to the locale
+// of the file it actually renders, so every fallback target is covered too.
 // Run: node scripts/gen-lecture-pdfs.mjs (expects dist/ to already be built — see package.json)
 import {readFileSync, readdirSync, mkdirSync} from "node:fs";
 import {fileURLToPath} from "node:url";
@@ -42,10 +41,6 @@ const jobs = [];
 for (const slug of writtenSlugs) {
   const localeFiles = readdirSync(join(lecturesDir, slug)).filter((f) => f.endsWith(".mdx"));
   const locales = new Set(localeFiles.map((f) => f.replace(/\.mdx$/, "")));
-  if (!locales.has("en")) {
-    console.warn(`[gen-lecture-pdfs] ${slug} has no en.mdx — skipping (fallback assumption broken)`);
-    continue;
-  }
   for (const locale of locales) jobs.push({slug, locale});
 }
 

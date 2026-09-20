@@ -1,3 +1,4 @@
+import {useTranslation} from "react-i18next";
 import {MathJax} from "better-react-mathjax";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
@@ -8,14 +9,15 @@ interface MiniWorkspaceProps {
   hint?: string;
 }
 
-export function MiniWorkspace({initialTerm, label = "Try it yourself", hint}: MiniWorkspaceProps) {
+export function MiniWorkspace({initialTerm, label, hint}: MiniWorkspaceProps) {
+  const {t} = useTranslation();
   const {termText, setTermText, check, reset, result, error, checked} = useMiniWorkspace(initialTerm);
   const dirty = termText !== initialTerm;
 
   return (
     <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label ?? t("lectureWidgets.tryYourself")}</p>
         {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
       </div>
 
@@ -28,14 +30,14 @@ export function MiniWorkspace({initialTerm, label = "Try it yourself", hint}: Mi
       />
 
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={check}>Check type</Button>
-        {dirty && <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>}
+        <Button size="sm" onClick={check}>{t("lectureWidgets.checkType")}</Button>
+        {dirty && <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>}
       </div>
 
       {checked && (
         result ? (
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Type:</span>
+            <span className="text-muted-foreground">{t("lectureWidgets.type")}</span>
             <MathJax inline>{`\\(${result.typeTex}\\)`}</MathJax>
           </div>
         ) : (

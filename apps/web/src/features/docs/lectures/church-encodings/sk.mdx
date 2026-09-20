@@ -1,0 +1,336 @@
+import {
+  Callout,
+  ConceptSection,
+  Math,
+  ReferenceList,
+  SectionHeading,
+  SummaryBox,
+  TryItBox,
+} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
+
+Ak ste v teórii typov noví, vitajte — toto je prvá praktická prednáška a nadväzuje na úvodnú
+(λ-kalkul, β-redukcia, stratégie), no zámerne začína takmer od nuly. Lambda kalkul, jazyk, na ktorom stojí všetko, čo robí táto aplikácia, vám dáva presne jeden
+stavebný kameň: funkcie. Nie „funkcie plus čísla",
+nie „funkcie plus true/false" — len funkcie, samotné. To môže znieť ako príliš málo na
+to, aby to bolo užitočné. Celou úlohou tejto prednášky je trpezlivo a na skutočných bežiacich príkladoch ukázať,
+že to tak nie je: booleovské hodnoty, dvojice, čísla a dokonca aj opakovanie sa dajú postaviť z
+funkcií a ničoho iného. Na konci bude hŕstka drobných definícií funkcií
+robiť všetko, čo by inak robilo vstavané `if`, vstavané číslo a vstavaný cyklus.
+
+<SectionHeading id="why-any-of-this" index="0" title="Načo to všetko?" blurb="Jemný rozbeh skôr, než sa objaví akýkoľvek skutočný zápis." />
+
+<ConceptSection id="functions-as-boxes" title="Najprv: čo je tu funkcia?">
+
+Predstavte si funkciu ako automat na nápoje: niečo do neho vhodíte, on
+urobí niečo pevné a predvídateľné a niečo z neho vypadne. `λ x . x + 1` je
+stroj, ktorý vezme číslo a vráti o jedna väčšie. Je to naozaj celá
+myšlienka — žiadny skrytý stav, žiadna pamäť toho, čo sa stalo naposledy, len „vstup ide dnu,
+výstup ide von." Všetko v tejto prednáške vzniká kombinovaním takýchto strojov
+šikovnými spôsobmi, nikdy pridaním nového druhu stroja.
+
+</ConceptSection>
+
+<ConceptSection id="values-as-behavior" title="Hodnota môže BYŤ voľbou, nielen ju držať">
+
+Toto je skok, na ktorom celá prednáška stojí, takže stojí za to sa pri ňom zastaviť. Normálne by ste
+povedali „true je údaj a samostatne existuje `if`, ktoré ho skúma." Churchov
+nápad je spojiť tieto dve veci: nech samotná hodnota *je* tým skúmaním.
+
+Analógia: predstavte si dve rovnako vyzerajúce obálky. Jedna je nastavená tak, že kedykoľvek
+sa jej opýtate „daj mi ľavú vec alebo pravú vec?", vždy vám podá ľavú.
+Druhá vždy podá pravú. Nikdy jednu z nich neotvoríte a nečítate
+štítok „true" alebo „false" — *jediný* spôsob, ako rozdiel medzi nimi spozorujete, je
+sledovať, ktorú vám podajú. Ak sa niečo vždy správa ako „vždy
+vyber ľavú", toto správanie *je* true — nie je čo ďalej kontrolovať. Práve tento trik
+táto prednáška uplatňuje znova a znova: namiesto uloženia hodnoty a písania kódu na jej
+neskoršie skúmanie urobíme z hodnoty drobný stroj, ktorý už vie, ako sa má
+správne správať, keď sa skúma.
+
+</ConceptSection>
+
+<ConceptSection id="why-untyped" title="Prečo tu nie je `if`, `0`, nič vstavané">
+
+Mohli by ste sa oprávnene pýtať: prečo nepoužiť skutočné `if` a skutočné čísla aplikácie? Pretože
+práve teraz zámerne používame najmenší možný jazyk — čistý, netypovaný
+lambda kalkul, v ktorom je len `λ`, premenné a aplikovanie jednej veci na druhú — aby sme
+dokázali jedno: tento najmenší možný jazyk už stačí. Každé `if`, každé
+číslo, každá dvojica, ktorú nižšie uvidíte, je postavená *z* tohto drobného jazyka, nie pripevnená
+navrch. Typy (ktoré zabezpečujú, že sa tieto kúsky používajú konzistentne) sú úlohou
+ďalšej prednášky — dnes je jediným cieľom osvojiť si, čo tieto
+funkcie vlastne *robia*.
+
+</ConceptSection>
+
+<Callout title="Aplikácia popri tejto stránke" screenOnly>
+
+Všetko nižšie je skutočný kód a nemusíte tomu veriť na slovo — spustiť sa dá každý
+príklad. Otvorte **Editor**, v zozname **Rozšírenia** zapnite **Netypovaný lambda kalkul**
+a potom kliknite na **Prelúdium**: vloží všetky definície použité na tejto stránke
+(`tru`/`fls`, čísla, dvojice, oba pomocníky rekurzie) pod presnými menami použitými tu.
+Je to obyčajný, upraviteľný text — nič nie je skrytá vstavaná súčasť enginu.
+
+</Callout>
+
+<SectionHeading id="booleans" index="1" title="Booleovské hodnoty" blurb="Najjednoduchšia možná verzia triku vyššie." />
+
+<ConceptSection id="boolean-encoding" title="Boolean ako prepínač">
+
+Predstavte si dvojpolohový prepínač. Prehoďte ho jedným smerom a rozsvieti sa všetko, čo je pripojené na „ľavej"
+strane; prehoďte ho druhým a rozsvieti sa „pravá" strana. Churchov boolean je
+presne takýto prepínač zapísaný ako funkcia, ktorej sa odovzdajú dve veci a ktorá vždy
+vráti jednu z nich:
+
+```
+tru = λ t . λ f . t;   // vždy vráť prvú vec, ktorú dostaneš
+fls = λ t . λ f . f;   // vždy vráť druhú vec, ktorú dostaneš
+```
+
+Skúste čítať `tru a b` nahlas ako „pri `a` a `b` si `tru` vždy vyberie `a`." To je
+naozaj všetko — nikde za touto funkciou sa neskrýva žiadna samostatná „hodnota true".
+Dostať dve možnosti a vždy vrátiť prvú *je*, čo tu znamená byť „true".
+
+</ConceptSection>
+
+<ConceptSection id="boolean-logic" title="Logika zadarmo">
+
+Keď už máte niečo, čo dokáže vybrať medzi dvoma vetvami, každá známa logická
+operácia je len iným usporiadaním toho istého výberu:
+
+```
+test = λ b . λ c . λ a . b c a;   // ak b, tak c, inak a
+not  = λ b . b fls tru;           // prehoď obe vetvy
+and  = λ b . λ c . b c fls;       // ak b, tak c, inak fls
+or   = λ b . λ c . b tru c;       // ak b, tak tru, inak c
+```
+
+Vezmite `and` pomaly: `and b c` len odovzdá `b` dve možnosti — `c` (ak sa `b` ukáže
+ako `tru`) alebo `fls` (ak sa `b` ukáže ako `fls`). Čo dáva zmysel, keď to poviete
+vetou: „ak `b`, odpoveď je to, čo je `c`; inak je odpoveď už `fls`, netreba sa
+ani pozerať na `c`." Žiadne vstavané `if`, žiadna analýza prípadov — len prepínač,
+ktorému sa odovzdali správne dve možnosti.
+
+</ConceptSection>
+
+<ReductionStrategyExplorer
+  term={"tru = λ t . λ f . t;\nfls = λ t . λ f . f;\nand = λ b . λ c . b c fls;\nand tru fls;"}
+  hint="and tru fls by sa malo správať presne ako fls — sledujte, ako prepínač vyberá svoju vetvu, krok za krokom."
+/>
+
+<SectionHeading id="pairs" index="2" title="Dvojice" blurb="Zabaľte dve veci do jednej rovnakým trikom." />
+
+<ConceptSection id="pair-encoding" title="Škatuľka s dvoma priehradkami">
+
+Predstavte si malú škatuľku s dvoma priehradkami a dvoma rôznymi kľúčmi — „prvým" a
+„druhým". Vložíte kľúč a otvorí sa príslušná priehradka. Churchova dvojica je táto
+škatuľka: funkcia, ktorá drží dve hodnoty a podľa toho, aký kľúč (aký boolean)
+dostane, vráti jednu z nich.
+
+```
+pair = λ f . λ s . λ b . b f s;
+fst  = λ p . p tru;
+snd  = λ p . p fls;
+```
+
+`pair 3 5` postaví škatuľku: `λ b . b 3 5`, ktorá stále čaká na kľúč. `fst` jej podá
+kľúč `tru`, takže vnútorný prepínač škatuľky vyberie `3`; `snd` jej podá kľúč `fls` a
+vyberie `5`. Je to úplne ten istý prepínač z časti o booleovských hodnotách, len použitý na uloženie
+údajov namiesto rozhodovania.
+
+</ConceptSection>
+
+<SectionHeading id="numbers" index="3" title="Čísla" blurb="Najzložitejšie — stojí za to ísť pomaly." />
+
+<ConceptSection id="numeral-puzzle" title="Počkajte — ako môže byť číslo funkciou?">
+
+Toto je zvyčajne časť, ktorá spočiatku pôsobí zvláštne, tak sa pri tom zmätení
+zastavme, kým ho vyriešime. Číslo ako `3` sa cíti ako *vec* — symbol, množstvo,
+fakt o tom, koľko niečoho je. Ako by to mohol byť ten istý druh
+objektu ako funkcia, ktorá je *akcia*?
+
+Riešenie: prestaňte myslieť na „3" ako na množstvo a začnite na ňu myslieť ako na
+*inštrukciu* — konkrétne inštrukciu „urob nasledujúcu vec trikrát po sebe." Predstavte si tlieskanie: tri
+tlesknutia nemôžete „držať" v ruke, ale *akciu* trojitého tlesknutia môžete
+určite vykonať. Churchove numerály kódujú číslo
+rovnakým spôsobom — nie ako statické množstvo, ale ako samotnú opakovanú akciu.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-encoding" title="Číslo je: aplikuj toto, toľkokrát">
+
+Churchov numerál pre `n` je funkcia, ktorá berie krok (`s`, od „successor" — predstavte si
+„jedno tlesknutie") a východiskový bod (`z`, od „zero") a aplikuje krok `n`-krát,
+počnúc od `z`:
+
+```
+zero = λ s . λ z . z;                  // aplikuj s nulakrát — len vráť z nedotknuté
+succ = λ n . λ s . λ z . s (n s z);    // aplikuj s o jedenkrát viac, než už robí n
+one   = succ zero;
+two   = succ one;
+three = succ two;
+```
+
+Úlohou `zero` je nerobiť nič — aplikovať `s` nulakrát a len vrátiť `z` tak, ako je. `succ`
+vôbec neskúma svoj argument ako množstvo; len obalí o jednu ďalšiu aplikáciu
+`s` okolo toho, čo `n` už produkuje. Urobte to trikrát, počnúc od `zero`, a
+dostanete „aplikuj `s` trikrát" — čo je presne to, čo tu číslo `3` *znamená*.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-walkthrough" title="Prechod ručne">
+
+Stojí za to to raz pomaly prejsť, pretože je ľahké prikyvovať a ešte tomu
+neveriť. `two s z` by malo znamenať „aplikuj `s` dvakrát na `z`." Sledujte definície:
+
+- `two` je `succ one` a `succ n = λ s . λ z . s (n s z)`.
+- Takže `two s z` sa stane `s (one s z)`.
+- `one` je `succ zero`, takže `one s z` sa stane `s (zero s z)`.
+- `zero s z` je len `z` (podľa vlastnej definície `zero`).
+- Takže `one s z` sa stane `s z` a `two s z` sa stane `s (s z)`.
+
+`s (s z)` — `s` aplikované dvakrát na `z`. Presne „dve tlesknutia" z analógie vyššie, teraz
+zapísané ako skutočná redukcia, term po terme, bez čohokoľvek skrytého.
+
+</ConceptSection>
+
+<ConceptSection id="numeral-arithmetic" title="Aritmetika iteráciou">
+
+Keď je číslo „urob toto N-krát", sčítanie a násobenie už nepotrebujú žiadne nové
+myšlienky — len znovu použijú to isté opakovanie:
+
+```
+plus  = λ m . λ n . λ s . λ z . m s (n s z);   // aplikuj s, m-krát, navrch „n aplikovaného na z"
+times = λ m . λ n . m (plus n) zero;            // od zero pripočítaj n, m-krát
+```
+
+`plus m n` najprv postaví „`s` aplikované `n`-krát na `z`" a potom aplikuje `s` *ďalších*
+`m`-krát navrch — obe počty opakovaní sa jednoducho zložia. `times` ide o
+úroveň vyššie: namiesto opakovania `s` opakuje akciu „pripočítaj `n`", `m`-krát, počnúc
+od `zero`. Ten istý trik, použitý sám na seba.
+
+</ConceptSection>
+
+<ReductionStrategyExplorer
+  term={"zero = λ s . λ z . z;\nsucc = λ n . λ s . λ z . s (n s z);\none = succ zero;\ntwo = succ one;\nplus = λ m . λ n . λ s . λ z . m s (n s z);\nplus one two;"}
+  hint="plus one two by sa malo správať presne ako three: s aplikované trikrát na z. Porovnajte tento priebeh s ručným prechodom vyššie."
+/>
+
+<ConceptSection id="numeral-predecessor" title="Nepohodlná časť: cesta späť">
+
+Skontrolovať, či je numerál nula, je jednoduché — odovzdajte mu krokovú funkciu, ktorá vždy odpovie
+`fls`, a len `zero` vráti `tru` (tým, že krok úplne preskočí):
+
+```
+iszero = λ n . n (λ x . fls) tru;
+```
+
+Ísť opačným smerom — `pred`, „o jedna menej ako `n`" — je naozaj nepohodlné a stojí za to
+vedieť prečo, nielen si zapamätať trik. Churchov numerál vie len
+budovať *dopredu*, obalením ďalšieho `succ` okolo východiskového bodu; nič na ňom
+nezaznamenáva, aký bol predchádzajúci numerál, takže nie je čo „odlúpnuť". Riešenie:
+prejsť dopredu `n`-krát tak či tak, ale niesť *dve* čísla naraz — „predchádzajúce" a
+„aktuálne" — a posúvať obe spolu dopredu pri každom kroku, ako niekto, kto ide
+chodbou a vyvoláva miestnosť, ktorú práve opustil, a miestnosť, v ktorej stojí:
+
+```
+pair  = λ f . λ s . λ b . b f s;
+fst   = λ p . p tru;
+snd   = λ p . p fls;
+shift = λ p . pair (snd p) (succ (snd p));      // (predchádzajúce, aktuálne) -> (aktuálne, aktuálne+1)
+pred  = λ n . fst (n shift (pair zero zero));   // prejdi n krokov od (0, 0), ponechaj „predchádzajúce"
+```
+
+Počnúc od `(0, 0)` a dvojnásobným posunom: `(0, 1)`, potom `(1, 2)`. Takže `pred two` prečíta
+„predchádzajúcu" polovicu tejto poslednej dvojice, `1`. Oklukou, ale postavené z ničoho
+okrem kúskov, ktoré už na tejto stránke sú.
+
+</ConceptSection>
+
+<SectionHeading id="recursion" index="4" title="Rekurzia" blurb="Ako napísať funkciu, ktorá volá samu seba, keď zatiaľ nič nemá meno?" />
+
+<ConceptSection id="self-reference-problem" title="Problém sebareferencie">
+
+Každá doterajšia definícia stojí sama za seba — `plus` sa nikdy nemusí odvolať na `plus`,
+kým sa píše. Rekurzívna funkcia tento vzor láme: aby ste napísali `factorial`
+pomocou `factorial`, potrebujete meno, ktoré odkazuje na presne tú vec, ktorú ešte
+len definujete. Ale `λ` vždy zavádza len *parameter* — nikdy nedá
+funkcii meno viditeľné pre jej vlastné telo. „Zavolaj sa" nie je nič vstavané.
+
+</ConceptSection>
+
+<ConceptSection id="self-application-trick" title="Odovzdajte funkcii jej vlastnú kópiu">
+
+Tu je analógia: predstavte si návod na otvorenie vnorených škatúľ, kde každý
+krok hovorí „otvor túto škatuľu a potom postupuj podľa tohto istého návodu v škatuli
+vnútri." Nesmiete napísať „tento istý návod" ako meno vnútri samotného návodu —
+také meno ešte neexistuje. Riešenie: kedykoľvek niekomu odovzdáte
+návod, prilepte na vonkajšiu stranu škatule aj jeho *fotokópiu*.
+Teraz je „postupuj podľa tohto istého návodu" len „prečítaj si kópiu prilepenú priamo tu" — netreba
+meno, len kópiu odovzdanú v každom kroku.
+
+Presne to robí sebaaplikácia. Namiesto snahy pomenovať rekurzívnu
+funkciu napíšte funkciu, ktorá očakáva, že dostane kópiu samej seba ako ďalší
+argument, a volá *tú* namiesto svojho (neexistujúceho) mena:
+
+```
+g = λ self . λ n . test (iszero n) one (times n (self (pred n)));
+```
+
+`g` ešte nie je `factorial` — je to „faktoriál, *ak* mi najprv odovzdáte niečo na
+zavolanie pre rekurzívny prípad." Aplikovať funkciu na seba samu — zhruba `(λ x . x x) g` — je
+ťah „prilep kópiu na škatuľu": práve ono vytvára toto „niečo".
+
+</ConceptSection>
+
+<ConceptSection id="fixed-point" title="Pevný bod, vypočítaný">
+
+Zabalením tohto triku sebaaplikácie do jedného znovupoužiteľného pomocníka vznikne *kombinátor
+pevného bodu* — niečo, kde <Math>{"\\mathit{fix}\\ g"}</Math> a
+<Math>{"g\\ (\\mathit{fix}\\ g)"}</Math> sa vždy zredukujú na ten istý term, pre akékoľvek
+`g`, ktoré mu odovzdáte:
+
+```
+Y    = λ f . (λ x . f (x x)) (λ x . f (x x));
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+```
+
+`Y` je kombinátor z úvodnej prednášky, teraz použitý naozaj; `fixx` obalí rekurzívne volanie ďalším `λ y . ...`
+skôr, než sa použije. Tento obal nie je ozdoba — pri **volaní hodnotou** sa
+argumenty redukujú *predtým*, než sa dosadia, takže holé `Y` vynúti sebaaplikáciu
+okamžite a expanduje donekonečna, tá istá divergencia, ktorú ste videli pri Ω = `ω ω`
+v úvodnej prednáške. `fixx` skrýva túto sebaaplikáciu za funkciu, takže sa
+skutočne spustí, až keď ju niečo zavolá.
+
+</ConceptSection>
+
+<TryItBox
+  steps={[
+    <>Vložte prelúdium (pozri okno vyššie) a potom pridajte <code>fact = fixx (λ self . λ n . test (iszero n) one (times n (self (pred n))));</code> a <code>fact two;</code>.</>,
+    <>Nastavte stratégiu na <strong>Volanie hodnotou</strong> (predvolené) a vyhodnoťte — nikdy sa nedokončí. Každé volanie <code>test</code> horlivo vyhodnocuje <em>obe</em> vetvy, vrátane rekurzívnej, takže <code>self (pred n)</code> sa ďalej rozširuje aj keď je <code>n</code> už <code>zero</code>.</>,
+    <>Prepnite na <strong>Volanie menom</strong> a vyhodnoťte ten istý term — dokončí sa, pretože nepoužitá vetva sa vôbec nevynúti.</>,
+  ]}
+/>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "Trik", detail: "urobte z hodnoty drobný stroj, ktorý sa správa správne, namiesto ukladania údajov a ich neskoršieho skúmania."},
+    {label: "Booleovské hodnoty a dvojice", detail: "obe sú prepínače — funkcie, ktorým sa odovzdajú dve možnosti a vždy vrátia jednu z nich."},
+    {label: "Čísla", detail: "Churchov numerál nie je množstvo, je to akcia \"aplikuj tento krok N-krát\" — succ len obalí o jednu ďalšiu aplikáciu navrch."},
+    {label: "Rekurzia", detail: "funkcia sa nemôže pomenovať sama, tak jej odovzdajte jej vlastnú kópiu (sebaaplikácia); fixx to zabalí tak, aby prežilo volanie hodnotou."},
+  ]}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "Kurz Teória typov na TUKE — Prednáška 2 (Churchove kódovania, rekurzia, kombinátory pevného bodu)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/02.html",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages, kap. 5 (MIT Press, 2002)",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+  ]}
+/>

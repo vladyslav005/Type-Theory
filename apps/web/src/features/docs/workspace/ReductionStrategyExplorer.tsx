@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import {ArrowRight} from "lucide-react";
 import {MathJax} from "better-react-mathjax";
 import {Button} from "@/shared/components/ui/button.tsx";
@@ -6,7 +7,6 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/s
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {TexMapper} from "@vladyslav005/tt-core";
 import {
-  EVALUATION_STRATEGY_LABELS,
   EvaluationStrategy,
   type ReductionStep,
 } from "@vladyslav005/tt-core";
@@ -19,6 +19,7 @@ interface ReductionStrategyExplorerProps {
 const STRATEGIES = Object.values(EvaluationStrategy);
 
 export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplorerProps) {
+  const {t} = useTranslation();
   const {parser, evaluator} = useDependencies();
   const [strategy, setStrategy] = useState<EvaluationStrategy>(EvaluationStrategy.CALL_BY_VALUE);
   const [steps, setSteps] = useState<ReductionStep[] | undefined>();
@@ -48,7 +49,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
 
   return (
     <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
-      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Try it — reduction strategies</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("lectureWidgets.tryStrategies")}</p>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
 
       <pre className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto">{term}</pre>
@@ -58,12 +59,12 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
           <SelectTrigger size="sm" className="w-44"><SelectValue/></SelectTrigger>
           <SelectContent>
             {STRATEGIES.map((s) => (
-              <SelectItem key={s} value={s}>{EVALUATION_STRATEGY_LABELS[s]}</SelectItem>
+              <SelectItem key={s} value={s}>{t(`evalStrategy.${s}.label`)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button size="sm" onClick={run}>Run</Button>
-        {steps && <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>}
+        <Button size="sm" onClick={run}>{t("lectureWidgets.run")}</Button>
+        {steps && <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>}
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
@@ -71,7 +72,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
       {steps && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">
-            {steps.length} step{steps.length === 1 ? "" : "s"} under {EVALUATION_STRATEGY_LABELS[strategy]}.
+            {t("lectureWidgets.steps", {count: steps.length, strategy: t(`evalStrategy.${strategy}.label`)})}
           </p>
           <ol className="space-y-1.5 text-sm">
             {steps.map((step, i) => (
@@ -85,7 +86,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
           </ol>
           {resultTex && (
             <p className="text-sm pt-1">
-              <span className="text-muted-foreground">Result: </span>
+              <span className="text-muted-foreground">{t("lectureWidgets.result")} </span>
               <MathJax inline>{`\\(${resultTex}\\)`}</MathJax>
             </p>
           )}

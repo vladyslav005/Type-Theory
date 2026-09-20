@@ -89,6 +89,8 @@
     "notFoundMessage": "There's no lecture at this address.",
     "backToGuide": "Back to the Guide",
     "downloadPdf": "Download PDF",
+    "notTranslatedTitle": "Not yet translated",
+    "notTranslatedMessage": "This lecture isn't available in your language yet — showing the {{language}} version.",
     "downloadPdfTooltip": "Download this lecture as a PDF, formatted for printing"
   },
   "lectureBlocks": {
@@ -981,5 +983,34 @@
       "verdictCorrect": "Your evaluation is correct.",
       "verdictWrong": "Your evaluation is not correct."
     }
+  },
+  "lectureWidgets": {
+    "tryStrategies": "Try it — reduction strategies",
+    "run": "Run",
+    "reset": "Reset",
+    "steps_one": "{{count}} step under {{strategy}}.",
+    "steps_other": "{{count}} steps under {{strategy}}.",
+    "result": "Result:",
+    "tryYourself": "Try it yourself",
+    "checkType": "Check type",
+    "type": "Type:",
+    "checkpoint": "Checkpoint — predict, then verify",
+    "predictPrompt": "What type does this term have?",
+    "predictPlaceholder": "e.g. Bool -> Bool",
+    "tryAgain": "Try again",
+    "reveal": "Reveal",
+    "actualType": "Actual type:",
+    "looseMatch": "(compare loosely — parens/spacing don't matter)",
+    "buildYourself": "Build it yourself",
+    "astTip": "Tip: drag from a node's edge and drop it on empty space to pick what to connect it to.",
+    "astEmpty": "// add nodes above — the equivalent source text appears here",
+    "anatomy": {
+      "premise1": "premise 1",
+      "premise2": "premise 2",
+      "name": "rule name",
+      "conclusion": "conclusion",
+      "note": "Read bottom-up: if every premise above the line holds, then the conclusion below it holds. The label is just the rule's name."
+    },
+    "trace": "Reduction steps"
   }
 }

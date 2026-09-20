@@ -14,6 +14,8 @@ const modules = import.meta.glob("./lectures/*/*.mdx", {eager: true}) as Record<
 
 export interface ResolvedLectureContent {
   Component: ComponentType<Record<string, unknown>>;
+  // The locale of the file actually rendered — differs from the requested one on a fallback.
+  locale: string;
   // True when the requested locale had no file and this is some other locale's file instead.
   isFallback: boolean;
 }
@@ -21,7 +23,7 @@ export interface ResolvedLectureContent {
 export function resolveLectureContent(slug: string, locale: string): ResolvedLectureContent | undefined {
   const preferred = `./lectures/${slug}/${locale}.mdx`;
   if (modules[preferred]) {
-    return {Component: modules[preferred].default, isFallback: false};
+    return {Component: modules[preferred].default, locale, isFallback: false};
   }
 
   // No file for the requested locale — prefer English, then whichever single
@@ -38,6 +40,19 @@ export function resolveLectureContent(slug: string, locale: string): ResolvedLec
 
   return {
     Component: modules[fallback].default,
+    locale: fallback.slice(prefix.length, -".mdx".length),
     isFallback: true,
   };
+}
+
+const localesOf = (slug: string) =>
+  Object.keys(modules)
+    .filter((path) => path.startsWith(`./lectures/${slug}/`))
+    .map((path) => path.slice(path.lastIndexOf("/") + 1, -".mdx".length));
+
+// gen-merged-guide.mjs builds a complete guide only for locales where every written lecture has a file.
+export function completeGuideLocale(locale: string, slugs: string[]): string | undefined {
+  const candidates = [...new Set(slugs.flatMap(localesOf))];
+  const complete = candidates.filter((l) => slugs.every((slug) => localesOf(slug).includes(l)));
+  return complete.includes(locale) ? locale : complete.includes("en") ? "en" : complete[0];
 }

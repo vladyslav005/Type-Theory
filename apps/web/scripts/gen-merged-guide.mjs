@@ -93,8 +93,8 @@ const locales = CANDIDATE_LOCALES.filter((locale) =>
   writtenLectures.every((l) => lectureLocales(l.slug).has(locale)),
 );
 
-if (!locales.includes("en")) {
-  console.warn("[gen-merged-guide] no lecture has an en.mdx — skipping (fallback assumption broken)");
+if (locales.length === 0) {
+  console.warn("[gen-merged-guide] no locale has every written lecture — skipping");
   process.exit(0);
 }
 

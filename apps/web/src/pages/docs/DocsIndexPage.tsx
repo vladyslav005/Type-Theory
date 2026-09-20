@@ -13,6 +13,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared
 import {cn} from "@/shared/lib/utils.ts";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
+import {completeGuideLocale} from "@/features/docs/lectureContent.ts";
 import {usePageMeta, SITE_URL} from "@/shared/hooks/usePageMeta.ts";
 
 const staggerContainer = {
@@ -26,7 +27,9 @@ const staggerContainer = {
 export function DocsIndexPage() {
   const {t, i18n} = useTranslation();
   const visibleLectures = LECTURE_REGISTRY.filter((lecture) => lecture.visible);
-  const hasWrittenLecture = visibleLectures.some((lecture) => lecture.openable);
+  const writtenLectures = visibleLectures.filter((lecture) => lecture.openable);
+  const hasWrittenLecture = writtenLectures.length > 0;
+  const guideLocale = completeGuideLocale(i18n.language, writtenLectures.map((lecture) => lecture.slug));
 
   usePageMeta(
     "Guide — tt",
@@ -60,12 +63,8 @@ export function DocsIndexPage() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                {/* gen-merged-guide.mjs only ever builds this for a locale where every written
-                    lecture has a real (non-fallback) translation — today that's just "en", so
-                    this links straight there rather than i18n.language, which could 404 for
-                    uk/sk readers. */}
                 <a
-                  href="/lectures-pdf/en/complete-guide.pdf"
+                  href={`/lectures-pdf/${guideLocale}/complete-guide.pdf`}
                   download
                   className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
