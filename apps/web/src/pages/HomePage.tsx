@@ -6,9 +6,12 @@ import {
   BookOpen,
   CheckCircle2,
   ClipboardCheck,
+  ExternalLink,
   FileCode,
   FileDown,
+  Binary,
   Layers,
+  Library,
   Network,
   Play,
   Scale,
@@ -16,7 +19,7 @@ import {
   Shapes,
   Sigma,
   Sparkles,
-  GitBranch,
+  Terminal,
 } from "lucide-react";
 import {Button} from "@/shared/components/ui/button";
 import {
@@ -43,8 +46,15 @@ const staggerContainer = {
 const SHOW_TECH_STACK = false;
 
 const FEATURE_ICONS = {
-  CheckCircle2, Sparkles, Play, Network, Layers, GitBranch, ClipboardCheck, Shapes, Scale, FileDown,
+  CheckCircle2, Sparkles, Play, Network, Layers, ClipboardCheck, Shapes, Scale, FileDown, Binary, Library, BookOpen, Terminal,
 } as const;
+
+const FEATURE_LINKS: Record<string, {key: string; href: string}[]> = {
+  tooling: [
+    {key: "vscode", href: "https://marketplace.visualstudio.com/items?itemName=vladyslav005.tt-vscode-extension"},
+    {key: "npm", href: "https://www.npmjs.com/package/@vladyslav005/tt-core"},
+  ],
+};
 
 const FEATURE_KEYS = [
   {icon: "CheckCircle2", key: "typeChecking"},
@@ -52,11 +62,14 @@ const FEATURE_KEYS = [
   {icon: "Play", key: "evaluation"},
   {icon: "Network", key: "proofTree"},
   {icon: "Layers", key: "ast"},
-  {icon: "GitBranch", key: "synchronized"},
   {icon: "ClipboardCheck", key: "exercises"},
   {icon: "Shapes", key: "theories"},
   {icon: "Scale", key: "curryHoward"},
   {icon: "FileDown", key: "latex"},
+  {icon: "Library", key: "examples"},
+  {icon: "Binary", key: "untyped"},
+  {icon: "BookOpen", key: "guide"},
+  {icon: "Terminal", key: "tooling"},
 ] as const satisfies ReadonlyArray<{icon: keyof typeof FEATURE_ICONS; key: string}>;
 
 const EXPLORE = [
@@ -151,6 +164,22 @@ export function HomePage() {
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {t(`home.features.${key}.description`)}
                       </p>
+                      {FEATURE_LINKS[key] && (
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                          {FEATURE_LINKS[key].map((link) => (
+                            <a
+                              key={link.key}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-primary hover:underline"
+                            >
+                              {t(`home.features.${key}.links.${link.key}`)}
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );

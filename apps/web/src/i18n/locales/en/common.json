@@ -711,7 +711,7 @@
   "home": {
     "metaTitle": "tt — Interactive Lambda Calculus Playground",
     "heroTitle": "Interactive Lambda Calculus Playground",
-    "heroLead": "An interactive environment for experimenting with lambda calculus — typed and untyped — as this web playground and as a VS Code extension bringing the same views into your editor. It supports parsing, AST inspection/editing, type checking and inference, proof tree visualization, and building your own derivations by hand.",
+    "heroLead": "An interactive environment for experimenting with typed lambda calculus as this web playground and as a VS Code extension bringing the same views into your editor. It supports parsing, AST inspection/editing, type checking and inference, proof tree visualization, and building your own derivations by hand.",
     "heroSub": "Built as a Master Thesis project, the goal is to make the underlying theory explorable: you can see the syntax tree, derived types, and the proof steps that justify them.",
     "readThesis": "Read the Thesis (coming soon)",
     "overviewTitle": "What This Project Does",
@@ -727,23 +727,19 @@
       },
       "evaluation": {
         "title": "Evaluation",
-        "description": "Reduces lambda terms under normal-order, call-by-value, or call-by-name strategies, with a step-by-step viewer and Γ bindings panel."
+        "description": "Reduces lambda terms under normal-order, call-by-value, or call-by-name strategies, with a step-by-step viewer, a Γ bindings panel, and Church numeral display."
       },
       "proofTree": {
-        "title": "Proof tree visualization",
-        "description": "Shows derivation trees step-by-step, making typing rules and contexts explicit."
+        "title": "Visualization",
+        "description": "Visualizes typing and inference derivations, Curry–Howard proofs, evaluation steps, and the AST — making rules, contexts, and constraints explicit."
       },
       "ast": {
         "title": "AST views & editing",
         "description": "Inspect and (optionally) edit the AST in a structured form to avoid syntax errors."
       },
-      "synchronized": {
-        "title": "Multiple synchronized representations",
-        "description": "Text/AST/proof views are designed to represent the same underlying term."
-      },
       "exercises": {
         "title": "Practice exercises",
-        "description": "Construct a typing derivation yourself, rule by rule, and check it against the real answer with mistake highlighting."
+        "description": "Build proof trees and evaluations by hand: construct a typing derivation node by node, or write every reduction step yourself. Then check against the real answer, with mistakes highlighted."
       },
       "theories": {
         "title": "Extended type theories",
@@ -756,6 +752,26 @@
       "latex": {
         "title": "LaTeX / ebproof export",
         "description": "Preview, copy, or download any proof tree as a ready-to-compile ebproof LaTeX document, matching what's on screen."
+      },
+      "guide": {
+        "title": "Built-in guide",
+        "description": "Lecture pages pair the theory with examples you can load into the editor — from STLC basics to Church encodings — and download as PDF."
+      },
+      "tooling": {
+        "title": "VS Code extension & npm library",
+        "description": "The same engine powers a VS Code extension (diagnostics, completions, proof tree, AST, and evaluation views) and the standalone @vladyslav005/tt-core package.",
+        "links": {
+          "vscode": "VS Code Marketplace",
+          "npm": "npm package"
+        }
+      },
+      "examples": {
+        "title": "Ready-made examples",
+        "description": "A built-in catalogue you can load into the editor in one click: basics, sums, tuples, lists, recursion, polymorphism, and System F, Fω, and λP."
+      },
+      "untyped": {
+        "title": "Untyped λ-calculus & Church encodings",
+        "description": "Experiment with the untyped calculus and Church booleans, pairs, and numerals — numerals are displayed as numbers in the evaluation steps."
       }
     },
     "ctaOpen": "Open the playground",

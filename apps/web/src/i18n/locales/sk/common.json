@@ -713,7 +713,7 @@
   "home": {
     "metaTitle": "tt — interaktívne prostredie pre lambda kalkulus",
     "heroTitle": "Interaktívne prostredie pre lambda kalkulus",
-    "heroLead": "Interaktívne prostredie na experimentovanie s lambda kalkulom — typovaným aj netypovaným — ako toto webové ihrisko a ako rozšírenie pre VS Code, ktoré prináša rovnaké pohľady priamo do editora. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
+    "heroLead": "Interaktívne prostredie na experimentovanie s typovaným lambda kalkulom ako toto webové ihrisko a ako rozšírenie pre VS Code, ktoré prináša rovnaké pohľady priamo do editora. Podporuje analýzu, prehliadanie a úpravu AST, typovú kontrolu a odvodzovanie, vizualizáciu stromu dôkazu a ručné zostavovanie vlastných odvodení.",
     "heroSub": "Vytvorené ako diplomová práca; cieľom je sprístupniť teóriu na skúmanie: vidíte syntaktický strom, odvodené typy a dôkazové kroky, ktoré ich zdôvodňujú.",
     "readThesis": "Prečítať diplomovú prácu (čoskoro)",
     "overviewTitle": "Čo tento projekt robí",
@@ -729,23 +729,19 @@
       },
       "evaluation": {
         "title": "Vyhodnotenie",
-        "description": "Redukuje lambda výrazy v stratégiách normálneho poradia, volania hodnotou alebo volania menom, s prehliadačom krok za krokom a panelom väzieb Γ."
+        "description": "Redukuje lambda výrazy v stratégiách normálneho poradia, volania hodnotou alebo volania menom, s prehliadačom krok za krokom, panelom väzieb Γ a zobrazením Churchových numerálov."
       },
       "proofTree": {
-        "title": "Vizualizácia stromu dôkazu",
-        "description": "Zobrazuje odvodzovacie stromy krok za krokom a zviditeľňuje typové pravidlá a kontexty."
+        "title": "Vizualizácia",
+        "description": "Vizualizuje typové odvodenia a odvodzovanie, Curry–Howardove dôkazy, kroky vyhodnotenia a AST — s explicitnými pravidlami, kontextami a obmedzeniami."
       },
       "ast": {
         "title": "Zobrazenie a úprava AST",
         "description": "Prehliadajte a (voliteľne) upravujte AST v štruktúrovanej forme, aby ste sa vyhli syntaktickým chybám."
       },
-      "synchronized": {
-        "title": "Viacero synchronizovaných reprezentácií",
-        "description": "Textové, AST a dôkazové pohľady sú navrhnuté tak, aby reprezentovali ten istý výraz."
-      },
       "exercises": {
         "title": "Cvičenia v režime Precvičovanie",
-        "description": "Zostavte typové odvodenie sami, pravidlo po pravidle, a porovnajte ho so správnou odpoveďou so zvýraznením chýb."
+        "description": "Zostavujte stromy dôkazu a vyhodnotenia ručne: vytvorte typové odvodenie uzol po uzle alebo napíšte každý redukčný krok sami. Potom porovnajte so správnou odpoveďou so zvýraznením chýb."
       },
       "theories": {
         "title": "Rozšírené typové teórie",
@@ -758,6 +754,26 @@
       "latex": {
         "title": "Export do LaTeX / ebproof",
         "description": "Zobrazte náhľad, skopírujte alebo stiahnite ľubovoľný strom dôkazu ako dokument LaTeX ebproof pripravený na kompiláciu, zodpovedajúci tomu, čo je na obrazovke."
+      },
+      "guide": {
+        "title": "Vstavaný sprievodca",
+        "description": "Stránky s prednáškami spájajú teóriu s príkladmi, ktoré môžete načítať do editora — od základov STLC po Churchove kódovania — a stiahnuť ako PDF."
+      },
+      "tooling": {
+        "title": "Rozšírenie VS Code a knižnica npm",
+        "description": "Rovnaký engine poháňa rozšírenie VS Code (diagnostika, dopĺňanie, strom dôkazu, AST a vyhodnotenie) aj samostatný balík @vladyslav005/tt-core.",
+        "links": {
+          "vscode": "VS Code Marketplace",
+          "npm": "Balík npm"
+        }
+      },
+      "examples": {
+        "title": "Hotové príklady",
+        "description": "Vstavaný katalóg, ktorý načítate do editora jedným kliknutím: základy, súčty, n-tice, zoznamy, rekurzia, polymorfizmus a systémy F, Fω a λP."
+      },
+      "untyped": {
+        "title": "Netypovaný λ-kalkul a Churchove kódovania",
+        "description": "Experimentujte s netypovaným kalkulom a Churchovými booleovskými hodnotami, dvojicami a numerálmi — numerály sa v krokoch vyhodnotenia zobrazujú ako čísla."
       }
     },
     "ctaOpen": "Otvoriť prostredie",
