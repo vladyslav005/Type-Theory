@@ -13,6 +13,18 @@ export function Footer() {
       </div>
       <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
         <p>{t("footer.rights", {year: new Date().getFullYear()})}</p>
+        <p>
+          {t("footer.basedOn")}{" "}
+          <a
+            href="https://kurzy.kpi.fei.tuke.sk/tt/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            {t("footer.courseLink")}
+          </a>
+          .
+        </p>
       </div>
     </footer>
   )

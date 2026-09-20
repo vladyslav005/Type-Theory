@@ -55,7 +55,9 @@
   },
   "footer": {
     "brand": "Теорія типів",
-    "rights": "© {{year}} Type Theory. Усі права захищено."
+    "rights": "© {{year}} · Вихідний код за ліцензією MIT.",
+    "basedOn": "Навчальні матеріали базуються на курсі",
+    "courseLink": "«Теорія типів», KPI FEI TUKE"
   },
   "guide": {
     "lecture": "Лекція",

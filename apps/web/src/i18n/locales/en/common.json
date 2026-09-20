@@ -55,7 +55,9 @@
   },
   "footer": {
     "brand": "Type Theory",
-    "rights": "© {{year}} Type Theory. All rights reserved."
+    "rights": "© {{year}} · Source code under the MIT license.",
+    "basedOn": "Study materials are based on the course",
+    "courseLink": "Type Theory, KPI FEI TUKE"
   },
   "guide": {
     "lecture": "Lecture",

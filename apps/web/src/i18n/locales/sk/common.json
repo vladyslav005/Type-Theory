@@ -55,7 +55,9 @@
   },
   "footer": {
     "brand": "Teória typov",
-    "rights": "© {{year}} Type Theory. Všetky práva vyhradené."
+    "rights": "© {{year}} · Zdrojový kód pod licenciou MIT.",
+    "basedOn": "Študijné materiály vychádzajú z kurzu",
+    "courseLink": "Teória typov, KPI FEI TUKE"
   },
   "guide": {
     "lecture": "Prednáška",
