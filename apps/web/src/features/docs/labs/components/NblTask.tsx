@@ -14,7 +14,7 @@ import {
   type NblTerm,
 } from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {cn} from "@/shared/lib/utils.ts";
+import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {NblTreeBuilder} from "@/features/docs/labs/components/NblTreeBuilder.tsx";
@@ -100,7 +100,7 @@ function ConstantsRow({index, source}: {index: number; source: string}) {
   return (
     <Row index={index} source={source} solution={invalid ?? formatSet(expected!)}>
       <div className="flex flex-wrap items-center gap-2">
-        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} placeholder="{0, true}" spellCheck={false}/>
+        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" widthClass="w-48"/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
       </div>
       <Feedback verdict={verdict}/>
@@ -209,7 +209,7 @@ function EvaluateRow({index, source}: {index: number; source: string}) {
       {!done && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && value.trim() && submit()} className={cn(inputClass, "w-full max-w-md")} placeholder={t("labWidgets.nextStepPlaceholder")} spellCheck={false}/>
+            <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={submit} placeholder={t("labWidgets.nextStepPlaceholder")}/>
             <Button size="sm" disabled={!value.trim()} onClick={submit}>{t("labWidgets.check")}</Button>
           </div>
           <div className="flex flex-wrap gap-2">

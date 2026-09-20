@@ -3,8 +3,9 @@ import {useTranslation} from "react-i18next";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
+import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
-import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
+import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {
   decodeChurch,
   equalTerms,
@@ -40,7 +41,7 @@ function ParensRow({index, source}: {index: number; source: string}) {
   return (
     <Row index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
       <div className="flex flex-wrap items-center gap-2">
-        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && value.trim() && check()} className={cn(inputClass, "w-full max-w-md")} placeholder={source} spellCheck={false}/>
+        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source}/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
       </div>
       <Feedback verdict={verdict}/>
@@ -162,7 +163,7 @@ function NormalFormRow({index, source}: {index: number; source: string}) {
   return (
     <Row index={index} source={source} solution={parsed.ok ? solution : parsed.message}>
       <div className="flex flex-wrap items-center gap-2">
-        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && value.trim() && check()} className={cn(inputClass, "w-full max-w-md")} placeholder={t("labWidgets.normalFormPlaceholder")} spellCheck={false}/>
+        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.normalFormPlaceholder")}/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
         <Button size="sm" variant="ghost" onClick={() => setPractice((v) => !v)}>{practice ? t("labWidgets.hideSteps") : t("labWidgets.practiceSteps")}</Button>
       </div>
@@ -203,7 +204,7 @@ function ChurchRow({index, source}: {index: number; source: string}) {
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && value.trim() && check()} className={inputClass} placeholder={t("labWidgets.churchPlaceholder")} spellCheck={false}/>
+        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} widthClass="w-72"/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
       </div>
       <Feedback verdict={verdict}/>
@@ -238,14 +239,7 @@ export function DefineTask({tests, solution}: {tests: [string, string][]; soluti
   return (
     <ul className="list-none print:hidden">
       <Row index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
-        <textarea
-          value={value}
-          onChange={(e) => { setValue(e.target.value); setResults(undefined); setError(undefined); }}
-          rows={2}
-          spellCheck={false}
-          placeholder={t("labWidgets.definePlaceholder")}
-          className="w-full rounded-md border bg-background p-2 font-mono text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        />
+        <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
         <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (
