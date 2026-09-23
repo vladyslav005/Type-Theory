@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {Info} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {toast} from "sonner";
@@ -16,6 +16,8 @@ import {
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {buildBugReportAttachments} from "@/shared/lib/bugReportAttachments.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
+import {env} from "@/shared/lib/env.ts";
+import {loadTurnstile} from "@/shared/lib/turnstile.ts";
 
 export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChange: (open: boolean) => void}) {
   const {t, i18n} = useTranslation();
@@ -25,6 +27,29 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
   const [website, setWebsite] = useState("");
   const [attachState, setAttachState] = useState(true);
   const [sending, setSending] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !env.VITE_TURNSTILE_SITE_KEY) return;
+    let cancelled = false;
+    loadTurnstile().then(() => {
+      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: env.VITE_TURNSTILE_SITE_KEY!,
+        callback: setTurnstileToken,
+        "expired-callback": () => setTurnstileToken(null),
+        "error-callback": () => setTurnstileToken(null),
+      });
+    }).catch(() => setTurnstileToken(null));
+    return () => {
+      cancelled = true;
+      if (turnstileWidgetIdRef.current && window.turnstile) window.turnstile.remove(turnstileWidgetIdRef.current);
+      turnstileWidgetIdRef.current = null;
+      setTurnstileToken(null);
+    };
+  }, [open]);
 
   const submit = async () => {
     setSending(true);
@@ -51,6 +76,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
           website,
           files: attachments,
           context,
+          turnstileToken,
         }),
       });
       if (res.status === 413) {
@@ -63,6 +89,9 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
       onOpenChange(false);
     } catch {
       toast.error(t("bugReport.failed"));
+      // A Turnstile token is single-use; get a fresh one for the next attempt.
+      if (turnstileWidgetIdRef.current && window.turnstile) window.turnstile.reset(turnstileWidgetIdRef.current);
+      setTurnstileToken(null);
     } finally {
       setSending(false);
     }
@@ -141,13 +170,18 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
               </Tooltip>
             </TooltipProvider>
           </div>
+
+          {env.VITE_TURNSTILE_SITE_KEY && <div ref={turnstileContainerRef} className="flex justify-center"/>}
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={sending}>
             {t("bugReport.cancel")}
           </Button>
-          <Button onClick={submit} disabled={sending || !description.trim()}>
+          <Button
+            onClick={submit}
+            disabled={sending || !description.trim() || (!!env.VITE_TURNSTILE_SITE_KEY && !turnstileToken)}
+          >
             {sending ? t("bugReport.sending") : t("bugReport.send")}
           </Button>
         </DialogFooter>

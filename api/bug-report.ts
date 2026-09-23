@@ -14,6 +14,7 @@ interface IncomingReport {
   website?: string;
   context?: Record<string, unknown>;
   files?: IncomingFile[];
+  turnstileToken?: string;
 }
 
 const json = (status: number, body: Record<string, unknown>) =>
@@ -21,9 +22,47 @@ const json = (status: number, body: Record<string, unknown>) =>
 
 const safeName = (name: string) => name.replace(/[^\w.\-]+/g, "_").slice(0, 80) || "file";
 
+const ALLOWED_ORIGINS = new Set(["https://type-theory.dev", "https://tt-woad.vercel.app"]);
+
+// Also allow the current Vercel deployment's own URL, so preview deployments work untouched.
+const isAllowedOrigin = (origin: string | null) => {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.has(origin)) return true;
+  if (process.env.VERCEL_URL && origin === `https://${process.env.VERCEL_URL}`) return true;
+  return /^http:\/\/localhost(:\d+)?$/.test(origin);
+};
+
+const requestOrigin = (request: Request): string | null => {
+  const origin = request.headers.get("origin");
+  if (origin) return origin;
+  const referer = request.headers.get("referer");
+  if (!referer) return null;
+  try {
+    return new URL(referer).origin;
+  } catch {
+    return null;
+  }
+};
+
+const verifyTurnstile = async (token: string | undefined, secret: string, ip: string | null): Promise<boolean> => {
+  if (!token) return false;
+  const body = new URLSearchParams({secret, response: token});
+  if (ip) body.set("remoteip", ip);
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {method: "POST", body});
+    const data = (await res.json()) as {success: boolean};
+    return data.success === true;
+  } catch {
+    return false;
+  }
+};
+
 export async function POST(request: Request): Promise<Response> {
   const webhook = process.env.DISCORD_WEBHOOK_URL;
-  if (!webhook) return json(500, {error: "not_configured"});
+  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+  if (!webhook || !turnstileSecret) return json(500, {error: "not_configured"});
+
+  if (!isAllowedOrigin(requestOrigin(request))) return json(403, {error: "forbidden"});
 
   let report: IncomingReport;
   try {
@@ -33,6 +72,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (report.website) return json(200, {ok: true});
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+  if (!(await verifyTurnstile(report.turnstileToken, turnstileSecret, ip))) {
+    return json(401, {error: "verification_failed"});
+  }
 
   const description = report.description?.trim();
   if (!description) return json(400, {error: "description_required"});
