@@ -36,7 +36,7 @@
     {
       "slug": "typed-unit-products",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Jednotkový typ, odvodené tvary termov, súčinové typy",
@@ -47,7 +47,7 @@
     {
       "slug": "sum-types",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Súčtové typy",
@@ -58,7 +58,7 @@
     {
       "slug": "recursion-lists-recursive-types",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Rekurzia v typovanom λ-kalkule, zoznamy, rekurzívne typy",
@@ -69,7 +69,7 @@
     {
       "slug": "type-inference",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Odvodenie typu",
@@ -80,7 +80,7 @@
     {
       "slug": "system-f-let",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Systém F a let polymorfizmus",
@@ -91,7 +91,7 @@
     {
       "slug": "system-f-omega",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Systém λω",
@@ -102,7 +102,7 @@
     {
       "slug": "system-lambda-p",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Systém λP",
@@ -113,7 +113,7 @@
     {
       "slug": "curry-howard",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Curry–Howardova korešpondencia",
