@@ -239,8 +239,10 @@ export function DefineTask({tests, solution}: {tests: [string, string][]; soluti
   return (
     <ul className="list-none print:hidden">
       <Row index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
-        <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
-        <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
+          <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
+        </div>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (
           <div className="space-y-1.5">
