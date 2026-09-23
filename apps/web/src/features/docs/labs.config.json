@@ -20,12 +20,12 @@
           "summary": "Zátvorky, voľné a viazané premenné, vyhodnotenie λ-termov a programovanie v λ-kalkule."
         }
       },
-      "openable": false
+      "openable": true
     },
     {
       "slug": "recursion-untyped",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Rekurzia v netypovanom λ-kalkule",
@@ -36,7 +36,7 @@
     {
       "slug": "typed-nbl-stlc",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Typovaný NBL a jednoducho typovaný λ-kalkul",
@@ -47,7 +47,7 @@
     {
       "slug": "let-products",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Väzba let a súčinové typy",
@@ -58,7 +58,7 @@
     {
       "slug": "sum-types",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Súčtové typy",
@@ -69,7 +69,7 @@
     {
       "slug": "recursion-lists",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Rekurzia a zoznamy",
@@ -80,7 +80,7 @@
     {
       "slug": "recursive-types",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Rekurzívne typy",
@@ -91,7 +91,7 @@
     {
       "slug": "type-inference",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Odvodenie typu",
@@ -102,7 +102,7 @@
     {
       "slug": "let-polymorphism-system-f",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Let polymorfizmus a Systém F",
