@@ -12,7 +12,9 @@ import {termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {termKey} from "@/shared/lib/manualParse.ts";
 
 const parser = new AntlrParserAdapter();
-const evaluator = new Evaluator();
+// Recursive fixx-based definitions (lab 3) need far more than the default 500 steps
+// even for tiny inputs — pred's pair-shifting trick alone is O(n) reduction steps.
+const evaluator = new Evaluator(5000);
 
 type Parsed = {ok: true; program: Program; term: Term} | {ok: false; message: string};
 

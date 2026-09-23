@@ -1,0 +1,110 @@
+## Ciele
+
+Po tomto cvičení viete definovať a vyhodnotiť rekurzívne funkcie v netypovanom λ-kalkule pomocou
+kombinátora pevného bodu. Riešený príklad (`factorial`) nájdete v [druhej prednáške,
+časť Rekurzia](/docs/church-encodings#recursion) — tam istý postup, tu ho zopakujete na ďalších
+funkciách.
+
+## Postup
+
+Pre každú funkciu nižšie:
+
+1. Napíšte jej priamu λ-termovú definíciu (s `test`, `iszero`, `pred`, `succ`, …).
+2. Rovnaké telo si môžete zjednodušene zapísať pomocou infixných operátorov a syntaxe jazyka NBL
+   (`if … then … else …`) — je to len čitateľnejší zápis toho istého termu.
+3. Vytiahnite rekurzívne volanie do parametra: pomocná funkcia vyššieho rádu
+   `g = λ self . λ … . …`, kde `self` nahrádza meno funkcie, ktoré ešte nemáte.
+4. Získajte skutočnú funkciu ako pevný bod: `fixx (λ self . λ … . …)`, presne ako `fact` v prednáške.
+
+Nižšie zadáte priamo term z kroku 4 a program ho vyhodnotí pre dané argumenty.
+
+## Úloha 1.1 — Funkcia plus
+
+<MathBlock>{"plus(m,n) = \\begin{cases} m & \\text{ak } n = 0 \\\\ plus(m+1,\\, n-1) & \\text{inak} \\end{cases}"}</MathBlock>
+
+Vyhodnoťte `plus 3 2`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ m . λ n . test (iszero n) m (self (succ m) (pred n)))"
+  tests={[
+    ["3 2", "5"],
+    ["0 0", "0"],
+  ]}
+/>
+
+## Úloha 1.2 — Funkcia minus
+
+<MathBlock>{"minus(m,n) = \\begin{cases} m & \\text{ak } n = 0 \\\\ minus(m-1,\\, n-1) & \\text{inak} \\end{cases}"}</MathBlock>
+
+Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `minus 3 2`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ m . λ n . test (iszero n) m (self (pred m) (pred n)))"
+  tests={[
+    ["3 2", "1"],
+    ["3 0", "3"],
+  ]}
+/>
+
+## Úloha 1.3 — Funkcia times
+
+<MathBlock>{"times(m,n) = \\begin{cases} 0 & \\text{ak } n = 0 \\\\ m + times(m,\\, n-1) & \\text{inak} \\end{cases}"}</MathBlock>
+
+Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `times 3 2`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ m . λ n . test (iszero n) zero (plus m (self m (pred n))))"
+  tests={[
+    ["3 2", "6"],
+    ["3 0", "0"],
+  ]}
+/>
+
+## Úloha 1.4 — Fibonacciho sekvencia
+
+<MathBlock>{"fib(n) = \\begin{cases} 0 & \\text{ak } n = 0 \\\\ 1 & \\text{ak } n = 1 \\\\ fib(n-1) + fib(n-2) & \\text{ak } n > 1 \\end{cases}"}</MathBlock>
+
+Tu má `g` dve základné podmienky, `test` teda vnoríte dvakrát. Vyhodnoťte `fib 3`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ n . test (iszero n) zero (test (iszero (pred n)) one (plus (self (pred n)) (self (pred (pred n))))))"
+  tests={[
+    ["3", "2"],
+    ["0", "0"],
+    ["1", "1"],
+  ]}
+/>
+
+## Úloha 1.5 — Funkcia power
+
+<MathBlock>{"power(a,b) = \\begin{cases} 1 & \\text{ak } b = 0 \\\\ a \\times power(a,\\, b-1) & \\text{ak } b > 0 \\end{cases}"}</MathBlock>
+
+Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `power 2 3`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ a . λ b . test (iszero b) one (times a (self a (pred b))))"
+  tests={[
+    ["2 3", "8"],
+    ["2 0", "1"],
+  ]}
+/>
+
+## Úloha 1.6 — Funkcia sum
+
+<MathBlock>{"sum(n) = \\begin{cases} 0 & \\text{ak } n = 0 \\\\ n + sum(n-1) & \\text{ak } n > 0 \\end{cases}"}</MathBlock>
+
+Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `sum 3`.
+
+<LambdaTask
+  type="define"
+  solution="fixx (λ self . λ n . test (iszero n) zero (plus n (self (pred n))))"
+  tests={[
+    ["3", "6"],
+    ["0", "0"],
+  ]}
+/>
