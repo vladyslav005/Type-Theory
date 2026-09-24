@@ -6,6 +6,7 @@ import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPract
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
+import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {
   decodeChurch,
   equalTerms,
@@ -21,25 +22,26 @@ import {
 
 export type LambdaTaskType = "parens" | "scope" | "normal-form" | "church" | "define";
 
-function ParensRow({index, source}: {index: number; source: string}) {
+function ParensRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
 
   const check = () => {
     if (!parsed.ok) return;
     const typed = parseLambda(value);
-    if (!typed.ok) return setVerdict({ok: false, text: t("labWidgets.cannotRead", {detail: typed.message})});
-    if (!equalTerms(typed.term, parsed.term)) return setVerdict({ok: false, text: t("labWidgets.parensChanged")});
+    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
+    if (!equalTerms(typed.term, parsed.term)) return setVerdict({ok: false, kind: "parensChanged", text: t("labWidgets.parensChanged")});
     const missing = requiredParentheses(parsed.term) - (value.match(/\(/g)?.length ?? 0);
     setVerdict(missing > 0
-      ? {ok: false, text: t("labWidgets.parensMissing", {count: missing})}
+      ? {ok: false, kind: "parensMissing", text: t("labWidgets.parensMissing", {count: missing})}
       : {ok: true, text: t("labWidgets.parensOk")});
   };
 
   return (
-    <Row index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
+    <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
       <div className="flex flex-wrap items-center gap-2">
         <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source}/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
@@ -51,8 +53,9 @@ function ParensRow({index, source}: {index: number; source: string}) {
 
 type Mark = "free" | "bound" | undefined;
 
-function ScopeRow({index, source}: {index: number; source: string}) {
+function ScopeRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
   const occurrences = useMemo(() => (parsed.ok ? variableOccurrences(parsed.term) : []), [parsed]);
   const [marks, setMarks] = useState<Mark[]>([]);
@@ -82,6 +85,7 @@ function ScopeRow({index, source}: {index: number; source: string}) {
 
   return (
     <Row
+      taskId={taskId}
       index={index}
       solution={
         <p className="font-mono">
@@ -122,7 +126,7 @@ function ScopeRow({index, source}: {index: number; source: string}) {
           </div>
           <p className="text-xs text-muted-foreground">{t("labWidgets.scopeLegend")}</p>
           <div className="flex gap-2">
-            <Button size="sm" disabled={marks.filter(Boolean).length === 0} onClick={() => setChecked(true)}>{t("labWidgets.check")}</Button>
+            <Button size="sm" disabled={marks.filter(Boolean).length === 0} onClick={() => { setChecked(true); trackTask(taskId, {ok: allCorrect, kind: allCorrect ? undefined : "scopeWrong"}); }}>{t("labWidgets.check")}</Button>
             <Button size="sm" variant="ghost" onClick={() => { setMarks([]); setChecked(false); }}>{t("lectureWidgets.reset")}</Button>
           </div>
           <Feedback verdict={verdict}/>
@@ -132,19 +136,20 @@ function ScopeRow({index, source}: {index: number; source: string}) {
   );
 }
 
-function NormalFormRow({index, source}: {index: number; source: string}) {
+function NormalFormRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
   const normalized = useMemo(() => (parsed.ok ? normalize(parsed.program) : undefined), [parsed]);
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const [practice, setPractice] = useState(false);
 
   const check = () => {
     if (!normalized) return;
-    if (normalized.limit) return setVerdict({ok: false, text: t("labWidgets.diverges")});
+    if (normalized.limit) return setVerdict({ok: false, kind: "diverges", text: t("labWidgets.diverges")});
     const typed = parseLambda(value);
-    if (!typed.ok) return setVerdict({ok: false, text: t("labWidgets.cannotRead", {detail: typed.message})});
+    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
     const eta = etaNormal(normalized.result);
     setVerdict(equalTerms(typed.term, normalized.result) || equalTerms(typed.term, eta)
       ? {ok: true, text: t("labWidgets.correct")}
@@ -161,31 +166,32 @@ function NormalFormRow({index, source}: {index: number; source: string}) {
   );
 
   return (
-    <Row index={index} source={source} solution={parsed.ok ? solution : parsed.message}>
+    <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? solution : parsed.message}>
       <div className="flex flex-wrap items-center gap-2">
         <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.normalFormPlaceholder")}/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
         <Button size="sm" variant="ghost" onClick={() => setPractice((v) => !v)}>{practice ? t("labWidgets.hideSteps") : t("labWidgets.practiceSteps")}</Button>
       </div>
       <Feedback verdict={verdict}/>
-      {practice && normalized && <div className="rounded-lg border bg-background pt-3"><EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}}/></div>}
+      {practice && normalized && <div className="rounded-lg border bg-background pt-3"><EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId && `${taskId}/steps`}/></div>}
     </Row>
   );
 }
 
-function ChurchRow({index, source}: {index: number; source: string}) {
+function ChurchRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(labNotation(source), true), [source]);
   const normalized = useMemo(() => (parsed.ok ? normalize(parsed.program) : undefined), [parsed]);
   const decoded = useMemo(() => (normalized && !normalized.limit ? decodeChurch(normalized.result) : undefined), [normalized]);
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
 
   const check = () => {
     if (!normalized) return;
-    if (normalized.limit) return setVerdict({ok: false, text: t("labWidgets.diverges")});
+    if (normalized.limit) return setVerdict({ok: false, kind: "diverges", text: t("labWidgets.diverges")});
     const typed = parseLambda(labNotation(value), true);
-    if (!typed.ok) return setVerdict({ok: false, text: t("labWidgets.cannotRead", {detail: typed.message})});
+    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
     const typedResult = normalize(typed.program);
     setVerdict(!typedResult.limit && equalTerms(typedResult.result, normalized.result)
       ? {ok: true, text: t("labWidgets.correct")}
@@ -194,6 +200,7 @@ function ChurchRow({index, source}: {index: number; source: string}) {
 
   return (
     <Row
+      taskId={taskId}
       index={index}
       source={source}
       solution={normalized && (
@@ -212,8 +219,9 @@ function ChurchRow({index, source}: {index: number; source: string}) {
   );
 }
 
-export function DefineTask({tests, solution}: {tests: [string, string][]; solution?: string}) {
+export function DefineTask({id, tests, solution}: {id?: string; tests: [string, string][]; solution?: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id);
   const [value, setValue] = useState("");
   const [results, setResults] = useState<{call: string; expected: string; ok: boolean}[]>();
   const [error, setError] = useState<string>();
@@ -222,23 +230,27 @@ export function DefineTask({tests, solution}: {tests: [string, string][]; soluti
     const candidate = parseLambda(labNotation(value), true);
     if (!candidate.ok) {
       setResults(undefined);
+      trackTask(taskId, {ok: false, kind: "cannotRead"});
       return setError(t("labWidgets.cannotRead", {detail: candidate.message}));
     }
     setError(undefined);
-    setResults(tests.map(([args, expected]) => {
+    const outcome = tests.map(([args, expected]) => {
       const call = parseLambda(labNotation(`(${value}) ${args}`), true);
       const want = parseLambda(labNotation(expected), true);
       if (!call.ok || !want.ok) return {call: args, expected, ok: false};
       const got = normalize(call.program);
       return {call: args, expected, ok: !got.limit && equalTerms(got.result, normalize(want.program).result)};
-    }));
+    });
+    const passedCount = outcome.filter((r) => r.ok).length;
+    trackTask(taskId, {ok: passedCount === outcome.length, kind: passedCount === outcome.length ? undefined : "tests", score: `${passedCount}/${outcome.length}`});
+    setResults(outcome);
   };
 
   const passed = results?.filter((r) => r.ok).length ?? 0;
 
   return (
     <ul className="list-none print:hidden">
-      <Row index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
+      <Row taskId={taskId} index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
         <div className="flex flex-wrap items-center gap-2">
           <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
           <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
@@ -264,16 +276,16 @@ export function DefineTask({tests, solution}: {tests: [string, string][]; soluti
   );
 }
 
-export function LambdaTask({type, terms = [], tests = [], solution}: {type: LambdaTaskType; terms?: string[]; tests?: [string, string][]; solution?: string}) {
-  if (type === "define") return <DefineTask tests={tests} solution={solution}/>;
+export function LambdaTask({id, type, terms = [], tests = [], solution}: {id?: string; type: LambdaTaskType; terms?: string[]; tests?: [string, string][]; solution?: string}) {
+  if (type === "define") return <DefineTask id={id} tests={tests} solution={solution}/>;
   return (
     <ol className="space-y-3 list-none print:hidden">
       {terms.map((source, index) => {
         switch (type) {
-          case "parens": return <ParensRow key={index} index={index} source={source}/>;
-          case "scope": return <ScopeRow key={index} index={index} source={source}/>;
-          case "normal-form": return <NormalFormRow key={index} index={index} source={source}/>;
-          case "church": return <ChurchRow key={index} index={index} source={source}/>;
+          case "parens": return <ParensRow key={index} id={id} index={index} source={source}/>;
+          case "scope": return <ScopeRow key={index} id={id} index={index} source={source}/>;
+          case "normal-form": return <NormalFormRow key={index} id={id} index={index} source={source}/>;
+          case "church": return <ChurchRow key={index} id={id} index={index} source={source}/>;
         }
       })}
     </ol>

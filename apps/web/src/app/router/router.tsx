@@ -4,6 +4,8 @@ import {AppLayout} from "../layout/AppLayout.tsx";
 import {HomePage} from "@/pages/HomePage.tsx";
 import {NotFoundPage} from "@/pages/NotFoundPage.tsx";
 import {ErrorPage} from "@/pages/ErrorPage.tsx";
+import {ActivityPage} from "@/pages/ActivityPage.tsx";
+import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 import {DocsLayout} from "@/pages/docs/DocsLayout.tsx";
 import {DocsIndexPage} from "@/pages/docs/DocsIndexPage.tsx";
 import {DocsLabPage} from "@/pages/docs/DocsLabPage.tsx";
@@ -22,6 +24,7 @@ export const router = createBrowserRouter([
       {index: true, element: <HomePage/>},
       {path: "/main", element: <MainPage/>},
       {path: "/about", element: <Navigate to="/" replace/>},
+      ...(STUDY_MODE ? [{path: "/activity", element: <ActivityPage/>}] : []),
       {
         path: "/docs", element: <DocsLayout/>,
         children: [

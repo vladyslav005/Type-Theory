@@ -1,4 +1,5 @@
 import {useTranslation} from "react-i18next";
+import {useViewTime} from "@/shared/activity/activityClock.ts";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useProofHooks} from "@/shared/hooks/processProofHooks.ts";
@@ -46,6 +47,7 @@ export function ProofTreeVisualisation({
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   // Not Radix's <TabsContent> — mounting TransformWrapper inside it hung the tab.
   const [activeTab, setActiveTab] = useState<ProofTreeTab>("automatic");
+  useViewTime(`proofTree:${activeTab}`);
   const [stepByStep, setStepByStep] = useState(false);
   const [highlightOnHover, setHighlightOnHover] = useState(true);
   const [showInferenceSteps, setShowInferenceSteps] = useState(false);

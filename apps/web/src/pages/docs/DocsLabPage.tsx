@@ -8,6 +8,7 @@ import {LAB_REGISTRY, getLabText, resolveLabContent} from "@/features/docs/labs/
 import {labMdxComponents} from "@/features/docs/labs/labComponents.tsx";
 import {ComingSoonPanel} from "@/shared/components/ComingSoonPanel.tsx";
 import {usePageMeta} from "@/shared/hooks/usePageMeta.ts";
+import {TaskScopeContext} from "@/shared/activity/taskTracking.ts";
 
 export function DocsLabPage() {
   const {t, i18n} = useTranslation();
@@ -58,9 +59,11 @@ export function DocsLabPage() {
 
       {resolved && (
         <div className="space-y-6">
-          <MDXProvider components={labMdxComponents}>
-            <resolved.Component/>
-          </MDXProvider>
+          <TaskScopeContext.Provider value={`lab:${lab.slug}`}>
+            <MDXProvider components={labMdxComponents}>
+              <resolved.Component/>
+            </MDXProvider>
+          </TaskScopeContext.Provider>
         </div>
       )}
     </motion.div>

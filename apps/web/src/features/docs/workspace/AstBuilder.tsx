@@ -1,5 +1,6 @@
 import {useTranslation} from "react-i18next";
 import {useCallback, useRef, useState} from "react";
+import {trackWidgetUse} from "@/shared/activity/taskTracking.ts";
 import {Lightbulb} from "lucide-react";
 import {ReactFlowProvider} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -55,7 +56,7 @@ export function AstBuilder({label, instructions, allowedTypes}: AstBuilderProps)
         <div className="flex items-center gap-2">
           <ButtonGroup>
             <AstNodePaletteDropdowns
-              onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)}
+              onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
               allowedTypes={allowedTypes}
             />
           </ButtonGroup>

@@ -1,4 +1,5 @@
 import {useTranslation} from "react-i18next";
+import {useViewTime} from "@/shared/activity/activityClock.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useRef, useState} from "react";
 import {useFullscreen} from "@/shared/hooks/useFullscreen.ts";
@@ -34,6 +35,7 @@ export function EvaluationVisualisation({
   const [viewMode, setViewMode] = useState<"single" | "all">("single");
   const [showGamma, setShowGamma] = useState(false);
   const [activeTab, setActiveTab] = useState<"automatic" | "practice">("automatic");
+  useViewTime(`evaluation:${activeTab}`);
 
   return (
     <motion.div

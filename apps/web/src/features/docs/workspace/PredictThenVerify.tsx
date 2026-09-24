@@ -1,4 +1,5 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {trackTask, useTaskId} from "@/shared/activity/taskTracking.ts";
 import {useTranslation} from "react-i18next";
 import {Check, X} from "lucide-react";
 import {MathJax} from "better-react-mathjax";
@@ -6,6 +7,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
 
 interface PredictThenVerifyProps {
+  id?: string;
   term: string;
   prompt?: string;
 }
@@ -13,8 +15,9 @@ interface PredictThenVerifyProps {
 // Loose match on purpose — comparing against a hand-typed guess, not re-parsing it.
 const normalize = (s: string) => s.replace(/[()\s]/g, "");
 
-export function PredictThenVerify({term, prompt}: PredictThenVerifyProps) {
+export function PredictThenVerify({id, term, prompt}: PredictThenVerifyProps) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id);
   const {check, result, error, checked} = useMiniWorkspace(term);
   const [guess, setGuess] = useState("");
   const [revealed, setRevealed] = useState(false);
@@ -30,6 +33,12 @@ export function PredictThenVerify({term, prompt}: PredictThenVerifyProps) {
   };
 
   const matches = revealed && !!result && normalize(guess) === normalize(result.typeText);
+
+  useEffect(() => {
+    if (!revealed || !checked) return;
+    trackTask(taskId, {ok: matches, kind: matches ? undefined : guess.trim() ? "mismatch" : "noGuess"});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per reveal
+  }, [revealed, checked]);
 
   return (
     <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">

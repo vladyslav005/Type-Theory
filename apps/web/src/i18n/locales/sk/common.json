@@ -57,7 +57,8 @@
     "brand": "Teória typov",
     "rights": "© {{year}} · Zdrojový kód pod licenciou MIT.",
     "basedOn": "Študijné materiály vychádzajú z kurzu",
-    "courseLink": "Teória typov, KPI FEI TUKE"
+    "courseLink": "Teória typov, KPI FEI TUKE",
+    "activity": "Zber údajov o používaní"
   },
   "guide": {
     "lecture": "Prednáška",
@@ -1071,5 +1072,67 @@
     "testsPassed": "Prešlo {{passed}} z {{total}} testov.",
     "practiceSteps": "Krok za krokom",
     "hideSteps": "Skryť kroky"
+  },
+  "activity": {
+    "consent": {
+      "title": "Súhlas so zberom údajov o používaní",
+      "body": "Na účely vyhodnotenia tejto aplikácie v rámci predmetu sa môžu v tomto prehliadači zaznamenávať anonymné štatistiky používania. Zber sa začne iba s vaším súhlasom.",
+      "points": [
+        "Nezaznamenávajú sa osobné údaje ani zadaný obsah (kód, termy, odpovede).",
+        "Údaje sa ukladajú iba v tomto prehliadači a nikam sa neodosielajú.",
+        "Účasť je dobrovoľná a nemá vplyv na hodnotenie.",
+        "Súhlas je možné kedykoľvek odvolať a údaje vymazať na stránke „Zber údajov o používaní“."
+      ],
+      "allow": "Povoliť zber",
+      "decline": "Nepovoliť",
+      "learnMore": "Podrobnosti o zaznamenávaných údajoch"
+    },
+    "indicator": {
+      "on": "Zber údajov o používaní: zapnutý",
+      "off": "Zber údajov o používaní: vypnutý"
+    },
+    "page": {
+      "metaTitle": "Zber údajov o používaní — tt",
+      "title": "Zber údajov o používaní",
+      "intro": "Na účely vyhodnotenia tejto aplikácie ako učebnej pomôcky sa počas semestra zaznamenávajú anonymné štatistiky používania. Údaje sa ukladajú výlučne v tomto prehliadači a neodosielajú sa na žiadny server. Na konci semestra si ich študent môže stiahnuť a dobrovoľne odovzdať.",
+      "statusOn": "Zber je zapnutý",
+      "statusOff": "Zber je vypnutý",
+      "statusHint": "Zber je možné kedykoľvek vypnúť alebo opätovne zapnúť. Vypnutím sa už zaznamenané údaje nevymažú.",
+      "toggle": "Zber údajov o používaní",
+      "progressTitle": "Súhrn zaznamenaných údajov",
+      "duration": "{{hours}} h {{minutes}} min",
+      "activeTime": "čas aktívneho používania",
+      "tasksSolved": "vyriešené / skúšané úlohy",
+      "weeksActive": "týždne s aktivitou",
+      "solvedOf": "vyriešené {{solved}} / {{attempted}}",
+      "noTasks": "Neboli zaznamenané žiadne pokusy o riešenie úloh z cvičení ani prednášok.",
+      "lab": "Cvičenie",
+      "lecture": "Prednáška",
+      "handInTitle": "Odovzdanie údajov",
+      "handInStep1": "Na konci semestra zvoľte „Stiahnuť súbor“. Uloží sa súbor s názvom tt-activity-<dátum>.json.",
+      "handInStep2": "Súbor odovzdajte v súlade s pokynmi vyučujúceho.",
+      "handInStep3": "Ak ste používali viac počítačov alebo prehliadačov, stiahnite a odovzdajte súbor z každého z nich.",
+      "download": "Stiahnuť súbor",
+      "delete": "Vymazať údaje",
+      "showRaw": "Zobraziť presný obsah súboru",
+      "collectedTitle": "Zaznamenávané údaje",
+      "collected": [
+        "Čas aktívneho používania, súhrnne po kalendárnych týždňoch",
+        "Použité stránky, panely a komponenty prednášok",
+        "Pokusy o riešenie úloh z cvičení a prednášok: výsledok, kategória chyby a zobrazenie riešenia",
+        "Počet typových kontrol, chýb podľa typovacích pravidiel a vyhodnotení"
+      ],
+      "notCollectedTitle": "Nezaznamenávané údaje",
+      "notCollected": [
+        "Meno, e-mailová adresa ani iný identifikátor",
+        "Zadaný kód, termy ani odpovede",
+        "Presné dátumy a časy (iba kalendárne týždne)",
+        "IP adresa ani informácie o zariadení; žiadne údaje sa neodosielajú"
+      ],
+      "deleteTitle": "Vymazať všetky zaznamenané údaje?",
+      "deleteBody": "Všetky údaje zaznamenané v tomto prehliadači budú natrvalo vymazané. Túto akciu nie je možné vrátiť.",
+      "deleteConfirm": "Vymazať",
+      "cancel": "Zrušiť"
+    }
   }
 }

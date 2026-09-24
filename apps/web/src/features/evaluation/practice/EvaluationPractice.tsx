@@ -13,10 +13,12 @@ import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {TermPickProvider, TermView, TypeAliasesContext} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {findTermById, termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
+import {trackPractice} from "@/shared/activity/taskTracking.ts";
 
 interface EvaluationPracticeProps {
   evaluation: EvaluationResult;
   typeAliases: Record<string, Type>;
+  taskId?: string;
 }
 
 interface Feedback {
@@ -47,7 +49,7 @@ const traceFrom = (evaluation: EvaluationResult, term: Term, bindings: {name: st
 
 const GUIDE_STEPS = ["read", "write", "insert", "check", "finish"];
 
-export function EvaluationPractice({evaluation, typeAliases}: EvaluationPracticeProps) {
+export function EvaluationPractice({evaluation, typeAliases, taskId}: EvaluationPracticeProps) {
   const {t} = useTranslation();
   const {strategy} = evaluation;
 
@@ -121,11 +123,13 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
     try {
       written = parseTermProgram(text).term;
     } catch {
+      trackPractice(taskId, {type: "unreadable"});
       setFeedback({verdict: "invalid", messages: [{code: "writeParse", params: {detail: readError(text)}}]});
       return;
     }
     if (!written) return;
     const status: Answer["status"] = termsAlphaEqual(written, step.after) ? "correct" : "wrong";
+    trackPractice(taskId, {type: "step", ok: status === "correct"});
     setAnswers((a) => [...a, {status, text, term: written, step, revealed: checkedText !== undefined && checkedText === text}]);
     resetStepState();
   };
@@ -150,6 +154,7 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
   const check = () => {
     const outcome = matches(input);
     if (!input.trim()) return;
+    trackPractice(taskId, {type: "check", outcome});
     setCheckedText(input.trim());
     if (outcome === "match") {
       setFeedback({verdict: "valid", messages: [{code: "correct"}]});
@@ -174,7 +179,10 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
     ? {onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }}
     : undefined);
   const visible = (answer: Answer | undefined) => !!answer && (answer.revealed || showAllResults);
-  const toggleReveal = (index: number) => setAnswers((list) => list.map((a, i) => (i === index ? {...a, revealed: !a.revealed} : a)));
+  const toggleReveal = (index: number) => {
+    if (!answers[index]?.revealed) trackPractice(taskId, {type: "reveal", what: "step"});
+    setAnswers((list) => list.map((a, i) => (i === index ? {...a, revealed: !a.revealed} : a)));
+  };
 
   const progress = total === 0 ? 100 : Math.min(100, Math.round((answers.length / total) * 100));
   const realSteps = evaluation.steps;
@@ -184,6 +192,12 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
   const firstDifference = Array.from({length: comparedRows}, (_, i) => i).find((i) => !sameAsReal(i));
 
   const allCorrect = firstDifference === undefined;
+
+  const completedRun = done && answers.length > 0;
+  useEffect(() => {
+    if (completedRun) trackPractice(taskId, {type: "completed", allCorrect});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per finished run
+  }, [completedRun]);
 
   const marker = (answer: Answer | undefined) => {
     if (!answer || !visible(answer)) return null;
@@ -271,7 +285,7 @@ export function EvaluationPractice({evaluation, typeAliases}: EvaluationPractice
               </div>
               {answers.length > 0 && !showAllResults && (
                 <div className="flex justify-end">
-                  <Button size="sm" className="gap-1" onClick={() => setShowAllResults(true)}>
+                  <Button size="sm" className="gap-1" onClick={() => { trackPractice(taskId, {type: "reveal", what: "all"}); setShowAllResults(true); }}>
                     <Eye className="h-3.5 w-3.5"/>
                     {t("evalPractice.showResults")}
                   </Button>

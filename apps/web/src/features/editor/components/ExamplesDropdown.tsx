@@ -17,6 +17,7 @@ import { cn } from "@/shared/lib/utils.ts";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { setExamplesTopic } from "@/shared/ui-state/termSlice.ts";
 import { EXAMPLE_GROUPS } from "@vladyslav005/tt-core";
+import {trackExample} from "@/shared/activity/taskTracking.ts";
 
 interface ExamplesDropdownProps {
   onSelect: (code: string) => void;
@@ -156,7 +157,7 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
         {normalizedQuery ? (
           results.length > 0 ? (
             results.map(({ group, item, slug }) => (
-              <DropdownMenuItem key={slug} onClick={() => onSelect(item.code)}>
+              <DropdownMenuItem key={slug} onClick={() => { trackExample(slug); onSelect(item.code); }}>
                 <div className="flex flex-col gap-0.5">
                   <span className="font-medium">{t(`examples.items.${slug}.label`, item.label)}</span>
                   <span className="text-[11px] tracking-wide text-muted-foreground/70 uppercase">
@@ -177,7 +178,7 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
                 {group.items.map((ex) => {
                   const slug = exampleSlug(ex.label);
                   return (
-                    <DropdownMenuItem key={ex.label} onClick={() => onSelect(ex.code)}>
+                    <DropdownMenuItem key={ex.label} onClick={() => { trackExample(slug); onSelect(ex.code); }}>
                       <div className="flex flex-col gap-0.5">
                         <span className="font-medium">{t(`examples.items.${slug}.label`, ex.label)}</span>
                         <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, ex.description)}</span>
@@ -191,7 +192,7 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
         ) : (
           // A topic chip is active — go straight to its items, no submenu hop needed.
           scopedExamples.map(({ item, slug }) => (
-            <DropdownMenuItem key={slug} onClick={() => onSelect(item.code)}>
+            <DropdownMenuItem key={slug} onClick={() => { trackExample(slug); onSelect(item.code); }}>
               <div className="flex flex-col gap-0.5">
                 <span className="font-medium">{t(`examples.items.${slug}.label`, item.label)}</span>
                 <span className="text-xs text-muted-foreground">{t(`examples.items.${slug}.description`, item.description)}</span>

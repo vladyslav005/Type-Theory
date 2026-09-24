@@ -43,13 +43,13 @@ Pomôcka: [Úvod, jazyk NBL, λ-kalkul](/docs/lambda-intro) a [Churchove kódova
 Doplňte do každého termu zátvorky tak, aby sa nezmenil jeho význam. Pripomeňte si konvencie:
 aplikácia sa zoskupuje zľava a telo abstrakcie siaha čo najďalej doprava.
 
-<LambdaTask type="parens" terms={parenTerms} />
+<LambdaTask id="parens" type="parens" terms={parenTerms} />
 
 ## Krok 2: Voľné a viazané premenné
 
 Pre každý výskyt premennej v termoch z kroku 1 určte, či je voľný, alebo viazaný.
 
-<LambdaTask type="scope" terms={parenTerms} />
+<LambdaTask id="scope" type="scope" terms={parenTerms} />
 
 ## Krok 3: Vyhodnotenie λ-termov
 
@@ -57,7 +57,7 @@ Využitím β-redukcie, prípadne α-redukcie či η-redukcie nájdite normálnu
 prebieha úplnou normalizáciou, teda aj vo vnútri abstrakcií. Ak si nie ste istí, môžete výpočet
 skúsiť po krokoch.
 
-<LambdaTask type="normal-form" terms={evalTerms} />
+<LambdaTask id="normal-form" type="normal-form" terms={evalTerms} />
 
 ## Krok 4: Programovanie v λ-kalkule
 
@@ -69,13 +69,14 @@ V tomto kroku sa používajú štandardné Churchove kódovania z [prednášky](
 
 Vyhodnoťte výrazy.
 
-<LambdaTask type="church" terms={churchTerms} />
+<LambdaTask id="church" type="church" terms={churchTerms} />
 
 ### Úloha 4.12
 
 Definujte operáciu implikácie ako λ-term.
 
 <LambdaTask
+  id="implication"
   type="define"
   solution="λ p . λ q . p q true"
   tests={[
@@ -91,6 +92,7 @@ Definujte operáciu implikácie ako λ-term.
 Definujte operáciu XOR ako λ-term.
 
 <LambdaTask
+  id="xor"
   type="define"
   solution="λ p . λ q . p (not q) q"
   tests={[
@@ -106,6 +108,7 @@ Definujte operáciu XOR ako λ-term.
 Definujte operáciu, ktorá pripočíta ku každému číslu 2.
 
 <LambdaTask
+  id="plus-two"
   type="define"
   solution="λ n . plus n 2"
   tests={[
@@ -120,6 +123,7 @@ Definujte operáciu, ktorá pripočíta ku každému číslu 2.
 Definujte operáciu, ktorá každé číslo vynásobí dvoma a pripočíta 1.
 
 <LambdaTask
+  id="double-plus-one"
   type="define"
   solution="λ n . succ (times n 2)"
   tests={[
@@ -134,6 +138,7 @@ Definujte operáciu, ktorá každé číslo vynásobí dvoma a pripočíta 1.
 Definujte operáciu dvojitej negácie.
 
 <LambdaTask
+  id="double-negation"
   type="define"
   solution="λ b . not (not b)"
   tests={[

@@ -25,6 +25,7 @@ Nižšie zadáte priamo term z kroku 4 a program ho vyhodnotí pre dané argumen
 Vyhodnoťte `plus 3 2`.
 
 <LambdaTask
+  id="plus"
   type="define"
   solution="fixx (λ self . λ m . λ n . test (iszero n) m (self (succ m) (pred n)))"
   tests={[
@@ -40,6 +41,7 @@ Vyhodnoťte `plus 3 2`.
 Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `minus 3 2`.
 
 <LambdaTask
+  id="minus"
   type="define"
   solution="fixx (λ self . λ m . λ n . test (iszero n) m (self (pred m) (pred n)))"
   tests={[
@@ -55,6 +57,7 @@ Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `minus 3 2`.
 Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `times 3 2`.
 
 <LambdaTask
+  id="times"
   type="define"
   solution="fixx (λ self . λ m . λ n . test (iszero n) zero (plus m (self m (pred n))))"
   tests={[
@@ -70,6 +73,7 @@ Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `times 3 2`.
 Tu má `g` dve základné podmienky, `test` teda vnoríte dvakrát. Vyhodnoťte `fib 3`.
 
 <LambdaTask
+  id="fib"
   type="define"
   solution="fixx (λ self . λ n . test (iszero n) zero (test (iszero (pred n)) one (plus (self (pred n)) (self (pred (pred n))))))"
   tests={[
@@ -86,6 +90,7 @@ Tu má `g` dve základné podmienky, `test` teda vnoríte dvakrát. Vyhodnoťte 
 Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `power 2 3`.
 
 <LambdaTask
+  id="power"
   type="define"
   solution="fixx (λ self . λ a . λ b . test (iszero b) one (times a (self a (pred b))))"
   tests={[
@@ -101,6 +106,7 @@ Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `power 2 3`.
 Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `sum 3`.
 
 <LambdaTask
+  id="sum"
   type="define"
   solution="fixx (λ self . λ n . test (iszero n) zero (plus n (self (pred n))))"
   tests={[

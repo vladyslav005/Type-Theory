@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useViewTime} from "@/shared/activity/activityClock.ts";
 import {useTranslation} from "react-i18next";
 import {useOutletContext} from "react-router-dom";
 import type {AppOutletContext} from "@/app/layout/AppLayout.tsx";
@@ -33,6 +34,11 @@ const resultViewOptions: {value: ResultView; labelKey: string}[] = [
 
 export interface MobileWorkspaceLayoutProps {
   className?: string;
+}
+
+function ViewTime({view}: {view: string}) {
+  useViewTime(view);
+  return null;
 }
 
 // Single-column, tab-switched stand-in for the dockview workbench used on wider
@@ -75,6 +81,9 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
             />
           )}
 
+          {primaryTab === "editor" && <ViewTime view="editor"/>}
+          {primaryTab === "errors" && <ViewTime view="errors"/>}
+          {primaryTab === "results" && resultView === "ast" && <ViewTime view="ast"/>}
           {primaryTab === "errors" && (
             <div className="h-full overflow-auto">
               <ErrorOutput className="h-full"/>

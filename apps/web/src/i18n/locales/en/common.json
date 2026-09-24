@@ -57,7 +57,8 @@
     "brand": "Type Theory",
     "rights": "© {{year}} · Source code under the MIT license.",
     "basedOn": "Study materials are based on the course",
-    "courseLink": "Type Theory, KPI FEI TUKE"
+    "courseLink": "Type Theory, KPI FEI TUKE",
+    "activity": "Usage data collection"
   },
   "guide": {
     "lecture": "Lecture",
@@ -1067,5 +1068,66 @@
     "testsPassed": "{{passed}} of {{total}} tests passed.",
     "practiceSteps": "Step by step",
     "hideSteps": "Hide steps"
+  },
+  "activity": {
+    "consent": {
+      "title": "Consent to usage data collection",
+      "body": "For the purpose of evaluating this application within the course, anonymous usage statistics may be recorded in this browser. Collection starts only with your consent.",
+      "points": [
+        "No personal data and no entered content (code, terms, answers) is recorded.",
+        "The data is stored only in this browser and is not transmitted anywhere.",
+        "Consent may be withdrawn and the data deleted at any time on the “Usage data collection” page."
+      ],
+      "allow": "Enable collection",
+      "decline": "Do not enable",
+      "learnMore": "Details of the data recorded"
+    },
+    "indicator": {
+      "on": "Usage data collection: enabled",
+      "off": "Usage data collection: disabled"
+    },
+    "page": {
+      "metaTitle": "Usage data collection — tt",
+      "title": "Usage data collection",
+      "intro": "For the purpose of evaluating this application as a teaching tool, anonymous usage statistics are recorded during the semester. The data is stored exclusively in this browser and is not transmitted to any server. At the end of the semester, the student may download the data and hand it in voluntarily.",
+      "statusOn": "Collection enabled",
+      "statusOff": "Collection disabled",
+      "statusHint": "Collection may be disabled or re-enabled at any time. Disabling it does not delete data already recorded.",
+      "toggle": "Usage data collection",
+      "progressTitle": "Summary of recorded data",
+      "duration": "{{hours}} h {{minutes}} min",
+      "activeTime": "active usage time",
+      "tasksSolved": "tasks solved / attempted",
+      "weeksActive": "weeks with activity",
+      "solvedOf": "{{solved}} / {{attempted}} solved",
+      "noTasks": "No lab or lecture task attempts have been recorded.",
+      "lab": "Lab",
+      "lecture": "Lecture",
+      "handInTitle": "Submission of data",
+      "handInStep1": "At the end of the semester, select “Download file”. A file named tt-activity-<date>.json will be saved.",
+      "handInStep2": "Submit the file in accordance with the instructions of the course instructor.",
+      "handInStep3": "If multiple computers or browsers were used, download and submit the file from each of them.",
+      "download": "Download file",
+      "delete": "Delete data",
+      "showRaw": "Display the exact content of the file",
+      "collectedTitle": "Data recorded",
+      "collected": [
+        "Active usage time, aggregated by calendar week",
+        "Pages, panels and lecture components used",
+        "Lab and lecture task attempts: result, category of error, and whether the solution was displayed",
+        "Number of type checks, errors by typing rule, and evaluations"
+      ],
+      "notCollectedTitle": "Data not recorded",
+      "notCollected": [
+        "Name, e-mail address or any other identifier",
+        "Code, terms or answers entered",
+        "Exact dates and times (calendar weeks only)",
+        "IP address or device information; no data is transmitted"
+      ],
+      "deleteTitle": "Delete all recorded data?",
+      "deleteBody": "All data recorded in this browser will be permanently deleted. This action cannot be undone.",
+      "deleteConfirm": "Delete",
+      "cancel": "Cancel"
+    }
   }
 }

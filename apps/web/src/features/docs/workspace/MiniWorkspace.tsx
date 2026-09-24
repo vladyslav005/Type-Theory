@@ -1,4 +1,5 @@
 import {useTranslation} from "react-i18next";
+import {trackWidgetUse} from "@/shared/activity/taskTracking.ts";
 import {MathJax} from "better-react-mathjax";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
@@ -30,7 +31,7 @@ export function MiniWorkspace({initialTerm, label, hint}: MiniWorkspaceProps) {
       />
 
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={check}>{t("lectureWidgets.checkType")}</Button>
+        <Button size="sm" onClick={() => { trackWidgetUse("miniWorkspace"); check(); }}>{t("lectureWidgets.checkType")}</Button>
         {dirty && <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>}
       </div>
 

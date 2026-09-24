@@ -3,6 +3,7 @@ import {motion} from "framer-motion";
 import {Link, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {MDXProvider} from "@mdx-js/react";
+import {TaskScopeContext} from "@/shared/activity/taskTracking.ts";
 import {Download} from "lucide-react";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {ComingSoonPanel} from "@/shared/components/ComingSoonPanel.tsx";
@@ -120,9 +121,11 @@ export function DocsLecturePage() {
                 div, not of the outer one; without the class here they'd all render flush
                 against each other. */}
             <div ref={contentRef} className="space-y-12">
-              <MDXProvider components={mdxComponents}>
-                <resolved.Component/>
-              </MDXProvider>
+              <TaskScopeContext.Provider value={`lecture:${slug}`}>
+                <MDXProvider components={mdxComponents}>
+                  <resolved.Component/>
+                </MDXProvider>
+              </TaskScopeContext.Provider>
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {RefObject} from 'react';
 import {AnimatePresence, motion} from 'framer-motion';
-import {BookType, Github, Menu, Moon, Sun, X} from 'lucide-react';
+import {BarChart3, BookType, Github, Menu, Moon, Sun, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/shared/components/ui/button';
 import {Separator} from '@/shared/components/ui/separator';
@@ -16,6 +16,8 @@ import {InsertPreludeButton} from "@/features/editor/components/InsertPreludeBut
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
+import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
+import {useActivity} from "@/shared/activity/useActivity.ts";
 
 type NavItem = {
   key: 'editor' | 'docs' | 'about';
@@ -43,6 +45,7 @@ export function Topbar({editorRef}: TopbarProps) {
   const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
   const {pathname} = useLocation();
   const isEditorPage = pathname === "/main";
+  const collectingActivity = useActivity().consent === "granted";
 
   const onSelectExample = (code: string) => {
     editorRef.current?.setValue(code);
@@ -143,6 +146,19 @@ export function Topbar({editorRef}: TopbarProps) {
               </Button>
 
               <LanguageMenu className="rounded-lg size-11 md:size-9"/>
+
+              {STUDY_MODE && (
+                <Button asChild variant="ghost" size="icon" className="relative rounded-lg size-11 md:size-9">
+                  <NavLink
+                    to="/activity"
+                    aria-label={collectingActivity ? t("activity.indicator.on") : t("activity.indicator.off")}
+                    title={collectingActivity ? t("activity.indicator.on") : t("activity.indicator.off")}
+                  >
+                    <BarChart3 className="h-4 w-4"/>
+                    {collectingActivity && <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-emerald-500"/>}
+                  </NavLink>
+                </Button>
+              )}
 
               <Button
                 variant="ghost"

@@ -4,6 +4,7 @@ import {Check, X} from "lucide-react";
 import {cn} from "@/shared/lib/utils.ts";
 import {termLabel} from "@/features/docs/labs/components/nblTermLabel.ts";
 import type {Verdict} from "@/features/docs/labs/components/taskStyles.ts";
+import {trackReveal} from "@/shared/activity/taskTracking.ts";
 
 export function Feedback({verdict}: {verdict: Verdict}) {
   if (!verdict) return null;
@@ -15,7 +16,7 @@ export function Feedback({verdict}: {verdict: Verdict}) {
   );
 }
 
-export function Row({index, source, children, solution}: {index: number; source?: string; children: ReactNode; solution?: ReactNode}) {
+export function Row({index, source, children, solution, taskId}: {index: number; source?: string; children: ReactNode; solution?: ReactNode; taskId?: string}) {
   const {t} = useTranslation();
   const [shown, setShown] = useState(false);
   return (
@@ -30,7 +31,7 @@ export function Row({index, source, children, solution}: {index: number; source?
         {children}
         {solution !== undefined && (
           <>
-            <button type="button" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground" onClick={() => setShown((v) => !v)}>
+            <button type="button" className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground" onClick={() => { if (!shown) trackReveal(taskId); setShown(!shown); }}>
               {shown ? t("labWidgets.hideSolution") : t("labWidgets.showSolution")}
             </button>
             {shown && <div className="rounded-md border border-dashed bg-background p-2.5 text-xs">{solution}</div>}

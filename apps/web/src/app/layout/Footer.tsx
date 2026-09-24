@@ -1,5 +1,7 @@
 import {BookType} from "lucide-react";
 import {useTranslation} from "react-i18next";
+import {Link} from "react-router-dom";
+import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 
 export function Footer() {
   const {t} = useTranslation();
@@ -25,6 +27,11 @@ export function Footer() {
           </a>
           .
         </p>
+        {STUDY_MODE && (
+          <p className="mt-2">
+            <Link to="/activity" className="underline underline-offset-2 hover:text-foreground">{t("footer.activity")}</Link>
+          </p>
+        )}
       </div>
     </footer>
   )

@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {trackWidgetUse} from "@/shared/activity/taskTracking.ts";
 import {useTranslation} from "react-i18next";
 import {ArrowRight} from "lucide-react";
 import {MathJax} from "better-react-mathjax";
@@ -29,6 +30,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
   const [error, setError] = useState<string | undefined>();
 
   const run = () => {
+    trackWidgetUse(`reductionExplorer:${strategy}`);
     try {
       const ast = parser.parseExpression(term);
       const evaluation = evaluator.evaluate(ast, strategy);

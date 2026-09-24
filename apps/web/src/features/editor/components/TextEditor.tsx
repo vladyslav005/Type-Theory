@@ -18,6 +18,7 @@ import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import type {SourcePosition} from "@vladyslav005/tt-core";
 import {DownloadButton} from "@/features/editor/components/DownloadButton.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
+import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/shared/components/ui/select.tsx";
@@ -323,25 +324,29 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
 
               <TooltipProvider>
                 <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5 shrink-0">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          id="auto-build"
-                          checked={autoBuild}
-                          onCheckedChange={handleAutoBuildToggle}
-                        />
-                        <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
-                          {t("editor.autoBuild")}
-                        </Label>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      {t("editor.autoBuildTooltip")}
-                    </TooltipContent>
-                  </Tooltip>
+                  {!STUDY_MODE && (
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              id="auto-build"
+                              checked={autoBuild}
+                              onCheckedChange={handleAutoBuildToggle}
+                            />
+                            <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
+                              {t("editor.autoBuild")}
+                            </Label>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {t("editor.autoBuildTooltip")}
+                        </TooltipContent>
+                      </Tooltip>
 
-                  <Separator orientation="vertical" className="h-5" />
+                      <Separator orientation="vertical" className="h-5" />
+                    </>
+                  )}
 
                   <Tooltip>
                     <TooltipTrigger asChild>

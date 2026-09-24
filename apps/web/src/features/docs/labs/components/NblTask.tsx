@@ -17,6 +17,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
+import {useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {NblTreeBuilder} from "@/features/docs/labs/components/NblTreeBuilder.tsx";
 import {emptySlot, slotToTerm, type Slot} from "@/features/docs/labs/components/nblTreeModel.ts";
 
@@ -27,10 +28,11 @@ function useInvalidNote(term: NblTerm | undefined, message: string | undefined) 
   return term ? undefined : t("labWidgets.notInTerm", {detail: message});
 }
 
-function ValidRow({index, source}: {index: number; source: string}) {
+function ValidRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
 
   const answer = (belongs: boolean) =>
     setVerdict(belongs === parsed.ok
@@ -39,6 +41,7 @@ function ValidRow({index, source}: {index: number; source: string}) {
 
   return (
     <Row
+      taskId={taskId}
       index={index}
       source={source}
       solution={parsed.ok ? t("labWidgets.validYes") : t("labWidgets.validNo", {detail: parsed.message})}
@@ -52,21 +55,22 @@ function ValidRow({index, source}: {index: number; source: string}) {
   );
 }
 
-function NumberRow({index, source, metric}: {index: number; source: string; metric: "size" | "depth"}) {
+function NumberRow({id, index, source, metric}: {id?: string; index: number; source: string; metric: "size" | "depth"}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const expected = parsed.ok ? (metric === "size" ? nblSize(parsed.term) : nblDepth(parsed.term)) : undefined;
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
   const check = () => {
-    if (invalid) return setVerdict({ok: false, text: invalid});
+    if (invalid) return setVerdict({ok: false, kind: "notInTerm", text: invalid});
     setVerdict(Number(value.trim()) === expected ? {ok: true, text: t("labWidgets.correct")} : {ok: false, text: t("labWidgets.tryAgain")});
   };
 
   return (
-    <Row index={index} source={source} solution={invalid ?? String(expected)}>
+    <Row taskId={taskId} index={index} source={source} solution={invalid ?? String(expected)}>
       <div className="flex flex-wrap items-center gap-2">
         <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} inputMode="numeric" placeholder="0" spellCheck={false}/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
@@ -79,26 +83,27 @@ function NumberRow({index, source, metric}: {index: number; source: string; metr
 const CONSTANTS = ["0", "true", "false"];
 const formatSet = (values: Iterable<string>) => `{${[...values].sort((a, b) => CONSTANTS.indexOf(a) - CONSTANTS.indexOf(b)).join(", ")}}`;
 
-function ConstantsRow({index, source}: {index: number; source: string}) {
+function ConstantsRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const expected = parsed.ok ? nblConstants(parsed.term) : undefined;
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
   const check = () => {
-    if (invalid || !expected) return setVerdict({ok: false, text: invalid ?? ""});
+    if (invalid || !expected) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
     const items = value.split(/[\s,{}]+/).filter(Boolean);
     const unknown = items.find((item) => !CONSTANTS.includes(item));
-    if (unknown) return setVerdict({ok: false, text: t("labWidgets.unknownConstant", {name: unknown})});
+    if (unknown) return setVerdict({ok: false, kind: "unknownConstant", text: t("labWidgets.unknownConstant", {name: unknown})});
     const given = new Set(items);
     const same = given.size === expected.size && [...given].every((item) => expected.has(item as "0"));
     setVerdict(same ? {ok: true, text: t("labWidgets.correct")} : {ok: false, text: t("labWidgets.tryAgain")});
   };
 
   return (
-    <Row index={index} source={source} solution={invalid ?? formatSet(expected!)}>
+    <Row taskId={taskId} index={index} source={source} solution={invalid ?? formatSet(expected!)}>
       <div className="flex flex-wrap items-center gap-2">
         <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" widthClass="w-48"/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
@@ -108,17 +113,18 @@ function ConstantsRow({index, source}: {index: number; source: string}) {
   );
 }
 
-function TreeRow({index, source}: {index: number; source: string}) {
+function TreeRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const [slot, setSlot] = useState<Slot>(emptySlot);
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
   const check = () => {
-    if (!parsed.ok) return setVerdict({ok: false, text: invalid ?? ""});
+    if (!parsed.ok) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
     const built = slotToTerm(slot);
-    if (!built) return setVerdict({ok: false, text: t("labWidgets.treeIncomplete")});
+    if (!built) return setVerdict({ok: false, kind: "treeIncomplete", text: t("labWidgets.treeIncomplete")});
     setVerdict(nblEquals(built, parsed.term) ? {ok: true, text: t("labWidgets.correct")} : {ok: false, text: t("labWidgets.tryAgain")});
   };
 
@@ -131,6 +137,7 @@ function TreeRow({index, source}: {index: number; source: string}) {
 
   return (
     <Row
+      taskId={taskId}
       index={index}
       source={source}
       solution={parsed.ok ? <pre className="font-mono">{outline(parsed.term).join("\n")}</pre> : invalid}
@@ -145,12 +152,13 @@ function TreeRow({index, source}: {index: number; source: string}) {
   );
 }
 
-function EvaluateRow({index, source}: {index: number; source: string}) {
+function EvaluateRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const [accepted, setAccepted] = useState<NblStep[]>([]);
   const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useState<Verdict>();
+  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const [done, setDone] = useState(false);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
@@ -159,25 +167,25 @@ function EvaluateRow({index, source}: {index: number; source: string}) {
   const full = parsed.ok ? nblEvaluate(parsed.term) : undefined;
 
   const submit = () => {
-    if (!current) return setVerdict({ok: false, text: invalid ?? ""});
-    if (!expectedStep) return setVerdict({ok: false, text: t("labWidgets.noStepLeft")});
+    if (!current) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
+    if (!expectedStep) return setVerdict({ok: false, kind: "noStepLeft", text: t("labWidgets.noStepLeft")});
     const typed = parseNbl(value);
-    if (!typed.ok) return setVerdict({ok: false, text: t("labWidgets.cannotRead", {detail: typed.message})});
-    if (!nblEquals(typed.term, expectedStep.term)) return setVerdict({ok: false, text: t("labWidgets.notNextStep")});
+    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
+    if (!nblEquals(typed.term, expectedStep.term)) return setVerdict({ok: false, kind: "notNextStep", text: t("labWidgets.notNextStep")});
     setAccepted((list) => [...list, expectedStep]);
     setValue("");
-    setVerdict({ok: true, text: t("labWidgets.stepRule", {rule: expectedStep.rule})});
+    setVerdict({ok: true, kind: "step", text: t("labWidgets.stepRule", {rule: expectedStep.rule})});
   };
 
   const finish = (asValue: boolean) => {
-    if (!current) return setVerdict({ok: false, text: invalid ?? ""});
-    if (expectedStep) return setVerdict({ok: false, text: t("labWidgets.canStillReduce")});
+    if (!current) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
+    if (expectedStep) return setVerdict({ok: false, kind: "canStillReduce", text: t("labWidgets.canStillReduce")});
     const actuallyValue = isNblValue(current);
     if (asValue === actuallyValue) {
       setDone(true);
       setVerdict({ok: true, text: actuallyValue ? t("labWidgets.endedValue", {value: printNbl(current)}) : t("labWidgets.endedStuck", {term: printNbl(current)})});
     } else {
-      setVerdict({ok: false, text: t("labWidgets.tryAgain")});
+      setVerdict({ok: false, kind: "wrongEnding", text: t("labWidgets.tryAgain")});
     }
   };
 
@@ -185,6 +193,7 @@ function EvaluateRow({index, source}: {index: number; source: string}) {
 
   return (
     <Row
+      taskId={taskId}
       index={index}
       source={source}
       solution={full && parsed.ok ? (
@@ -224,17 +233,17 @@ function EvaluateRow({index, source}: {index: number; source: string}) {
   );
 }
 
-export function NblTask({type, terms}: {type: NblTaskType; terms: string[]}) {
+export function NblTask({id, type, terms}: {id?: string; type: NblTaskType; terms: string[]}) {
   return (
     <ol className="space-y-3 list-none print:hidden">
       {terms.map((source, index) => {
         switch (type) {
-          case "valid": return <ValidRow key={index} index={index} source={source}/>;
-          case "size": return <NumberRow key={index} index={index} source={source} metric="size"/>;
-          case "depth": return <NumberRow key={index} index={index} source={source} metric="depth"/>;
-          case "constants": return <ConstantsRow key={index} index={index} source={source}/>;
-          case "tree": return <TreeRow key={index} index={index} source={source}/>;
-          case "evaluate": return <EvaluateRow key={index} index={index} source={source}/>;
+          case "valid": return <ValidRow key={index} id={id} index={index} source={source}/>;
+          case "size": return <NumberRow key={index} id={id} index={index} source={source} metric="size"/>;
+          case "depth": return <NumberRow key={index} id={id} index={index} source={source} metric="depth"/>;
+          case "constants": return <ConstantsRow key={index} id={id} index={index} source={source}/>;
+          case "tree": return <TreeRow key={index} id={id} index={index} source={source}/>;
+          case "evaluate": return <EvaluateRow key={index} id={id} index={index} source={source}/>;
         }
       })}
     </ol>

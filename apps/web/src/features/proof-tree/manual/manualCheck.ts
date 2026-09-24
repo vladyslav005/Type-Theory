@@ -481,3 +481,22 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
   visit(root, {kind: "proof", node: answerKey}, {node: null, context: new Map(), contextParsed: true});
   return results;
 }
+
+// Answer-key rule each manual node is checked against (same pairing as checkManualTree),
+// plus how many nodes a complete derivation has.
+export function manualNodeRules(root: ManualNode, answerKey: ProofTree): {rules: Record<string, string>; expected: number} {
+  const rules: Record<string, string> = {};
+  const pair = (node: ManualNode, expected: ExpectedChild) => {
+    if (expected.kind === "fact") {
+      rules[node.id] = "fact";
+      return;
+    }
+    rules[node.id] = expected.node.rule;
+    const children = expectedChildren(expected.node);
+    node.premises.forEach((premise, i) => children[i] && pair(premise, children[i]));
+  };
+  const count = (expected: ExpectedChild): number =>
+    expected.kind === "fact" ? 1 : 1 + expectedChildren(expected.node).reduce((sum, child) => sum + count(child), 0);
+  pair(root, {kind: "proof", node: answerKey});
+  return {rules, expected: count({kind: "proof", node: answerKey})};
+}
