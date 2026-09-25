@@ -69,7 +69,7 @@ export function DocsLecturePage() {
 
   return (
     <motion.div initial="initial" animate="animate" variants={fadeInUp}>
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-medium text-muted-foreground mb-1">
             {t("guide.lecture")} {String(index + 1).padStart(2, "0")}
@@ -87,7 +87,7 @@ export function DocsLecturePage() {
                 <a
                   href={`/lectures-pdf/${resolved.locale}/${lecture.slug}.pdf`}
                   download
-                  className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="print:hidden shrink-0 self-start inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <Download className="h-4 w-4"/>
                   {t("docsLecture.downloadPdf")}

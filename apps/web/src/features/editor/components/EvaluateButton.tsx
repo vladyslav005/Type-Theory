@@ -71,7 +71,7 @@ export function EvaluateButton({
 
               {t("actions.evaluate")}
 
-              <span className="text-xs opacity-70">
+              <span className="text-xs opacity-70 whitespace-nowrap">
                 ({t(`evalStrategy.${strategy}.label`)})
               </span>
             </Button>
@@ -89,8 +89,7 @@ export function EvaluateButton({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            size="icon"
-            className="shadow-none h-fullby "
+            className="shadow-none w-9 px-0 has-[>svg]:px-0 h-auto min-h-9"
             aria-label={t("actions.chooseStrategy")}
             disabled={disabled}
           >

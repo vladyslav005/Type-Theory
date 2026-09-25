@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- iOS zooms into any focused input under 16px; maximum-scale stops that there while pinch-zoom still works (unlike on Android). -->
+    <script>
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))
+        document.querySelector('meta[name="viewport"]').content += ", maximum-scale=1";
+    </script>
     <title>tt — Interactive Typed Lambda Calculus Playground</title>
     <meta name="description" content="Write lambda calculus terms and interactively explore parsing, type checking, evaluation, and the Curry–Howard correspondence — with AST, proof tree, and evaluation visualizations, plus guided lectures on type theory." />
     <link rel="canonical" href="https://type-theory.dev/" />

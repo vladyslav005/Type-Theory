@@ -55,7 +55,7 @@
   },
   "footer": {
     "brand": "Teória typov",
-    "rights": "© {{year}} · Zdrojový kód pod licenciou MIT.",
+    "rights": "© {{year}}",
     "basedOn": "Študijné materiály vychádzajú z kurzu",
     "courseLink": "Teória typov, KPI FEI TUKE",
     "activity": "Zber údajov o používaní"
@@ -1029,7 +1029,8 @@
     "notFoundTitle": "Cvičenie sa nenašlo",
     "notFoundMessage": "Na tejto adrese nie je žiadne cvičenie.",
     "comingSoonTitle": "Toto cvičenie sa pripravuje",
-    "comingSoonBody": "Obsah zatiaľ nie je zverejnený. Medzitým môžete pokračovať iným cvičením alebo sa vrátiť na prehľad."
+    "comingSoonBody": "Obsah zatiaľ nie je zverejnený. Medzitým môžete pokračovať iným cvičením alebo sa vrátiť na prehľad.",
+    "notTranslatedMessage": "Toto cvičenie zatiaľ nie je dostupné vo vašom jazyku — zobrazuje sa verzia: {{language}}."
   },
   "labWidgets": {
     "pickNode": "vyberte…",

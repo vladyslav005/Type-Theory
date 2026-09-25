@@ -52,7 +52,7 @@ export function DocsIndexPage() {
 
   return (
     <div className="space-y-10">
-      <motion.div initial="initial" animate="animate" variants={fadeInUp} className="flex items-start justify-between gap-4">
+      <motion.div initial="initial" animate="animate" variants={fadeInUp} className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold mb-3">{t("docsIndex.title")}</h1>
           <p className="text-muted-foreground max-w-2xl leading-relaxed">
@@ -66,7 +66,7 @@ export function DocsIndexPage() {
                 <a
                   href={`/lectures-pdf/${guideLocale}/complete-guide.pdf`}
                   download
-                  className="print:hidden shrink-0 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="print:hidden shrink-0 self-start inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   <Download className="h-4 w-4"/>
                   {t("docsIndex.downloadComplete")}

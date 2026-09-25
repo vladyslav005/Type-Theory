@@ -32,6 +32,13 @@ const resultViewOptions: {value: ResultView; labelKey: string}[] = [
   {value: "ast", labelKey: "panels.ast"},
 ];
 
+const MOBILE_EDITOR_OPTIONS = {
+  minimap: {enabled: false},
+  wordWrap: "on",
+  folding: false,
+  lineNumbersMinChars: 2,
+};
+
 export interface MobileWorkspaceLayoutProps {
   className?: string;
 }
@@ -77,6 +84,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
               language="lambda"
               readOnly={buildModeActive}
               hideActions
+              options={MOBILE_EDITOR_OPTIONS}
               onChange={(value) => dispatch(setTermText(value))}
             />
           )}
@@ -85,7 +93,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
           {primaryTab === "errors" && <ViewTime view="errors"/>}
           {primaryTab === "results" && resultView === "ast" && <ViewTime view="ast"/>}
           {primaryTab === "errors" && (
-            <div className="h-full overflow-auto">
+            <div className="h-full overflow-auto [&>*]:!transform-none">
               <ErrorOutput className="h-full"/>
             </div>
           )}
@@ -103,7 +111,8 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
                 </SelectContent>
               </Select>
 
-              <div className="flex-1 min-h-0 overflow-auto">
+              {/* The panels' fade-in slide would briefly overflow and flash a scrollbar here */}
+              <div className="flex-1 min-h-0 overflow-auto [&>*]:!transform-none">
                 {resultView === "proofTree" && (
                   <ProofTreeVisualisation className="h-full" editorRef={editorRef}/>
                 )}
@@ -144,7 +153,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
               className="flex flex-1 min-w-0 items-stretch gap-2 overflow-hidden"
             >
               <TypeCheckButton className="flex-1 min-w-0 justify-center whitespace-normal text-center leading-tight py-2 h-auto min-h-9"/>
-              <EvaluateButton className="flex-1 min-w-0 [&>button:first-child]:flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:justify-center [&>button:first-child]:whitespace-normal [&>button:first-child]:text-center [&>button:first-child]:leading-tight [&>button:first-child]:py-2 [&>button:first-child]:h-auto [&>button:first-child]:min-h-9"/>
+              <EvaluateButton className="flex-1 min-w-0 [&>button:first-child]:flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:justify-center [&>button:first-child]:whitespace-normal [&>button:first-child]:flex-wrap [&>button:first-child]:gap-x-2 [&>button:first-child]:gap-y-0 [&>button:first-child]:text-center [&>button:first-child]:leading-tight [&>button:first-child]:py-2 [&>button:first-child]:h-auto [&>button:first-child]:min-h-9"/>
             </motion.div>
           )}
         </AnimatePresence>

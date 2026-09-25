@@ -55,7 +55,7 @@
   },
   "footer": {
     "brand": "Type Theory",
-    "rights": "© {{year}} · Source code under the MIT license.",
+    "rights": "© {{year}}",
     "basedOn": "Study materials are based on the course",
     "courseLink": "Type Theory, KPI FEI TUKE",
     "activity": "Usage data collection"
@@ -1026,7 +1026,8 @@
     "notFoundTitle": "Lab not found",
     "notFoundMessage": "There's no lab at this address.",
     "comingSoonTitle": "This lab is being prepared",
-    "comingSoonBody": "The content isn't published yet. Until then, you can continue with another lab or go back to the overview."
+    "comingSoonBody": "The content isn't published yet. Until then, you can continue with another lab or go back to the overview.",
+    "notTranslatedMessage": "This lab isn't available in your language yet — showing the {{language}} version."
   },
   "labWidgets": {
     "pickNode": "choose…",

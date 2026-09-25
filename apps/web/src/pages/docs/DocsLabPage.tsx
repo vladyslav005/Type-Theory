@@ -53,7 +53,7 @@ export function DocsLabPage() {
 
       {resolved?.isFallback && (
         <Callout title={t("docsLecture.notTranslatedTitle")}>
-          {t("docsLecture.notTranslatedMessage", {language: t(`language.${resolved.locale}`, resolved.locale)})}
+          {t("docsLab.notTranslatedMessage", {language: t(`language.${resolved.locale}`, resolved.locale)})}
         </Callout>
       )}
 

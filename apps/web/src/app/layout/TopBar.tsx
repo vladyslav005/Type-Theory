@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import type {RefObject} from 'react';
+import {createPortal} from 'react-dom';
 import {AnimatePresence, motion} from 'framer-motion';
 import {BarChart3, BookType, Github, Menu, Moon, Sun, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
@@ -190,13 +191,14 @@ export function Topbar({editorRef}: TopbarProps) {
         </div>
       </div>
 
-      {/* Mobile drawer backdrop — opaque and dimmed so page content never bleeds through, tap to close */}
-      {isMobileMenuOpen && (
+      {/* Portaled: the header's backdrop-filter would otherwise confine this fixed backdrop to the header */}
+      {isMobileMenuOpen && createPortal(
         <div
           className="md:hidden fixed inset-0 top-16 z-40 bg-background/80 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
           aria-hidden="true"
-        />
+        />,
+        document.body,
       )}
 
       {/* Mobile Navigation Menu */}

@@ -6,16 +6,18 @@ import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 export function Footer() {
   const {t} = useTranslation();
   return (
-    <footer className="print:hidden bg-muted pb-8 px-4 sm:px-6 lg:px-8 border-t border-border">
-      <div className="pt-8 mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-          <BookType className="w-4 h-4 text-primary-foreground"/>
-        </div>
-        <span className="font-semibold">{t("footer.brand")}</span>
-      </div>
-      <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-        <p>{t("footer.rights", {year: new Date().getFullYear()})}</p>
-        <p>
+    <footer className="print:hidden bg-muted py-4 px-4 sm:px-6 lg:px-8 border-t border-border">
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5 font-semibold">
+          <span className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+            <BookType className="w-3 h-3 text-primary-foreground"/>
+          </span>
+          {t("footer.brand")}
+        </span>
+        <span aria-hidden="true">·</span>
+        <span>{t("footer.rights", {year: new Date().getFullYear()})}</span>
+        <span aria-hidden="true">·</span>
+        <span>
           {t("footer.basedOn")}{" "}
           <a
             href="https://kurzy.kpi.fei.tuke.sk/tt/"
@@ -25,12 +27,12 @@ export function Footer() {
           >
             {t("footer.courseLink")}
           </a>
-          .
-        </p>
+        </span>
         {STUDY_MODE && (
-          <p className="mt-2">
+          <>
+            <span aria-hidden="true">·</span>
             <Link to="/activity" className="underline underline-offset-2 hover:text-foreground">{t("footer.activity")}</Link>
-          </p>
+          </>
         )}
       </div>
     </footer>

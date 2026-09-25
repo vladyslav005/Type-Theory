@@ -18,7 +18,11 @@ export function Math({children}: {children: string}) {
 }
 
 export function MathBlock({children}: {children: string}) {
-  return <MathJax>{`\\[${children}\\]`}</MathJax>;
+  return (
+    <div className="max-w-full overflow-x-auto overflow-y-hidden print:overflow-visible">
+      <MathJax>{`\\[${children}\\]`}</MathJax>
+    </div>
+  );
 }
 
 // Chapter-level heading (Syntax / Typing / Semantics); ConceptSection nests under it.
