@@ -171,7 +171,7 @@ export function DocsLayout() {
               isMobileNavOpen ? "block mb-6" : "hidden",
             )}
           >
-            <div className="lg:sticky lg:top-24 rounded-xl border bg-card p-4">
+            <div className="rounded-xl border bg-card p-4">
               <SidebarContent onNavigate={() => setIsMobileNavOpen(false)}/>
             </div>
           </aside>
