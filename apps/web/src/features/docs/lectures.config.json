@@ -25,7 +25,7 @@
     {
       "slug": "stlc-basics",
       "visible": true,
-      "openable": true,
+      "openable": false,
       "translations": {
         "sk": {
           "title": "Základy STLC",
