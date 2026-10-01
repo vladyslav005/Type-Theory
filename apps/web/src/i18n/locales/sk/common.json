@@ -128,9 +128,9 @@
   "editor": {
     "autoBuild": "Auto-build",
     "autoBuildTooltip": "Automaticky analyzovať, kontrolovať typy a vyhodnocovať počas písania — vypne tlačidlá Analyzovať a Vyhodnotiť",
-    "font": "Písmo",
     "fontSize": "Veľkosť písma",
-    "fontSizeTooltip": "Veľkosť písma editora",
+    "settings": "Nastavenia editora",
+    "showMinimap": "Zobraziť minimapu",
     "download": "Stiahnuť súbor .tt",
     "downloadTooltip": "Stiahnuť ako súbor .tt.",
     "downloadVscodeLink": "Získať rozšírenie pre VS Code",

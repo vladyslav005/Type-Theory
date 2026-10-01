@@ -128,9 +128,9 @@
   "editor": {
     "autoBuild": "Auto-build",
     "autoBuildTooltip": "Automatically parse, type-check, and evaluate as you type — disables the Parse & Evaluate buttons",
-    "font": "Font",
     "fontSize": "Font size",
-    "fontSizeTooltip": "Editor font size",
+    "settings": "Editor settings",
+    "showMinimap": "Show minimap",
     "download": "Download .tt file",
     "downloadTooltip": "Download as .tt file.",
     "downloadVscodeLink": "Get the VS Code extension",

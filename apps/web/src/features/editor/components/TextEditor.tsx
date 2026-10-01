@@ -12,7 +12,7 @@ import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Maximize2, Minimize2} from "lucide-react";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {setAutoBuild, setFontSize, setTermText} from "@/shared/ui-state/termSlice.ts";
+import {setAutoBuild, setTermText} from "@/shared/ui-state/termSlice.ts";
 import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import type {SourcePosition} from "@vladyslav005/tt-core";
@@ -21,14 +21,11 @@ import {Switch} from "@/shared/components/ui/switch.tsx";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/shared/components/ui/select.tsx";
-import {Separator} from "@/shared/components/ui/separator.tsx";
+import {EditorSettingsDropdown} from "@/features/editor/components/EditorSettingsDropdown.tsx";
 
 // Auto-build debounce: how long to wait after the last keystroke before parsing —
 // short enough to feel immediate, long enough not to re-parse on every keystroke.
 const AUTO_BUILD_DEBOUNCE_MS = 400;
-
-const FONT_SIZES = [12, 13, 14, 16, 18, 20, 24];
 
 const NO_OPTIONS: Record<string, any> = {};
 
@@ -88,6 +85,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   // condition, so auto-build doesn't try to evaluate declarations with no final term yet.
   const proof = useAppSelector((state) => state.term.proof);
   const fontSize = useAppSelector((state) => state.term.fontSize);
+  const showMinimap = useAppSelector((state) => state.term.showMinimap);
   const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -233,7 +231,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     readOnlyMessage: {value: t("editor.lockedWhileBuilding")},
     fixedOverflowWidgets: true,
     minimap: {
-      enabled: true,
+      enabled: showMinimap,
     },
     padding: {
       top: 16,
@@ -242,7 +240,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     automaticLayout: true,
     accessibilitySupport: "off" as const,
     ...options,
-  }), [readOnly, options, fontSize, t]);
+  }), [readOnly, options, fontSize, showMinimap, t]);
 
   useImperativeHandle(ref, () => ({
     setValue: (text: string) => {
@@ -322,58 +320,31 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                 </AnimatePresence>
               )}
 
-              <TooltipProvider>
-                <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5 shrink-0">
-                  {!STUDY_MODE && (
-                    <>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              id="auto-build"
-                              checked={autoBuild}
-                              onCheckedChange={handleAutoBuildToggle}
-                            />
-                            <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
-                              {t("editor.autoBuild")}
-                            </Label>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          {t("editor.autoBuildTooltip")}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <Separator orientation="vertical" className="h-5" />
-                    </>
-                  )}
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="editor-font-size" className="text-sm text-muted-foreground whitespace-nowrap">
-                          {t("editor.font")}
-                        </Label>
-                        <Select
-                          value={String(fontSize)}
-                          onValueChange={(value) => dispatch(setFontSize(Number(value)))}
-                        >
-                          <SelectTrigger id="editor-font-size" size="sm" className="w-[5.5rem]" aria-label={t("editor.fontSize")}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {FONT_SIZES.map((size) => (
-                              <SelectItem key={size} value={String(size)}>{size}px</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">{t("editor.fontSizeTooltip")}</TooltipContent>
-                  </Tooltip>
-                </div>
-              </TooltipProvider>
+              {!STUDY_MODE && (
+                <TooltipProvider>
+                  <div className="flex items-center gap-3 rounded-lg border bg-muted/40 px-3 py-1.5 shrink-0">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            id="auto-build"
+                            checked={autoBuild}
+                            onCheckedChange={handleAutoBuildToggle}
+                          />
+                          <Label htmlFor="auto-build" className="text-sm text-muted-foreground whitespace-nowrap">
+                            {t("editor.autoBuild")}
+                          </Label>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        {t("editor.autoBuildTooltip")}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
+              )}
             </div>
+            <EditorSettingsDropdown />
             <DownloadButton getText={() => editorRef.current?.getValue() ?? termText ?? ""}/>
             <Button
               variant="ghost"
