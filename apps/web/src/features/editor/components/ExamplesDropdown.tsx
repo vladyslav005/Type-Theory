@@ -44,6 +44,7 @@ const GROUP_SHORT_LABELS: Record<string, string> = {
   "Iso-recursive Types (μ)": "μ-types",
   "Recursion (fix)": "Recursion",
   "Let & Polymorphism": "Let/Poly",
+  "Type Inference": "Inference",
   "System F": "Sys F",
   "System Fω (Type Constructors)": "Sys Fω",
   "System λP (Dependent Types)": "Sys λP",
@@ -138,7 +139,7 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
               <button
                 key={group.title}
                 type="button"
-                onClick={() => dispatch(setExamplesTopic(group.title))}
+                onClick={() => dispatch(setExamplesTopic(topic === group.title ? "all" : group.title))}
                 title={t(`examples.groups.${group.title}`, group.title)}
                 className={cn(
                   "shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium transition-colors",

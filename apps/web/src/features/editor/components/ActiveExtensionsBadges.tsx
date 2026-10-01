@@ -14,10 +14,12 @@ const SWATCH: Record<TypeTheoryId, string> = {
 };
 
 const STLC_SWATCH = "border-border bg-muted text-muted-foreground";
+const CURRY_HOWARD_SWATCH = "border-emerald-300 bg-emerald-100 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900 dark:text-emerald-300";
 
 export function ActiveExtensionsBadges({className}: {className?: string}) {
   const {t} = useTranslation();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const curryHoward = useAppSelector((state) => state.term.curryHoward);
   const enabled = TYPE_THEORIES.filter((theory) => enabledTheories[theory.id]);
 
   return (
@@ -35,6 +37,11 @@ export function ActiveExtensionsBadges({className}: {className?: string}) {
           {t(`extensions.theories.${theory.id}.shortLabel`, theory.shortLabel)}
         </span>
       ))}
+      {curryHoward && (
+        <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none ${CURRY_HOWARD_SWATCH}`}>
+          {t("extensions.curryHoward.shortLabel")}
+        </span>
+      )}
     </div>
   );
 }

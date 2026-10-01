@@ -8,7 +8,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {isPlainStlc, isPlainStlcProof, typeToString} from "@vladyslav005/tt-core";
+import {isPlainStlcProof, typeToString} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -40,6 +40,7 @@ export function ProofTreeVisualisation({
   const {t} = useTranslation();
   const proof = useAppSelector((state) => state.term.proof);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const curryHoward = useAppSelector((state) => state.term.curryHoward);
   const inferenceSteps = useAppSelector((state) => state.term.inferenceSteps);
   const inferenceProofSnapshots = useAppSelector((state) => state.term.inferenceProofSnapshots);
   const {toTexTree, toLogicTree} = useProofHooks()
@@ -96,12 +97,8 @@ export function ProofTreeVisualisation({
   // Untyped lambda calculus has no type derivation to visualize — always show the
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
   const hasProof = !enabledTheories.untyped && proof !== null && proof !== undefined;
-  // Gate on the rules the proof actually uses, not on which extensions are toggled on — a plain
-  // λ-term still has a clean Curry-Howard reading even with System F et al. enabled, and a term
-  // that reaches for a non-STLC rule doesn't regardless.
-  const showLogicTab = hasProof
-    ? isPlainStlcProof(proof)
-    : isPlainStlc(enabledTheories);
+  const logicAvailable = !hasProof || isPlainStlcProof(proof);
+  const showLogicTab = curryHoward && logicAvailable;
   const effectiveTab: ProofTreeTab =
     (activeTab === "logic" && !showLogicTab) || (activeTab === "build-check" && enabledTheories.untyped)
       ? "automatic"
@@ -171,7 +168,7 @@ export function ProofTreeVisualisation({
                   ) : (
                     <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
                   )}
-                  {showLogicTab ? (
+                  {curryHoward && (logicAvailable ? (
                     <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
                   ) : (
                     <TooltipProvider>
@@ -181,14 +178,10 @@ export function ProofTreeVisualisation({
                             <TabsTrigger value="logic" disabled>{t("proofTree.tabLogicShort")}</TabsTrigger>
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                          {hasProof
-                            ? t("proofTree.logicUnavailableNonStlc")
-                            : t("proofTree.logicUnavailableExtensions")}
-                        </TooltipContent>
+                        <TooltipContent side="bottom">{t("proofTree.logicUnavailableNonStlc")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  )}
+                  ))}
                 </TabsList>
               </Tabs>
 

@@ -1,5 +1,5 @@
 import {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig} from "@vladyslav005/tt-core";
+import {DEFAULT_TYPE_THEORY_CONFIG, isPlainStlc, type TypeTheoryConfig} from "@vladyslav005/tt-core";
 import type {TermState} from "@/shared/ui-state/termSlice.ts";
 
 const STORAGE_KEY = "tt.settings.v1";
@@ -9,6 +9,7 @@ const STORAGE_KEY = "tt.settings.v1";
 export interface PersistedTermState {
   termText: string | undefined;
   enabledTheories: TypeTheoryConfig;
+  curryHoward: boolean;
   evaluationStrategy: EvaluationStrategy;
   fontSize: number;
   showMinimap: boolean;
@@ -29,11 +30,14 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       ? (parsed.evaluationStrategy as EvaluationStrategy)
       : EvaluationStrategy.CALL_BY_VALUE;
 
+    const enabledTheories = {...DEFAULT_TYPE_THEORY_CONFIG, ...parsed.enabledTheories};
+
     return {
       termText: typeof parsed.termText === "string" ? parsed.termText : undefined,
       // Merged over the defaults so a theory added in a later release still
       // shows up even for a browser with an older persisted blob.
-      enabledTheories: {...DEFAULT_TYPE_THEORY_CONFIG, ...parsed.enabledTheories},
+      enabledTheories,
+      curryHoward: parsed.curryHoward === true && isPlainStlc(enabledTheories),
       evaluationStrategy,
       fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)
         ? parsed.fontSize
@@ -51,6 +55,7 @@ export function persistTermState(state: TermState): void {
   const toStore: PersistedTermState = {
     termText: state.termText,
     enabledTheories: state.enabledTheories,
+    curryHoward: state.curryHoward,
     evaluationStrategy: state.evaluationStrategy,
     fontSize: state.fontSize,
     showMinimap: state.showMinimap,

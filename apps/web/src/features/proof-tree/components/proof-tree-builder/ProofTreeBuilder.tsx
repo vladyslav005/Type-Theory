@@ -14,7 +14,8 @@ import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
-import {ZoomIn, ZoomOut, Crosshair, Hammer} from "lucide-react";
+import {ZoomIn, ZoomOut, Crosshair, Hammer, ArrowLeft} from "lucide-react";
+import {Separator} from "@/shared/components/ui/separator.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {ManualBuilder} from "@/features/proof-tree/manual/ManualBuilder.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
@@ -73,18 +74,25 @@ export function ProofTreeBuilder() {
   return (
     <div className="w-full h-full flex flex-col space-y-4">
       <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
-        <p className="text-sm text-muted-foreground">
-          {t("proofBuilder.nodesFilled", {filled: summary.filled, total: summary.total})}
-          {summary.filled > 0 && (
-            <>
-              {" — "}
-              <span className={cn(summary.invalid === 0 && "text-emerald-600 dark:text-emerald-400")}>
-                {t("proofBuilder.valid", {count: summary.valid})}
-              </span>
-              {summary.invalid > 0 && <span className="text-destructive">, {t("proofBuilder.invalid", {count: summary.invalid})}</span>}
-            </>
-          )}
-        </p>
+        <div className="flex items-center gap-3 min-w-0">
+          <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
+            <ArrowLeft className="h-3.5 w-3.5"/>
+            {t("proofBuilder.exit")}
+          </Button>
+          <Separator orientation="vertical" className="h-5"/>
+          <p className="text-sm text-muted-foreground">
+            {t("proofBuilder.nodesFilled", {filled: summary.filled, total: summary.total})}
+            {summary.filled > 0 && (
+              <>
+                {" — "}
+                <span className={cn(summary.invalid === 0 && "text-emerald-600 dark:text-emerald-400")}>
+                  {t("proofBuilder.valid", {count: summary.valid})}
+                </span>
+                {summary.invalid > 0 && <span className="text-destructive">, {t("proofBuilder.invalid", {count: summary.invalid})}</span>}
+              </>
+            )}
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch id="highlight-mistakes" checked={highlightMistakes} onCheckedChange={setHighlightMistakes}/>
@@ -93,7 +101,6 @@ export function ProofTreeBuilder() {
             </Label>
           </div>
           <Button size="sm" onClick={() => dispatch(checkProof())}>{t("proofBuilder.checkProof")}</Button>
-          <Button size="sm" variant="ghost" onClick={() => dispatch(exitBuildMode())}>{t("proofBuilder.exit")}</Button>
         </div>
       </div>
 

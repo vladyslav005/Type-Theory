@@ -1,6 +1,7 @@
 import {useTranslation} from "react-i18next";
 import {TransformComponent, TransformWrapper} from "react-zoom-pan-pinch";
-import {Crosshair, Download, Upload, ZoomIn, ZoomOut} from "lucide-react";
+import {ArrowLeft, Crosshair, Download, Upload, ZoomIn, ZoomOut} from "lucide-react";
+import {Separator} from "@/shared/components/ui/separator.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {useMemo, useRef} from "react";
 import type {ChangeEvent} from "react";
@@ -77,17 +78,24 @@ export function ManualBuilder() {
   return (
     <div className="w-full h-full flex flex-col space-y-4">
       <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
-        <p className="text-sm text-muted-foreground">
-          {t("manualBuilder.summary", {count: countManualNodes(manualTree)})}
-          {checked && (
-            <>
-              {" — "}
-              <span className={invalid === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
-                {invalid === 0 ? t("manualBuilder.allValid") : t("manualBuilder.nodesWithMistakes", {count: invalid})}
-              </span>
-            </>
-          )}
-        </p>
+        <div className="flex items-center gap-3 min-w-0">
+          <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
+            <ArrowLeft className="h-3.5 w-3.5"/>
+            {t("proofBuilder.exit")}
+          </Button>
+          <Separator orientation="vertical" className="h-5"/>
+          <p className="text-sm text-muted-foreground">
+            {t("manualBuilder.summary", {count: countManualNodes(manualTree)})}
+            {checked && (
+              <>
+                {" — "}
+                <span className={invalid === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+                  {invalid === 0 ? t("manualBuilder.allValid") : t("manualBuilder.nodesWithMistakes", {count: invalid})}
+                </span>
+              </>
+            )}
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           <TooltipProvider>
             <Tooltip>
@@ -115,7 +123,6 @@ export function ManualBuilder() {
           {checked && (
             <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>
           )}
-          <Button size="sm" variant="ghost" onClick={() => dispatch(exitBuildMode())}>{t("proofBuilder.exit")}</Button>
         </div>
       </div>
 

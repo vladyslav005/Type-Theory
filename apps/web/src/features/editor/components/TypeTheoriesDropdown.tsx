@@ -11,7 +11,7 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { TYPE_THEORIES } from "@vladyslav005/tt-core";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
-import { setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
+import { setCurryHoward, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
 
 export interface TypeTheoriesDropdownProps {
   disabled?: boolean;
@@ -22,6 +22,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const isUntyped = enabledTheories.untyped;
+  const curryHoward = useAppSelector((state) => state.term.curryHoward);
   const untypedTheory = TYPE_THEORIES.find((theory) => theory.id === "untyped")!;
   const composableTheories = TYPE_THEORIES.filter((theory) => theory.id !== "untyped");
 
@@ -58,7 +59,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
 
         <DropdownMenuCheckboxItem
           checked={isUntyped}
-          disabled={isUntyped}
+          disabled={isUntyped || curryHoward}
           onSelect={(e) => e.preventDefault()}
           onCheckedChange={(checked) => dispatch(setTheoryEnabled({ id: "untyped", enabled: checked }))}
         >
@@ -74,6 +75,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           <DropdownMenuCheckboxItem
             key={theory.id}
             checked={enabledTheories[theory.id]}
+            disabled={curryHoward}
             onSelect={(e) => e.preventDefault()}
             onCheckedChange={(checked) => {
               dispatch(setTheoryEnabled({ id: theory.id, enabled: checked }));
@@ -85,6 +87,19 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
             </div>
           </DropdownMenuCheckboxItem>
         ))}
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuCheckboxItem
+          checked={curryHoward}
+          onSelect={(e) => e.preventDefault()}
+          onCheckedChange={(checked) => dispatch(setCurryHoward(checked))}
+        >
+          <div className="flex flex-col gap-0.5">
+            <span className="font-medium">{t("extensions.curryHoward.label")}</span>
+            <span className="text-[13px] leading-snug text-muted-foreground">{t("extensions.curryHoward.description")}</span>
+          </div>
+        </DropdownMenuCheckboxItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

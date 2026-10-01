@@ -448,6 +448,11 @@
         "shortLabel": "Netypovaný",
         "description": "Len premenné, abstrakcia a aplikácia — všetko ostatné je odmietnuté. Vypne všetky ostatné rozšírenia."
       }
+    },
+    "curryHoward": {
+      "label": "Curry–Howardova korešpondencia",
+      "shortLabel": "Curry–Howard",
+      "description": "Pridá kartu, ktorá číta dôkaz ako výrokovú logiku. Len čisté STLC — vypne ostatné rozšírenia."
     }
   },
   "layoutPresets": {
@@ -490,7 +495,6 @@
     "tabLogic": "Curry–Howardova korešpondencia",
     "tabLogicShort": "Logika",
     "logicUnavailableNonStlc": "Tento výraz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie",
-    "logicUnavailableExtensions": "Dostupné len pre čisté STLC — vypnite aktívne rozšírenia typového systému",
     "buildCheckUnavailableUntyped": "Nedostupné pre netypovaný lambda kalkul — nie sú tu typovacie pravidlá, z ktorých by sa dalo zostaviť odvodenie",
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",

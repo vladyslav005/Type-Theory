@@ -53,6 +53,7 @@ export interface TermState {
   inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
   enabledTheories: TypeTheoryConfig;
+  curryHoward: boolean;
   evaluationStrategy: EvaluationStrategy;
   buildMode: BuildModeState;
   // When on, editor changes auto-trigger parse/type-check/evaluate — see TextEditor's
@@ -77,6 +78,7 @@ export const initialTermState: TermState = {
   inferenceProofSnapshots: [],
   evaluation: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
+  curryHoward: false,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
   buildMode: {active: false},
   autoBuild: false,
@@ -84,6 +86,28 @@ export const initialTermState: TermState = {
   showMinimap: true,
   examplesTopic: "all",
 };
+
+const THEORY_EXAMPLE_GROUPS: Partial<Record<TypeTheoryId, string>> = {
+  untyped: "Untyped Lambda Calculus",
+  letPolymorphism: "Let & Polymorphism",
+  typeInference: "Type Inference",
+  isoRecursiveTypes: "Iso-recursive Types (μ)",
+  systemF: "System F",
+  systemFOmega: "System Fω (Type Constructors)",
+  systemLambdaP: "System λP (Dependent Types)",
+};
+
+function syncExamplesTopic(state: TermState, enabledId?: TypeTheoryId) {
+  const enabledGroup = enabledId && THEORY_EXAMPLE_GROUPS[enabledId];
+  if (enabledGroup) {
+    state.examplesTopic = enabledGroup;
+    return;
+  }
+  const entries = Object.entries(THEORY_EXAMPLE_GROUPS) as [TypeTheoryId, string][];
+  const topicTheory = entries.find(([, group]) => group === state.examplesTopic)?.[0];
+  if (!topicTheory || state.enabledTheories[topicTheory]) return;
+  state.examplesTopic = entries.find(([id]) => state.enabledTheories[id])?.[1] ?? "all";
+}
 
 const counterSlice = createSlice({
   name: "counter",
@@ -140,6 +164,7 @@ const counterSlice = createSlice({
       const {id, enabled} = action.payload;
       if (!enabled) {
         state.enabledTheories[id] = false;
+        syncExamplesTopic(state);
         return;
       }
       if (id === "untyped") {
@@ -150,6 +175,18 @@ const counterSlice = createSlice({
         state.enabledTheories.untyped = false;
       }
       state.enabledTheories[id] = true;
+      state.curryHoward = false;
+      syncExamplesTopic(state, id);
+    },
+
+    // The logic reading only exists for plain STLC, so turning it on clears every theory.
+    setCurryHoward: (state, action: { payload: boolean }) => {
+      state.curryHoward = action.payload;
+      if (!action.payload) return;
+      (Object.keys(state.enabledTheories) as TypeTheoryId[]).forEach((key) => {
+        state.enabledTheories[key] = false;
+      });
+      syncExamplesTopic(state);
     },
 
     enterBuildMode: (state, action: { payload: BuildModeKind | undefined }) => {
@@ -346,6 +383,7 @@ export const {
   setAutoBuild,
   setFontSize,
   setShowMinimap,
+  setCurryHoward,
   setProof,
   setTypeAliases,
   setInferenceSteps,

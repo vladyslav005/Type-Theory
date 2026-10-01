@@ -1,6 +1,6 @@
 import {createListenerMiddleware, isAnyOf} from "@reduxjs/toolkit";
 import type {ProofTree} from "@vladyslav005/tt-core";
-import {checkProof, enterBuildMode, setEvaluation, setManualResults, setProof, setTheoryEnabled, type TermState} from "@/shared/ui-state/termSlice.ts";
+import {checkProof, enterBuildMode, setCurryHoward, setEvaluation, setManualResults, setProof, setTheoryEnabled, type TermState} from "@/shared/ui-state/termSlice.ts";
 import type {StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import {bump, countBucket, isCollecting, recordWeek, type WeekStats} from "@/shared/activity/activityStore.ts";
 import {manualNodeRules} from "@/features/proof-tree/manual/manualCheck.ts";
@@ -56,7 +56,7 @@ function recordCompletion(week: WeekStats, mode: string, complete: boolean) {
 export const activityListener = createListenerMiddleware();
 
 activityListener.startListening({
-  matcher: isAnyOf(setProof, setEvaluation, setTheoryEnabled, enterBuildMode, checkProof, setManualResults),
+  matcher: isAnyOf(setProof, setEvaluation, setTheoryEnabled, setCurryHoward, enterBuildMode, checkProof, setManualResults),
   effect: (action, api) => {
     if (!isCollecting()) return;
     const before = (api.getOriginalState() as State).term;
@@ -89,6 +89,8 @@ activityListener.startListening({
       });
     } else if (setTheoryEnabled.match(action)) {
       if (action.payload.enabled) recordWeek((week) => bump(week.theoriesEnabled, action.payload.id));
+    } else if (setCurryHoward.match(action)) {
+      if (action.payload) recordWeek((week) => bump(week.theoriesEnabled, "curryHoward"));
     } else if (enterBuildMode.match(action)) {
       exercise = {checks: 0, completed: false, counted: new Map()};
       if (after.buildMode.active) recordWeek((week) => bump(week.buildMode.entered, after.buildMode.mode ?? "semi"));
