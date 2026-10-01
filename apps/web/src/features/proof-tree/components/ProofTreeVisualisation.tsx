@@ -96,11 +96,12 @@ export function ProofTreeVisualisation({
 
   // Untyped lambda calculus has no type derivation to visualize — always show the
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
-  const hasProof = !enabledTheories.untyped && proof !== null && proof !== undefined;
+  const noTypes = enabledTheories.untyped || enabledTheories.nbl;
+  const hasProof = !noTypes && proof !== null && proof !== undefined;
   const logicAvailable = !hasProof || isPlainStlcProof(proof);
   const showLogicTab = curryHoward && logicAvailable;
   const effectiveTab: ProofTreeTab =
-    (activeTab === "logic" && !showLogicTab) || (activeTab === "build-check" && enabledTheories.untyped)
+    (activeTab === "logic" && !showLogicTab) || (activeTab === "build-check" && noTypes)
       ? "automatic"
       : activeTab;
 
@@ -154,7 +155,7 @@ export function ProofTreeVisualisation({
               <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
                   <TabsTrigger value="automatic">{t("proofTree.tabAutomatic")}</TabsTrigger>
-                  {enabledTheories.untyped ? (
+                  {noTypes ? (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -162,7 +163,7 @@ export function ProofTreeVisualisation({
                             <TabsTrigger value="build-check" disabled>{t("proofTree.tabBuildCheck")}</TabsTrigger>
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom">{t("proofTree.buildCheckUnavailableUntyped")}</TooltipContent>
+                        <TooltipContent side="bottom">{t(enabledTheories.nbl ? "proofTree.buildCheckUnavailableNbl" : "proofTree.buildCheckUnavailableUntyped")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   ) : (
@@ -266,7 +267,7 @@ export function ProofTreeVisualisation({
             </div>
           ) : !hasProof ? (
             <div className="h-full p-6">
-              <EmptyState icon={ListTree} message={t(enabledTheories.untyped ? "proofTree.emptyUntyped" : "proofTree.empty")} />
+              <EmptyState icon={ListTree} message={t(enabledTheories.nbl ? "proofTree.emptyNbl" : enabledTheories.untyped ? "proofTree.emptyUntyped" : "proofTree.empty")} />
             </div>
           ) : effectiveTab === "logic" ? (
             logicTree ? (

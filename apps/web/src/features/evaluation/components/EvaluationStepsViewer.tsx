@@ -492,6 +492,19 @@ function TermNodeView({
             <TermView term={term.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
           </>
         );
+      case "Succ":
+      case "Pred":
+      case "IsZero": {
+        const atomic = term.term.kind === "Lit" || term.term.kind === "Var";
+        return (
+          <>
+            <span className="text-sky-600 dark:text-sky-400">{term.kind.toLowerCase()} </span>
+            {!atomic && <span className="text-muted-foreground">(</span>}
+            <TermView term={term.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            {!atomic && <span className="text-muted-foreground">)</span>}
+          </>
+        );
+      }
     }
   })();
 
@@ -708,15 +721,25 @@ interface EvaluationStepsViewerProps {
   showGamma: boolean;
 }
 
+function nblNumeralValue(term: Term): number | null {
+  let count = 0;
+  let current = term;
+  while (current.kind === "Succ") {
+    count += 1;
+    current = current.term;
+  }
+  return count > 0 && current.kind === "Lit" && current.value === "0" ? count : null;
+}
+
 // Wraps EvaluationStepsViewerInner so its early returns don't each need the provider individually.
 function ChurchNumeralHint({ term }: { term: Term }) {
   const { t } = useTranslation();
-  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
-  const value = isUntyped ? churchNumeralValue(term) : null;
+  const {untyped, nbl} = useAppSelector((state) => state.term.enabledTheories);
+  const value = untyped ? churchNumeralValue(term) : nbl ? nblNumeralValue(term) : null;
   if (value === null) return null;
   return (
     <div className="mt-2 text-xs text-muted-foreground">
-      {t("evalSteps.churchNumeral")}: <span className="font-mono font-semibold text-foreground">{value}</span>
+      {t(nbl ? "evalSteps.nblNumeral" : "evalSteps.churchNumeral")}: <span className="font-mono font-semibold text-foreground">{value}</span>
     </div>
   );
 }

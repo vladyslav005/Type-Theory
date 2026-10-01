@@ -665,6 +665,19 @@ function reconstruct(node: AstFlowNode, nodeMap: NodeMap, edges: Edge[], visitin
       return result as any;
     }
 
+    case "Succ":
+    case "Pred":
+    case "IsZero": {
+      const termNode = firstTargetNode(byHandle, "term", nodeMap);
+      const result = {
+        id: raw.id ?? node.id,
+        kind: raw.kind,
+        term: termNode ? reconstruct(termNode, nodeMap, edges, visiting) as Term : ({id: `${node.id}-term`, kind: "Lit", value: "0"} as Term),
+      };
+      visiting.delete(node.id);
+      return result as any;
+    }
+
     case "TypeAbs": {
       const bodyNode = firstTargetNode(byHandle, "body", nodeMap);
       const result = {

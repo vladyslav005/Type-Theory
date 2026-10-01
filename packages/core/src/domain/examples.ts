@@ -285,6 +285,36 @@ isEven three;`,
     ],
   },
   {
+    title: "Numbers & Booleans (NBL)",
+    items: [
+      {
+        label: "Zero Test of a Predecessor",
+        description: "iszero (pred (succ 0)) — pred undoes one succ, leaving 0, so the test is true; enable the NBL theory",
+        code: `if iszero (pred (succ 0)) then true else false;`,
+      },
+      {
+        label: "Arithmetic Under a Conditional",
+        description: "the condition reduces to false first (E-If), then only the chosen branch is evaluated",
+        code: `succ (if iszero (succ (succ 0)) then false else (pred (succ (succ 0))));`,
+      },
+      {
+        label: "Predecessor of Zero",
+        description: "TAPL defines pred 0 as 0 (E-PredZero), so there are no negative numbers",
+        code: `pred (pred (succ 0));`,
+      },
+      {
+        label: "Stuck Term",
+        description: "pred expects a number but gets the boolean iszero 0 = true — evaluation gets stuck on pred true",
+        code: `pred (iszero 0);`,
+      },
+      {
+        label: "Prefix Operators Without Parentheses",
+        description: "succ succ pred 0 reads as succ (succ (pred 0)) — operators apply to everything on their right",
+        code: `succ succ pred 0;`,
+      },
+    ],
+  },
+  {
     title: "Sums & Variants",
     items: [
       {

@@ -11,6 +11,8 @@ import {
   type ReductionStep,
 } from "@/application/evaluation/type.ts";
 import {ReductionVisitor} from "@/application/evaluation/ReductionVisitor.ts";
+import {isNumericValue} from "@/application/nbl/nblValues.ts";
+import {AstPrettyPrinter} from "@/presentation/AstPrettyPrinter.ts";
 
 export class Evaluator {
   private evaluationSteps: ReductionStep[] = [];
@@ -110,7 +112,12 @@ export class Evaluator {
           ...(term.elif ?? []).flatMap((b) => [b.condition, b.then]),
           ...(term.else ? [term.else] : []),
         ];
-        return subterms.reduce<{id: string; message: string} | undefined>((found, t) => found ?? this.findStuckTerm(t), undefined);
+        const found = subterms.reduce<{id: string; message: string} | undefined>((found, t) => found ?? this.findStuckTerm(t), undefined);
+        if (found) return found;
+        if (isNumericValue(term.condition)) {
+          return {id: term.id, message: "Evaluation stuck: \"if\" requires a boolean condition (true/false), but got a number"};
+        }
+        return undefined;
       }
 
       case "Case":
@@ -194,6 +201,17 @@ export class Evaluator {
         }
         return undefined;
       }
+
+      case "Succ":
+      case "Pred":
+      case "IsZero": {
+        const found = this.findStuckTerm(term.term);
+        if (found) return found;
+        if (!isNumericValue(term.term)) {
+          return {id: term.id, message: `Evaluation stuck: "${term.kind.toLowerCase()}" requires a numeric value (0, succ 0, ...), but got ${new AstPrettyPrinter().printTerm(term.term)}`};
+        }
+        return undefined;
+      }
     }
   }
 
@@ -228,6 +246,9 @@ export class Evaluator {
       case "Tail":
       case "Fold":
       case "Unfold":
+      case "Succ":
+      case "Pred":
+      case "IsZero":
         return ast;
 
       case "Program": {

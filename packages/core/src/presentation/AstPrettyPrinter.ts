@@ -152,6 +152,12 @@ export class AstPrettyPrinter {
         return this.printFold(term);
       case "Unfold":
         return this.printUnfold(term);
+      case "Succ":
+        return `(succ ${this.printTerm(term.term)})`;
+      case "Pred":
+        return `(pred ${this.printTerm(term.term)})`;
+      case "IsZero":
+        return `(iszero ${this.printTerm(term.term)})`;
     }
   }
 

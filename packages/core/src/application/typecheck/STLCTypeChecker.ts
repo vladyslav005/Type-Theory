@@ -15,13 +15,15 @@ import type {
   Head,
   IfCondition,
   Inl,
-  Inr, IsNil, Kind, Let,
+  Inr, IsNil, IsZero, Kind, Let,
   Lit,
   Nil,
+  Pred,
   Program,
   Record,
   RecordProjection, RecordType,
   Sequencing,
+  Succ,
   Tail,
   Term,
   Tuple,
@@ -221,7 +223,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   visit(node: ASTNode): InferProofTree {
-    const proof = super.visit(node);
+    const proof = this.theories.nbl && node.kind !== "Program" ? this.visitNbl(node) : super.visit(node);
     proof.id = node.id;
 
     if ("constraints" in proof) {
@@ -290,6 +292,60 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       rule,
       `"${construct}" is not part of untyped lambda calculus — encode it as a pure λ-term (see the lecture's Church encodings), or disable "Untyped lambda calculus" to use it`,
     );
+  }
+
+  // NBL is untyped: no constraints, only a gate on which syntax is allowed.
+  private visitNbl(node: ASTNode): InferProofTree {
+    const untyped = (rule: Rule, children: Term[]): InferProofTree => {
+      const premises = children.map((child) => this.visit(child));
+      return {
+        rule,
+        term: node as never,
+        type: this.engine.freshTyMetaVar(),
+        gamma: this.schemeContext.serializeGamma(),
+        premises,
+        constraints: [],
+      };
+    };
+    const outsideNbl = (construct: string) => {
+      const rule = (Object.values(Rule) as string[]).includes(node.kind) ? node.kind as Rule : Rule.Var;
+      return this.reject(node, rule, `${construct} ${construct.endsWith("s") ? "are" : "is"} not part of NBL — only true, false, 0, succ, pred, iszero and if/then/else, or disable "Numbers and booleans (NBL)"`);
+    };
+
+    switch (node.kind) {
+      case "Lit":
+        return ["true", "false", "0"].includes(node.value)
+          ? untyped(Rule.Lit, [])
+          : outsideNbl(`Literal "${node.value}"`);
+      case "IfCondition":
+        if (node.elif?.length) return outsideNbl("elseif");
+        if (!node.else) return this.reject(node, Rule.If, `NBL's "if" needs an "else" branch`);
+        return untyped(Rule.If, [node.condition, node.then, node.else]);
+      case "Succ":
+        return untyped(Rule.Succ, [node.term]);
+      case "Pred":
+        return untyped(Rule.Pred, [node.term]);
+      case "IsZero":
+        return untyped(Rule.IsZero, [node.term]);
+      case "Var":
+        return ["succ", "pred", "iszero"].includes(node.name)
+          ? this.reject(node, Rule.Var, `"${node.name}" needs an argument, e.g. ${node.name} 0`)
+          : outsideNbl(`Variable "${node.name}"`);
+      case "Abs":
+      case "DummyAbstraction":
+        return outsideNbl("λ-abstraction");
+      case "App":
+        return outsideNbl("Function application");
+      case "FunDecl":
+      case "VarDecl":
+      case "TypeAliasDecl":
+      case "TypeConstructorDecl":
+        return outsideNbl("Declarations");
+      case "BinOp":
+        return outsideNbl(`Operator "${node.operator}"`);
+      default:
+        return outsideNbl(`"${node.kind}"`);
+    }
   }
 
   // Solves + applies a proof's own constraints immediately, rather than deferring to check() —
@@ -1543,6 +1599,18 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       kindPremise: kindCheck.kindPremise,
       typeConversion: kindCheck.conversion,
     };
+  }
+
+  protected visitSucc(node: Succ): InferProofTree {
+    return this.reject(node, Rule.Succ, `"succ" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
+  }
+
+  protected visitPred(node: Pred): InferProofTree {
+    return this.reject(node, Rule.Pred, `"pred" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
+  }
+
+  protected visitIsZero(node: IsZero): InferProofTree {
+    return this.reject(node, Rule.IsZero, `"iszero" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
   }
 
   protected visitLet(node: Let): InferProofTree {

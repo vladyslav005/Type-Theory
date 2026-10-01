@@ -1,7 +1,8 @@
-export type TypeTheoryId = "untyped" | "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes";
+export type TypeTheoryId = "untyped" | "nbl" | "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes";
 
 export interface TypeTheoryConfig {
   untyped: boolean;
+  nbl: boolean;
   letPolymorphism: boolean;
   typeInference: boolean;
   systemF: boolean;
@@ -12,6 +13,7 @@ export interface TypeTheoryConfig {
 
 export const DEFAULT_TYPE_THEORY_CONFIG: TypeTheoryConfig = {
   untyped: false,
+  nbl: false,
   letPolymorphism: false,
   typeInference: false,
   systemF: false,
@@ -38,6 +40,12 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
     label: "Untyped lambda calculus",
     shortLabel: "Untyped",
     description: "Only variables, abstraction, and application — everything else (type annotations, if/arithmetic/literals, tuples/records, fix) is rejected. Selecting it disables every other extension.",
+  },
+  {
+    id: "nbl",
+    label: "Numbers and booleans (NBL)",
+    shortLabel: "NBL",
+    description: "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else — no variables, functions, declarations or types. Selecting it disables every other extension.",
   },
   {
     id: "letPolymorphism",

@@ -40,6 +40,7 @@ import {DummyAbstractionFlowNode} from "@/features/ast/components/ast/flow/Dummy
 import {LetFlowNode} from "@/features/ast/components/ast/flow/LetFlowNode";
 import {BinOpFlowNode} from "@/features/ast/components/ast/flow/BinOpFlowNode";
 import {FixFlowNode} from "@/features/ast/components/ast/flow/FixFlowNode";
+import {NblOpFlowNode} from "@/features/ast/components/ast/flow/NblOpFlowNode";
 import {TypeAbstractionFlowNode} from "@/features/ast/components/ast/flow/TypeAbstractionFlowNode";
 import {TypeApplicationFlowNode} from "@/features/ast/components/ast/flow/TypeApplicationFlowNode";
 import {TyForallFlowNode} from "@/features/ast/components/ast/flow/TyForallFlowNode";
@@ -173,6 +174,7 @@ const nodeTypes: NodeTypes = {
   let: LetFlowNode,
   binOp: BinOpFlowNode,
   fix: FixFlowNode,
+  nblOp: NblOpFlowNode,
   typeAbs: TypeAbstractionFlowNode,
   typeApp: TypeApplicationFlowNode,
   typeAliasDecl: TypeAliasDeclFlowNode,

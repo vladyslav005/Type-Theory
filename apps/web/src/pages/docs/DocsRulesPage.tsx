@@ -20,9 +20,17 @@ const staggerContainer = {
 // "does this typecheck" and "how does it run" rules sit together on the page,
 // instead of in two separate top-level buckets. Topics with no operational
 // semantics of their own (logic, kinding, inference) simply have no eval groups.
-// `label` is the short form used by the category filter chips.
-const TOPIC_PAIRINGS: {typeId: string; label: string; evalIds: string[]}[] = [
+// `label` is the short form used by the category filter chips. An untyped topic has no
+// type group, so it carries its own `title`/`note`.
+const TOPIC_PAIRINGS: {typeId: string; label: string; evalIds: string[]; title?: string; note?: string}[] = [
   {typeId: "stlc", label: "STLC", evalIds: ["stlc-eval"]},
+  {
+    typeId: "nbl",
+    label: "NBL",
+    evalIds: ["nbl-eval"],
+    title: "Numbers & Booleans (NBL)",
+    note: "Untyped arithmetic expressions (TAPL ch. 3) — no typing rules, only evaluation. Enable the NBL extension to run these in the editor.",
+  },
   {typeId: "curry-howard", label: "Curry–Howard", evalIds: []},
   {typeId: "data-types", label: "Tuples & Variants", evalIds: ["data-types-eval", "lists-eval"]},
   {typeId: "iso-recursive", label: "Iso-recursive", evalIds: ["iso-recursive-eval"]},
@@ -153,17 +161,17 @@ export function DocsRulesPage() {
 
     return TOPIC_PAIRINGS
       .filter(({typeId}) => activeCategories.size === 0 || activeCategories.has(typeId))
-      .map(({typeId, evalIds}): Section | null => {
+      .map(({typeId, evalIds, title, note}): Section | null => {
         const typeGroup = TYPE_RULE_GROUPS.find((g) => g.id === typeId);
-        if (!typeGroup) return null;
+        if (!typeGroup && !title) return null;
 
         if (typeId === CURRY_HOWARD_ID) {
           const pairs = CURRY_HOWARD_CORRESPONDENCE.filter((p) => pairMatches(p, terms));
           if (pairs.length === 0) return null;
-          return {kind: "curry-howard", typeId, title: typeGroup.title, note: typeGroup.note, pairs};
+          return {kind: "curry-howard", typeId, title: typeGroup!.title, note: typeGroup!.note, pairs};
         }
 
-        const filteredType = filterGroup(typeGroup, terms);
+        const filteredType = typeGroup ? filterGroup(typeGroup, terms) : null;
         const filteredEval = evalIds
           .map((id) => EVALUATION_RULE_GROUPS.find((g) => g.id === id))
           .filter((g): g is RuleGroup => g !== undefined)
@@ -171,7 +179,7 @@ export function DocsRulesPage() {
           .filter((g): g is RuleGroup => g !== null);
 
         if (!filteredType && filteredEval.length === 0) return null;
-        return {kind: "rules", typeId, title: typeGroup.title, note: typeGroup.note, typeGroup: filteredType, evalGroups: filteredEval};
+        return {kind: "rules", typeId, title: typeGroup?.title ?? title!, note: typeGroup?.note ?? note, typeGroup: filteredType, evalGroups: filteredEval};
       })
       .filter((s): s is Section => s !== null);
   }, [terms, activeCategories]);

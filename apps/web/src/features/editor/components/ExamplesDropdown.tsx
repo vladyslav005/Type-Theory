@@ -38,6 +38,7 @@ const FLAT_EXAMPLES = EXAMPLE_GROUPS.flatMap((group) =>
 const GROUP_SHORT_LABELS: Record<string, string> = {
   "Basics": "Basics",
   "Untyped Lambda Calculus": "Untyped",
+  "Numbers & Booleans (NBL)": "NBL",
   "Sums & Variants": "Sums",
   "Tuples & Records": "Tuples",
   "Lists": "Lists",

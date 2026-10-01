@@ -168,7 +168,8 @@
       "Type Inference": "Typová inferencia",
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
-      "System λP (Dependent Types)": "System λP (závislé typy)"
+      "System λP (Dependent Types)": "System λP (závislé typy)",
+      "Numbers & Booleans (NBL)": "Čísla a booleovské hodnoty (NBL)"
     },
     "groupsShort": {
       "Basics": "Základy",
@@ -182,7 +183,8 @@
       "Type Inference": "Inferencia",
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
-      "System λP (Dependent Types)": "Sys λP"
+      "System λP (Dependent Types)": "Sys λP",
+      "Numbers & Booleans (NBL)": "NBL"
     },
     "items": {
       "identity-function": {
@@ -404,6 +406,26 @@
       "dependent-head-index-mismatch-system-p": {
         "label": "Závislá hlava: nezhoda indexu (System λP)",
         "description": "tá istá hlava ako vyššie, ale v4 : Vec[4] sa odovzdá tam, kde sa očakáva Vec[3] — odmietnuté, keďže index je zapečený priamo do typu, nie je to len runtime hodnota"
+      },
+      "zero-test-of-a-predecessor": {
+        "label": "Test nuly na predchodcovi",
+        "description": "iszero (pred (succ 0)) — pred zruší jeden succ, ostane 0, takže test dá true; zapnite teóriu NBL"
+      },
+      "arithmetic-under-a-conditional": {
+        "label": "Aritmetika v podmienke",
+        "description": "najprv sa podmienka zredukuje na false (E-If), potom sa vyhodnotí len zvolená vetva"
+      },
+      "predecessor-of-zero": {
+        "label": "Predchodca nuly",
+        "description": "TAPL definuje pred 0 ako 0 (E-PredZero), takže záporné čísla neexistujú"
+      },
+      "stuck-term": {
+        "label": "Zaseknutý term",
+        "description": "pred čaká číslo, ale dostane booleovské iszero 0 = true — vyhodnotenie sa zasekne na pred true"
+      },
+      "prefix-operators-without-parentheses": {
+        "label": "Prefixové operátory bez zátvoriek",
+        "description": "succ succ pred 0 sa číta ako succ (succ (pred 0)) — operátor sa aplikuje na všetko napravo"
       }
     }
   },
@@ -413,6 +435,11 @@
     "stlcLabel": "Jednoducho typovaný lambda kalkul",
     "stlcDescription": "Vždy zapnuté — základná typová teória",
     "theories": {
+      "nbl": {
+        "label": "Čísla a booleovské hodnoty (NBL)",
+        "shortLabel": "NBL",
+        "description": "Netypované aritmetické výrazy (TAPL, kap. 3): len true, false, 0, succ, pred, iszero a if/then/else. Vypne všetky ostatné rozšírenia."
+      },
       "letPolymorphism": {
         "label": "Let-polymorfizmus",
         "shortLabel": "Let-poly",
@@ -510,7 +537,9 @@
     "noNewBindings": "Žiadne nové väzby — už v súlade s tým, čo je známe",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
     "emptyUntyped": "Netypovaný lambda kalkul nemá typovú derivačiu na zobrazenie.",
-    "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie."
+    "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie.",
+    "emptyNbl": "NBL je netypovaný — nie je čo zobraziť ako typové odvodenie. Redukciu termu sledujte v paneli vyhodnotenia.",
+    "buildCheckUnavailableNbl": "Nedostupné pre NBL — je netypovaný, takže nie sú typové pravidlá, z ktorých by sa dalo odvodenie zostaviť"
   },
   "proofTreeCanvas": {
     "zoomIn": "Priblížiť",
@@ -710,7 +739,8 @@
     "noBindings": "Zatiaľ neboli vytvorené žiadne väzby.",
     "globals": "Globálne",
     "alreadyStuck": "Výraz je zaseknutý — žiadne redukcie nie sú možné.",
-    "alreadyNormal": "Výraz je už v normálnej forme — nie sú potrebné žiadne redukčné kroky."
+    "alreadyNormal": "Výraz je už v normálnej forme — nie sú potrebné žiadne redukčné kroky.",
+    "nblNumeral": "Číslo"
   },
   "latexExport": {
     "trigger": "Exportovať LaTeX",

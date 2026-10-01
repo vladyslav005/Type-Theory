@@ -15,14 +15,17 @@ import type {
   Inl,
   Inr,
   IsNil,
+  IsZero,
   Kind,
   Let,
   Lit,
   Nil,
+  Pred,
   Program,
   Record,
   RecordProjection,
   Sequencing,
+  Succ,
   Tail,
   Tuple,
   TupleProjection,
@@ -108,6 +111,7 @@ export type DummyAbstractionNodeData = { term: DummyAbstraction; editable?: bool
 export type LetNodeData = { term: Let; editable?: boolean; onChange?: (patch: any) => void };
 export type BinOpNodeData = { term: BinOp; editable?: boolean; onChange?: (patch: any) => void };
 export type FixNodeData = { term: Fix; editable?: boolean; onChange?: (patch: any) => void };
+export type NblOpNodeData = { term: Succ | Pred | IsZero; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAbsNodeData = { term: TypeAbs; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAppNodeData = { term: TypeApp; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAliasDeclNodeData = { term: TypeAliasDecl; editable?: boolean; onChange?: (patch: any) => void };
@@ -147,6 +151,7 @@ export type DummyAbstractionFlowNode = Node<DummyAbstractionNodeData, "dummyAbst
 export type LetFlowNode = Node<LetNodeData, "let">;
 export type BinOpFlowNode = Node<BinOpNodeData, "binOp">;
 export type FixFlowNode = Node<FixNodeData, "fix">;
+export type NblOpFlowNode = Node<NblOpNodeData, "nblOp">;
 export type TypeAbsFlowNode = Node<TypeAbsNodeData, "typeAbs">;
 export type TypeAppFlowNode = Node<TypeAppNodeData, "typeApp">;
 export type TypeAliasDeclFlowNode = Node<TypeAliasDeclNodeData, "typeAliasDecl">;
@@ -187,6 +192,7 @@ export type AstFlowNode =
   | LetFlowNode
   | BinOpFlowNode
   | FixFlowNode
+  | NblOpFlowNode
   | TypeAbsFlowNode
   | TypeAppFlowNode
   | TypeAliasDeclFlowNode

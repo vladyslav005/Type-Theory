@@ -51,3 +51,4 @@ export {
   type ExportTree,
 } from "@/presentation/tex/ebproofExport";
 export * from "@/nbl/nbl";
+export {elaborateNbl} from "@/application/nbl/elaborateNbl";

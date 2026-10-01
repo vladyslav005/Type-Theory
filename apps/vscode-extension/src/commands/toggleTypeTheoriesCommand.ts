@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { TYPE_THEORIES, TypeTheoryId } from "@vladyslav005/tt-core";
 import { getTypeTheoryConfig, setTypeTheoryEnabled } from "../settings";
 
+const EXCLUSIVE_IDS: TypeTheoryId[] = ["untyped", "nbl"];
+
 interface TheoryPickItem extends vscode.QuickPickItem {
 	id: TypeTheoryId;
 }
@@ -26,20 +28,18 @@ export function registerToggleTypeTheoriesCommand(context: vscode.ExtensionConte
 			quickPick.selectedItems = items.filter((item) => previousIds.has(item.id));
 
 			// Applied on every checkbox toggle, not just on accept, so there's no
-			// separate "confirm" step for a multi-select picker. "Untyped lambda calculus"
-			// is XOR'd with every other theory — it needs to genuinely bypass STLC's
-			// type-checking rather than compose with it, so enabling it clears the other 6
-			// (and re-syncs the picker's own checkboxes to match), and enabling any of the
-			// other 6 clears it.
+			// separate "confirm" step for a multi-select picker. Untyped lambda calculus and
+			// NBL replace STLC rather than compose with it: enabling one clears every other
+			// theory (re-syncing the picker's checkboxes), and enabling anything else clears them.
 			quickPick.onDidChangeSelection((selection) => {
 				let pickedIds = new Set(selection.map((item) => item.id));
-				const untypedJustEnabled = pickedIds.has("untyped") && !previousIds.has("untyped");
-				const otherJustEnabled = [...pickedIds].some((id) => id !== "untyped" && !previousIds.has(id));
+				const exclusiveJustEnabled = EXCLUSIVE_IDS.find((id) => pickedIds.has(id) && !previousIds.has(id));
+				const otherJustEnabled = [...pickedIds].some((id) => !EXCLUSIVE_IDS.includes(id) && !previousIds.has(id));
 
-				if (untypedJustEnabled) {
-					pickedIds = new Set(["untyped"]);
-				} else if (pickedIds.has("untyped") && otherJustEnabled) {
-					pickedIds.delete("untyped");
+				if (exclusiveJustEnabled) {
+					pickedIds = new Set([exclusiveJustEnabled]);
+				} else if (otherJustEnabled) {
+					EXCLUSIVE_IDS.forEach((id) => pickedIds.delete(id));
 				}
 
 				previousIds = pickedIds;

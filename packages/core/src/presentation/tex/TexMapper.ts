@@ -412,6 +412,14 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     }
   }
 
+  protected visitNblOp(node: ProofTree): TexTree {
+    return {
+      ...this.judgements(node),
+      rule: node.rule,
+      children: node.premises.map(child => this.visit(child))
+    }
+  }
+
   // Only reached when Let-polymorphism is disabled (checker rejects the term instead of using CtLet).
   protected visitLet(node: ProofTree): TexTree {
     return {
@@ -607,6 +615,10 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
         return [t("\\text{fold}["), ...ty(term.type), t("]\\ "), ...rec(term.term)];
       case "Unfold":
         return [t("\\text{unfold}["), ...ty(term.type), t("]\\ "), ...rec(term.term)];
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return [t(`\\text{${term.kind.toLowerCase()}}\\ `), ...rec(term.term)];
     }
   }
 
@@ -688,6 +700,10 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
         return `\\text{fold}[${this.typeToTex(term.type)}]\\ ${rec(term.term)}`
       case "Unfold":
         return `\\text{unfold}[${this.typeToTex(term.type)}]\\ ${rec(term.term)}`
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return `\\text{${term.kind.toLowerCase()}}\\ ${rec(term.term)}`
     }
   }
 

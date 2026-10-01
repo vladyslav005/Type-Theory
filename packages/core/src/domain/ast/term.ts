@@ -30,7 +30,10 @@ export type Term =
   Head |
   Tail |
   Fold |
-  Unfold
+  Unfold |
+  Succ |
+  Pred |
+  IsZero
 
 export interface Var extends Node {
   kind: "Var"
@@ -258,5 +261,24 @@ export interface Fold extends Node {
 export interface Unfold extends Node {
   kind: "Unfold";
   type: Type;
+  term: Term;
+}
+
+// =====================================================================
+// =                 NUMBERS AND BOOLEANS (NBL, TAPL ch. 3)            =
+// =====================================================================
+
+export interface Succ extends Node {
+  kind: "Succ";
+  term: Term;
+}
+
+export interface Pred extends Node {
+  kind: "Pred";
+  term: Term;
+}
+
+export interface IsZero extends Node {
+  kind: "IsZero";
   term: Term;
 }

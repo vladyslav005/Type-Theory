@@ -89,8 +89,12 @@ export const initialTermState: TermState = {
 
 export class EvaluationRunError extends Error {}
 
+// Replace STLC instead of extending it, so enabling one clears every other theory.
+const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl"];
+
 const THEORY_EXAMPLE_GROUPS: Partial<Record<TypeTheoryId, string>> = {
   untyped: "Untyped Lambda Calculus",
+  nbl: "Numbers & Booleans (NBL)",
   letPolymorphism: "Let & Polymorphism",
   typeInference: "Type Inference",
   isoRecursiveTypes: "Iso-recursive Types (μ)",
@@ -159,9 +163,6 @@ const counterSlice = createSlice({
       state.evaluation = action.payload;
     },
 
-    // "Untyped lambda calculus" is XOR'd with every other theory — it needs to genuinely
-    // bypass STLC's type-checking rather than compose with it, so enabling it clears the
-    // other 6, and enabling any of the other 6 clears it.
     setTheoryEnabled: (state, action: { payload: { id: TypeTheoryId; enabled: boolean } }) => {
       const {id, enabled} = action.payload;
       if (!enabled) {
@@ -169,12 +170,14 @@ const counterSlice = createSlice({
         syncExamplesTopic(state);
         return;
       }
-      if (id === "untyped") {
+      if (EXCLUSIVE_THEORIES.includes(id)) {
         (Object.keys(state.enabledTheories) as TypeTheoryId[]).forEach((key) => {
           state.enabledTheories[key] = false;
         });
       } else {
-        state.enabledTheories.untyped = false;
+        EXCLUSIVE_THEORIES.forEach((key) => {
+          state.enabledTheories[key] = false;
+        });
       }
       state.enabledTheories[id] = true;
       state.curryHoward = false;

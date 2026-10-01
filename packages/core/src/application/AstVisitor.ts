@@ -13,13 +13,15 @@ import type {
   Head,
   IfCondition,
   Inl,
-  Inr, IsNil, Kind, Let,
+  Inr, IsNil, IsZero, Kind, Let,
   Lit,
   Nil,
+  Pred,
   Program,
   Record,
   RecordProjection,
   Sequencing,
+  Succ,
   Tail,
   Tuple,
   TupleProjection,
@@ -94,6 +96,12 @@ export abstract class AstVisitor<R> {
         return this.visitFold(node)
       case "Unfold":
         return this.visitUnfold(node)
+      case "Succ":
+        return this.visitSucc(node)
+      case "Pred":
+        return this.visitPred(node)
+      case "IsZero":
+        return this.visitIsZero(node)
 
       /* ===== Declarations ===== */
       case "FunDecl":
@@ -199,6 +207,13 @@ export abstract class AstVisitor<R> {
   protected abstract visitFold(node: Fold): R
 
   protected abstract visitUnfold(node: Unfold): R
+
+  /* ===== Numbers and booleans (NBL) ===== */
+  protected abstract visitSucc(node: Succ): R
+
+  protected abstract visitPred(node: Pred): R
+
+  protected abstract visitIsZero(node: IsZero): R
 
   /* ===== Let ===== */
   protected abstract visitLet(node: Let): R

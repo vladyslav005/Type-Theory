@@ -1,7 +1,7 @@
 import Editor, {type OnChange, type OnMount, useMonaco} from '@monaco-editor/react';
 import {forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
+import {NBL_LANGUAGE_ID, useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
 import {useTheme} from "next-themes";
 import {cn} from "@/shared/lib/utils.ts";
 import {TypeCheckButton} from "@/features/editor/components/TypeCheckButton.tsx";
@@ -86,7 +86,9 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   const proof = useAppSelector((state) => state.term.proof);
   const fontSize = useAppSelector((state) => state.term.fontSize);
   const showMinimap = useAppSelector((state) => state.term.showMinimap);
-  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
+  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped || state.term.enabledTheories.nbl);
+  const isNbl = useAppSelector((state) => state.term.enabledTheories.nbl);
+  const editorLanguage = isNbl && language === "lambda" ? NBL_LANGUAGE_ID : language;
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const monacoTheme = useMemo(() => {
@@ -368,8 +370,8 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
               theme={monacoTheme}
               defaultValue={defaultValue}
               value={value}
-              defaultLanguage={language}
-              language={language}
+              defaultLanguage={editorLanguage}
+              language={editorLanguage}
               onChange={handleChange}
               beforeMount={handleBeforeMount}
               onMount={handleEditorMount}

@@ -1,7 +1,10 @@
+export const NBL_LANGUAGE_ID = "lambda-nbl";
+
 export function useSetUpEditor() {
 
   function setUpMonacoLanguage(monaco: any) {
     monaco.languages.register({id: "lambda"});
+    monaco.languages.register({id: NBL_LANGUAGE_ID});
 
     const keywords: string[] = [
       "as", "case", "of", "if", "then", "else", "inl", "inr", "nil",
@@ -9,57 +12,63 @@ export function useSetUpEditor() {
       "fold", "unfold"
     ];
 
-    monaco.languages.setMonarchTokensProvider("lambda", {
-      keywords,
-      tokenizer: {
-        root: [
-          [/\b(Nat|Bool|Unit|String)\b/, "builtInType"],
-          [/true|false|True|False|Unit|unit/, "constant"],
-          [/"(?:\\.|[^"\\])*"/, "string"],
-          [/\b\d+(\.\d+)?\b/, "number"],
+    monaco.languages.setMonarchTokensProvider("lambda", tokensProvider(keywords));
+    // succ/pred/iszero are keywords only in NBL mode — elsewhere they're ordinary (Church numeral) names.
+    monaco.languages.setMonarchTokensProvider(NBL_LANGUAGE_ID, tokensProvider([...keywords, "succ", "pred", "iszero"]));
 
-          [/(\b)\w+(\b)/, {
-            cases: {
-              '@keywords': 'keyword',
-              '@default': 'variable',
-            }
-          }],
-          [/=>|⇒/, "doubleArrow"],
-          [/→/, "arrow"],
+    function tokensProvider(keywords: string[]) {
+      return {
+        keywords,
+        tokenizer: {
+          root: [
+            [/\b(Nat|Bool|Unit|String)\b/, "builtInType"],
+            [/true|false|True|False|Unit|unit/, "constant"],
+            [/"(?:\\.|[^"\\])*"/, "string"],
+            [/\b\d+(\.\d+)?\b/, "number"],
 
-          [/>=/, "geq"],
-          [/<=/, "leq"],
-          [/==/, "eq"],
-          [/!=/, "neq"],
-          [/\/\/.*$/, "comment"],
-          [/\//, "div"],
-          [/\^/, "pow"],
-          [/\+/, "plus"],
-          [/-/, "minus"],
-          [/=/, "delimiter"],
+            [/(\b)\w+(\b)/, {
+              cases: {
+                '@keywords': 'keyword',
+                '@default': 'variable',
+              }
+            }],
+            [/=>|⇒/, "doubleArrow"],
+            [/→/, "arrow"],
 
-          [/λ/, "lambda"],
-          [/Λ/, "lambda"],
-          [/μ/, "mu"],
-          [/@/, "kindStar"],
-          [/\*/, "times"],
-          [/</, "langle"],
-          [/>/, "rangle"],
-          [/]/, "rb"],
-          [/\[/, "lb"],
-          [/\./, "dot"],
-          [/:/, "semi"],
-          [/^[1-9][0-9]*$/, "number"],
+            [/>=/, "geq"],
+            [/<=/, "leq"],
+            [/==/, "eq"],
+            [/!=/, "neq"],
+            [/\/\/.*$/, "comment"],
+            [/\//, "div"],
+            [/\^/, "pow"],
+            [/\+/, "plus"],
+            [/-/, "minus"],
+            [/=/, "delimiter"],
 
-          [/∀/, "forall"],
-          [/Π/, "pi"],
-          {include: "@whitespace"},
-        ],
-        whitespace: [
-          [/[ \t\r\n]+/, "white"],
-        ],
-      },
-    });
+            [/λ/, "lambda"],
+            [/Λ/, "lambda"],
+            [/μ/, "mu"],
+            [/@/, "kindStar"],
+            [/\*/, "times"],
+            [/</, "langle"],
+            [/>/, "rangle"],
+            [/]/, "rb"],
+            [/\[/, "lb"],
+            [/\./, "dot"],
+            [/:/, "semi"],
+            [/^[1-9][0-9]*$/, "number"],
+
+            [/∀/, "forall"],
+            [/Π/, "pi"],
+            {include: "@whitespace"},
+          ],
+          whitespace: [
+            [/[ \t\r\n]+/, "white"],
+          ],
+        },
+      };
+    }
 
     monaco.editor.defineTheme("lambda-theme", {
       base: 'vs',
@@ -187,7 +196,7 @@ export function useSetUpEditor() {
       },
     });
 
-    monaco.languages.setLanguageConfiguration("lambda", {
+    const languageConfiguration = {
       comments: {
         lineComment: "//",
       },
@@ -197,11 +206,12 @@ export function useSetUpEditor() {
         {open: "[", close: "]"},
         {open: "\"", close: "\""},
       ],
-    });
+    };
+    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.setLanguageConfiguration(id, languageConfiguration);
 
     // Variable names already used in the buffer, plus keyword/construct snippets — merged into one
     // provider so Monaco only shows a single, deduplicated suggestion list per keystroke.
-    monaco.languages.registerCompletionItemProvider("lambda", {
+    const identifierCompletions = {
       provideCompletionItems: (model: any, position: any) => {
         const word = model.getWordUntilPosition(position);
         if (!word.word) return { suggestions: [] };
@@ -365,9 +375,10 @@ export function useSetUpEditor() {
         ];
         return {suggestions: [...suggestions, ...variableSuggestions]};
       }
-    });
+    };
+    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.registerCompletionItemProvider(id, identifierCompletions);
 
-    monaco.languages.registerCompletionItemProvider("lambda", {
+    const symbolCompletions = {
       triggerCharacters: ['\\'],
       provideCompletionItems: (model: any, position: any) => {
         const word = model.getWordUntilPosition(position);
@@ -729,7 +740,8 @@ export function useSetUpEditor() {
 
         return {suggestions};
       }
-    });
+    };
+    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.registerCompletionItemProvider(id, symbolCompletions);
   }
 
   return {setUpMonacoLanguage};

@@ -168,7 +168,8 @@
       "Type Inference": "Type Inference",
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (Type Constructors)",
-      "System λP (Dependent Types)": "System λP (Dependent Types)"
+      "System λP (Dependent Types)": "System λP (Dependent Types)",
+      "Numbers & Booleans (NBL)": "Numbers & Booleans (NBL)"
     },
     "groupsShort": {
       "Basics": "Basics",
@@ -182,7 +183,8 @@
       "Type Inference": "Inference",
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
-      "System λP (Dependent Types)": "Sys λP"
+      "System λP (Dependent Types)": "Sys λP",
+      "Numbers & Booleans (NBL)": "NBL"
     },
     "items": {
       "identity-function": {
@@ -404,6 +406,26 @@
       "dependent-head-index-mismatch-system-p": {
         "label": "Dependent Head: Index Mismatch (System λP)",
         "description": "same head as above, but v4 : Vec[4] is passed where Vec[3] is expected — rejected because the index is baked into the type itself, not just a runtime value"
+      },
+      "zero-test-of-a-predecessor": {
+        "label": "Zero Test of a Predecessor",
+        "description": "iszero (pred (succ 0)) — pred undoes one succ, leaving 0, so the test is true; enable the NBL theory"
+      },
+      "arithmetic-under-a-conditional": {
+        "label": "Arithmetic Under a Conditional",
+        "description": "the condition reduces to false first (E-If), then only the chosen branch is evaluated"
+      },
+      "predecessor-of-zero": {
+        "label": "Predecessor of Zero",
+        "description": "TAPL defines pred 0 as 0 (E-PredZero), so there are no negative numbers"
+      },
+      "stuck-term": {
+        "label": "Stuck Term",
+        "description": "pred expects a number but gets the boolean iszero 0 = true — evaluation gets stuck on pred true"
+      },
+      "prefix-operators-without-parentheses": {
+        "label": "Prefix Operators Without Parentheses",
+        "description": "succ succ pred 0 reads as succ (succ (pred 0)) — operators apply to everything on their right"
       }
     }
   },
@@ -413,6 +435,11 @@
     "stlcLabel": "Simply Typed Lambda Calculus",
     "stlcDescription": "Always on — the base type theory",
     "theories": {
+      "nbl": {
+        "label": "Numbers and booleans (NBL)",
+        "shortLabel": "NBL",
+        "description": "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else. Disables every other extension."
+      },
       "letPolymorphism": {
         "label": "Let-polymorphism",
         "shortLabel": "Let-poly",
@@ -510,7 +537,9 @@
     "noNewBindings": "No new bindings — already consistent with what's known",
     "empty": "Type a valid expression to generate a proof tree.",
     "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
-    "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading."
+    "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading.",
+    "emptyNbl": "NBL is untyped — there is no type derivation to show. Use the evaluation panel to watch the term reduce.",
+    "buildCheckUnavailableNbl": "Not available for NBL — it is untyped, so there are no typing rules to build a derivation from"
   },
   "proofTreeCanvas": {
     "zoomIn": "Zoom In",
@@ -708,7 +737,8 @@
     "noBindings": "No bindings established yet.",
     "globals": "Globals",
     "alreadyStuck": "Expression is stuck — no reductions are possible.",
-    "alreadyNormal": "Expression is already in normal form — no reduction steps needed."
+    "alreadyNormal": "Expression is already in normal form — no reduction steps needed.",
+    "nblNumeral": "Number"
   },
   "latexExport": {
     "trigger": "Export LaTeX",

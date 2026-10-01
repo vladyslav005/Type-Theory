@@ -168,7 +168,8 @@
       "Type Inference": "Виведення типів",
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (конструктори типів)",
-      "System λP (Dependent Types)": "System λP (залежні типи)"
+      "System λP (Dependent Types)": "System λP (залежні типи)",
+      "Numbers & Booleans (NBL)": "Числа та булеві значення (NBL)"
     },
     "groupsShort": {
       "Basics": "Основи",
@@ -182,7 +183,8 @@
       "Type Inference": "Виведення",
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
-      "System λP (Dependent Types)": "Sys λP"
+      "System λP (Dependent Types)": "Sys λP",
+      "Numbers & Booleans (NBL)": "NBL"
     },
     "items": {
       "identity-function": {
@@ -404,6 +406,26 @@
       "dependent-head-index-mismatch-system-p": {
         "label": "Залежна голова: розбіжність індексу (System λP)",
         "description": "та сама голова, що вище, але v4 : Vec[4] передається туди, де очікується Vec[3] — відхилено, бо індекс вбудований у сам тип, а не лише значення під час виконання"
+      },
+      "zero-test-of-a-predecessor": {
+        "label": "Перевірка на нуль попередника",
+        "description": "iszero (pred (succ 0)) — pred скасовує один succ, лишається 0, тож перевірка дає true; увімкніть теорію NBL"
+      },
+      "arithmetic-under-a-conditional": {
+        "label": "Арифметика всередині умови",
+        "description": "спершу умова редукується до false (E-If), далі обчислюється лише вибрана гілка"
+      },
+      "predecessor-of-zero": {
+        "label": "Попередник нуля",
+        "description": "У TAPL pred 0 означено як 0 (E-PredZero), тож від'ємних чисел немає"
+      },
+      "stuck-term": {
+        "label": "Застряглий терм",
+        "description": "pred очікує число, а отримує булеве iszero 0 = true — обчислення застрягає на pred true"
+      },
+      "prefix-operators-without-parentheses": {
+        "label": "Префіксні оператори без дужок",
+        "description": "succ succ pred 0 читається як succ (succ (pred 0)) — оператор застосовується до всього праворуч"
       }
     }
   },
@@ -413,6 +435,11 @@
     "stlcLabel": "Просто типізоване лямбда-числення",
     "stlcDescription": "Завжди увімкнено — базова теорія типів",
     "theories": {
+      "nbl": {
+        "label": "Числа та булеві значення (NBL)",
+        "shortLabel": "NBL",
+        "description": "Нетипізовані арифметичні вирази (TAPL, розд. 3): лише true, false, 0, succ, pred, iszero та if/then/else. Вимикає всі інші розширення."
+      },
       "letPolymorphism": {
         "label": "Let-поліморфізм",
         "shortLabel": "Let-полі",
@@ -510,7 +537,9 @@
     "noNewBindings": "Немає нових зв’язувань — уже узгоджено з відомим",
     "empty": "Введіть коректний вираз, щоб побудувати дерево доведення.",
     "emptyUntyped": "Нетипізоване лямбда-числення не має типової деривації для показу.",
-    "logicEmpty": "Це доведення використовує правила поза межами чистого STLC, тож не має однозначного прочитання за Каррі–Говардом."
+    "logicEmpty": "Це доведення використовує правила поза межами чистого STLC, тож не має однозначного прочитання за Каррі–Говардом.",
+    "emptyNbl": "NBL нетипізована — дерева виведення типу немає. Подивіться на редукцію терму в панелі обчислення.",
+    "buildCheckUnavailableNbl": "Недоступно для NBL — вона нетипізована, тож немає правил типізації для побудови виведення"
   },
   "proofTreeCanvas": {
     "zoomIn": "Збільшити",
@@ -710,7 +739,8 @@
     "noBindings": "Ще не створено жодних зв’язувань.",
     "globals": "Глобальні",
     "alreadyStuck": "Вираз застряг — редукції неможливі.",
-    "alreadyNormal": "Вираз уже в нормальній формі — редукційні кроки не потрібні."
+    "alreadyNormal": "Вираз уже в нормальній формі — редукційні кроки не потрібні.",
+    "nblNumeral": "Число"
   },
   "latexExport": {
     "trigger": "Експортувати LaTeX",

@@ -689,6 +689,59 @@ export const EVALUATION_RULE_GROUPS: RuleGroup[] = [
     ],
   },
   {
+    id: "nbl-eval",
+    title: "Numbers & Booleans (NBL)",
+    note: "Numeric values are nv ::= 0 | succ nv. Conditionals reuse E-IfTrue, E-IfFalse and E-If from STLC. A term that is not a value but matches no rule, like pred true or if 0 then t else t, is stuck.",
+    rules: [
+      {
+        id: "E-Succ",
+        premisesTex: ["t_1 \\to t_1'"],
+        conclusionTex: "\\text{succ}\\ t_1 \\to \\text{succ}\\ t_1'",
+        description: "Reduce the argument — succ of a numeric value is itself a value, so this is the only succ rule.",
+      },
+      {
+        id: "E-PredZero",
+        premisesTex: [""],
+        conclusionTex: "\\text{pred}\\ 0 \\to 0",
+        description: "There are no negative numbers: the predecessor of zero is zero.",
+        wide: false,
+      },
+      {
+        id: "E-PredSucc",
+        premisesTex: [""],
+        conclusionTex: "\\text{pred}\\ (\\text{succ}\\ \\mathit{nv}_1) \\to \\mathit{nv}_1",
+        description: "pred undoes one succ — but only once the argument is a numeric value.",
+        wide: false,
+      },
+      {
+        id: "E-Pred",
+        premisesTex: ["t_1 \\to t_1'"],
+        conclusionTex: "\\text{pred}\\ t_1 \\to \\text{pred}\\ t_1'",
+        description: "Reduce the argument before taking its predecessor.",
+      },
+      {
+        id: "E-IszeroZero",
+        premisesTex: [""],
+        conclusionTex: "\\text{iszero}\\ 0 \\to \\text{true}",
+        description: "Zero is zero.",
+        wide: false,
+      },
+      {
+        id: "E-IszeroSucc",
+        premisesTex: [""],
+        conclusionTex: "\\text{iszero}\\ (\\text{succ}\\ \\mathit{nv}_1) \\to \\text{false}",
+        description: "Any successor of a numeric value is not zero.",
+        wide: false,
+      },
+      {
+        id: "E-Iszero",
+        premisesTex: ["t_1 \\to t_1'"],
+        conclusionTex: "\\text{iszero}\\ t_1 \\to \\text{iszero}\\ t_1'",
+        description: "Reduce the argument before testing it.",
+      },
+    ],
+  },
+  {
     id: "recursion-eval",
     title: "Recursion (fix)",
     rules: [

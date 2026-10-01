@@ -16,6 +16,9 @@ import type {
   Inl,
   Inr,
   IsNil,
+  IsZero,
+  Pred,
+  Succ,
   Kind,
   Let,
   Lit,
@@ -41,6 +44,7 @@ import type {
 
 import {EvaluationStrategy, type ReductionStep,} from "@/application/evaluation/type.ts";
 import {substituteTypeVariable} from "@/application/typecheck/utils.ts";
+import {isNumericValue} from "@/application/nbl/nblValues.ts";
 
 const isUnitLiteral = (term: Term): boolean =>
   term.kind === "Lit" && (term.value === "unit" || term.value === "Unit");
@@ -656,6 +660,51 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
     };
   }
 
+  protected override visitSucc(node: Succ): ReductionStep | null {
+    // E-Succ
+    return this.reduceNblOperand(node);
+  }
+
+  protected override visitPred(node: Pred): ReductionStep | null {
+    if (node.term.kind === "Lit" && node.term.value === "0") {
+      // E-PredZero
+      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: "0"};
+      return {before: node, after, selectedId: node.id, resultId: after.id};
+    }
+
+    if (node.term.kind === "Succ" && isNumericValue(node.term.term)) {
+      // E-PredSucc
+      const after = this.cloneTermWithFreshIds(node.term.term);
+      return {before: node, after, selectedId: node.id, resultId: after.id};
+    }
+
+    // E-Pred
+    return this.reduceNblOperand(node);
+  }
+
+  protected override visitIsZero(node: IsZero): ReductionStep | null {
+    if (isNumericValue(node.term)) {
+      // E-IszeroZero / E-IszeroSucc
+      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: node.term.kind === "Lit" ? "true" : "false"};
+      return {before: node, after, selectedId: node.id, resultId: after.id};
+    }
+
+    // E-Iszero
+    return this.reduceNblOperand(node);
+  }
+
+  private reduceNblOperand<T extends Succ | Pred | IsZero>(node: T): ReductionStep | null {
+    const step = this.visit(node.term);
+    if (!step) return null;
+    return {
+      before: node,
+      after: {...node, term: step.after},
+      selectedId: step.selectedId,
+      resultId: step.resultId,
+      binding: step.binding,
+    };
+  }
+
   protected override visitHead(node: Head): ReductionStep | null {
     if (node.term.kind === "Cons" && this.isValue(node.term)) {
       // E-headcons
@@ -946,6 +995,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
           tail: this.substituteTypeInTerm(term.tail, typeVar, replacement),
         };
 
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return {...term, term: this.substituteTypeInTerm(term.term, typeVar, replacement)};
+
       case "IsNil":
       case "Head":
       case "Tail":
@@ -1203,6 +1257,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
           tail: this.substitute(term.tail, variable, replacement),
         };
 
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return {...term, term: this.substitute(term.term, variable, replacement)};
+
       case "IsNil":
       case "Head":
       case "Tail":
@@ -1308,6 +1367,13 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
       case "Fold":
         return this.isValue(term.term);
+
+      case "Succ":
+        return isNumericValue(term);
+
+      case "Pred":
+      case "IsZero":
+        return false;
 
       case "Unfold":
         return false;
@@ -1442,6 +1508,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
           ...this.getFreeVariables(term.head, bound),
           ...this.getFreeVariables(term.tail, bound),
         ]);
+
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return this.getFreeVariables(term.term, bound);
 
       case "IsNil":
       case "Head":
@@ -1616,6 +1687,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
           tail: this.renameBoundVariable(term.tail, oldName, newName),
         };
 
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return {...term, term: this.renameBoundVariable(term.term, oldName, newName)};
+
       case "IsNil":
       case "Head":
       case "Tail":
@@ -1722,6 +1798,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
       case "Cons":
         return new Set([...this.getAllNames(term.head), ...this.getAllNames(term.tail)]);
+
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return this.getAllNames(term.term);
 
       case "IsNil":
       case "Head":
@@ -1930,6 +2011,11 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
           head: this.cloneTermWithFreshIds(term.head),
           tail: this.cloneTermWithFreshIds(term.tail),
         };
+
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return {...term, id: crypto.randomUUID(), term: this.cloneTermWithFreshIds(term.term)};
 
       case "IsNil":
       case "Head":

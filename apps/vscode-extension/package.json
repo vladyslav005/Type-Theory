@@ -118,6 +118,11 @@
           "default": false,
           "description": "Only variables, abstraction, and application are allowed — everything else is rejected. Enabling it disables every other type theory extension."
         },
+        "tt.typeTheories.nbl": {
+          "type": "boolean",
+          "default": false,
+          "description": "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else. Enabling it disables every other type theory extension."
+        },
         "tt.evaluationStrategy": {
           "type": "string",
           "enum": [

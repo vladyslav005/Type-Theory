@@ -106,6 +106,11 @@ export enum Rule {
   Fold = "Fold",
   Unfold = "Unfold",
 
+  // NBL (untyped) — no typing rule; the checker only gates the syntax.
+  Succ = "Succ",
+  Pred = "Pred",
+  IsZero = "IsZero",
+
   // System F is syntax-directed, so it always gets plain (non-Ct) rule names, even inside a `let`.
   TypeAbs = "TypeAbs",
   TypeApp = "TypeApp",

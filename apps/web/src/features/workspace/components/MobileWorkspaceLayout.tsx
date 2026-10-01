@@ -58,7 +58,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
   const buildModeActive = useAppSelector((state) => state.term.buildMode.active);
   const termText = useAppSelector((state) => state.term.termText);
   const errors = useAppSelector((state) => state.term.processingErrors);
-  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped);
+  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped || state.term.enabledTheories.nbl);
 
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>("editor");
   const [resultView, setResultView] = useState<ResultView>("proofTree");

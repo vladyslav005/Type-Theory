@@ -67,6 +67,10 @@ export abstract class ProofTreeVisitor<R> {
         return this.visitFold(node)
       case "Unfold":
         return this.visitUnfold(node)
+      case "Succ":
+      case "Pred":
+      case "IsZero":
+        return this.visitNblOp(node)
 
 
       default:
@@ -134,5 +138,7 @@ export abstract class ProofTreeVisitor<R> {
   protected abstract visitFold(node: ProofTree): R
 
   protected abstract visitUnfold(node: ProofTree): R
+
+  protected abstract visitNblOp(node: ProofTree): R
 
 }

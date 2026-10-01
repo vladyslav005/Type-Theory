@@ -4,7 +4,7 @@ import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {ParseSyntaxError} from "@vladyslav005/tt-core";
+import {elaborateNbl, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 
 export function useTermHooks() {
@@ -20,7 +20,8 @@ export function useTermHooks() {
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
 
   function parseTerm(term: string): Program {
-    return parser.parseExpression(term)
+    const program = parser.parseExpression(term);
+    return enabledTheories.nbl ? elaborateNbl(program) : program;
   }
 
   function typecheckTerm(ast: Program): ProofTree {
@@ -42,7 +43,7 @@ export function useTermHooks() {
     dispatch(clean())
 
     try {
-      ast = parser.parseExpression(term);
+      ast = parseTerm(term);
 
       dispatch(setAst(ast))
 
