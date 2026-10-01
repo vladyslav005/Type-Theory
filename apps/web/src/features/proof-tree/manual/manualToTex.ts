@@ -106,7 +106,7 @@ export function manualNodeToExportTree(
     : contextTex(node.gamma)));
   const term = orRaw(node.term, () => TexMapper.termToTex(parseTermProgram(node.term).term!));
   const type = orRaw(node.type, () => typeTex(node.type));
-  const constraintsShown = node.constraintsShown ?? usesConstraints;
+  const constraintsShown = usesConstraints && (node.constraintsShown ?? true);
   const constraintDefinition = splitDefinition(node.constraints);
   const constraints = constraintsShown
     ? ` \\mid ${orRaw(node.constraints, () => (constraintDefinition?.kind === "C"

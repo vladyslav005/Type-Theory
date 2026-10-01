@@ -2,7 +2,7 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearProcessingErrors, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
@@ -100,28 +100,27 @@ export function useTermHooks() {
     const targetAst = astOverride ?? ast;
     if (!targetAst) return;
 
-    // Otherwise a stale message from a previous run (a different strategy, a since-fixed
-    // ...) sticks around forever, piling up alongside whatever this run produces.
-    dispatch(clearProcessingErrors());
+    // Only the previous run's messages — type-check errors from the same build must survive.
+    dispatch(clearEvaluationErrors());
 
     try {
       const evaluationResult = evaluator.evaluate(targetAst, strategy);
       dispatch(setEvaluation(evaluationResult));
 
       evaluationResult.errors?.forEach((e) =>
-        dispatch(pushProcessingError(new Error(e.message))),
+        dispatch(pushProcessingError(new EvaluationRunError(e.message))),
       );
 
       if (evaluationResult.reachedStepLimit) {
         dispatch(
           pushProcessingError(
-            new Error("Evaluation reached the step limit — expression may not be fully reduced"),
+            new EvaluationRunError("Evaluation reached the step limit — expression may not be fully reduced"),
           ),
         );
       }
     } catch (error) {
       console.error("Error evaluating term:", error);
-      dispatch(pushProcessingError(new Error(`${(error as Error).message}`)));
+      dispatch(pushProcessingError(new EvaluationRunError(`${(error as Error).message}`)));
     }
   }
 

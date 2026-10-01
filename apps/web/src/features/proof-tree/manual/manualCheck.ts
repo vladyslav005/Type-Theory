@@ -389,7 +389,7 @@ function checkJudgement(
     result.type = "invalid";
   }
 
-  const constraintsShown = node.constraintsShown ?? usesConstraints;
+  const constraintsShown = usesConstraints && (node.constraintsShown ?? true);
   if (!isCtRule(answer.rule) && constraintsShown && node.constraints.trim() !== "") {
     result.constraints = "invalid";
     messages.push({code: "constraintsNotExpected"});

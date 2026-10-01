@@ -878,6 +878,7 @@
     "constraintsPlaceholder": "Píšte C₁, C₂ … pre množinu premisy, alebo definujte C_n v poli Definície (definícia má prednosť).",
     "definitions": "Definície",
     "definitionsHint": "Množinu pomenujte raz a použite opakovane: jedna definícia na riadok, napr. Γ_1 = {x : 'A} alebo C_1 = {…}. Potom píšte Γ_1 alebo C_1 do ľubovoľného poľa. Samotné Γ funguje tiež, ale až po definovaní (Γ = {…}); nedefinované Γ je chyba.",
+    "definitionsHintNoConstraints": "Kontext pomenujte raz a použite opakovane: jedna definícia na riadok, napr. Γ_1 = {x : A}. Potom píšte Γ_1 do ľubovoľného poľa. Samotné Γ funguje tiež, ale až po definovaní (Γ = {…}); nedefinované Γ je chyba.",
     "definitionError": "Riadok {{line}}: {{message}}",
     "btnDownloadJson": "Stiahnuť JSON",
     "btnUploadJson": "Nahrať JSON",

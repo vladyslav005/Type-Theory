@@ -77,7 +77,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const result = results[node.id];
-  const constraintsShown = node.constraintsShown ?? usesConstraints;
+  const constraintsShown = usesConstraints && (node.constraintsShown ?? true);
   const set = (field: ManualField) => (value: string) => dispatch(setManualField({nodeId: node.id, field, value}));
 
   const isLeaf = node.premises.length === 0;
@@ -158,7 +158,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
                 <X className="h-3 w-3"/>
               </button>
             </>
-          ) : (
+          ) : usesConstraints && (
             <button
               type="button"
               className="shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-mono hover:bg-accent"

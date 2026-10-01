@@ -118,7 +118,7 @@ export function ManualBuilder() {
             </Tooltip>
           </TooltipProvider>
           <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={upload}/>
-          <GuideDialog i18nPrefix="manualBuilder.guide" steps={GUIDE_STEPS}/>
+          <GuideDialog i18nPrefix="manualBuilder.guide" steps={usesConstraints ? GUIDE_STEPS : GUIDE_STEPS.filter((step) => step !== "constraints")}/>
           <Button size="sm" onClick={check}>{t("proofBuilder.checkProof")}</Button>
           {checked && (
             <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>
@@ -131,7 +131,7 @@ export function ManualBuilder() {
           {t("manualBuilder.definitions")}
           {(manualDefinitions ?? "").trim() && ` (${(manualDefinitions ?? "").split("\n").filter((l) => l.trim()).length})`}
         </summary>
-        <p className="mt-2 text-xs text-muted-foreground">{t("manualBuilder.definitionsHint")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t(usesConstraints ? "manualBuilder.definitionsHint" : "manualBuilder.definitionsHintNoConstraints")}</p>
         <div className="mt-2">
           <BracketTextarea
             value={manualDefinitions ?? ""}
@@ -139,7 +139,7 @@ export function ManualBuilder() {
             onKeyDown={definitionsHistory.onKeyDown}
             minRows={3}
             spellCheck={false}
-            placeholder={"Γ_1 = {x : 'A}\nC_1 = {'A → 'A = Nat → 'B}"}
+            placeholder={usesConstraints ? "Γ_1 = {x : 'A}\nC_1 = {'A → 'A = Nat → 'B}" : "Γ_1 = {x : A}"}
             textClassName="p-2 font-mono text-xs leading-normal"
             className="rounded border outline-none focus:ring-1 focus:ring-ring"
           />

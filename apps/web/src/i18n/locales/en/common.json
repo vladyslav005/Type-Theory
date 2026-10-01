@@ -876,6 +876,7 @@
     "constraintsPlaceholder": "Write C₁, C₂ … for a premise's set, or define C_n in the Definitions box (a definition wins).",
     "definitions": "Definitions",
     "definitionsHint": "Name a set once and reuse it: one definition per line, like Γ_1 = {x : 'A} or C_1 = {…}. Then write Γ_1 or C_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error.",
+    "definitionsHintNoConstraints": "Name a context once and reuse it: one definition per line, like Γ_1 = {x : A}. Then write Γ_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error.",
     "definitionError": "Line {{line}}: {{message}}",
     "btnDownloadJson": "Download JSON",
     "btnUploadJson": "Upload JSON",

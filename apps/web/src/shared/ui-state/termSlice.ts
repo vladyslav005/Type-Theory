@@ -87,6 +87,8 @@ export const initialTermState: TermState = {
   examplesTopic: "all",
 };
 
+export class EvaluationRunError extends Error {}
+
 const THEORY_EXAMPLE_GROUPS: Partial<Record<TypeTheoryId, string>> = {
   untyped: "Untyped Lambda Calculus",
   letPolymorphism: "Let & Polymorphism",
@@ -354,8 +356,8 @@ const counterSlice = createSlice({
       state.errorMarkers = action.payload;
     },
 
-    clearProcessingErrors: (state) => {
-      state.processingErrors = [];
+    clearEvaluationErrors: (state) => {
+      state.processingErrors = state.processingErrors?.filter((e) => !(e instanceof EvaluationRunError));
     },
 
     setExamplesTopic: (state, action: { payload: string }) => {
@@ -409,7 +411,7 @@ export const {
   checkProof,
   pushProcessingError,
   setErrorMarkers,
-  clearProcessingErrors,
+  clearEvaluationErrors,
   setExamplesTopic,
   clean
 } = counterSlice.actions;
