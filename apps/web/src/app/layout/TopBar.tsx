@@ -68,14 +68,14 @@ export function Topbar({editorRef}: TopbarProps) {
   return (
     <header className="print:hidden fixed top-0 left-0 right-0 z-50 bg-background/50 backdrop-blur-md border-b shadow-sm">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center h-16 gap-3 lg:gap-4">
           {/* Left: Logo and Brand */}
           <NavLink to="/" className="flex items-center gap-3 shrink-0 rounded-lg">
             <div
               className="flex items-center justify-center w-10 h-10 rounded-full bg-primary shadow-lg hover:transform-y-1 transition-transform duration-200">
               <BookType className="w-6 h-6 text-primary-foreground"/>
             </div>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block md:hidden lg:block">
               <span className="block text-xl font-bold text-foreground leading-tight">
                 {t("topbar.brand")}
               </span>
@@ -85,31 +85,32 @@ export function Topbar({editorRef}: TopbarProps) {
             </div>
           </NavLink>
 
-          {/* Center: Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <Separator orientation="vertical" className="hidden md:block h-6"/>
+
+          {/* Anchored next to the logo so page-specific tools on the right can't shift it */}
+          <nav className="hidden md:flex items-center gap-0.5 rounded-lg bg-muted/60 p-1 shrink-0">
             {navItems.map((item) => (
               <NavLink
                 key={item.href}
                 to={item.href}
                 end={item.href === '/'}
-                className={({isActive}) => `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}`}
+                className={({isActive}) => `px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ${isActive ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {t(`nav.${item.key}`)}
               </NavLink>
             ))}
           </nav>
 
-          {/* Right: workspace tools (editor page only) + global controls */}
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex flex-1 items-center justify-end gap-2 min-w-0">
             <AnimatePresence initial={false}>
               {isEditorPage && (
                 <motion.div
                   key="workspace-tools"
-                  initial={{opacity: 0, width: 0}}
-                  animate={{opacity: 1, width: "auto"}}
-                  exit={{opacity: 0, width: 0}}
-                  transition={{duration: 0.25, ease: "easeOut"}}
-                  className="hidden md:flex items-center gap-2 min-w-0 overflow-hidden"
+                  initial={{opacity: 0}}
+                  animate={{opacity: 1}}
+                  exit={{opacity: 0}}
+                  transition={{duration: 0.15}}
+                  className="hidden md:flex items-center gap-2 min-w-0"
                 >
                   <ExamplesDropdown onSelect={onSelectExample}/>
                   <AnimatePresence initial={false}>

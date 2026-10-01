@@ -122,14 +122,14 @@
   }
 }
 
-/* Overrides */
-
-.dv-tab {
-  border-radius: 12px 12px 0 0;
-}
 
 .proof-hover-highlight {
   background-color: rgb(244 241 6 / 0.42);
+}
+
+@keyframes nav-progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
 }
 
 /* Background type-theory symbols — compositor-only transform loop, no JS per frame */

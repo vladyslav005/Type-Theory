@@ -31,6 +31,8 @@ import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {clearPendingLayoutPreset} from "@/shared/ui-state/workspaceLayoutSlice.ts";
 import {useMediaQuery} from "@/shared/hooks/useMediaQuery.ts";
 import {MobileWorkspaceLayout} from "@/features/workspace/components/MobileWorkspaceLayout.tsx";
+import "dockview-react/dist/styles/dockview.css";
+import "./workspace.css";
 
 const components = {
   editor: EditorPanel,

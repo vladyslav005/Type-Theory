@@ -4,7 +4,7 @@ import {TextEditor, type TextEditorHandle} from "@/features/editor/components/Te
 import {ErrorOutput} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EvaluationVisualisation} from "@/features/evaluation/components/EvaluationVisualisation.tsx";
 import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTreeVisualisation.tsx";
-import {AstVisualisation} from "@/features/ast/components/AstVisualisation.tsx";
+import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
 import {useViewTime, ViewVisibleContext} from "@/shared/activity/activityClock.ts";
@@ -78,7 +78,7 @@ export function AstPanel({params, api}: IDockviewPanelProps<EditorPanelParams>) 
   return (
     <div className="h-full overflow-auto p-2">
       <VisiblePanel api={api}><ViewTime view="ast"/></VisiblePanel>
-      <AstVisualisation className="h-full" editorRef={params.editorRef}/>
+      <LazyAstVisualisation className="h-full" editorRef={params.editorRef}/>
     </div>
   );
 }

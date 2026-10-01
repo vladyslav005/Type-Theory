@@ -1,5 +1,5 @@
 import {useRef} from "react";
-import {Outlet, useLocation} from "react-router-dom";
+import {Outlet, useLocation, useNavigation} from "react-router-dom";
 import {Topbar} from "@/app/layout/TopBar.tsx";
 import {Footer} from "@/app/layout/Footer.tsx";
 import {FeedbackButton} from "@/shared/components/FeedbackButton.tsx";
@@ -17,11 +17,17 @@ export function AppLayout() {
   const {pathname} = useLocation();
   const hideFooter = pathname === "/main";
   const editorRef = useRef<TextEditorHandle>(null);
+  const isNavigating = useNavigation().state === "loading";
   useActivitySession();
 
   return (
     <div className="">
       <Topbar editorRef={editorRef}></Topbar>
+      {isNavigating && (
+        <div className="fixed top-0 inset-x-0 z-[60] h-0.5 overflow-hidden" role="progressbar" aria-busy="true">
+          <div className="h-full w-1/3 bg-primary animate-[nav-progress_1s_ease-in-out_infinite]"/>
+        </div>
+      )}
       <Outlet context={{editorRef} satisfies AppOutletContext}/>
       {!hideFooter && <Footer></Footer>}
       <ActivityConsentCard/>

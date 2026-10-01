@@ -1,12 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import 'dockview-react/dist/styles/dockview.css'
-import './i18n'
+import {i18nReady} from './i18n'
 import App from './app/App.tsx'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Waits for a lazily loaded locale so non-English visitors don't see an English flash.
+void i18nReady.finally(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+})

@@ -1,20 +1,21 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
-import {MainPage} from "../../pages/MainPage.tsx";
 import {AppLayout} from "../layout/AppLayout.tsx";
 import {HomePage} from "@/pages/HomePage.tsx";
-import {NotFoundPage} from "@/pages/NotFoundPage.tsx";
 import {ErrorPage} from "@/pages/ErrorPage.tsx";
-import {ActivityPage} from "@/pages/ActivityPage.tsx";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
-import {DocsLayout} from "@/pages/docs/DocsLayout.tsx";
-import {DocsIndexPage} from "@/pages/docs/DocsIndexPage.tsx";
-import {DocsLabPage} from "@/pages/docs/DocsLabPage.tsx";
-import {DocsLecturePage} from "@/pages/docs/DocsLecturePage.tsx";
-import {DocsRulesPage} from "@/pages/docs/DocsRulesPage.tsx";
-import {DocsGrammarPage} from "@/pages/docs/DocsGrammarPage.tsx";
-import {DocsGuideCoverPage} from "@/pages/docs/DocsGuideCoverPage.tsx";
-import {DocsGuideAppendixCoverPage} from "@/pages/docs/DocsGuideAppendixCoverPage.tsx";
 
+const loadMainPage = () => import("@/pages/MainPage.tsx");
+const loadDocsLayout = () => import("@/pages/docs/DocsLayout.tsx");
+
+// Warm the most likely next pages once the landing page is idle, so the first click is instant.
+const prefetch = () => {
+  void loadMainPage();
+  void loadDocsLayout();
+};
+if (typeof window !== "undefined") {
+  if ("requestIdleCallback" in window) window.requestIdleCallback(prefetch, {timeout: 4000});
+  else setTimeout(prefetch, 2000);
+}
 
 export const router = createBrowserRouter([
   {
@@ -22,23 +23,23 @@ export const router = createBrowserRouter([
     errorElement: <ErrorPage/>,
     children: [
       {index: true, element: <HomePage/>},
-      {path: "/main", element: <MainPage/>},
+      {path: "/main", lazy: async () => ({Component: (await loadMainPage()).MainPage})},
       {path: "/about", element: <Navigate to="/" replace/>},
-      ...(STUDY_MODE ? [{path: "/activity", element: <ActivityPage/>}] : []),
+      ...(STUDY_MODE ? [{path: "/activity", lazy: async () => ({Component: (await import("@/pages/ActivityPage.tsx")).ActivityPage})}] : []),
       {
-        path: "/docs", element: <DocsLayout/>,
+        path: "/docs", lazy: async () => ({Component: (await loadDocsLayout()).DocsLayout}),
         children: [
-          {index: true, element: <DocsIndexPage/>},
-          {path: "rules", element: <DocsRulesPage/>},
-          {path: "grammar", element: <DocsGrammarPage/>},
-          {path: "guide-cover", element: <DocsGuideCoverPage/>},
-          {path: "guide-appendix-cover", element: <DocsGuideAppendixCoverPage/>},
-          {path: "labs/:slug", element: <DocsLabPage/>},
-          {path: ":slug", element: <DocsLecturePage/>},
+          {index: true, lazy: async () => ({Component: (await import("@/pages/docs/DocsIndexPage.tsx")).DocsIndexPage})},
+          {path: "rules", lazy: async () => ({Component: (await import("@/pages/docs/DocsRulesPage.tsx")).DocsRulesPage})},
+          {path: "grammar", lazy: async () => ({Component: (await import("@/pages/docs/DocsGrammarPage.tsx")).DocsGrammarPage})},
+          {path: "guide-cover", lazy: async () => ({Component: (await import("@/pages/docs/DocsGuideCoverPage.tsx")).DocsGuideCoverPage})},
+          {path: "guide-appendix-cover", lazy: async () => ({Component: (await import("@/pages/docs/DocsGuideAppendixCoverPage.tsx")).DocsGuideAppendixCoverPage})},
+          {path: "labs/:slug", lazy: async () => ({Component: (await import("@/pages/docs/DocsLabPage.tsx")).DocsLabPage})},
+          {path: ":slug", lazy: async () => ({Component: (await import("@/pages/docs/DocsLecturePage.tsx")).DocsLecturePage})},
         ],
       },
 
-      {path: "*", element: <NotFoundPage/>},
+      {path: "*", lazy: async () => ({Component: (await import("@/pages/NotFoundPage.tsx")).NotFoundPage})},
 
     ]
   },

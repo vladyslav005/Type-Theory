@@ -15,7 +15,7 @@ import {TextEditor} from "@/features/editor/components/TextEditor.tsx";
 import {ErrorOutput} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EvaluationVisualisation} from "@/features/evaluation/components/EvaluationVisualisation.tsx";
 import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTreeVisualisation.tsx";
-import {AstVisualisation} from "@/features/ast/components/AstVisualisation.tsx";
+import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
 import {TypeCheckButton} from "@/features/editor/components/TypeCheckButton.tsx";
 import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
@@ -120,7 +120,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
                   <EvaluationVisualisation className="h-full"/>
                 )}
                 {resultView === "ast" && (
-                  <AstVisualisation className="h-full" editorRef={editorRef}/>
+                  <LazyAstVisualisation className="h-full" editorRef={editorRef}/>
                 )}
               </div>
             </div>

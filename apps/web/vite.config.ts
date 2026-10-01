@@ -24,6 +24,25 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Long-lived vendor chunks: an app deploy doesn't invalidate the cached libraries.
+        manualChunks(id) {
+          if (id.includes("/packages/core/") || id.includes("/node_modules/antlr4/")) return "tt-core";
+          // CSS stays with its importer, or main.tsx's dockview.css would drag dockview's JS onto every page.
+          if (!id.includes("/node_modules/") || id.endsWith(".css")) return undefined;
+          if (/\/node_modules\/(@xyflow|@dagrejs|d3-[^/]+|classcat)\//.test(id)) return "vendor-flow";
+          if (/\/node_modules\/dockview(-core|-react)?\//.test(id)) return "vendor-dockview";
+          if (/\/node_modules\/(framer-motion|motion-dom|motion-utils)\//.test(id)) return "vendor-motion";
+          if (/\/node_modules\/(@radix-ui|radix-ui)\//.test(id)) return "vendor-radix";
+          if (/\/node_modules\/(i18next[^/]*|react-i18next)\//.test(id)) return "vendor-i18n";
+          if (/\/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom)\//.test(id)) return "vendor-react";
+          return undefined;
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
