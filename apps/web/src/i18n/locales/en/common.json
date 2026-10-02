@@ -522,7 +522,6 @@
     "tabLogic": "Curry–Howard correspondence",
     "tabLogicShort": "Logic",
     "logicUnavailableNonStlc": "This term uses rules outside plain STLC, so it has no clean Curry-Howard reading",
-    "buildCheckUnavailableUntyped": "Not available for untyped lambda calculus — there are no typing rules to build a derivation from",
     "stepByStep": "Step by step",
     "highlightInEditor": "Highlight in editor",
     "showInferenceSteps": "Solving steps",
@@ -536,10 +535,12 @@
     "justSolvedConstraint": "Just solved",
     "noNewBindings": "No new bindings — already consistent with what's known",
     "empty": "Type a valid expression to generate a proof tree.",
-    "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
+    "emptyUntyped": "Build the term to see its syntax derivation — a proof that it belongs to untyped lambda calculus.",
     "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading.",
-    "emptyNbl": "NBL is untyped — there is no type derivation to show. Use the evaluation panel to watch the term reduce.",
-    "buildCheckUnavailableNbl": "Not available for NBL — it is untyped, so there are no typing rules to build a derivation from"
+    "emptyNbl": "Build the term to see its syntax derivation — a proof that it belongs to NBL.",
+    "tabSyntax": "Syntax derivation",
+    "syntaxNoteNbl": "NBL has no types — this tree proves the term belongs to the language (t ∈ Term).",
+    "syntaxNoteUntyped": "Untyped λ-calculus has no types — this tree proves the term belongs to the language (t ∈ Term)."
   },
   "proofTreeCanvas": {
     "zoomIn": "Zoom In",
@@ -1071,10 +1072,6 @@
     "correct": "Correct.",
     "showSolution": "Show solution",
     "hideSolution": "Hide solution",
-    "belongs": "Belongs to Term",
-    "notBelongs": "Does not belong",
-    "validYes": "Yes, it belongs to Term.",
-    "validNo": "No, it is not a valid term: {{detail}}.",
     "notInTerm": "This term is not in Term ({{detail}}), so this task has no answer for it.",
     "unknownConstant": "“{{name}}” is not a constant of NBL (0, true, false).",
     "treeIncomplete": "Fill in every node of the tree first.",
@@ -1165,5 +1162,18 @@
       "deleteConfirm": "Delete",
       "cancel": "Cancel"
     }
+  },
+  "syntaxBuilder": {
+    "hint": "Pick a rule for each node — its premises appear automatically. If no rule fits, the term is not part of the language.",
+    "noRule": "No rule applies",
+    "noRuleShort": "no rule",
+    "doneBelongs": "Proof complete — the term belongs to the language.",
+    "doneNotBelongs": "Correct — no rule applies there, so the term is not part of the language.",
+    "wrong_one": "{{count}} rule doesn't match the term's shape.",
+    "wrong_other": "{{count}} rules don't match the term's shape.",
+    "incomplete_one": "{{count}} node still needs a rule.",
+    "incomplete_other": "{{count}} nodes still need a rule.",
+    "doesNotFit": "doesn't fit — pick again",
+    "doesNotFitTooltip": "This rule doesn't match the term's shape, so it can't be split into premises. Click to pick another rule."
   }
 }

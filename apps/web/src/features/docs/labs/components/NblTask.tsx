@@ -8,6 +8,8 @@ import {
   nblEvaluate,
   nblSize,
   nblStep,
+  nblSyntaxDerivation,
+  NBL_SYNTAX_RULES,
   parseNbl,
   printNbl,
   type NblStep,
@@ -20,35 +22,50 @@ import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyl
 import {useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {NblTreeBuilder} from "@/features/docs/labs/components/NblTreeBuilder.tsx";
 import {emptySlot, slotToTerm, type Slot} from "@/features/docs/labs/components/nblTreeModel.ts";
+import {SyntaxDerivationTree} from "@/features/proof-tree/components/syntax-builder/SyntaxDerivationTree.tsx";
+import {goalFromNbl, syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 
-export type NblTaskType = "valid" | "tree" | "size" | "depth" | "constants" | "evaluate";
+export type NblTaskType = "derivation" | "tree" | "size" | "depth" | "constants" | "evaluate";
 
 function useInvalidNote(term: NblTerm | undefined, message: string | undefined) {
   const {t} = useTranslation();
   return term ? undefined : t("labWidgets.notInTerm", {detail: message});
 }
 
-function ValidRow({id, index, source}: {id?: string; index: number; source: string}) {
+function DerivationRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
   const taskId = useTaskId(id, source);
-  const parsed = useMemo(() => parseNbl(source), [source]);
+  const goal = useMemo(() => goalFromNbl(nblSyntaxDerivation(source)), [source]);
+  const [choices, setChoices] = useState<SyntaxChoices>({});
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
+  const progress = syntaxProgress(goal, choices);
 
-  const answer = (belongs: boolean) =>
-    setVerdict(belongs === parsed.ok
-      ? {ok: true, text: parsed.ok ? t("labWidgets.validYes") : t("labWidgets.validNo", {detail: parsed.message})}
-      : {ok: false, text: t("labWidgets.tryAgain")});
+  const choose = (key: string, rule: string | undefined) => {
+    setChoices((current) => withChoice(current, key, rule));
+    setVerdict(undefined);
+  };
+
+  const check = () => {
+    if (progress.wrong > 0) return setVerdict({ok: false, kind: "wrongRule", text: t("syntaxBuilder.wrong", {count: progress.wrong})});
+    if (!progress.done) return setVerdict({ok: false, kind: "treeIncomplete", text: t("syntaxBuilder.incomplete", {count: Math.max(progress.unchosen, 1)})});
+    setVerdict({ok: true, text: t(progress.belongs ? "syntaxBuilder.doneBelongs" : "syntaxBuilder.doneNotBelongs")});
+  };
+
+  const outline = (node: SyntaxGoal, depth = 0): string[] => [
+    `${"  ".repeat(depth)}${node.text} ∈ Term   ${node.rule ?? `✗ ${t("syntaxBuilder.noRuleShort")}`}`,
+    ...(node.rule ? node.children.flatMap((child) => outline(child, depth + 1)) : []),
+  ];
 
   return (
-    <Row
-      taskId={taskId}
-      index={index}
-      source={source}
-      solution={parsed.ok ? t("labWidgets.validYes") : t("labWidgets.validNo", {detail: parsed.message})}
-    >
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" onClick={() => answer(true)}>{t("labWidgets.belongs")}</Button>
-        <Button size="sm" variant="outline" onClick={() => answer(false)}>{t("labWidgets.notBelongs")}</Button>
+    <Row taskId={taskId} index={index} source={source} solution={<pre className="font-mono overflow-x-auto">{outline(goal).join("\n")}</pre>}>
+      <div className="overflow-x-auto py-1">
+        <div className="w-fit mx-auto">
+          <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+        <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
       </div>
       <Feedback verdict={verdict}/>
     </Row>
@@ -238,7 +255,7 @@ export function NblTask({id, type, terms}: {id?: string; type: NblTaskType; term
     <ol className="space-y-3 list-none print:hidden">
       {terms.map((source, index) => {
         switch (type) {
-          case "valid": return <ValidRow key={index} id={id} index={index} source={source}/>;
+          case "derivation": return <DerivationRow key={index} id={id} index={index} source={source}/>;
           case "size": return <NumberRow key={index} id={id} index={index} source={source} metric="size"/>;
           case "depth": return <NumberRow key={index} id={id} index={index} source={source} metric="depth"/>;
           case "constants": return <ConstantsRow key={index} id={id} index={index} source={source}/>;

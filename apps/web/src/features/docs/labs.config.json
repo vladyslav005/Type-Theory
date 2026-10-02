@@ -25,7 +25,7 @@
     {
       "slug": "recursion-untyped",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Rekurzia v netypovanom λ-kalkule",

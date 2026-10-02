@@ -8,7 +8,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {isPlainStlcProof, typeToString} from "@vladyslav005/tt-core";
+import {isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -18,6 +18,8 @@ import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {countProofErrors} from "@/shared/ui-state/studentProof.ts";
 import {ProofTreeBuilder} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilder.tsx";
+import {SyntaxDerivationBuilder} from "@/features/proof-tree/components/syntax-builder/SyntaxDerivationBuilder.tsx";
+import {goalFromTexTree} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 import {InferenceConstraintList} from "@/features/proof-tree/components/InferenceConstraintList.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
@@ -41,6 +43,7 @@ export function ProofTreeVisualisation({
   const proof = useAppSelector((state) => state.term.proof);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const curryHoward = useAppSelector((state) => state.term.curryHoward);
+  const ast = useAppSelector((state) => state.term.ast);
   const inferenceSteps = useAppSelector((state) => state.term.inferenceSteps);
   const inferenceProofSnapshots = useAppSelector((state) => state.term.inferenceProofSnapshots);
   const {toTexTree, toLogicTree} = useProofHooks()
@@ -98,10 +101,11 @@ export function ProofTreeVisualisation({
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
   const noTypes = enabledTheories.untyped || enabledTheories.nbl;
   const hasProof = !noTypes && proof !== null && proof !== undefined;
+  const syntaxTree = noTypes && ast?.term ? syntaxDerivation(ast.term, enabledTheories.nbl ? "nbl" : "untyped") : null;
   const logicAvailable = !hasProof || isPlainStlcProof(proof);
   const showLogicTab = curryHoward && logicAvailable;
   const effectiveTab: ProofTreeTab =
-    (activeTab === "logic" && !showLogicTab) || (activeTab === "build-check" && noTypes)
+    (activeTab === "logic" && !showLogicTab)
       ? "automatic"
       : activeTab;
 
@@ -154,21 +158,8 @@ export function ProofTreeVisualisation({
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
               <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
-                  <TabsTrigger value="automatic">{t("proofTree.tabAutomatic")}</TabsTrigger>
-                  {noTypes ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="inline-flex">
-                            <TabsTrigger value="build-check" disabled>{t("proofTree.tabBuildCheck")}</TabsTrigger>
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">{t(enabledTheories.nbl ? "proofTree.buildCheckUnavailableNbl" : "proofTree.buildCheckUnavailableUntyped")}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
-                  )}
+                  <TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger>
+                  <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
                   {curryHoward && (logicAvailable ? (
                     <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
                   ) : (
@@ -261,9 +252,35 @@ export function ProofTreeVisualisation({
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden flex flex-col p-0">
           <div className="flex-1 min-h-0 overflow-hidden">
-          {effectiveTab === "build-check" ? (
+          {effectiveTab === "build-check" && noTypes ? (
+            syntaxTree ? (
+              <SyntaxDerivationBuilder
+                key={ast?.term?.id ?? "none"}
+                goal={goalFromTexTree(syntaxTree)}
+                rules={enabledTheories.nbl ? NBL_SYNTAX_RULES : UNTYPED_SYNTAX_RULES}
+                onNodeHover={handleNodeHover}
+              />
+            ) : (
+              <div className="h-full p-6">
+                <EmptyState icon={ListTree} message={t(enabledTheories.nbl ? "proofTree.emptyNbl" : "proofTree.emptyUntyped")} />
+              </div>
+            )
+          ) : effectiveTab === "build-check" ? (
             <div className="h-full overflow-auto">
               <ProofTreeBuilder/>
+            </div>
+          ) : noTypes && syntaxTree ? (
+            <div className="w-full h-full flex flex-col">
+              <p className="mx-3 mt-2 mb-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Info className="h-3 w-3 shrink-0"/>
+                {t(enabledTheories.nbl ? "proofTree.syntaxNoteNbl" : "proofTree.syntaxNoteUntyped")}
+              </p>
+              <ProofTreeCanvas
+                texTree={syntaxTree}
+                treeKey={`syntax-${ast?.term?.id ?? "none"}`}
+                exportFilename="syntax-tree.tex"
+                onNodeHover={handleNodeHover}
+              />
             </div>
           ) : !hasProof ? (
             <div className="h-full p-6">

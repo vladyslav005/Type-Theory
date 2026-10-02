@@ -522,7 +522,6 @@
     "tabLogic": "Curry–Howardova korešpondencia",
     "tabLogicShort": "Logika",
     "logicUnavailableNonStlc": "Tento výraz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie",
-    "buildCheckUnavailableUntyped": "Nedostupné pre netypovaný lambda kalkul — nie sú tu typovacie pravidlá, z ktorých by sa dalo zostaviť odvodenie",
     "stepByStep": "Krok za krokom",
     "highlightInEditor": "Zvýrazniť v editore",
     "showInferenceSteps": "Kroky riešenia",
@@ -536,10 +535,12 @@
     "justSolvedConstraint": "Práve vyriešené",
     "noNewBindings": "Žiadne nové väzby — už v súlade s tým, čo je známe",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
-    "emptyUntyped": "Netypovaný lambda kalkul nemá typovú derivačiu na zobrazenie.",
+    "emptyUntyped": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do netypovaného lambda kalkulu.",
     "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie.",
-    "emptyNbl": "NBL je netypovaný — nie je čo zobraziť ako typové odvodenie. Redukciu termu sledujte v paneli vyhodnotenia.",
-    "buildCheckUnavailableNbl": "Nedostupné pre NBL — je netypovaný, takže nie sú typové pravidlá, z ktorých by sa dalo odvodenie zostaviť"
+    "emptyNbl": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do NBL.",
+    "tabSyntax": "Syntaktické odvodenie",
+    "syntaxNoteNbl": "NBL nemá typy — tento strom dokazuje, že term patrí do jazyka (t ∈ Term).",
+    "syntaxNoteUntyped": "Netypovaný λ-kalkul nemá typy — tento strom dokazuje, že term patrí do jazyka (t ∈ Term)."
   },
   "proofTreeCanvas": {
     "zoomIn": "Priblížiť",
@@ -1074,10 +1075,6 @@
     "correct": "Správne.",
     "showSolution": "Ukázať riešenie",
     "hideSolution": "Skryť riešenie",
-    "belongs": "Patrí do Term",
-    "notBelongs": "Nepatrí",
-    "validYes": "Áno, patrí do Term.",
-    "validNo": "Nie, nie je platný term: {{detail}}.",
     "notInTerm": "Tento term nepatrí do Term ({{detail}}), preto pre neho úloha nemá odpoveď.",
     "unknownConstant": "„{{name}}“ nie je konštanta NBL (0, true, false).",
     "treeIncomplete": "Najprv vyplňte všetky uzly stromu.",
@@ -1170,5 +1167,22 @@
       "deleteConfirm": "Vymazať",
       "cancel": "Zrušiť"
     }
+  },
+  "syntaxBuilder": {
+    "hint": "Pre každý uzol vyberte pravidlo — jeho predpoklady sa doplnia automaticky. Ak sa nedá použiť žiadne pravidlo, term nepatrí do jazyka.",
+    "noRule": "Žiadne pravidlo",
+    "noRuleShort": "žiadne pravidlo",
+    "doneBelongs": "Dôkaz je hotový — term patrí do jazyka.",
+    "doneNotBelongs": "Správne — tu sa nedá použiť žiadne pravidlo, takže term nepatrí do jazyka.",
+    "wrong_one": "{{count}} pravidlo nezodpovedá tvaru termu.",
+    "wrong_few": "{{count}} pravidlá nezodpovedajú tvaru termu.",
+    "wrong_many": "{{count}} pravidla nezodpovedá tvaru termu.",
+    "wrong_other": "{{count}} pravidiel nezodpovedá tvaru termu.",
+    "incomplete_one": "{{count}} uzol ešte nemá pravidlo.",
+    "incomplete_few": "{{count}} uzly ešte nemajú pravidlo.",
+    "incomplete_many": "{{count}} uzla ešte nemá pravidlo.",
+    "incomplete_other": "{{count}} uzlov ešte nemá pravidlo.",
+    "doesNotFit": "nesedí — vyberte iné",
+    "doesNotFitTooltip": "Toto pravidlo nezodpovedá tvaru termu, preto sa nedá rozložiť na predpoklady. Kliknite a vyberte iné pravidlo."
   }
 }

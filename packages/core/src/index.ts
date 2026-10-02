@@ -37,6 +37,7 @@ export {
 
 export * from "@/presentation/tex/TexMapper";
 export * from "@/presentation/tex/texTree";
+export {syntaxDerivation, UNTYPED_SYNTAX_RULES, type SyntaxLanguage} from "@/presentation/tex/syntaxDerivation";
 
 export {
   LogicMapper,

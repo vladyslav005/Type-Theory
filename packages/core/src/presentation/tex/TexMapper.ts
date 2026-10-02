@@ -39,6 +39,8 @@ function binderTex(name: string): string {
   return name.startsWith("'") ? `\\text{${name}}` : name;
 }
 
+const isAtomic = (term: Term) => term.kind === "Lit" || term.kind === "Var";
+
 export class TexMapper extends ProofTreeVisitor<TexTree> {
 
   private readonly gammaRegistry: GammaRegistry;
@@ -618,7 +620,9 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "Succ":
       case "Pred":
       case "IsZero":
-        return [t(`\\text{${term.kind.toLowerCase()}}\\ `), ...rec(term.term)];
+        return isAtomic(term.term)
+          ? [t(`\\text{${term.kind.toLowerCase()}}\\ `), ...rec(term.term)]
+          : [t(`\\text{${term.kind.toLowerCase()}}\\ (`), ...rec(term.term), t(")")];
     }
   }
 
@@ -703,7 +707,9 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "Succ":
       case "Pred":
       case "IsZero":
-        return `\\text{${term.kind.toLowerCase()}}\\ ${rec(term.term)}`
+        return isAtomic(term.term)
+          ? `\\text{${term.kind.toLowerCase()}}\\ ${rec(term.term)}`
+          : `\\text{${term.kind.toLowerCase()}}\\ (${rec(term.term)})`
     }
   }
 

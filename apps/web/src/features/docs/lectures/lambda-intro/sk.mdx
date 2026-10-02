@@ -112,13 +112,13 @@ znamená, že iný term už nevznikne.
 
 <RuleCardStrip
   rules={[
-    {id: "S-Zero", conclusion: "0 \\in Term", description: "Axióma. Rovnako S-True a S-False."},
-    {id: "S-Succ", premises: ["t_1 \\in Term"], conclusion: "\\text{succ}\\ t_1 \\in Term", description: "Rovnako S-Pred a S-IsZero."},
-    {id: "S-If", premises: ["t_1 \\in Term", "t_2 \\in Term", "t_3 \\in Term"], conclusion: "\\text{if}\\ t_1\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\in Term", description: "Podmienka aj obe vetvy musia byť termy.", wide: true},
+    {id: "(0)", conclusion: "0 \\in Term", description: "Axióma. Rovnako (true) a (false)."},
+    {id: "(succ)", premises: ["t_1 \\in Term"], conclusion: "\\text{succ}\\ t_1 \\in Term", description: "Rovnako (pred) a (iszero)."},
+    {id: "(if)", premises: ["t_1 \\in Term", "t_2 \\in Term", "t_3 \\in Term"], conclusion: "\\text{if}\\ t_1\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 \\in Term", description: "Podmienka aj obe vetvy musia byť termy.", wide: true},
   ]}
 />
 
-Pravidlá syntaxe označujeme S-…, aby sa nepomýlili s typovacími pravidlami T-… z ďalších prednášok.
+Pravidlá syntaxe pomenúvame podľa konštrukcie, ktorú zavádzajú — (true), (succ), (if), … — na rozdiel od typovacích pravidiel T-… z ďalších prednášok.
 
 </ConceptSection>
 
@@ -137,8 +137,8 @@ majú **jedného** potomka a `if` má **troch** — podmienku, vetvu *then* a ve
 Že <Math>{"t \\in Term"}</Math>, dokážeme **odvodzovacím stromom**:
 
 - v koreni je dokazované tvrdenie <Math>{"t \\in Term"}</Math>,
-- v každom kroku použijeme jedno pravidlo (S-Succ, S-Pred, S-If, …) a rozpadneme term na podtermy,
-- dôkaz je hotový, keď sú **všetky listy axiómy** (S-Zero, S-True, S-False).
+- v každom kroku použijeme jedno pravidlo, napríklad (succ), (pred) alebo (if), a rozpadneme term na podtermy,
+- dôkaz je hotový, keď sú **všetky listy axiómy**, teda (0), (true) alebo (false).
 
 Krátky príklad na termu `succ (pred 0)`, od koreňa k listom:
 
@@ -146,9 +146,9 @@ Krátky príklad na termu `succ (pred 0)`, od koreňa k listom:
   title="Dôkaz, že succ (pred 0) ∈ Term"
   steps={[
     {term: "succ (pred 0) ∈ Term"},
-    {term: "pred 0 ∈ Term", rule: "S-Succ"},
-    {term: "0 ∈ Term", rule: "S-Pred"},
-    {term: "hotovo — 0 je axióma", rule: "S-Zero"},
+    {term: "pred 0 ∈ Term", rule: "(succ)"},
+    {term: "0 ∈ Term", rule: "(pred)"},
+    {term: "hotovo — 0 je axióma", rule: "(0)"},
   ]}
 />
 

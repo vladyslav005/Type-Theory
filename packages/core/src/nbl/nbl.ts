@@ -214,3 +214,70 @@ export function nblEvaluate(term: NblTerm, maxSteps = 1000): NblEvaluation {
   }
   return {steps, result: current, status: isNblValue(current) ? "value" : "stuck"};
 }
+
+export const NBL_SYNTAX_RULES = ["(true)", "(false)", "(0)", "(succ)", "(pred)", "(iszero)", "(if)"] as const;
+
+// One node of a `t ∈ Term` derivation over source text; rule is undefined where no rule applies.
+export interface NblSyntaxNode {
+  text: string;
+  rule?: (typeof NBL_SYNTAX_RULES)[number];
+  children: NblSyntaxNode[];
+}
+
+// Works on raw text rather than a parse, so a term outside NBL still derives down to the spot where no rule fits.
+export function nblSyntaxDerivation(source: string): NblSyntaxNode {
+  const tokens = tokenize(source);
+
+  const closingParen = (from: number, to: number): number => {
+    let depth = 0;
+    for (let k = from; k < to; k += 1) {
+      if (tokens[k].text === "(") depth += 1;
+      if (tokens[k].text === ")" && --depth === 0) return k;
+    }
+    return -1;
+  };
+
+  const derive = (from: number, to: number): NblSyntaxNode => {
+    while (to - from >= 2 && tokens[from].text === "(" && closingParen(from, to) === to - 1) {
+      from += 1;
+      to -= 1;
+    }
+    const text = from < to
+      ? source.slice(tokens[from].position, tokens[to - 1].position + tokens[to - 1].text.length)
+      : "";
+    const node = (rule?: NblSyntaxNode["rule"], children: [number, number][] = []): NblSyntaxNode => ({
+      text,
+      rule,
+      children: children.map(([a, b]) => derive(a, b)),
+    });
+    if (from >= to) return node();
+
+    const head = tokens[from].text;
+    if (to - from === 1) {
+      return head === "true" ? node("(true)") : head === "false" ? node("(false)") : head === "0" ? node("(0)") : node();
+    }
+    if (head === "succ" || head === "pred" || head === "iszero") {
+      return node(`(${head})`, [[from + 1, to]]);
+    }
+    if (head !== "if") return node();
+
+    let depth = 0;
+    let nested = 0;
+    let thenAt = -1;
+    let elseAt = -1;
+    for (let k = from + 1; k < to && elseAt < 0; k += 1) {
+      const text = tokens[k].text;
+      if (text === "(") depth += 1;
+      else if (text === ")") depth -= 1;
+      else if (depth !== 0) continue;
+      else if (text === "if") nested += 1;
+      else if (text === "then" && nested === 0 && thenAt < 0) thenAt = k;
+      else if (text === "else" && nested > 0) nested -= 1;
+      else if (text === "else" && thenAt >= 0) elseAt = k;
+    }
+    if (thenAt < 0 || elseAt < 0 || thenAt === from + 1 || elseAt === thenAt + 1 || elseAt === to - 1) return node();
+    return node("(if)", [[from + 1, thenAt], [thenAt + 1, elseAt], [elseAt + 1, to]]);
+  };
+
+  return derive(0, tokens.length);
+}
