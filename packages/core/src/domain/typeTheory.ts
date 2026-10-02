@@ -84,3 +84,28 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
     description: "Types that depend on terms via Π-types (Πx:A.M, of which A→B is the non-dependent special case), and kinds indexed by a type (K ::= * | T→K, e.g. Nat→*)",
   },
 ];
+
+// Optional parts of STLC itself (not extensions) — each can be switched off to keep exercises focused.
+export type StlcFeatureId = "sums" | "tuples" | "records" | "lists";
+
+export type StlcFeatureConfig = Record<StlcFeatureId, boolean>;
+
+export const DEFAULT_STLC_FEATURES: StlcFeatureConfig = {
+  sums: true,
+  tuples: true,
+  records: true,
+  lists: true,
+};
+
+export interface StlcFeatureDescriptor {
+  id: StlcFeatureId;
+  label: string;
+  description: string;
+}
+
+export const STLC_FEATURES: StlcFeatureDescriptor[] = [
+  {id: "sums", label: "Sum types & variants", description: "inl / inr / case and labelled variants [l=t] as T with case … of"},
+  {id: "tuples", label: "Tuples", description: "<t1, t2, …> and projection t.N"},
+  {id: "records", label: "Records", description: "<l=t, …> and projection t.l"},
+  {id: "lists", label: "Lists", description: "nil, cons, isnil, head and tail"},
+];

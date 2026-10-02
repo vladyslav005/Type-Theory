@@ -3,7 +3,7 @@ import {createSlice} from "@reduxjs/toolkit";
 import type {Program, SourcePosition, Type} from "@vladyslav005/tt-core";
 import type {InferenceStep, ProofTree, Rule} from "@vladyslav005/tt-core";
 import {EvaluationStrategy, type EvaluationResult} from "@vladyslav005/tt-core";
-import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
+import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
 import {
   buildStudentNode,
   type ConstraintPair,
@@ -54,6 +54,7 @@ export interface TermState {
   evaluation: EvaluationResult | undefined;
   enabledTheories: TypeTheoryConfig;
   curryHoward: boolean;
+  stlcFeatures: StlcFeatureConfig;
   evaluationStrategy: EvaluationStrategy;
   buildMode: BuildModeState;
   // When on, editor changes auto-trigger parse/type-check/evaluate — see TextEditor's
@@ -79,6 +80,7 @@ export const initialTermState: TermState = {
   evaluation: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
+  stlcFeatures: DEFAULT_STLC_FEATURES,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
   buildMode: {active: false},
   autoBuild: false,
@@ -171,6 +173,8 @@ const counterSlice = createSlice({
       const {id, enabled} = action.payload;
       if (!enabled) {
         state.enabledTheories[id] = false;
+        // Coming back to STLC from a replacement theory starts with every STLC feature on.
+        if (EXCLUSIVE_THEORIES.includes(id)) state.stlcFeatures = DEFAULT_STLC_FEATURES;
         syncExamplesTopic(state);
         return;
       }
@@ -186,6 +190,10 @@ const counterSlice = createSlice({
       state.enabledTheories[id] = true;
       state.curryHoward = false;
       syncExamplesTopic(state, id);
+    },
+
+    setStlcFeature: (state, action: { payload: { id: StlcFeatureId; enabled: boolean } }) => {
+      state.stlcFeatures[action.payload.id] = action.payload.enabled;
     },
 
     // The logic reading only exists for plain STLC, so turning it on clears every theory.
@@ -393,6 +401,7 @@ export const {
   setFontSize,
   setShowMinimap,
   setCurryHoward,
+  setStlcFeature,
   setProof,
   setTypeAliases,
   setInferenceSteps,

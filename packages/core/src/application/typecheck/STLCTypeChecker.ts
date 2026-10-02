@@ -71,7 +71,7 @@ import {
 } from "@/application/typecheck/ProofTree.ts";
 import {TypeInferenceEngine} from "@/application/typecheck/TypeInferenceEngine.ts";
 import {TypeCheckError} from "@/application/typecheck/TypeCheckError.ts";
-import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig} from "@/domain/typeTheory.ts";
+import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig} from "@/domain/typeTheory.ts";
 
 // Whether a variable was bound by an ordinary binder or by `let` — purely for picking the
 // matching CT-Var / CT-VarLet proof-tree label; has no effect on the computed type.
@@ -79,6 +79,30 @@ type VarOrigin = Rule.CtVar | Rule.CtVarLet;
 
 // Single typechecker for the whole language, written once in constraint-generation/unification
 // style so theories compose freely. "Plain STLC" is just this engine with `inferring` false.
+const FEATURE_GATES: {[kind: string]: {feature: StlcFeatureId; construct: string} | undefined} = {
+  Inl: {feature: "sums", construct: "\"inl\""},
+  Inr: {feature: "sums", construct: "\"inr\""},
+  Case: {feature: "sums", construct: "\"case\""},
+  Variant: {feature: "sums", construct: "A variant"},
+  VariantCase: {feature: "sums", construct: "\"case … of\""},
+  Tuple: {feature: "tuples", construct: "A tuple"},
+  TupleProjection: {feature: "tuples", construct: "Tuple projection"},
+  Record: {feature: "records", construct: "A record"},
+  RecordProjection: {feature: "records", construct: "Record projection"},
+  Nil: {feature: "lists", construct: "\"nil\""},
+  Cons: {feature: "lists", construct: "\"cons\""},
+  IsNil: {feature: "lists", construct: "\"isnil\""},
+  Head: {feature: "lists", construct: "\"head\""},
+  Tail: {feature: "lists", construct: "\"tail\""},
+};
+
+const FEATURE_LABELS: {[feature in StlcFeatureId]: string} = {
+  sums: "Sum types & variants",
+  tuples: "Tuples",
+  records: "Records",
+  lists: "Lists",
+};
+
 export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   private schemeContext: Gamma<TypeScheme> = new Gamma<TypeScheme>();
@@ -98,6 +122,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   private rawValueProofs: Map<string, InferProofTree> = new Map();
   private globalProofs: Map<string, ProofTree> = new Map();
   private theories: TypeTheoryConfig = DEFAULT_TYPE_THEORY_CONFIG;
+  private stlcFeatures: StlcFeatureConfig = DEFAULT_STLC_FEATURES;
   private readonly engine: TypeInferenceEngine = new TypeInferenceEngine();
 
   // name -> fully-expanded underlying type, populated by visitTypeAliasDecl.
@@ -137,6 +162,10 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   // Optional theories beyond core STLC; a construct belonging to a disabled theory is a type error.
   public setTheories(theories: TypeTheoryConfig): void {
     this.theories = theories;
+  }
+
+  public setStlcFeatures(features: StlcFeatureConfig): void {
+    this.stlcFeatures = features;
   }
 
   // Runs inference over the whole program, then solves whatever constraints are still outstanding
@@ -223,7 +252,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   visit(node: ASTNode): InferProofTree {
-    const proof = this.theories.nbl && node.kind !== "Program" ? this.visitNbl(node) : super.visit(node);
+    const proof = this.theories.nbl && node.kind !== "Program"
+      ? this.visitNbl(node)
+      : this.rejectIfFeatureDisabled(node) ?? super.visit(node);
     proof.id = node.id;
 
     if ("constraints" in proof) {
@@ -292,6 +323,14 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       rule,
       `"${construct}" is not part of untyped lambda calculus — encode it as a pure λ-term (see the lecture's Church encodings), or disable "Untyped lambda calculus" to use it`,
     );
+  }
+
+  private rejectIfFeatureDisabled(node: ASTNode): InferProofTree | undefined {
+    if (this.theories.untyped) return undefined;
+    const gated = FEATURE_GATES[node.kind];
+    if (!gated || this.stlcFeatures[gated.feature]) return undefined;
+    const rule = (Object.values(Rule) as string[]).includes(node.kind) ? node.kind as Rule : Rule.Var;
+    return this.reject(node, rule, `${gated.construct} is switched off — enable "${FEATURE_LABELS[gated.feature]}" under STLC in Extensions to use it`);
   }
 
   // NBL is untyped: no constraints, only a gate on which syntax is allowed.

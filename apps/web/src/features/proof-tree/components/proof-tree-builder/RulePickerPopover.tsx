@@ -20,10 +20,11 @@ export function RulePickerPopover({nodeId, children}: RulePickerPopoverProps) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const rules = useMemo(() => rulesForTheories(enabledTheories), [enabledTheories]);
+  const rules = useMemo(() => rulesForTheories(enabledTheories, stlcFeatures), [enabledTheories, stlcFeatures]);
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return rules;

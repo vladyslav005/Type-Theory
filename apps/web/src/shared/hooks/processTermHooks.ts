@@ -19,6 +19,7 @@ export function useTermHooks() {
   const termText = useAppSelector((state) => state.term.termText);
   const ast = useAppSelector((state) => state.term.ast);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
 
   function parseTerm(term: string): Program {
     const program = parser.parseExpression(term);
@@ -27,6 +28,7 @@ export function useTermHooks() {
 
   function typecheckTerm(ast: Program): ProofTree {
     typeCheckerSLTC.setTheories(enabledTheories);
+    typeCheckerSLTC.setStlcFeatures(stlcFeatures);
     return typeCheckerSLTC.check(ast);
   }
 
@@ -68,6 +70,7 @@ export function useTermHooks() {
       }
 
       typeCheckerSLTC.setTheories(enabledTheories);
+      typeCheckerSLTC.setStlcFeatures(stlcFeatures);
       proof = typeCheckerSLTC.check(ast);
 
       const typeErrors = typeCheckerSLTC.getErrors();

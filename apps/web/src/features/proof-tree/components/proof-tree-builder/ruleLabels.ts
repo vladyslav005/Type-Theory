@@ -1,5 +1,5 @@
 import {Rule} from "@vladyslav005/tt-core";
-import type {TypeTheoryConfig, TypeTheoryId} from "@vladyslav005/tt-core";
+import {DEFAULT_STLC_FEATURES, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
 import {isCtRule} from "@/shared/ui-state/ruleFamilies.ts";
 
 // Display labels for every rule the student can pick, matching TexMapper's labels where one exists.
@@ -145,10 +145,21 @@ export const BUILDER_RULES: readonly Rule[] = [
 ];
 
 // BUILDER_RULES filtered down to whichever theories are currently enabled.
-export function rulesForTheories(theories: TypeTheoryConfig): Rule[] {
+const RULE_FEATURE: Partial<Record<Rule, StlcFeatureId>> = {
+  [Rule.Inl]: "sums", [Rule.Inr]: "sums", [Rule.Case]: "sums", [Rule.Variant]: "sums", [Rule.VariantCase]: "sums",
+  [Rule.CtInl]: "sums", [Rule.CtInr]: "sums", [Rule.CtCase]: "sums", [Rule.CtVariant]: "sums", [Rule.CtVariantCase]: "sums",
+  [Rule.Tuple]: "tuples", [Rule.TupleProjection]: "tuples", [Rule.CtTuple]: "tuples", [Rule.CtTupleProjection]: "tuples",
+  [Rule.Record]: "records", [Rule.RecordProjection]: "records", [Rule.CtRecord]: "records", [Rule.CtRecordProjection]: "records",
+  [Rule.Nil]: "lists", [Rule.Cons]: "lists", [Rule.IsNil]: "lists", [Rule.Head]: "lists", [Rule.Tail]: "lists",
+  [Rule.CtNil]: "lists", [Rule.CtCons]: "lists", [Rule.CtIsNil]: "lists", [Rule.CtHead]: "lists", [Rule.CtTail]: "lists",
+};
+
+export function rulesForTheories(theories: TypeTheoryConfig, features: StlcFeatureConfig = DEFAULT_STLC_FEATURES): Rule[] {
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
   return BUILDER_RULES.filter((rule) => {
     if (isCtRule(rule) && !usesConstraints) return false;
+    const feature = RULE_FEATURE[rule];
+    if (feature && !features[feature]) return false;
     const required = RULE_THEORY[rule];
     return !required || theories[required];
   });

@@ -480,6 +480,25 @@
       "label": "Curry–Howard correspondence",
       "shortLabel": "Curry–Howard",
       "description": "Adds a tab reading the proof as propositional logic. Plain STLC only — disables other extensions."
+    },
+    "stlcFeatures": {
+      "trigger": "STLC features",
+      "sums": {
+        "label": "Sum types & variants",
+        "description": "inl / inr / case and labelled variants [l=t] as T with case … of"
+      },
+      "tuples": {
+        "label": "Tuples",
+        "description": "<t1, t2, …> and projection t.N"
+      },
+      "records": {
+        "label": "Records",
+        "description": "<l=t, …> and projection t.l"
+      },
+      "lists": {
+        "label": "Lists",
+        "description": "nil, cons, isnil, head and tail"
+      }
     }
   },
   "layoutPresets": {

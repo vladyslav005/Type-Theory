@@ -480,6 +480,25 @@
       "label": "Curry–Howardova korešpondencia",
       "shortLabel": "Curry–Howard",
       "description": "Pridá kartu, ktorá číta dôkaz ako výrokovú logiku. Len čisté STLC — vypne ostatné rozšírenia."
+    },
+    "stlcFeatures": {
+      "trigger": "Prvky STLC",
+      "sums": {
+        "label": "Súčtové typy a varianty",
+        "description": "inl / inr / case a pomenované varianty [l=t] as T s case … of"
+      },
+      "tuples": {
+        "label": "N-tice",
+        "description": "<t1, t2, …> a projekcia t.N"
+      },
+      "records": {
+        "label": "Záznamy",
+        "description": "<l=t, …> a projekcia t.l"
+      },
+      "lists": {
+        "label": "Zoznamy",
+        "description": "nil, cons, isnil, head a tail"
+      }
     }
   },
   "layoutPresets": {

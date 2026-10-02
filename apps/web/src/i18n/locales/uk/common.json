@@ -480,6 +480,25 @@
       "label": "Відповідність Каррі–Говарда",
       "shortLabel": "Каррі–Говард",
       "description": "Додає вкладку, що читає доведення як логіку висловлювань. Лише чистий STLC — вимикає інші розширення."
+    },
+    "stlcFeatures": {
+      "trigger": "Можливості STLC",
+      "sums": {
+        "label": "Типи-суми та варіанти",
+        "description": "inl / inr / case та іменовані варіанти [l=t] as T з case … of"
+      },
+      "tuples": {
+        "label": "Кортежі",
+        "description": "<t1, t2, …> та проєкція t.N"
+      },
+      "records": {
+        "label": "Записи",
+        "description": "<l=t, …> та проєкція t.l"
+      },
+      "lists": {
+        "label": "Списки",
+        "description": "nil, cons, isnil, head і tail"
+      }
     }
   },
   "layoutPresets": {
