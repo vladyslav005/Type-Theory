@@ -49,7 +49,7 @@ export interface TextEditorProps {
 export interface TextEditorHandle {
   setValue: (text: string) => void;
   getValue: () => string;
-  highlightRange: (pos: SourcePosition | null) => void;
+  highlightRange: (pos: SourcePosition | null, tone?: "hover" | "error") => void;
 }
 
 export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function TextEditor(
@@ -256,7 +256,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
       const editor = editorRef.current;
       return editor ? editor.getValue() : (value ?? defaultValue);
     },
-    highlightRange: (pos: SourcePosition | null) => {
+    highlightRange: (pos: SourcePosition | null, tone: "hover" | "error" = "hover") => {
       const decorations = highlightDecorationsRef.current;
       if (!decorations) return;
       if (!pos) {
@@ -271,7 +271,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
           endColumn: pos.endColumn !== undefined ? pos.endColumn + 1 : pos.column + 1 + pos.length,
         },
         options: {
-          inlineClassName: "proof-hover-highlight",
+          inlineClassName: tone === "error" ? "error-hover-highlight" : "proof-hover-highlight",
         },
       }]);
     },

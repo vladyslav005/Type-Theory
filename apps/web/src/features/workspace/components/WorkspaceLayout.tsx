@@ -75,12 +75,13 @@ export function WorkspaceLayout({className}: WorkspaceLayoutProps) {
   const pendingPreset = useAppSelector((state) => state.workspaceLayoutUi.pendingPreset);
 
   // A restored/serialized panel's `params` can't carry a live React ref through JSON, so the
-  // editor/AST/proofTree panels need it re-injected after every build (fresh mount, restore, or preset switch).
+  // editor/AST/proofTree/errorOutput panels need it re-injected after every build (fresh mount, restore, or preset switch).
   const rewireEditorRef = useCallback((api: DockviewApi) => {
     const editorParams: EditorPanelParams = {editorRef};
     api.getPanel("editor")?.api.updateParameters(editorParams);
     api.getPanel("ast")?.api.updateParameters(editorParams);
     api.getPanel("proofTree")?.api.updateParameters(editorParams);
+    api.getPanel("errorOutput")?.api.updateParameters(editorParams);
   }, [editorRef]);
 
   const handleReady = (event: DockviewReadyEvent) => {

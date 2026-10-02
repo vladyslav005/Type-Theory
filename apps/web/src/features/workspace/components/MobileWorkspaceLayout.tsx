@@ -94,7 +94,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
           {primaryTab === "results" && resultView === "ast" && <ViewTime view="ast"/>}
           {primaryTab === "errors" && (
             <div className="h-full overflow-auto [&>*]:!transform-none">
-              <ErrorOutput className="h-full"/>
+              <ErrorOutput className="h-full" editorRef={editorRef}/>
             </div>
           )}
 

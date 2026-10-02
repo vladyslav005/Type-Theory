@@ -127,6 +127,11 @@
   background-color: rgb(244 241 6 / 0.42);
 }
 
+.error-hover-highlight {
+  background-color: rgb(239 68 68 / 0.28);
+  border-bottom: 2px solid rgb(239 68 68 / 0.85);
+}
+
 @keyframes nav-progress {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }

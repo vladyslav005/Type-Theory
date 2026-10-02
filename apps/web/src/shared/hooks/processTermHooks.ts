@@ -6,6 +6,7 @@ import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, s
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {elaborateNbl, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
+import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 
 export function useTermHooks() {
   const {
@@ -49,7 +50,7 @@ export function useTermHooks() {
 
     } catch (error) {
       console.error("Error parsing term:", error);
-      dispatch(pushProcessingError(new Error(`${(error as Error).message}`)))
+      dispatch(pushProcessingError(error instanceof ParseSyntaxError ? error : new Error(`${(error as Error).message}`)))
       if (error instanceof ParseSyntaxError) {
         dispatch(setErrorMarkers(error.errors));
       }
@@ -109,7 +110,10 @@ export function useTermHooks() {
       dispatch(setEvaluation(evaluationResult));
 
       evaluationResult.errors?.forEach((e) =>
-        dispatch(pushProcessingError(new EvaluationRunError(e.message))),
+        dispatch(pushProcessingError(new EvaluationRunError(
+          e.message,
+          e.stuckTermId ? findNodePosition(evaluationResult.result, e.stuckTermId) : undefined,
+        ))),
       );
 
       if (evaluationResult.reachedStepLimit) {

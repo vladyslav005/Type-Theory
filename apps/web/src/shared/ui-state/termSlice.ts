@@ -87,7 +87,11 @@ export const initialTermState: TermState = {
   examplesTopic: "all",
 };
 
-export class EvaluationRunError extends Error {}
+export class EvaluationRunError extends Error {
+  constructor(message: string, readonly pos?: SourcePosition) {
+    super(message);
+  }
+}
 
 // Replace STLC instead of extending it, so enabling one clears every other theory.
 const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl"];
