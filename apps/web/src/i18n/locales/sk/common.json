@@ -640,7 +640,8 @@
     "modeSemi": "Polomanuálny",
     "modeSemiHint": "Klikacie zostavovanie: vyberáte pravidlá a vypĺňate vedené polia — tvar stromu je daný",
     "modeManual": "Plne manuálny",
-    "modeManualHint": "Každý súd píšete sami a sami určujete počet premís pravidla"
+    "modeManualHint": "Každý súd píšete sami a sami určujete počet premís pravidla",
+    "clearType": "Vymazať"
   },
   "conclusion": {
     "error": "Chyba",
@@ -770,6 +771,7 @@
     "before": "Pred",
     "after": "Po",
     "betaReduction": "β-redukcia",
+    "definitionReplaced": "Nahradenie mena jeho definíciou",
     "stuck": "zaseknuté — redukcia nie je možná",
     "stuckTerm": "Zaseknutý výraz",
     "normalForm": "Normálna forma",
@@ -1001,20 +1003,21 @@
     }
   },
   "evalPractice": {
-    "stepOf": "Krok {{current}} z {{total}}",
     "writePlaceholder": "napr. λ y . y",
-    "finishedNormalForm": "Normálny tvar dosiahnutý — nič sa už nedá redukovať.",
-    "finishedStuck": "Vyhodnocovanie tu uviazlo — žiadne pravidlo neplatí, ale term nie je hodnota.",
-    "finishedLimit": "Priebeh sa zastavil na limite krokov — term sa môže redukovať ďalej.",
     "msg": {
       "writeParse": "Nepodarilo sa to prečítať ako term: {{detail}}",
-      "writeWrong": "Toto ďalší krok nedáva. Dosaďte argument za parameter v tele (viazané premenné sa môžu premenovať).",
-      "correct": "Správne."
+      "nothingChanged": "Nič sa nezmenilo — zredukujte práve jeden redex.",
+      "tooManySteps": "Urobili ste viac ako jeden krok — napíšte len výsledok nasledujúceho jedného kroku.",
+      "otherRedex": "Zredukovali ste redex, ale nie ten, ktorý vyberá {{strategy}}.",
+      "differsAt": "Váš term sa líši v označenej časti: {{marked}}.",
+      "differs": "Toto nie je výsledok nasledujúceho kroku.",
+      "noStepLeft": "Na tento term sa už nedá použiť žiadne pravidlo — rozhodnite, či je to hodnota, alebo je zaseknutý.",
+      "canStillReduce": "Tento term sa ešte dá redukovať.",
+      "decisionWrong": "Nie je to tak — pozrite sa znova, či je tento term hodnota.",
+      "stepCorrect": "Toto je správny krok."
     },
     "tabAutomatic": "Automaticky",
     "tabPractice": "Precvičovanie",
-    "stepsDone": "{{done}}/{{total}} krokov hotových",
-    "complete": "dokončené",
     "emptyNeedsEvaluation": "Najprv vyhodnoťte výraz — Precvičovanie potrebuje redukciu, s ktorou porovná vašu prácu.",
     "insertDefinition": "Vložiť definíciu {{name}}",
     "context": "Kontext Γ",
@@ -1024,51 +1027,77 @@
     "restart": "Znova",
     "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte celý term, ktorý dostanete po jednom kroku redukcie. Kliknutím na časť termu ju vložíte do odpovede.",
     "check": "Skontrolovať",
-    "nextStep": "Ďalší krok",
-    "finish": "Dokončiť",
-    "statusCorrect": "Zodpovedá skutočnému kroku",
-    "statusWrong": "Líši sa od skutočného kroku",
-    "youWrote": "Napísali ste: {{text}}",
-    "writeHint": "Kontrola je voliteľná. Čokoľvek napíšete, stane sa termom pre ďalší krok — aj keď je to chybné, pokračujete z neho. Kliknutím na oko pri hotovom riadku zistíte, či bol správny a aký bol správny výsledok.",
-    "showResults": "Porovnať so skutočným vyhodnotením",
     "guide": {
       "open": "Ako to funguje?",
       "title": "Precvičovanie vyhodnocovania",
-      "intro": "Term redukujete sami, krok po kroku. Kontrola je vždy voliteľná.",
+      "intro": "Term redukujete sami, krok po kroku. Nesprávne kroky sú povolené — všetko sa porovná na konci.",
       "steps": {
         "read": {
-          "title": "Prečítajte si priebeh",
-          "body": "Horný riadok je východiskový term; každý riadok pod ním je term, ktorý ste napísali v danom kroku. Otvorený je len ďalší krok, ktorý máte vypočítať."
+          "title": "Čítajte svoje kroky",
+          "body": "Horný riadok je počiatočný term; každý riadok pod ním je krok, ktorý ste urobili. Prepínačom zobrazenia prepínate medzi všetkými krokmi a jedným krokom."
         },
         "write": {
           "title": "Napíšte ďalší term",
-          "body": "Napíšte celý term, ktorý dostanete po jednom kroku redukcie. Dosaďte argument za parameter v tele; viazané premenné sa môžu premenovať."
+          "body": "Napíšte celý term, ktorý dostanete po práve jednom kroku redukcie podľa zvolenej stratégie. Viazané premenné sa môžu premenovať."
         },
         "insert": {
           "title": "Vkladajte namiesto prepisovania",
-          "body": "Kliknutím na ľubovoľnú časť termu ju vložíte do odpovede. V Kontexte Γ vložíte tlačidlami meno alebo jeho definíciu. `\\lambda` a `->` sa zmenia na λ a →."
+          "body": "Kliknutím na časť termu v okne kroku ju vložíte do odpovede. V Kontexte Γ kliknutím na meno vložíte meno, tlačidlom „Vložiť“ jeho definíciu. `\\lambda` a `->` sa zmenia na λ a →."
         },
         "check": {
-          "title": "Pokračujte, skontrolujte neskôr",
-          "body": "„Ďalší krok“ prijme každú odpoveď, ktorá sa dá prečítať, a pokračuje z toho, čo ste napísali, aj keď je chybná. Kliknutím na oko pri hotovom riadku uvidíte, či zodpovedal, a aký bol správny výsledok. „Skontrolovať“ povie hneď, bez zobrazenia odpovede."
+          "title": "Ďalší krok, kontrola, pohyb",
+          "body": "„Ďalší krok“ (Enter) pridá, čo ste napísali, správne či nie. „Skontrolovať“ je nepovinná nápoveda, ktorá ukáže, kde je krok mimo, bez odpovede. „Krok späť“ alebo kliknutie na krok v zozname vás tam presunie; zmeňte ho a stlačte „Uložiť krok“ — kroky za ním zostanú."
         },
         "finish": {
-          "title": "Pozrite si výsledok",
-          "body": "Keď sa váš term už nedá redukovať, „Porovnať so skutočným vyhodnotením“ zobrazí vaše termy vedľa skutočných a ukáže, kde ste sa prvýkrát odchýlili. „Znova“ začne odznova."
+          "title": "Dokončite a porovnajte",
+          "body": "Keď si myslíte, že sa už nedá použiť žiadne pravidlo, povedzte, či je term hodnota, alebo je zaseknutý. Každý krok sa potom označí ako správny alebo nie — posudzuje sa od vášho predchádzajúceho kroku — a pod každou chybou sa ukáže správny krok. Kroky si môžete ďalej prezerať, alebo vyhodnotenie znova otvoriť a opraviť."
         }
       }
     },
-    "correctResult": "Správne:",
-    "revealRow": "Skontrolovať tento krok a ukázať správny výsledok",
-    "compare": {
-      "title": "Vaše vyhodnotenie vs skutočné",
-      "you": "Vy",
-      "real": "Reálne",
-      "summary": "{{matched}} z {{total}} krokov je totožných so skutočným vyhodnotením.",
-      "diverged": "Vaše vyhodnotenie sa prvýkrát líši v kroku {{step}}.",
-      "lengths": "Vy ste urobili {{yours}} krokov; skutočné vyhodnotenie má {{real}}.",
-      "verdictCorrect": "Vaše vyhodnotenie je správne.",
-      "verdictWrong": "Vaše vyhodnotenie nie je správne."
+    "noMoreSteps": "Už sa nedá redukovať?",
+    "itIsValue": "Je to hodnota",
+    "itIsStuck": "Je zaseknutý",
+    "summary": "{{correct}} z {{total}} krokov správne.",
+    "nextStep": "Ďalší krok",
+    "stepBack": "Krok späť",
+    "stepNumber": "Krok {{current}}",
+    "statusCorrect": "Správny krok",
+    "statusWrong": "Nesprávny krok",
+    "correctStep": "Správne:",
+    "noStepWasPossible": "nedalo sa použiť žiadne pravidlo — term sa už nedal redukovať",
+    "stepsMade_one": "{{count}} urobený krok",
+    "stepsMade_few": "{{count}} urobené kroky",
+    "stepsMade_many": "{{count}} urobeného kroku",
+    "stepsMade_other": "{{count}} urobených krokov",
+    "finishedSteps_one": "Hotovo po {{count}} kroku",
+    "finishedSteps_few": "Hotovo po {{count}} krokoch",
+    "finishedSteps_many": "Hotovo po {{count}} kroku",
+    "finishedSteps_other": "Hotovo po {{count}} krokoch",
+    "viewingStep": "Váš krok {{current}} z {{total}}",
+    "viewingCurrent": "Ďalší krok",
+    "viewingSummary": "Výsledok",
+    "verdictCorrect": "Vaše vyhodnotenie je správne.",
+    "verdictWrong": "Vo vyhodnotení sú chyby — pozrite označené kroky.",
+    "youSaidValue": "Povedali ste, že výsledný term je hodnota —",
+    "youSaidStuck": "Povedali ste, že výsledný term je zaseknutý —",
+    "endingCorrect": "správne.",
+    "ending": {
+      "reducible": "ale ešte sa dá redukovať.",
+      "stuck": "ale je zaseknutý, nie hodnota.",
+      "value": "ale je to hodnota, nie je zaseknutý."
+    },
+    "editingStep": "Úprava kroku {{current}}",
+    "saveStep": "Uložiť krok",
+    "tip": {
+      "next": "Pridať ako ďalší krok a pokračovať od neho — správne či nie, porovná sa až na konci (Enter)",
+      "save": "Nahradiť tento krok tým, čo ste napísali; kroky za ním zostanú (Enter)",
+      "check": "Nepovinná nápoveda: povie, či je krok správny a kde je mimo, bez odpovede",
+      "back": "Prejsť na predchádzajúci krok — nič sa nezmaže a čo ste tu napísali, zostane",
+      "forward": "Prejsť na ďalší krok",
+      "value": "Dokončiť: posledný term je hodnota (normálny tvar)",
+      "stuck": "Dokončiť: na posledný term sa nedá použiť žiadne pravidlo, ale nie je to hodnota",
+      "goTo": "Prejsť na tento krok a pozrieť si ho alebo zmeniť — ďalšie kroky zostanú",
+      "reopen": "Znova otvoriť vyhodnotenie a pokračovať"
     }
   },
   "lectureWidgets": {

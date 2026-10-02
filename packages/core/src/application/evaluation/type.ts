@@ -20,6 +20,8 @@ export interface ReductionStep {
   // Set when this step substitutes a concrete term for a variable (β-reduction,
   // `let`, or a case/variant-case match) — the binding it conceptually adds to Γ.
   binding?: {name: string; value: Term};
+  // The rule of the redex that fired: "β", "definition" (a name replaced by its definition), "E-IfTrue", …
+  rule?: string;
 }
 
 export interface EvaluationError {

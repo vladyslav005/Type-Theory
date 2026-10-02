@@ -6,6 +6,7 @@ import {Input} from "@/shared/components/ui/input.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {kindToString, termIndexToString} from "@vladyslav005/tt-core";
 import {DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig} from "@vladyslav005/tt-core";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 // A click-only draft of every Type kind the checker can produce as an answer. `null` sub-slots mean
 // "not filled in yet" — draftToType returns null until every slot down to the leaves is complete.
@@ -244,14 +245,15 @@ function KindSlotPicker({value, onChange}: { value: DraftKind; onChange: (next: 
     return (
       <span className="inline-flex items-center gap-0.5">
         <span className="font-mono text-xs px-1.5 py-0.5 rounded border border-primary/40 bg-primary/5">*</span>
-        <button
-          type="button"
-          onClick={() => onChange({kind: "arrow", from: {kind: "star"}, to: {kind: "star"}})}
-          title={t("proofBuilder.turnIntoKindArrow")}
-          className="font-mono text-xs px-1 rounded border border-dashed border-muted-foreground/40 hover:bg-accent"
-        >
-          →
-        </button>
+        <Tip label={t("proofBuilder.turnIntoKindArrow")}>
+          <button
+            type="button"
+            onClick={() => onChange({kind: "arrow", from: {kind: "star"}, to: {kind: "star"}})}
+            className="font-mono text-xs px-1 rounded border border-dashed border-muted-foreground/40 hover:bg-accent"
+          >
+            →
+          </button>
+        </Tip>
       </span>
     );
   }
@@ -433,52 +435,57 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
   const wrapButton = topLevel && isComplete && (
     <>
       {canQuantify && (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={wrapInForall}
-          className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
-          title={t("proofBuilder.wrapInForall")}
-        >
-          ∀
-        </Button>
+        <Tip label={t("proofBuilder.wrapInForall")}>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={wrapInForall}
+            className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
+          >
+            ∀
+          </Button>
+        </Tip>
       )}
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={wrapInArrow}
-      className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
-      title={t("proofBuilder.turnIntoArrow")}
-    >
-      →
-    </Button>
+    <Tip label={t("proofBuilder.turnIntoArrow")}>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={wrapInArrow}
+        className="h-7 px-2 text-xs font-mono gap-0.5 shrink-0"
+      >
+        →
+      </Button>
+    </Tip>
     </>
   );
 
   const clearButton = (
-    <button type="button" onClick={() => onChange(null)} className="text-muted-foreground hover:text-destructive text-xs px-1" title="Clear">
-      ✕
-    </button>
+    <Tip label={t("proofBuilder.clearType")}>
+      <button type="button" onClick={() => onChange(null)} className="text-muted-foreground hover:text-destructive text-xs px-1">
+        ✕
+      </button>
+    </Tip>
   );
 
   if (value.kind === "base") {
     return (
       <span className="inline-flex items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className={cn(
-            "font-mono text-xs px-2 py-1 rounded-md border transition-colors",
-            value.name
-              ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60"
-              : "border-dashed border-muted-foreground/40 text-muted-foreground italic hover:bg-accent",
-          )}
-          title={t("proofBuilder.clickToChange")}
-        >
-          {value.name || "(empty)"}
-        </button>
+        <Tip label={t("proofBuilder.clickToChange")}>
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className={cn(
+              "font-mono text-xs px-2 py-1 rounded-md border transition-colors",
+              value.name
+                ? "border-primary/40 bg-primary/5 hover:bg-primary/10 hover:border-primary/60"
+                : "border-dashed border-muted-foreground/40 text-muted-foreground italic hover:bg-accent",
+            )}
+          >
+            {value.name || "(empty)"}
+          </button>
+        </Tip>
         {wrapButton}
       </span>
     );

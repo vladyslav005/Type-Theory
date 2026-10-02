@@ -10,6 +10,7 @@ import {BracketInput} from "@/shared/components/BracketInput.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 const verdictClass = (verdict: ManualVerdict | undefined) =>
   verdict === "valid"
@@ -21,32 +22,33 @@ const verdictClass = (verdict: ManualVerdict | undefined) =>
 interface FieldProps {
   value: string;
   placeholder: string;
-  title?: string;
+  hint?: string;
   width: string;
   verdict?: ManualVerdict;
   readOnly?: boolean;
   onChange: (value: string) => void;
 }
 
-function Field({value, placeholder, title, width, verdict, readOnly, onChange}: FieldProps) {
+function Field({value, placeholder, hint: title, width, verdict, readOnly, onChange}: FieldProps) {
   const history = useUndoableText(value, onChange);
   return (
-    <BracketInput
-      value={value}
-      readOnly={readOnly}
-      placeholder={placeholder}
-      title={title}
-      spellCheck={false}
-      onChange={(e) => history.change(applyShortcuts(e.target.value))}
-      onKeyDown={history.onKeyDown}
-      wrapperStyle={{width}}
-      textClassName="px-1.5 font-mono text-xs"
-      className={cn(
-        "h-7 rounded border outline-none focus:ring-1 focus:ring-ring",
-        verdictClass(verdict),
-        readOnly && "opacity-80",
-      )}
-    />
+    <Tip label={title}>
+      <BracketInput
+        value={value}
+        readOnly={readOnly}
+        placeholder={placeholder}
+        spellCheck={false}
+        onChange={(e) => history.change(applyShortcuts(e.target.value))}
+        onKeyDown={history.onKeyDown}
+        wrapperStyle={{width}}
+        textClassName="px-1.5 font-mono text-xs"
+        className={cn(
+          "h-7 rounded border outline-none focus:ring-1 focus:ring-ring",
+          verdictClass(verdict),
+          readOnly && "opacity-80",
+        )}
+      />
+    </Tip>
   );
 }
 
@@ -89,14 +91,15 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
   const leafClass = isLeaf ? "leaf-node" : "not-leaf-node";
 
   const removeButton = !root && (
-    <button
-      type="button"
-      className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-      title={t("manualBuilder.removePremise")}
-      onClick={() => dispatch(removeManualPremise({nodeId: node.id}))}
-    >
-      <X className="h-3 w-3"/>
-    </button>
+    <Tip label={t("manualBuilder.removePremise")}>
+      <button
+        type="button"
+        className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+        onClick={() => dispatch(removeManualPremise({nodeId: node.id}))}
+      >
+        <X className="h-3 w-3"/>
+      </button>
+    </Tip>
   );
 
   const messages = result?.messages ?? [];
@@ -148,25 +151,27 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
           {constraintsShown ? (
             <>
               <span className="text-sm">∣</span>
-              <Field value={node.constraints} placeholder="C" title={t("manualBuilder.constraintsPlaceholder")} width="9rem" verdict={result?.constraints} onChange={set("constraints")}/>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                title={t("manualBuilder.removeConstraints")}
-                onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: false}))}
-              >
-                <X className="h-3 w-3"/>
-              </button>
+              <Field value={node.constraints} placeholder="C" hint={t("manualBuilder.constraintsPlaceholder")} width="9rem" verdict={result?.constraints} onChange={set("constraints")}/>
+              <Tip label={t("manualBuilder.removeConstraints")}>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                  onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: false}))}
+                >
+                  <X className="h-3 w-3"/>
+                </button>
+              </Tip>
             </>
           ) : usesConstraints && (
-            <button
-              type="button"
-              className="shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-mono hover:bg-accent"
-              title={t("manualBuilder.addConstraints")}
-              onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: true}))}
-            >
-              + C
-            </button>
+            <Tip label={t("manualBuilder.addConstraints")}>
+              <button
+                type="button"
+                className="shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-mono hover:bg-accent"
+                onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: true}))}
+              >
+                + C
+              </button>
+            </Tip>
           )}
           {removeButton}
         </div>

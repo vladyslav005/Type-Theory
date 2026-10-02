@@ -9,6 +9,7 @@ import { cn } from "@/shared/lib/utils";
 import { useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { churchNumeralValue } from "@/features/evaluation/churchNumeral.ts";
 import { expandTypeAliases, normalizeType, typeEquals } from "@vladyslav005/tt-core";
+import type {TFunction} from "i18next";
 
 // Lets TypeView (nested deep in TermView) resolve type aliases without threading a prop through every case.
 // eslint-disable-next-line react-refresh/only-export-components -- shared with the practice mode
@@ -665,6 +666,13 @@ interface StepRowProps {
   onClick?: () => void;
 }
 
+// β and definition lookup get a readable name; every other rule is shown by its name (E-IfTrue, E-Let, …).
+function stepRuleLabel(t: TFunction, rule: string | undefined): string {
+  if (rule === "β") return t("evalSteps.betaReduction");
+  if (rule === "definition") return t("evalSteps.definitionReplaced");
+  return rule ?? "";
+}
+
 function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: StepRowProps) {
   const { t } = useTranslation();
   return (
@@ -690,7 +698,7 @@ function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: St
           {index + 1}
         </span>
         <span className="text-xs text-muted-foreground">
-          {isErrorStep ? t("evalSteps.stuck") : t("evalSteps.betaReduction")}
+          {isErrorStep ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule)}
         </span>
       </div>
 
@@ -981,7 +989,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
 
           <div className="flex items-center gap-2 text-muted-foreground px-2">
             <ArrowDown className={cn("h-4 w-4 shrink-0", isErrorStep && "text-destructive")} />
-            <span className="text-xs">{isErrorStep ? t("evalSteps.stuck") : t("evalSteps.betaReduction")}</span>
+            <span className="text-xs">{isErrorStep ? t("evalSteps.stuck") : stepRuleLabel(t, currentStep.rule)}</span>
           </div>
 
           <TermBox

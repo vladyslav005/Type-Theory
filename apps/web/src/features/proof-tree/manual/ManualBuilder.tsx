@@ -23,6 +23,7 @@ import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 const GUIDE_STEPS = ["root", "premises", "sideConditions", "notation", "definitions", "constraints", "check", "save"];
 
@@ -171,15 +172,21 @@ export function ManualBuilder() {
                   buildTree={() => manualNodeToExportTree(manualTree, results, usesConstraints)}
                   filename="proof-tree-manual.tex"
                 />
-                <Button size="icon" variant="secondary" onClick={() => zoomIn()} title={t("proofTreeCanvas.zoomIn")}>
-                  <ZoomIn className="h-4 w-4"/>
-                </Button>
-                <Button size="icon" variant="secondary" onClick={() => zoomOut()} title={t("proofTreeCanvas.zoomOut")}>
-                  <ZoomOut className="h-4 w-4"/>
-                </Button>
-                <Button size="icon" variant="secondary" onClick={() => centerView()} title={t("proofTreeCanvas.centerView")}>
-                  <Crosshair className="h-4 w-4"/>
-                </Button>
+                <Tip label={t("proofTreeCanvas.zoomIn")}>
+                  <Button size="icon" variant="secondary" onClick={() => zoomIn()}>
+                    <ZoomIn className="h-4 w-4"/>
+                  </Button>
+                </Tip>
+                <Tip label={t("proofTreeCanvas.zoomOut")}>
+                  <Button size="icon" variant="secondary" onClick={() => zoomOut()}>
+                    <ZoomOut className="h-4 w-4"/>
+                  </Button>
+                </Tip>
+                <Tip label={t("proofTreeCanvas.centerView")}>
+                  <Button size="icon" variant="secondary" onClick={() => centerView()}>
+                    <Crosshair className="h-4 w-4"/>
+                  </Button>
+                </Tip>
               </div>
               <TransformComponent
                 wrapperClass="!w-full !h-full"

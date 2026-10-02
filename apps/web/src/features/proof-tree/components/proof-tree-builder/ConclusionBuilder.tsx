@@ -19,6 +19,7 @@ import type {Type} from "@vladyslav005/tt-core";
 import {type DraftType, draftToType, TypeSlotPicker, typeToDraft} from "@/features/proof-tree/components/proof-tree-builder/TypeSlotPicker.tsx";
 import {buildTypeSuggestions} from "@/features/proof-tree/components/proof-tree-builder/typeSuggestions.ts";
 import {useTexRefExpansion} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 interface ConclusionBuilderProps {
   studentNode: StudentProofNode;
@@ -250,14 +251,15 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
                     <span className="text-muted-foreground text-xs font-mono">=</span>
                     <TypeSlotPicker value={draft.right} onChange={(right) => updateConstraintDraft(i, {right})} contextTypes={buildTypeSuggestions(answerNode.gamma, nearbyWritten)} enabledTheories={enabledTheories}/>
                   </div>
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-destructive text-xs px-1"
-                    title={t("proofBuilder.removeConstraint")}
-                    onClick={() => setConstraintDrafts((drafts) => drafts.filter((_, j) => j !== i))}
-                  >
-                    ✕
-                  </button>
+                  <Tip label={t("proofBuilder.removeConstraint")}>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-destructive text-xs px-1"
+                      onClick={() => setConstraintDrafts((drafts) => drafts.filter((_, j) => j !== i))}
+                    >
+                      ✕
+                    </button>
+                  </Tip>
                 </div>
               ))}
             </div>

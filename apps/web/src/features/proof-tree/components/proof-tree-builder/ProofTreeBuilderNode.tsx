@@ -18,6 +18,7 @@ import type {GammaRegistry} from "@vladyslav005/tt-core";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import {semiNodeFeedback} from "@/features/proof-tree/feedback/semiFeedback.ts";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 interface ProofTreeBuilderNodeProps {
   studentNode: StudentProofNode;
@@ -139,14 +140,15 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
             typeSlotUnlocked={typeSlotUnlocked}
           />
           {studentNode.chosenRule !== undefined && (
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              title={t("proofBuilder.resetNode")}
-              onClick={() => dispatch(resetNode({nodeId: studentNode.id}))}
-            >
-              <RotateCcw className="h-3 w-3"/>
-            </button>
+            <Tip label={t("proofBuilder.resetNode")}>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                onClick={() => dispatch(resetNode({nodeId: studentNode.id}))}
+              >
+                <RotateCcw className="h-3 w-3"/>
+              </button>
+            </Tip>
           )}
         </div>
 

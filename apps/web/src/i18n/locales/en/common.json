@@ -640,7 +640,8 @@
     "modeSemi": "Semi-manual",
     "modeSemiHint": "Click-to-build: pick rules and fill guided slots — the tree's shape is given",
     "modeManual": "Fully manual",
-    "modeManualHint": "Type every judgement yourself and decide how many premises each rule has"
+    "modeManualHint": "Type every judgement yourself and decide how many premises each rule has",
+    "clearType": "Clear"
   },
   "conclusion": {
     "error": "Error",
@@ -770,6 +771,7 @@
     "before": "Before",
     "after": "After",
     "betaReduction": "β-reduction",
+    "definitionReplaced": "Name replaced by its definition",
     "stuck": "stuck — no reduction possible",
     "stuckTerm": "Stuck term",
     "normalForm": "Normal form",
@@ -999,20 +1001,21 @@
     }
   },
   "evalPractice": {
-    "stepOf": "Step {{current}} of {{total}}",
     "writePlaceholder": "e.g. λ y . y",
-    "finishedNormalForm": "Normal form reached — nothing can be reduced any further.",
-    "finishedStuck": "The evaluation is stuck here — no rule applies, but the term isn't a value.",
-    "finishedLimit": "The trace stops at the step limit — the term may reduce further.",
     "msg": {
       "writeParse": "Couldn't read that as a term: {{detail}}",
-      "writeWrong": "That's not what the next step gives. Substitute the argument for the parameter in the body (bound variables may be renamed).",
-      "correct": "Correct."
+      "nothingChanged": "Nothing changed — reduce exactly one redex.",
+      "tooManySteps": "You did more than one step — write only the result of the next single step.",
+      "otherRedex": "You reduced a redex, but not the one {{strategy}} picks next.",
+      "differsAt": "Your term differs at the marked part: {{marked}}.",
+      "differs": "That isn't the result of the next step.",
+      "noStepLeft": "No rule applies to this term any more — decide whether it's a value or stuck.",
+      "canStillReduce": "This term can still be reduced.",
+      "decisionWrong": "That's not right — look again at whether this term is a value.",
+      "stepCorrect": "That's a correct step."
     },
     "tabAutomatic": "Automatic",
     "tabPractice": "Practice",
-    "stepsDone": "{{done}}/{{total}} steps done",
-    "complete": "complete",
     "emptyNeedsEvaluation": "Evaluate an expression first — Practice needs a reduction to check your work against.",
     "insertDefinition": "Insert the definition of {{name}}",
     "context": "Context Γ",
@@ -1022,51 +1025,73 @@
     "restart": "Restart",
     "instruction": "Work out the next {{strategy}} step: write the whole term you get after one reduction step. Click a part of the term to insert it into your answer.",
     "check": "Check",
-    "nextStep": "Next step",
-    "finish": "Finish",
-    "statusCorrect": "Matches the real step",
-    "statusWrong": "Different from the real step",
-    "youWrote": "You wrote: {{text}}",
-    "writeHint": "Checking is optional. Whatever you write becomes the term for the next step — even if it's wrong, you carry on from it. Click the eye on a finished row to see whether it was right and what the correct result was.",
-    "showResults": "Compare with the real evaluation",
     "guide": {
       "open": "How does this work?",
       "title": "Practising evaluation",
-      "intro": "You reduce the term yourself, one step at a time. Checking is always optional.",
+      "intro": "You reduce the term yourself, one step at a time. Wrong steps are allowed — everything is compared at the end.",
       "steps": {
         "read": {
-          "title": "Read the trace",
-          "body": "The top row is the starting term; each row below is the term you wrote for a step. Only the next step is open for you to work out."
+          "title": "Read your steps",
+          "body": "The top row is the starting term; each row below is a step you made. Switch between all steps and one step at a time with the view toggle."
         },
         "write": {
           "title": "Write the next term",
-          "body": "Type the whole term you get after one reduction step. Substitute the argument for the parameter in the body; bound variables may be renamed."
+          "body": "Type the whole term you get after exactly one reduction step, using the selected strategy. Bound variables may be renamed."
         },
         "insert": {
           "title": "Insert instead of retyping",
-          "body": "Click any part of the term to insert it into your answer. In Context Γ, use the chips to insert a name or its definition. `\\lambda` and `->` become λ and →."
+          "body": "Click any part of the term in the step box to insert it into your answer. In Context Γ, click a name to insert it, or “Insert” to insert its definition. `\\lambda` and `->` become λ and →."
         },
         "check": {
-          "title": "Go on, check later",
-          "body": "“Next step” accepts any answer that parses and continues from what you wrote, even if it's wrong. Click the eye on a finished row to see if it matched and what the correct result was. “Check” tells you right away, without showing the answer."
+          "title": "Next, check, move around",
+          "body": "“Next step” (Enter) adds what you wrote, right or wrong. “Check” is an optional hint that says where a step is off, without the answer. “Step back” or clicking a step in the list takes you there; change it and press “Save step” — the steps after it stay."
         },
         "finish": {
-          "title": "See how you did",
-          "body": "When your term can't be reduced any further, “Compare with the real evaluation” lists your terms next to the real ones and shows where you first went off track. “Restart” begins again."
+          "title": "Finish and compare",
+          "body": "When you think no rule applies any more, say whether the term is a value or stuck. Every step is then marked correct or not — judged from your own previous step — with the correct step shown under each mistake. You can still click through the steps, or reopen the evaluation and fix them."
         }
       }
     },
-    "correctResult": "Correct:",
-    "revealRow": "Check this step and show the correct result",
-    "compare": {
-      "title": "Your evaluation vs the real one",
-      "you": "You",
-      "real": "Real",
-      "summary": "{{matched}} of {{total}} steps are identical to the real evaluation.",
-      "diverged": "Your evaluation first differs at step {{step}}.",
-      "lengths": "You took {{yours}} steps; the real evaluation takes {{real}}.",
-      "verdictCorrect": "Your evaluation is correct.",
-      "verdictWrong": "Your evaluation is not correct."
+    "noMoreSteps": "Can't reduce any further?",
+    "itIsValue": "It's a value",
+    "itIsStuck": "It's stuck",
+    "summary": "{{correct}} of {{total}} steps correct.",
+    "nextStep": "Next step",
+    "stepBack": "Step back",
+    "stepNumber": "Step {{current}}",
+    "statusCorrect": "Correct step",
+    "statusWrong": "Not a correct step",
+    "correctStep": "Correct:",
+    "noStepWasPossible": "no rule applied here — the term couldn't reduce any further",
+    "stepsMade_one": "{{count}} step made",
+    "stepsMade_other": "{{count}} steps made",
+    "finishedSteps_one": "Finished after {{count}} step",
+    "finishedSteps_other": "Finished after {{count}} steps",
+    "viewingStep": "Your step {{current}} of {{total}}",
+    "viewingCurrent": "Next step",
+    "viewingSummary": "Result",
+    "verdictCorrect": "Your evaluation is correct.",
+    "verdictWrong": "Your evaluation has mistakes — see the marked steps.",
+    "youSaidValue": "You said the final term is a value —",
+    "youSaidStuck": "You said the final term is stuck —",
+    "endingCorrect": "correct.",
+    "ending": {
+      "reducible": "but it can still be reduced.",
+      "stuck": "but it's stuck, not a value.",
+      "value": "but it's a value, not stuck."
+    },
+    "editingStep": "Editing step {{current}}",
+    "saveStep": "Save step",
+    "tip": {
+      "next": "Add this as your next step and continue from it — right or wrong, it's only compared at the end (Enter)",
+      "save": "Replace this step with what you wrote; the steps after it stay (Enter)",
+      "check": "Optional hint: says whether this step is right and where it's off, without the answer",
+      "back": "Go to the previous step — nothing is deleted and what you typed here stays",
+      "forward": "Go to the next step",
+      "value": "Finish: the last term is a value (normal form)",
+      "stuck": "Finish: no rule applies to the last term, but it isn't a value",
+      "goTo": "Go to this step to look at it or change it — later steps stay",
+      "reopen": "Reopen the evaluation to keep working on it"
     }
   },
   "lectureWidgets": {

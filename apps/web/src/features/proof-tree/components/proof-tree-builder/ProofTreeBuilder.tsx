@@ -17,6 +17,7 @@ import {Separator} from "@/shared/components/ui/separator.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {ManualBuilder} from "@/features/proof-tree/manual/ManualBuilder.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 export function ProofTreeBuilder() {
   const {t} = useTranslation();
@@ -43,23 +44,25 @@ export function ProofTreeBuilder() {
           }
         >
           <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button
-              size="sm"
-              disabled={hasErrors}
-              title={t("proofBuilder.modeSemiHint")}
-              onClick={() => dispatch(enterBuildMode("semi"))}
-            >
-              {t("proofBuilder.modeSemi")}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={hasErrors}
-              title={t("proofBuilder.modeManualHint")}
-              onClick={() => dispatch(enterBuildMode("manual"))}
-            >
-              {t("proofBuilder.modeManual")}
-            </Button>
+            <Tip label={t("proofBuilder.modeSemiHint")}>
+              <Button
+                size="sm"
+                disabled={hasErrors}
+                onClick={() => dispatch(enterBuildMode("semi"))}
+              >
+                {t("proofBuilder.modeSemi")}
+              </Button>
+            </Tip>
+            <Tip label={t("proofBuilder.modeManualHint")}>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={hasErrors}
+                onClick={() => dispatch(enterBuildMode("manual"))}
+              >
+                {t("proofBuilder.modeManual")}
+              </Button>
+            </Tip>
           </div>
         </EmptyState>
       </div>
@@ -122,33 +125,36 @@ export function ProofTreeBuilder() {
                   )}
                   filename="proof-tree-builder.tex"
                 />
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => zoomIn()}
-                  className="shadow-lg hover:shadow-xl transition-shadow"
-                  title={t("proofTreeCanvas.zoomIn")}
-                >
-                  <ZoomIn className="h-4 w-4"/>
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => zoomOut()}
-                  className="shadow-lg hover:shadow-xl transition-shadow"
-                  title={t("proofTreeCanvas.zoomOut")}
-                >
-                  <ZoomOut className="h-4 w-4"/>
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={() => centerView()}
-                  className="shadow-lg hover:shadow-xl transition-shadow"
-                  title={t("proofTreeCanvas.centerView")}
-                >
-                  <Crosshair className="h-4 w-4"/>
-                </Button>
+                <Tip label={t("proofTreeCanvas.zoomIn")}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => zoomIn()}
+                    className="shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    <ZoomIn className="h-4 w-4"/>
+                  </Button>
+                </Tip>
+                <Tip label={t("proofTreeCanvas.zoomOut")}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => zoomOut()}
+                    className="shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    <ZoomOut className="h-4 w-4"/>
+                  </Button>
+                </Tip>
+                <Tip label={t("proofTreeCanvas.centerView")}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={() => centerView()}
+                    className="shadow-lg hover:shadow-xl transition-shadow"
+                  >
+                    <Crosshair className="h-4 w-4"/>
+                  </Button>
+                </Tip>
               </div>
 
               <TransformComponent

@@ -7,6 +7,7 @@ import {Popover, PopoverContent, PopoverTrigger} from "@/shared/components/ui/po
 import {cn} from "@/shared/lib/utils.ts";
 import {expectedChoice, NO_RULE, premisesShown, type SyntaxChoices, type SyntaxGoal} from "./syntaxGoal.ts";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 interface SyntaxDerivationTreeProps {
   goal: SyntaxGoal;
@@ -103,30 +104,32 @@ export const SyntaxDerivationTree = memo(function SyntaxDerivationTree({goal, ch
             ? <MathJax key={goal.tex}>{`\\[ ${goal.tex} \\]`}</MathJax>
             : <span className="font-mono whitespace-nowrap">{goal.text} ∈ <i>Term</i></span>}
           {choice !== undefined && (
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-              title={t("proofBuilder.resetNode")}
-              onClick={() => onChoose(goal.key, undefined)}
-            >
-              <RotateCcw className="h-3 w-3"/>
-            </button>
+            <Tip label={t("proofBuilder.resetNode")}>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                onClick={() => onChoose(goal.key, undefined)}
+              >
+                <RotateCcw className="h-3 w-3"/>
+              </button>
+            </Tip>
           )}
         </div>
         <div className="conclusion-right">
-          <RulePicker rules={rules} onPick={(rule) => onChoose(goal.key, rule)}>
-            <p
-              className={cn(
-                "rule-name cursor-pointer select-none hover:underline whitespace-nowrap",
-                compact && "text-xs",
-                wrong && "text-destructive",
-              )}
-              title={wrong ? t("syntaxBuilder.doesNotFitTooltip") : undefined}
-            >
-              {choice === undefined ? t("proofBuilder.pickRule") : choice === NO_RULE ? t("syntaxBuilder.noRuleShort") : choice}
-              {wrong && <span className="ml-1.5 text-[10px] font-sans not-italic">{t("syntaxBuilder.doesNotFit")}</span>}
-            </p>
-          </RulePicker>
+          <Tip label={wrong ? t("syntaxBuilder.doesNotFitTooltip") : undefined}>
+            <RulePicker rules={rules} onPick={(rule) => onChoose(goal.key, rule)}>
+              <p
+                className={cn(
+                  "rule-name cursor-pointer select-none hover:underline whitespace-nowrap",
+                  compact && "text-xs",
+                  wrong && "text-destructive",
+                )}
+              >
+                {choice === undefined ? t("proofBuilder.pickRule") : choice === NO_RULE ? t("syntaxBuilder.noRuleShort") : choice}
+                {wrong && <span className="ml-1.5 text-[10px] font-sans not-italic">{t("syntaxBuilder.doesNotFit")}</span>}
+              </p>
+            </RulePicker>
+          </Tip>
         </div>
       </div>
     </div>

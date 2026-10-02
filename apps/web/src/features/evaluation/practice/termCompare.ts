@@ -76,3 +76,64 @@ function equal(a: unknown, b: unknown, ab: Rename, ba: Rename): boolean {
     }
   }
 }
+
+type Pair = [unknown, unknown, Rename, Rename];
+
+// Sub-term pairs in evaluation order, with binders extended the same way `equal` does.
+function childPairs(x: Record<string, unknown>, y: Record<string, unknown>, ab: Rename, ba: Rename): Pair[] | null {
+  const bind = (from: string, to: string): [Rename, Rename] => [extend(ab, from, to), extend(ba, to, from)];
+  switch (x.kind) {
+    case "Var":
+    case "Lit":
+      return null;
+    case "Abs":
+      return [[x.body, y.body, ...bind(x.param as string, y.param as string)]];
+    case "Let":
+      return [[x.value, y.value, ab, ba], [x.body, y.body, ...bind(x.name as string, y.name as string)]];
+    default: {
+      const keys = [...new Set([...Object.keys(x), ...Object.keys(y)])].filter((k) => !IGNORED_KEYS.has(k) && k !== "kind");
+      const pairs: Pair[] = [];
+      for (const k of keys) {
+        const [vx, vy] = [x[k], y[k]];
+        if (Array.isArray(vx) && Array.isArray(vy)) {
+          if (vx.length !== vy.length) return null;
+          vx.forEach((item, i) => pairs.push([item, vy[i], ab, ba]));
+        } else if (typeof vx === "object" && vx !== null) {
+          pairs.push([vx, vy, ab, ba]);
+        } else if (vx !== vy) {
+          return null;
+        }
+      }
+      return pairs;
+    }
+  }
+}
+
+// The innermost sub-term of `written` where it first stops matching `expected`; null when alpha-equal.
+export function firstDifference(written: Term, expected: Term): Term | null {
+  const walk = (a: unknown, b: unknown, ab: Rename, ba: Rename): unknown => {
+    if (equal(a, b, ab, ba)) return null;
+    const x = a as Record<string, unknown>;
+    const y = b as Record<string, unknown>;
+    if (typeof x !== "object" || x === null || typeof y !== "object" || y === null || x.kind !== y.kind) return a;
+    const pairs = childPairs(x, y, ab, ba);
+    if (!pairs) return a;
+    for (const [ca, cb, cab, cba] of pairs) {
+      const found = walk(ca, cb, cab, cba);
+      if (found) return typeof (found as {kind?: unknown}).kind === "string" && !TYPE_KINDS.has((found as {kind: string}).kind) ? found : a;
+    }
+    return a;
+  };
+  return walk(written, expected, new Map(), new Map()) as Term | null;
+}
+
+// Replaces one sub-term with a marker variable so the printed term shows ⟦…⟧ around it.
+export function markSubterm(root: Term, target: Term, print: (term: Term) => string): string {
+  const replace = (node: unknown): unknown => {
+    if (node === target) return {kind: "Var", id: "marked", name: `⟦${print(target)}⟧`};
+    if (Array.isArray(node)) return node.map(replace);
+    if (typeof node !== "object" || node === null) return node;
+    return Object.fromEntries(Object.entries(node).map(([k, v]) => [k, k === "pos" ? v : replace(v)]));
+  };
+  return print(replace(root) as Term);
+}

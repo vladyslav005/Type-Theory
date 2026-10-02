@@ -33,6 +33,7 @@ export function EvaluationVisualisation({
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   const [viewMode, setViewMode] = useState<"single" | "all">("single");
+  const [practiceViewMode, setPracticeViewMode] = useState<"single" | "all">("all");
   const [showGamma, setShowGamma] = useState(false);
   const [activeTab, setActiveTab] = useState<"automatic" | "practice">("automatic");
   useViewTime(`evaluation:${activeTab}`);
@@ -76,6 +77,12 @@ export function EvaluationVisualisation({
                   <ViewToggle mode={viewMode} onChange={setViewMode}/>
                 </>
               )}
+              {hasEvaluation && activeTab === "practice" && (
+                <>
+                  <Separator orientation="vertical" className="hidden sm:block shrink-0 data-[orientation=vertical]:h-6" />
+                  <ViewToggle mode={practiceViewMode} onChange={setPracticeViewMode}/>
+                </>
+              )}
             </div>
 
             <Button
@@ -92,7 +99,13 @@ export function EvaluationVisualisation({
         <CardContent className="flex-1 overflow-hidden p-0">
           <div className={cn("h-full", activeTab !== "practice" && "hidden")}>
             {hasEvaluation ? (
-              <EvaluationPractice key={evaluation.result.id} evaluation={evaluation} typeAliases={typeAliases}/>
+              <EvaluationPractice
+                key={evaluation.result.id}
+                evaluation={evaluation}
+                typeAliases={typeAliases}
+                viewMode={practiceViewMode}
+                onViewModeChange={setPracticeViewMode}
+              />
             ) : (
               <div className="h-full p-6">
                 <EmptyState icon={Hammer} message={t("evalPractice.emptyNeedsEvaluation")}/>

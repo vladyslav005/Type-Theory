@@ -87,8 +87,13 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
     super();
   }
 
+  // Set by whichever redex fires; one reduce() call fires at most one.
+  private firedRule: string | undefined;
+
   public reduce(term: Term): ReductionStep | null {
-    return this.visit(term);
+    this.firedRule = undefined;
+    const step = this.visit(term);
+    return step && this.firedRule ? {...step, rule: this.firedRule} : step;
   }
 
   protected override visitVar(
@@ -104,6 +109,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       return null;
     }
 
+    this.firedRule = "definition";
     const after = this.cloneTermWithFreshIds(definition);
     return {
       before: node,
@@ -237,6 +243,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   }
 
   private betaReduce(node: App): ReductionStep {
+    this.firedRule = "β";
     if (node.func.kind === "DummyAbstraction") {
       // Anonymous parameter, never referenced — argument is discarded.
       const after = this.cloneTermWithFreshIds(node.func.body);
@@ -295,11 +302,13 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
   protected override visitIfCondition(node: IfCondition): ReductionStep | null {
     if (isTrueLiteral(node.condition)) {
+      this.firedRule = "E-IfTrue";
       const after = this.cloneTermWithFreshIds(node.then);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
 
     if (isFalseLiteral(node.condition)) {
+      this.firedRule = "E-IfFalse";
       const [nextElif, ...restElif] = node.elif ?? [];
 
       if (nextElif) {
@@ -332,6 +341,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
   protected override visitCase(node: Case): ReductionStep | null {
     if (node.variable.kind === "Inl" && this.isValue(node.variable)) {
+      this.firedRule = "E-CaseInl";
       const after = this.substitute(node.inl.term, node.inl.variable, node.variable.term);
       return {
         before: node,
@@ -343,6 +353,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
     }
 
     if (node.variable.kind === "Inr" && this.isValue(node.variable)) {
+      this.firedRule = "E-CaseInr";
       const after = this.substitute(node.inr.term, node.inr.variable, node.variable.term);
       return {
         before: node,
@@ -371,6 +382,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       for (const c of node.cases) {
         const field = variantValue.variants.find((v) => v.label === c.label);
         if (field) {
+          this.firedRule = "E-CaseVariant";
           const after = this.substitute(c.body, c.variable, field.term);
           return {
             before: node,
@@ -420,6 +432,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
   protected override visitAscribe(node: Ascribe): ReductionStep | null {
     if (this.isValue(node.term)) {
+      this.firedRule = "E-Ascribe";
       const after = this.cloneTermWithFreshIds(node.term);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -461,6 +474,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       const element = node.tuple.elements[node.index - 1];
       if (!element) return null;
 
+      this.firedRule = "E-ProjTuple";
       const after = this.cloneTermWithFreshIds(element);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -502,6 +516,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       const field = node.term.fields.find((f) => f.label === node.label);
       if (!field) return null;
 
+      this.firedRule = "E-ProjRcd";
       const after = this.cloneTermWithFreshIds(field.term);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -519,6 +534,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
   protected override visitSequencing(node: Sequencing): ReductionStep | null {
     if (isUnitLiteral(node.first)) {
+      this.firedRule = "E-SeqNext";
       const after = this.cloneTermWithFreshIds(node.second);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -578,6 +594,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       return null;
     }
 
+    this.firedRule = "E-BinOp";
     const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: result};
     return {before: node, after, selectedId: node.id, resultId: after.id};
   }
@@ -585,6 +602,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitFix(node: Fix): ReductionStep | null {
     if (node.term.kind === "Abs") {
       // E-fixBeta: fix (λx:T.t) -> [x ↦ fix (λx:T.t)] t — strategy-independent.
+      this.firedRule = "E-FixBeta";
       const after = this.substitute(node.term.body, node.term.param, node);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -638,12 +656,14 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitIsNil(node: IsNil): ReductionStep | null {
     if (node.term.kind === "Nil") {
       // E-isnilnil
+      this.firedRule = "E-IsNilNil";
       const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: "true"};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
 
     if (node.term.kind === "Cons" && this.isValue(node.term)) {
       // E-isnilcons
+      this.firedRule = "E-IsNilCons";
       const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: "false"};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -668,12 +688,14 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitPred(node: Pred): ReductionStep | null {
     if (node.term.kind === "Lit" && node.term.value === "0") {
       // E-PredZero
+      this.firedRule = "E-PredZero";
       const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: "0"};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
 
     if (node.term.kind === "Succ" && isNumericValue(node.term.term)) {
       // E-PredSucc
+      this.firedRule = "E-PredSucc";
       const after = this.cloneTermWithFreshIds(node.term.term);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -685,6 +707,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitIsZero(node: IsZero): ReductionStep | null {
     if (isNumericValue(node.term)) {
       // E-IszeroZero / E-IszeroSucc
+      this.firedRule = node.term.kind === "Lit" ? "E-IszeroZero" : "E-IszeroSucc";
       const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: node.term.kind === "Lit" ? "true" : "false"};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -708,6 +731,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitHead(node: Head): ReductionStep | null {
     if (node.term.kind === "Cons" && this.isValue(node.term)) {
       // E-headcons
+      this.firedRule = "E-HeadCons";
       const after = this.cloneTermWithFreshIds(node.term.head);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -727,6 +751,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitTail(node: Tail): ReductionStep | null {
     if (node.term.kind === "Cons" && this.isValue(node.term)) {
       // E-tailcons
+      this.firedRule = "E-TailCons";
       const after = this.cloneTermWithFreshIds(node.term.tail);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -759,6 +784,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitUnfold(node: Unfold): ReductionStep | null {
     if (node.term.kind === "Fold" && this.isValue(node.term)) {
       // E-unfoldfold: unfold_{μX.T} (fold_{μX.T} v) → v
+      this.firedRule = "E-UnfoldFold";
       const after = this.cloneTermWithFreshIds(node.term.term);
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
@@ -824,6 +850,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   }
 
   private typeBetaReduce(node: TypeApp): ReductionStep {
+    this.firedRule = "E-TappTabs";
     if (node.term.kind !== "TypeAbs") {
       throw new Error(
         `Node ${node.id} is not a type-application redex`,
@@ -1043,6 +1070,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   }
 
   private letReduce(node: Let): ReductionStep {
+    this.firedRule = "E-Let";
     const after = this.substitute(node.body, node.name, node.value);
 
     return {
