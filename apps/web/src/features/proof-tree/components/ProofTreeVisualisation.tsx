@@ -213,7 +213,7 @@ export function ProofTreeVisualisation({
                 </div>
               )}
 
-              {effectiveTab === "automatic" && hasProof && !isInferenceStepping && (
+              {effectiveTab === "automatic" && (hasProof || syntaxTree) && !isInferenceStepping && (
                 <div className="flex items-center gap-2">
                   <Switch id="step-by-step" checked={stepByStep} onCheckedChange={setStepByStep}/>
                   <Label htmlFor="step-by-step" className="text-sm text-muted-foreground whitespace-nowrap">
@@ -222,7 +222,7 @@ export function ProofTreeVisualisation({
                 </div>
               )}
 
-              {effectiveTab === "automatic" && hasProof && (
+              {((effectiveTab === "automatic" && hasProof) || syntaxTree) && (
                 <div className="flex items-center gap-2">
                   <Switch
                     id="highlight-on-hover"
@@ -279,6 +279,7 @@ export function ProofTreeVisualisation({
                 texTree={syntaxTree}
                 treeKey={`syntax-${ast?.term?.id ?? "none"}`}
                 exportFilename="syntax-tree.tex"
+                stepByStep={stepByStep}
                 onNodeHover={handleNodeHover}
               />
             </div>
