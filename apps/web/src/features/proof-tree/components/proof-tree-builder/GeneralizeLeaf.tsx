@@ -11,16 +11,17 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {type DraftType, draftToType, TypeSlotPicker, typeToDraft} from "@/features/proof-tree/components/proof-tree-builder/TypeSlotPicker.tsx";
 import {buildTypeSuggestions} from "@/features/proof-tree/components/proof-tree-builder/typeSuggestions.ts";
-import {gammaRefTex} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
+import {gammaRefTex, markTex} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
+import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
+import {generalizeFeedback} from "@/features/proof-tree/feedback/semiFeedback.ts";
 
 interface GeneralizeLeafProps {
   letStudentNode: StudentProofNode;
   letAnswerNode: ProofTree;
   registry: GammaRegistry;
-  highlightMistakes: boolean;
 }
 
-export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlightMistakes}: GeneralizeLeafProps) {
+export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry}: GeneralizeLeafProps) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
@@ -35,7 +36,8 @@ export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlig
   const valueTex = valueType ? TexMapper.typeToTex(valueType) : "?";
   // an empty context prints as a bare Γ, like the automatic tree
   const gammaTex = letAnswerNode.gamma && Object.keys(letAnswerNode.gamma).length > 0 ? gammaRefTex(letAnswerNode.gamma, registry, false) : "\\Gamma";
-  const schemeTex = scheme ? TexMapper.typeToTex(scheme) : "?";
+  const schemeText = scheme ? TexMapper.typeToTex(scheme) : "?";
+  const schemeTex = markTex(schemeText, letStudentNode.generalizeCheck);
   const judgement = `\\mathit{generalize}(${valueTex}, ${gammaTex}) = ${unlocked ? `\\href{scheme}{${schemeTex}}` : schemeTex}`;
 
   const draftAsType = draft ? draftToType(draft) : null;
@@ -67,7 +69,6 @@ export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlig
                 "conclusion-center leaf-node not-root rounded-md my-1.5 px-2 flex items-center gap-2 text-muted-foreground",
                 unlocked && "cursor-pointer",
                 check === "valid" && "bg-emerald-500/10 border border-emerald-500/30",
-                highlightMistakes && check === "invalid" && "bg-destructive/10 border border-destructive/30",
               )}
               onClick={onClick}
             >
@@ -83,6 +84,7 @@ export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry, highlig
         </Popover>
         <div className="conclusion-right"/>
       </div>
+      <NodeFeedback messages={generalizeFeedback(letStudentNode, letAnswerNode)}/>
     </div>
   );
 }

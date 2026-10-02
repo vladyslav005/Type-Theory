@@ -17,7 +17,7 @@ export interface ExampleGroup {
 
 export const EXAMPLE_GROUPS: ExampleGroup[] = [
   {
-    title: "Basics",
+    title: "STLC",
     items: [
       {
         label: "Identity Function",

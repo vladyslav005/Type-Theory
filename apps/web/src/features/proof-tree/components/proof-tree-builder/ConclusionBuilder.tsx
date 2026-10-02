@@ -54,6 +54,11 @@ interface ConstraintDraft {
 // Renders one node's judgement as a single MathJax expression, with each
 // interactive slot wrapped in \href{key}{...} (gamma/context/type/premise:N)
 // so MathJax renders it as a real clickable link.
+// Checked slots are coloured inside the judgement itself, so the mark sits on the exact part.
+// eslint-disable-next-line react-refresh/only-export-components -- shared with GeneralizeLeaf
+export const markTex = (tex: string, check: "valid" | "invalid" | undefined) =>
+  check === "invalid" ? `\\color[HTML]{EF4444}{${tex}}` : check === "valid" ? `\\color[HTML]{16A34A}{${tex}}` : tex;
+
 export function ConclusionBuilder({studentNode, answerNode, parentGamma, registry, typeSlotUnlocked}: ConclusionBuilderProps) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
@@ -92,13 +97,13 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
         return idx >= 0 && unrevealedPremiseIndices.has(idx) ? `\\href{premise:${idx}}{${tex}}` : tex;
       });
 
-  const rhsTex = studentNode.writtenType
+  const rhsTex = markTex(studentNode.writtenType
     ? TexMapper.typeToTex(studentNode.writtenType)
-    : "?";
+    : "?", studentNode.typeCheck);
 
-  const bindingTex = studentNode.writtenBindings?.length
+  const bindingTex = markTex(studentNode.writtenBindings?.length
     ? studentNode.writtenBindings.map((b) => `${b.name}:${TexMapper.typeToTex(b.type)}`).join(", ")
-    : "?";
+    : "?", studentNode.contextCheck);
 
   const parentGammaRef = registry.refFor(parentGamma);
   const parentGammaTex = parentGammaRef
@@ -114,11 +119,12 @@ export function ConclusionBuilder({studentNode, answerNode, parentGamma, registr
     ? (baseGammaTex ? `${baseGammaTex} \\cup ${bindingSetTex}` : bindingSetTex)
     : gammaRefTex(answerNode.gamma, registry, isExpanded(gammaKey), "gamma");
 
-  const constraintsTex = studentNode.writtenConstraints === undefined
+  const constraintsTex = markTex(studentNode.writtenConstraints === undefined
     ? "?"
     : studentNode.writtenConstraints.length === 0
       ? "\\emptyset"
-      : `\\{ ${studentNode.writtenConstraints.map((c) => `${TexMapper.typeToTex(c.left)} = ${TexMapper.typeToTex(c.right)}`).join(", ")} \\}`;
+      : `\\{ ${studentNode.writtenConstraints.map((c) => `${TexMapper.typeToTex(c.left)} = ${TexMapper.typeToTex(c.right)}`).join(", ")} \\}`,
+  studentNode.constraintCheck);
   const constraintsSegment = studentNode.requiresConstraints
     ? ` \\mid ${typeSlotUnlocked ? `\\href{constraints}{${constraintsTex}}` : constraintsTex}`
     : "";

@@ -8,7 +8,7 @@ import {
   buildStudentNode,
   type ConstraintPair,
   type ContextBinding,
-  diffAgainstAnswer,
+  clearChecks, diffAgainstAnswer,
   findStudentNode,
   type StudentProofNode,
 } from "@/shared/ui-state/studentProof.ts";
@@ -98,6 +98,8 @@ export class EvaluationRunError extends Error {
 // Replace STLC instead of extending it, so enabling one clears every other theory.
 const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl"];
 
+const STLC_EXAMPLE_GROUP = "STLC";
+
 const THEORY_EXAMPLE_GROUPS: Partial<Record<TypeTheoryId, string>> = {
   untyped: "Untyped Lambda Calculus",
   nbl: "Numbers & Booleans (NBL)",
@@ -118,7 +120,7 @@ function syncExamplesTopic(state: TermState, enabledId?: TypeTheoryId) {
   const entries = Object.entries(THEORY_EXAMPLE_GROUPS) as [TypeTheoryId, string][];
   const topicTheory = entries.find(([, group]) => group === state.examplesTopic)?.[0];
   if (!topicTheory || state.enabledTheories[topicTheory]) return;
-  state.examplesTopic = entries.find(([id]) => state.enabledTheories[id])?.[1] ?? "all";
+  state.examplesTopic = entries.find(([id]) => state.enabledTheories[id])?.[1] ?? STLC_EXAMPLE_GROUP;
 }
 
 const counterSlice = createSlice({
@@ -359,6 +361,10 @@ const counterSlice = createSlice({
       diffAgainstAnswer(state.buildMode.studentTree, state.buildMode.answerKey);
     },
 
+    clearProofChecks: (state) => {
+      if (state.buildMode.studentTree) clearChecks(state.buildMode.studentTree);
+    },
+
     pushProcessingError: (state, action: { payload: Error }) => {
       if (!state.processingErrors) {
         state.processingErrors = [];
@@ -425,6 +431,7 @@ export const {
   loadManualProof,
   resetNode,
   checkProof,
+  clearProofChecks,
   pushProcessingError,
   setErrorMarkers,
   clearEvaluationErrors,

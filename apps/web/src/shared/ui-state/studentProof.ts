@@ -221,6 +221,13 @@ export function expectedGeneralizedScheme(letNode: ProofTree): Type | undefined 
   return bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound;
 }
 
+// The bindings this node's Γ adds on top of its parent's.
+export function expectedNewBindings(answer: ProofTree, parentGamma: Record<string, Type | TypeScheme>): ContextBinding[] {
+  return Object.entries(answer.gamma)
+    .filter(([k, v]) => isRebound(k, v, parentGamma))
+    .map(([k, bound]) => ({name: k, type: bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound}));
+}
+
 // CT-AbsInf is folded into CT-Abs in the UI
 function canonicalRule(rule: Rule): Rule {
   return rule === Rule.CtAbsInf ? Rule.CtAbs : rule;
@@ -240,12 +247,7 @@ export function diffAgainstAnswer(
     student.typeCheck = flexibleTypeEquals(student.writtenType, answer.type) ? "valid" : "invalid";
   }
   if (student.requiresContextBuild && student.writtenBindings !== undefined) {
-    const expected: ContextBinding[] = Object.entries(answer.gamma)
-      .filter(([k, v]) => isRebound(k, v, parentGamma))
-      .map(([k, bound]) => {
-        const type = bound.kind === "TypeScheme" ? typeSchemeToDisplayType(bound) : bound;
-        return {name: k, type};
-      });
+    const expected = expectedNewBindings(answer, parentGamma);
     student.contextCheck = bindingsMatch(student.writtenBindings, expected) ? "valid" : "invalid";
   }
   if (student.requiresConstraints && student.writtenConstraints !== undefined) {
@@ -262,6 +264,20 @@ export function diffAgainstAnswer(
     const childParentGamma = isVarRule(answer.rule) ? answerPremise.gamma : answer.gamma;
     diffAgainstAnswer(premise, answerPremise, childParentGamma);
   });
+}
+
+export function clearChecks(node: StudentProofNode): void {
+  delete node.ruleCheck;
+  delete node.typeCheck;
+  delete node.contextCheck;
+  delete node.constraintCheck;
+  delete node.generalizeCheck;
+  node.premises.forEach(clearChecks);
+}
+
+export function hasChecks(node: StudentProofNode): boolean {
+  return [node.ruleCheck, node.typeCheck, node.contextCheck, node.constraintCheck, node.generalizeCheck].some((c) => c !== undefined)
+    || node.premises.some(hasChecks);
 }
 
 export interface ProofBuildSummary {

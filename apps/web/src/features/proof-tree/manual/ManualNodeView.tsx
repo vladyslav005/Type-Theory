@@ -8,6 +8,7 @@ import {cn} from "@/shared/lib/utils.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketInput} from "@/shared/components/BracketInput.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
+import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
 
 const verdictClass = (verdict: ManualVerdict | undefined) =>
@@ -51,18 +52,21 @@ function Field({value, placeholder, title, width, verdict, readOnly, onChange}: 
 
 function RuleInput({value, placeholder, verdict, onChange}: {value: string; placeholder: string; verdict?: ManualVerdict; onChange: (value: string) => void}) {
   const history = useUndoableText(value, onChange);
+  // Zero-size anchor like the automatic tree's .rule-name: the input sits right of the inference line, centred on it.
   return (
-    <input
-      value={value}
-      placeholder={placeholder}
-      spellCheck={false}
-      onChange={(e) => history.change(e.target.value)}
-      onKeyDown={history.onKeyDown}
-      className={cn(
-        "ml-2 h-7 w-36 self-center rounded border bg-background px-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
-        verdictClass(verdict),
-      )}
-    />
+    <div className="relative h-0 w-0 self-start">
+      <input
+        value={value}
+        placeholder={placeholder}
+        spellCheck={false}
+        onChange={(e) => history.change(e.target.value)}
+        onKeyDown={history.onKeyDown}
+        className={cn(
+          "absolute left-1.5 top-0 h-7 w-28 -translate-y-1/2 rounded border bg-background px-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
+          verdictClass(verdict),
+        )}
+      />
+    </div>
   );
 }
 
@@ -96,12 +100,8 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
   );
 
   const messages = result?.messages ?? [];
-  const messageList = messages.length > 0 && (
-    <ul className="max-w-md space-y-0.5 px-2 pb-1 text-[11px] text-destructive">
-      {messages.map((m, i) => (
-        <li key={i}>{t(`manualBuilder.msg.${m.code}`, m.params)}</li>
-      ))}
-    </ul>
+  const messageList = (
+    <NodeFeedback messages={messages.map((m) => m.code.startsWith("feedback.") ? m : {...m, code: `manualBuilder.msg.${m.code}`})}/>
   );
 
   if (node.kind === "fact") {

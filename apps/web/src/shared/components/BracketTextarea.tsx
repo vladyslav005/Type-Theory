@@ -68,7 +68,7 @@ export const BracketTextarea = forwardRef<HTMLTextAreaElement, BracketTextareaPr
         ref={inner}
         value={value}
         {...rest}
-        className={cn("absolute inset-0 h-full w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground", textClassName, className)}
+        className={cn("absolute inset-0 h-full w-full resize-none overflow-hidden bg-transparent text-transparent caret-foreground placeholder:text-muted-foreground/70", textClassName, className)}
         onSelect={(e) => { setCaret(e.currentTarget.selectionStart); onSelect?.(e); }}
         onKeyUp={(e) => { setCaret(e.currentTarget.selectionStart); onKeyUp?.(e); }}
         onClick={(e) => { setCaret(e.currentTarget.selectionStart); onClick?.(e); }}

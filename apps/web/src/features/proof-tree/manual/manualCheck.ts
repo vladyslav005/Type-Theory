@@ -4,6 +4,8 @@ import type {ManualMessage, ManualNode, ManualNodeResult} from "@/shared/ui-stat
 import {typeSchemeToDisplayType} from "@/shared/ui-state/studentProof.ts";
 import {isCtRule, isVarRule} from "@/shared/ui-state/ruleFamilies.ts";
 import {RULE_LABELS} from "@/features/proof-tree/components/proof-tree-builder/ruleLabels.ts";
+import {parseRuleLabel, ruleFeedback} from "@/features/proof-tree/feedback/ruleFeedback.ts";
+import {constraintFeedback, typeFeedback, type VariableMatching} from "@/features/proof-tree/feedback/typeFeedback.ts";
 import {
   type ConstraintPairText,
   type ContextEntries,
@@ -331,25 +333,44 @@ function premiseConstraintSets(node: ManualNode, definitions: Definitions): (Con
     });
 }
 
+// Sub-terms of the parent's conclusion, to tell a wrong part from something that isn't part of it at all.
+interface Placement {
+  termsBelowParent: Set<string>;
+}
+
+// Diagnostics only — a scratch renaming, so explaining a mismatch never changes how later nodes match.
+const variableMatching = (ren: Renaming): VariableMatching => {
+  const scratch = cloneRenaming(ren);
+  return {identifierAsVariable: false, bind: (written, expected) => bindVariable(written.name, expected.name, scratch)};
+};
+
 function checkJudgement(
   node: ManualNode,
   answer: ProofTree,
   ren: Renaming,
   usesConstraints: boolean,
   definitions: Definitions,
+  placement?: Placement,
 ): {result: ManualNodeResult; context: ContextEntries; contextParsed: boolean} {
   const messages: ManualMessage[] = [];
   const result: ManualNodeResult = {messages};
 
   const written = normalizeRule(node.rule);
   result.rule = acceptedRuleNames(answer).some((n) => normalizeRule(n) === written) ? "valid" : "invalid";
-  if (result.rule === "invalid") messages.push({code: node.rule.trim() ? "ruleMismatch" : "ruleMissing"});
+  if (result.rule === "invalid") {
+    messages.push(node.rule.trim() ? ruleFeedback(parseRuleLabel(node.rule), node.rule.trim(), answer) : {code: "ruleMissing"});
+  }
 
   const program = parseOrNull(() => parseTermProgram(node.term), messages, "termParse");
   if (program) {
-    const same = programTermKey(program) === termKey(answer.term);
+    const writtenKey = programTermKey(program);
+    const same = writtenKey === termKey(answer.term);
     result.term = same ? "valid" : "invalid";
-    if (!same) messages.push({code: "termMismatch"});
+    if (!same) {
+      messages.push(placement && !placement.termsBelowParent.has(writtenKey)
+        ? {code: "feedback.termNotPart"}
+        : {code: "feedback.termWrongPart"});
+    }
   } else {
     result.term = "invalid";
   }
@@ -364,7 +385,7 @@ function checkJudgement(
     const ok = missing.length === 0 && extra.length === 0
       && tryMatch(ren, (scratch) => [...expected].every(([name, type]) => matchType(parsedContext.get(name)!, type, scratch)));
     result.gamma = ok ? "valid" : "invalid";
-    if (missing.length > 0) messages.push({code: "gammaMissing", params: {names: missing.join(", ")}});
+    if (missing.length > 0) messages.push({code: "gammaMissing"});
     if (extra.length > 0) messages.push({code: "gammaExtra", params: {names: extra.join(", ")}});
     if (!ok && missing.length === 0 && extra.length === 0) {
       const trial = cloneRenaming(ren);
@@ -382,9 +403,10 @@ function checkJudgement(
 
   const type = parseOrNull(() => parseTypeText(node.type), messages, "typeParse");
   if (type) {
+    const diagnostics = variableMatching(ren);
     const ok = tryMatch(ren, (scratch) => matchType(type, answer.type, scratch));
     result.type = ok ? "valid" : "invalid";
-    if (!ok) messages.push({code: "typeMismatch"});
+    if (!ok) messages.push(typeFeedback(type, answer.type, diagnostics));
   } else {
     result.type = "invalid";
   }
@@ -404,7 +426,12 @@ function checkJudgement(
       const ok = pairs.length === expected.length && solved !== null;
       if (ok && solved) commit(ren, solved);
       result.constraints = ok ? "valid" : "invalid";
-      if (!ok) messages.push({code: "constraintsMismatch", params: {expected: expected.length, written: pairs.length}});
+      if (!ok) {
+        messages.push(...constraintFeedback(pairs, expected, (w, e) => {
+          const scratch = cloneRenaming(ren);
+          return matchType(w.left, e.left, scratch) && matchType(w.right, e.right, scratch);
+        }));
+      }
     } else {
       result.constraints = "invalid";
     }
@@ -413,13 +440,23 @@ function checkJudgement(
   const expectedCount = expectedChildren(answer).length;
   result.premises = node.premises.length === expectedCount ? "valid" : "invalid";
   if (result.premises === "invalid") {
-    messages.push({code: "premiseCount", params: {expected: expectedCount, written: node.premises.length}});
+    messages.push({code: "premiseCount", params: {written: node.premises.length}});
   }
 
   return {result, context, contextParsed: parsedContext !== null};
 }
 
 export type ManualResults = Record<string, ManualNodeResult>;
+
+function termsBelow(node: ProofTree): Set<string> {
+  const keys = new Set<string>();
+  const walk = (current: ProofTree) => current.premises.forEach((premise) => {
+    keys.add(termKey(premise.term));
+    walk(premise);
+  });
+  walk(node);
+  return keys;
+}
 
 // Definitions written inline in fields join the ones from the Definitions box; a name defined twice
 // with different content is reported on the node that repeats it.
@@ -451,7 +488,7 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
   const {definitions, duplicates} = withInlineDefinitions(root, boxDefinitions);
   const ren = emptyRenaming();
 
-  const visit = (node: ManualNode, expected: ExpectedChild, parent: {node: ManualNode | null; context: ContextEntries; contextParsed: boolean}) => {
+  const visit = (node: ManualNode, expected: ExpectedChild, parent: {node: ManualNode | null; context: ContextEntries; contextParsed: boolean}, placement?: Placement) => {
     if (expected.kind === "fact") {
       results[node.id] = node.kind === "fact"
         ? checkFact(node, expected.fact, ren, parent, definitions)
@@ -464,7 +501,7 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
       return;
     }
 
-    const {result, context, contextParsed} = checkJudgement(node, expected.node, ren, usesConstraints, definitions);
+    const {result, context, contextParsed} = checkJudgement(node, expected.node, ren, usesConstraints, definitions, placement);
     for (const name of duplicates.get(node.id) ?? []) {
       result.messages.push({code: "definitionDuplicate", params: {name}});
       if (name.startsWith("C")) result.constraints = "invalid";
@@ -472,8 +509,9 @@ export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesCons
     }
     results[node.id] = result;
     const children = expectedChildren(expected.node);
+    const termsBelowParent = termsBelow(expected.node);
     node.premises.forEach((premise, i) => {
-      if (children[i]) visit(premise, children[i], {node, context, contextParsed});
+      if (children[i]) visit(premise, children[i], {node, context, contextParsed}, {termsBelowParent});
       else results[premise.id] = {messages: [{code: "extraPremise"}]};
     });
   };

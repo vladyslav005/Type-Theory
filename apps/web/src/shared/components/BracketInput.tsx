@@ -87,7 +87,7 @@ export const BracketInput = forwardRef<HTMLInputElement, BracketInputProps>(func
         ref={inner}
         value={value}
         {...rest}
-        className={cn("relative w-full bg-transparent text-transparent caret-foreground", textClassName, className)}
+        className={cn("relative w-full bg-transparent text-transparent caret-foreground placeholder:text-muted-foreground/70", textClassName, className)}
         onSelect={(e) => { sync(e.currentTarget); onSelect?.(e); }}
         onKeyUp={(e) => { sync(e.currentTarget); onKeyUp?.(e); }}
         onClick={(e) => { sync(e.currentTarget); onClick?.(e); }}

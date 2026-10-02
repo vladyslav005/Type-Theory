@@ -36,7 +36,7 @@ const FLAT_EXAMPLES = EXAMPLE_GROUPS.flatMap((group) =>
 // Short forms of the group titles for the topic-filter chip row — the full titles wrap onto
 // far too many lines at the dropdown's width.
 const GROUP_SHORT_LABELS: Record<string, string> = {
-  "Basics": "Basics",
+  "STLC": "STLC",
   "Untyped Lambda Calculus": "Untyped",
   "Numbers & Booleans (NBL)": "NBL",
   "Sums & Variants": "Sums",

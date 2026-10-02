@@ -46,7 +46,8 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
         : 14,
       showMinimap: parsed.showMinimap !== false,
       autoBuild: parsed.autoBuild === true,
-      examplesTopic: typeof parsed.examplesTopic === "string" ? parsed.examplesTopic : "all",
+      // "Basics" was renamed to "STLC".
+      examplesTopic: parsed.examplesTopic === "Basics" ? "STLC" : typeof parsed.examplesTopic === "string" ? parsed.examplesTopic : "all",
     };
   } catch {
     return undefined;

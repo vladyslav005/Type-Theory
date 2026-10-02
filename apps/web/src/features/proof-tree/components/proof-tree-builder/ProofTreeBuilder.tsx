@@ -1,8 +1,8 @@
-import {useMemo, useState} from "react";
+import {useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {checkProof, enterBuildMode, exitBuildMode} from "@/shared/ui-state/termSlice.ts";
-import {countProofErrors, summarizeStudentTree} from "@/shared/ui-state/studentProof.ts";
+import {checkProof, clearProofChecks, enterBuildMode, exitBuildMode} from "@/shared/ui-state/termSlice.ts";
+import {countProofErrors, hasChecks, summarizeStudentTree} from "@/shared/ui-state/studentProof.ts";
 import {ProofTreeBuilderNode} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilderNode.tsx";
 import {buildGammaRegistry} from "@/features/proof-tree/components/proof-tree-builder/buildGammaRegistry.ts";
 import {studentNodeToExportTree} from "@/features/proof-tree/components/proof-tree-builder/studentProofToTex.ts";
@@ -10,8 +10,6 @@ import {GammaRegistry} from "@vladyslav005/tt-core";
 import {TexRefExpansionProvider} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
 import {ExportLatexButtons} from "@/features/proof-tree/components/ExportLatexButtons.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {Switch} from "@/shared/components/ui/switch.tsx";
-import {Label} from "@/shared/components/ui/label.tsx";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
 import {ZoomIn, ZoomOut, Crosshair, Hammer, ArrowLeft} from "lucide-react";
@@ -25,7 +23,6 @@ export function ProofTreeBuilder() {
   const dispatch = useAppDispatch();
   const {studentTree, answerKey, mode} = useAppSelector((state) => state.term.buildMode);
   const proof = useAppSelector((state) => state.term.proof);
-  const [highlightMistakes, setHighlightMistakes] = useState(false);
   // Hook must run unconditionally, before the early return below.
   const registry = useMemo(() => (answerKey ? buildGammaRegistry(answerKey) : new GammaRegistry()), [answerKey]);
 
@@ -93,14 +90,11 @@ export function ProofTreeBuilder() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Switch id="highlight-mistakes" checked={highlightMistakes} onCheckedChange={setHighlightMistakes}/>
-            <Label htmlFor="highlight-mistakes" className="text-sm text-muted-foreground cursor-pointer">
-              {t("proofBuilder.highlightMistakes")}
-            </Label>
-          </div>
+        <div className="flex items-center gap-2">
           <Button size="sm" onClick={() => dispatch(checkProof())}>{t("proofBuilder.checkProof")}</Button>
+          {hasChecks(studentTree) && (
+            <Button size="sm" variant="outline" onClick={() => dispatch(clearProofChecks())}>{t("manualBuilder.clearMarks")}</Button>
+          )}
         </div>
       </div>
 
@@ -124,7 +118,7 @@ export function ProofTreeBuilder() {
                     answerKey,
                     answerKey.gamma,
                     registry,
-                    {expandedKeys, highlightMistakes},
+                    {expandedKeys, highlightMistakes: true},
                   )}
                   filename="proof-tree-builder.tex"
                 />
@@ -168,7 +162,6 @@ export function ProofTreeBuilder() {
                     answerNode={answerKey}
                     parentGamma={answerKey.gamma}
                     registry={registry}
-                    highlightMistakes={highlightMistakes}
                   />
                 </div>
               </TransformComponent>

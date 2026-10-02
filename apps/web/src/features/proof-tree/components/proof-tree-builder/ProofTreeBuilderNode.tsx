@@ -15,6 +15,8 @@ import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
 import {resetNode} from "@/shared/ui-state/termSlice.ts";
 import {cn} from "@/shared/lib/utils.ts";
 import type {GammaRegistry} from "@vladyslav005/tt-core";
+import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
+import {semiNodeFeedback} from "@/features/proof-tree/feedback/semiFeedback.ts";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
 
 interface ProofTreeBuilderNodeProps {
@@ -24,7 +26,6 @@ interface ProofTreeBuilderNodeProps {
   parentGamma: Record<string, Type | TypeScheme>;
   // Numbers every distinct Γ once as Γ_1, Γ_2, ... (see ProofTreeBuilder.tsx).
   registry: GammaRegistry;
-  highlightMistakes: boolean;
   root?: boolean;
 }
 
@@ -51,7 +52,7 @@ function VariableMembershipLeaf({studentNode, answerNode, registry}: { studentNo
 // and only shows revealed premises. Memoized since Immer gives every
 // ancestor of an edited node a new reference — this keeps untouched sibling
 // subtrees from re-rendering (and re-typesetting via MathJax).
-export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentNode, answerNode, parentGamma, registry, highlightMistakes, root = true}: ProofTreeBuilderNodeProps) {
+export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentNode, answerNode, parentGamma, registry, root = true}: ProofTreeBuilderNodeProps) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const hasChosenRule = studentNode.chosenRule !== undefined;
@@ -79,10 +80,6 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
 
   const ruleLabel = studentNode.chosenRule !== undefined ? RULE_LABELS[studentNode.chosenRule] : undefined;
 
-  const anyInvalid = studentNode.ruleCheck === "invalid"
-    || studentNode.typeCheck === "invalid"
-    || studentNode.contextCheck === "invalid"
-    || studentNode.constraintCheck === "invalid";
   const allValid = studentNode.ruleCheck === "valid"
     && studentNode.typeCheck === "valid"
     && (!studentNode.requiresContextBuild || studentNode.contextCheck === "valid")
@@ -108,7 +105,6 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
                 answerNode={answerPremise}
                 parentGamma={childParentGamma}
                 registry={registry}
-                highlightMistakes={highlightMistakes}
               />
               {originalIndex === 0 && studentNode.requiresGeneralize && (
                 <>
@@ -117,7 +113,6 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
                     letStudentNode={studentNode}
                     letAnswerNode={answerNode}
                     registry={registry}
-                    highlightMistakes={highlightMistakes}
                   />
                 </>
               )}
@@ -133,12 +128,8 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
         <div
           className={cn(
             `conclusion-center ${isItLeaf} ${isItRoot} rounded-md my-1.5 px-2 flex items-center gap-2 transition-all duration-200`,
-            highlightMistakes && anyInvalid && "bg-destructive/10 border border-destructive/30 dark:bg-destructive/15 dark:border-destructive/40",
             allValid && "bg-emerald-500/10 border border-emerald-500/30 dark:bg-emerald-500/15 dark:border-emerald-500/40",
           )}
-          title={highlightMistakes && anyInvalid
-            ? "Doesn't match — press Check Proof again after fixing it"
-            : undefined}
         >
           <ConclusionBuilder
             studentNode={studentNode}
@@ -164,7 +155,8 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
             <p
               className={cn(
                 "rule-name cursor-pointer select-none hover:underline",
-                highlightMistakes && studentNode.ruleCheck === "invalid" && "text-destructive",
+                studentNode.ruleCheck === "invalid" && "text-destructive",
+                studentNode.ruleCheck === "valid" && "text-emerald-600 dark:text-emerald-400",
               )}
             >
               {ruleLabel ?? t("proofBuilder.pickRule")}
@@ -172,6 +164,7 @@ export const ProofTreeBuilderNode = memo(function ProofTreeBuilderNode({studentN
           </RulePickerPopover>
         </div>
       </div>
+      <NodeFeedback messages={semiNodeFeedback(studentNode, answerNode, parentGamma)}/>
     </div>
   );
 });

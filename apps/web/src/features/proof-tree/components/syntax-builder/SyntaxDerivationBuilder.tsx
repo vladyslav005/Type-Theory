@@ -39,6 +39,7 @@ export function SyntaxDerivationBuilder({goal, rules, onNodeHover}: SyntaxDeriva
         </p>
         <div className="flex items-center gap-2 shrink-0">
           <Button size="sm" onClick={() => setChecked(true)}>{t("proofBuilder.checkProof")}</Button>
+          {checked && <Button size="sm" variant="outline" onClick={() => setChecked(false)}>{t("manualBuilder.clearMarks")}</Button>}
           <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setChecked(false); }}>{t("lectureWidgets.reset")}</Button>
         </div>
       </div>
