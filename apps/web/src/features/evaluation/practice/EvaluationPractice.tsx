@@ -25,6 +25,10 @@ interface EvaluationPracticeProps {
   // Controlled by the panel header when it has one (as in automatic mode); otherwise the toggle sits in the practice bar.
   viewMode?: "single" | "all";
   onViewModeChange?: (mode: "single" | "all") => void;
+  // "follow": steps must follow the evaluation's strategy; "any": any single reduction step counts (full normalization).
+  strategyMode?: "follow" | "any";
+  // How the student's text is read — e.g. NBL syntax in the NBL lab.
+  parseInput?: (text: string) => Term | undefined;
 }
 
 interface Row {
@@ -60,7 +64,20 @@ const message = (code: string, params?: FeedbackMessage["params"]): FeedbackMess
 const GUIDE_STEPS = ["read", "write", "insert", "check", "finish"];
 
 
-export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: controlledViewMode, onViewModeChange}: EvaluationPracticeProps) {
+const defaultParse = (text: string) => parseTermProgram(text).term;
+
+function replaceNode(root: Term, id: string, replacement: Term): Term {
+  const walk = (node: unknown): unknown => {
+    if (typeof node !== "object" || node === null) return node;
+    if (Array.isArray(node)) return node.map(walk);
+    if ((node as {id?: unknown}).id === id) return replacement;
+    return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, key === "pos" ? value : walk(value)]));
+  };
+  return walk(root) as Term;
+}
+
+export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: controlledViewMode, onViewModeChange, strategyMode = "follow", parseInput = defaultParse}: EvaluationPracticeProps) {
+  const anyOrder = strategyMode === "any";
   const {t} = useTranslation();
   const {strategy} = evaluation;
 
@@ -94,6 +111,25 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     }, under);
   }, [evaluation.globals, strategy]);
 
+  // Every term one reduction step away: each sub-term that is itself a redex, contracted in place.
+  const allReducts = useMemo(() => (term: Term, bindings: Position["bindings"]): Term[] => {
+    const results: Term[] = [];
+    const visit = (node: unknown, bound: Set<string>) => {
+      if (typeof node !== "object" || node === null) return;
+      if (Array.isArray(node)) return node.forEach((item) => visit(item, bound));
+      const candidate = node as Term & {param?: string};
+      if (typeof candidate.kind === "string" && typeof candidate.id === "string" && !candidate.kind.startsWith("Ty") && !candidate.kind.endsWith("Type")) {
+        const step = traceFrom(candidate, bindings, 1, EvaluationStrategy.NORMAL).steps[0];
+        const shadowed = step?.rule === "definition" && candidate.kind === "Var" && bound.has(candidate.name);
+        if (step && step.selectedId === candidate.id && !shadowed) results.push(replaceNode(term, candidate.id, step.after));
+      }
+      const inner = candidate.kind === "Abs" && candidate.param ? new Set(bound).add(candidate.param) : bound;
+      Object.entries(node).forEach(([key, value]) => key !== "pos" && visit(value, inner));
+    };
+    visit(term, new Set());
+    return results;
+  }, [traceFrom]);
+
   const positions = useMemo<Position[]>(() => {
     const list: Position[] = [];
     let before = startTerm;
@@ -102,11 +138,15 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       const trace = traceFrom(before, bindings, DEFINITION_LOOKAHEAD);
       const ahead = trace.steps;
       const accepted: Term[] = [];
-      for (let k = 0; k < ahead.length; k += 1) {
-        accepted.push(ahead[k].after);
-        if (!isDefinitionStep(ahead[k])) break;
+      if (anyOrder) {
+        accepted.push(...allReducts(before, bindings));
+      } else {
+        for (let k = 0; k < ahead.length; k += 1) {
+          accepted.push(ahead[k].after);
+          if (!isDefinitionStep(ahead[k])) break;
+        }
       }
-      const onlyDefinitionsLeft = ahead.length > 0 && ahead.every(isDefinitionStep)
+      const onlyDefinitionsLeft = !anyOrder && ahead.length > 0 && ahead.every(isDefinitionStep)
         && !trace.reachedStepLimit && (trace.errors?.length ?? 0) === 0;
       list.push({before, bindings, expected: ahead[0], accepted, onlyDefinitionsLeft});
       if (i < rows.length) {
@@ -117,12 +157,12 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       }
     }
     return list;
-  }, [rows, startTerm, traceFrom]);
+  }, [rows, startTerm, traceFrom, anyOrder, allReducts]);
 
   const position = positions[Math.min(cursor, rows.length)];
   const atEnd = cursor >= rows.length;
   const finalPosition = positions[rows.length];
-  const actualEnding: Ending | "reducible" = finalPosition.expected
+  const actualEnding: Ending | "reducible" = (anyOrder ? finalPosition.accepted.length > 0 : finalPosition.expected)
     ? (finalPosition.onlyDefinitionsLeft ? "value" : "reducible")
     : (traceFrom(finalPosition.before, finalPosition.bindings, 1).errors?.length ?? 0) > 0 ? "stuck" : "value";
   const finished = ending !== undefined;
@@ -160,7 +200,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
 
   const read = (text: string): Term | undefined => {
     try {
-      return parseTermProgram(text).term;
+      return parseInput(text);
     } catch (error) {
       trackPractice(taskId, {type: "unreadable"});
       setHintOk(false);
@@ -188,6 +228,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     if (!expected) return message("noStepLeft");
     if (termsAlphaEqual(written, before)) return message("nothingChanged");
     if (traceFrom(before, bindings, LOOKAHEAD).steps.slice(1).some((later) => termsAlphaEqual(written, later.after))) return message("tooManySteps");
+    if (anyOrder) return message("notOneStep");
     const otherRedex = STRATEGIES.some((other) => {
       if (other === strategy) return false;
       const result = traceFrom(before, bindings, 1, other).steps[0]?.after;
@@ -255,7 +296,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
 
   const correction = (i: number) => finished && i < rows.length && !isCorrect(i) && (
     <span className="flex gap-2 font-mono text-[11px]">
-      <span className="w-14 shrink-0 font-sans text-destructive">{t("evalPractice.correctStep")}</span>
+      <span className="w-14 shrink-0 font-sans text-destructive">{t(anyOrder ? "evalPractice.correctStepExample" : "evalPractice.correctStep")}</span>
       <span className="min-w-0 flex-1 overflow-x-auto">
         {positions[i].expected
           ? <TermView term={positions[i].expected!.after} resultId={positions[i].expected!.resultId}/>
@@ -326,7 +367,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {t("evalPractice.instruction", {strategy: t(`evalStrategy.${strategy}.label`)})}
+        {anyOrder ? t("evalPractice.instructionAny") : t("evalPractice.instruction", {strategy: t(`evalStrategy.${strategy}.label`)})}
       </p>
 
       <div className="p-3 rounded-lg border font-mono text-sm leading-relaxed overflow-x-auto bg-muted/30">
@@ -367,12 +408,14 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
         {atEnd ? (
           <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <span>{t("evalPractice.noMoreSteps")}</span>
-            <Tip label={t("evalPractice.tip.value")}>
-              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("value")}>{t("evalPractice.itIsValue")}</Button>
+            <Tip label={t(anyOrder ? "evalPractice.tip.normalForm" : "evalPractice.tip.value")}>
+              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("value")}>{t(anyOrder ? "evalPractice.itIsNormalForm" : "evalPractice.itIsValue")}</Button>
             </Tip>
-            <Tip label={t("evalPractice.tip.stuck")}>
-              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("stuck")}>{t("evalPractice.itIsStuck")}</Button>
-            </Tip>
+            {!anyOrder && (
+              <Tip label={t("evalPractice.tip.stuck")}>
+                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("stuck")}>{t("evalPractice.itIsStuck")}</Button>
+              </Tip>
+            )}
           </div>
         ) : <span/>}
         <div className="flex items-center gap-2">
@@ -398,7 +441,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       </p>
       <p className="text-xs text-muted-foreground">{t("evalPractice.summary", {correct: correctCount, total: rows.length})}</p>
       <p className="text-xs">
-        {t(ending === "value" ? "evalPractice.youSaidValue" : "evalPractice.youSaidStuck")}{" "}
+        {t(ending === "value" ? (anyOrder ? "evalPractice.youSaidNormalForm" : "evalPractice.youSaidValue") : "evalPractice.youSaidStuck")}{" "}
         <span className={endingCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
           {endingCorrect ? t("evalPractice.endingCorrect") : t(`evalPractice.ending.${actualEnding}`)}
         </span>

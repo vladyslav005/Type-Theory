@@ -1014,7 +1014,8 @@
       "noStepLeft": "Na tento term sa už nedá použiť žiadne pravidlo — rozhodnite, či je to hodnota, alebo je zaseknutý.",
       "canStillReduce": "Tento term sa ešte dá redukovať.",
       "decisionWrong": "Nie je to tak — pozrite sa znova, či je tento term hodnota.",
-      "stepCorrect": "Toto je správny krok."
+      "stepCorrect": "Toto je správny krok.",
+      "notOneStep": "Toto nie je výsledok zredukovania jedného redexu v terme vyššie."
     },
     "tabAutomatic": "Automaticky",
     "tabPractice": "Precvičovanie",
@@ -1097,8 +1098,13 @@
       "value": "Dokončiť: posledný term je hodnota (normálny tvar)",
       "stuck": "Dokončiť: na posledný term sa nedá použiť žiadne pravidlo, ale nie je to hodnota",
       "goTo": "Prejsť na tento krok a pozrieť si ho alebo zmeniť — ďalšie kroky zostanú",
-      "reopen": "Znova otvoriť vyhodnotenie a pokračovať"
-    }
+      "reopen": "Znova otvoriť vyhodnotenie a pokračovať",
+      "normalForm": "Dokončiť: v poslednom terme už nie je žiadny redex"
+    },
+    "instructionAny": "Urobte jeden krok redukcie: napíšte celý term, ktorý dostanete po zredukovaní jedného redexu — ktorého, to je na vás, poradie nie je predpísané. Kliknutím na časť termu ju vložíte do odpovede.",
+    "itIsNormalForm": "Je v normálnej forme",
+    "correctStepExample": "napr.:",
+    "youSaidNormalForm": "Povedali ste, že výsledný term je v normálnej forme —"
   },
   "lectureWidgets": {
     "tryStrategies": "Vyskúšajte — redukčné stratégie",
@@ -1149,16 +1155,9 @@
     "notInTerm": "Tento term nepatrí do Term ({{detail}}), preto pre neho úloha nemá odpoveď.",
     "unknownConstant": "„{{name}}“ nie je konštanta NBL (0, true, false).",
     "treeIncomplete": "Najprv vyplňte všetky uzly stromu.",
-    "noStepLeft": "Už sa nedá nič zredukovať — ukončite nižšie.",
     "cannotRead": "Tento term sa nedá prečítať: {{detail}}.",
-    "notNextStep": "Toto nie je výsledok jedného kroku vyhodnotenia.",
-    "stepRule": "Správne — pravidlo {{rule}}.",
-    "canStillReduce": "Term sa dá ešte zredukovať.",
     "endedValue": "Vyhodnotenie končí hodnotou {{value}}.",
     "endedStuck": "Vyhodnotenie sa zasekne pri {{term}} — žiadne pravidlo sa nedá použiť a nie je to hodnota.",
-    "nextStepPlaceholder": "term po jednom kroku",
-    "itIsValue": "Je to hodnota",
-    "itIsStuck": "Zasekne sa",
     "parensChanged": "To je iný term — pridanie zátvoriek nesmie zmeniť význam.",
     "parensMissing_one": "Ten istý term, ale ešte chýba {{count}} pár zátvoriek.",
     "parensMissing_few": "Ten istý term, ale ešte chýbajú {{count}} páry zátvoriek.",
@@ -1169,13 +1168,12 @@
     "scopeLegend": "Kliknutím na každý výskyt premennej ho označte: oranžová = voľná, modrá = viazaná.",
     "diverges": "Tento term nedospeje k normálnej forme.",
     "afterEta": "po η-redukcii:",
-    "normalFormPlaceholder": "normálna forma",
     "churchPlaceholder": "napr. true, 3 alebo λ-term",
     "definePlaceholder": "napíšte λ-term, napr. λ x . x",
     "runTests": "Spustiť testy",
     "testsPassed": "Prešlo {{passed}} z {{total}} testov.",
-    "practiceSteps": "Krok za krokom",
-    "hideSteps": "Skryť kroky"
+    "contextTitle": "Definície, ktoré môžete použiť",
+    "contextNumerals": "0, 1, 2, … sú Churchove numerály: n = λ s . λ z . s (… (s z)) s n aplikáciami s."
   },
   "activity": {
     "consent": {

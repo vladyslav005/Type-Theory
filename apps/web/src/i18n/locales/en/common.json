@@ -1012,7 +1012,8 @@
       "noStepLeft": "No rule applies to this term any more — decide whether it's a value or stuck.",
       "canStillReduce": "This term can still be reduced.",
       "decisionWrong": "That's not right — look again at whether this term is a value.",
-      "stepCorrect": "That's a correct step."
+      "stepCorrect": "That's a correct step.",
+      "notOneStep": "That isn't the result of reducing one redex in the term above."
     },
     "tabAutomatic": "Automatic",
     "tabPractice": "Practice",
@@ -1091,8 +1092,13 @@
       "value": "Finish: the last term is a value (normal form)",
       "stuck": "Finish: no rule applies to the last term, but it isn't a value",
       "goTo": "Go to this step to look at it or change it — later steps stay",
-      "reopen": "Reopen the evaluation to keep working on it"
-    }
+      "reopen": "Reopen the evaluation to keep working on it",
+      "normalForm": "Finish: no redex is left anywhere in the last term"
+    },
+    "instructionAny": "Do one reduction step: write the whole term you get after reducing one redex — you choose which, the order is up to you. Click a part of the term to insert it into your answer.",
+    "itIsNormalForm": "It's in normal form",
+    "correctStepExample": "e.g.:",
+    "youSaidNormalForm": "You said the final term is in normal form —"
   },
   "lectureWidgets": {
     "tryStrategies": "Try it — reduction strategies",
@@ -1142,16 +1148,9 @@
     "notInTerm": "This term is not in Term ({{detail}}), so this task has no answer for it.",
     "unknownConstant": "“{{name}}” is not a constant of NBL (0, true, false).",
     "treeIncomplete": "Fill in every node of the tree first.",
-    "noStepLeft": "Nothing can be reduced any further — finish below.",
     "cannotRead": "Couldn't read that term: {{detail}}.",
-    "notNextStep": "That's not what one evaluation step gives.",
-    "stepRule": "Correct — rule {{rule}}.",
-    "canStillReduce": "The term can still be reduced.",
     "endedValue": "The evaluation ends in the value {{value}}.",
     "endedStuck": "The evaluation gets stuck at {{term}} — no rule applies and it is not a value.",
-    "nextStepPlaceholder": "the term after one step",
-    "itIsValue": "It's a value",
-    "itIsStuck": "It gets stuck",
     "parensChanged": "That's a different term — adding parentheses must not change the meaning.",
     "parensMissing_one": "Same term, but {{count}} pair of parentheses is still missing.",
     "parensMissing_other": "Same term, but {{count}} pairs of parentheses are still missing.",
@@ -1161,13 +1160,12 @@
     "scopeLegend": "Click each variable occurrence to mark it: orange = free, blue = bound.",
     "diverges": "This term does not reach a normal form.",
     "afterEta": "after η-reduction:",
-    "normalFormPlaceholder": "the normal form",
     "churchPlaceholder": "e.g. true, 3, or a λ-term",
     "definePlaceholder": "write a λ-term, e.g. λ x . x",
     "runTests": "Run tests",
     "testsPassed": "{{passed}} of {{total}} tests passed.",
-    "practiceSteps": "Step by step",
-    "hideSteps": "Hide steps"
+    "contextTitle": "Definitions you can use",
+    "contextNumerals": "0, 1, 2, … are Church numerals: n = λ s . λ z . s (… (s z)) with n applications of s."
   },
   "activity": {
     "consent": {

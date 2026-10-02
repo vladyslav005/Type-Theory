@@ -54,10 +54,11 @@ Pre každý výskyt premennej v termoch z kroku 1 určte, či je voľný, alebo 
 ## Krok 3: Vyhodnotenie λ-termov
 
 Využitím β-redukcie, prípadne α-redukcie či η-redukcie nájdite normálnu formu každého termu. Výpočet
-prebieha úplnou normalizáciou, teda aj vo vnútri abstrakcií. Ak si nie ste istí, môžete výpočet
-skúsiť po krokoch.
+prebieha úplnou normalizáciou, teda aj vo vnútri abstrakcií: redukujte po krokoch a redex v každom
+kroku si vyberte sami — poradie nie je predpísané. Keď už žiadny redex nezostane, označte term ako
+normálnu formu; všetky kroky sa porovnajú na konci.
 
-<LambdaTask id="normal-form" type="normal-form" terms={evalTerms} />
+<LambdaTask id="normal-form-steps" type="normal-form" terms={evalTerms} />
 
 ## Krok 4: Programovanie v λ-kalkule
 

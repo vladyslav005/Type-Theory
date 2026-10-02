@@ -5,6 +5,7 @@ import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
+import {appendName, LabContext} from "@/features/docs/labs/components/LabContext.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {
@@ -136,25 +137,12 @@ function ScopeRow({id, index, source}: {id?: string; index: number; source: stri
   );
 }
 
+// Full normalization: any redex may be reduced, so the practice accepts every single reduction step.
 function NormalFormRow({id, index, source}: {id?: string; index: number; source: string}) {
-  const {t} = useTranslation();
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
   const normalized = useMemo(() => (parsed.ok ? normalize(parsed.program) : undefined), [parsed]);
-  const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
-  const [practice, setPractice] = useState(false);
-
-  const check = () => {
-    if (!normalized) return;
-    if (normalized.limit) return setVerdict({ok: false, kind: "diverges", text: t("labWidgets.diverges")});
-    const typed = parseLambda(value);
-    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
-    const eta = etaNormal(normalized.result);
-    setVerdict(equalTerms(typed.term, normalized.result) || equalTerms(typed.term, eta)
-      ? {ok: true, text: t("labWidgets.correct")}
-      : {ok: false, text: t("labWidgets.tryAgain")});
-  };
+  const {t} = useTranslation();
 
   const solution = normalized && (
     <div className="space-y-1">
@@ -167,13 +155,11 @@ function NormalFormRow({id, index, source}: {id?: string; index: number; source:
 
   return (
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? solution : parsed.message}>
-      <div className="flex flex-wrap items-center gap-2">
-        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.normalFormPlaceholder")}/>
-        <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-        <Button size="sm" variant="ghost" onClick={() => setPractice((v) => !v)}>{practice ? t("labWidgets.hideSteps") : t("labWidgets.practiceSteps")}</Button>
-      </div>
-      <Feedback verdict={verdict}/>
-      {practice && normalized && <div className="rounded-lg border bg-background pt-3"><EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId && `${taskId}/steps`}/></div>}
+      {normalized && (
+        <div className="rounded-lg border bg-background pt-3">
+          <EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId} strategyMode="any"/>
+        </div>
+      )}
     </Row>
   );
 }
@@ -214,6 +200,7 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
         <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} widthClass="w-72"/>
         <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
       </div>
+      <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -255,6 +242,7 @@ export function DefineTask({id, tests, solution}: {id?: string; tests: [string, 
           <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
           <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
         </div>
+        <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (
           <div className="space-y-1.5">

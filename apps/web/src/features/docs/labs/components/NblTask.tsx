@@ -1,21 +1,20 @@
 import {useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {
-  isNblValue,
   nblConstants,
   nblDepth,
   nblEquals,
   nblEvaluate,
   nblSize,
-  nblStep,
   nblSyntaxDerivation,
   NBL_SYNTAX_RULES,
   parseNbl,
   printNbl,
-  type NblStep,
   type NblTerm,
 } from "@vladyslav005/tt-core";
+import {AntlrParserAdapter, elaborateNbl, EvaluationStrategy, Evaluator} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
+import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
 import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
@@ -169,44 +168,21 @@ function TreeRow({id, index, source}: {id?: string; index: number; source: strin
   );
 }
 
+const nblParser = new AntlrParserAdapter();
+const readNbl = (text: string) => elaborateNbl(nblParser.parseExpression(`${text.trim().replace(/;$/, "")};`)).term;
+
+// The NBL rules (TAPL ch. 3) are deterministic, so steps follow call-by-value exactly.
 function EvaluateRow({id, index, source}: {id?: string; index: number; source: string}) {
-  const {t} = useTranslation();
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
-  const [accepted, setAccepted] = useState<NblStep[]>([]);
-  const [value, setValue] = useState("");
-  const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
-  const [done, setDone] = useState(false);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
-
-  const current = parsed.ok ? (accepted.length > 0 ? accepted[accepted.length - 1].term : parsed.term) : undefined;
-  const expectedStep = current && nblStep(current);
+  const evaluation = useMemo(() => {
+    if (!parsed.ok) return undefined;
+    const program = elaborateNbl(nblParser.parseExpression(`${source};`));
+    return new Evaluator().evaluate(program, EvaluationStrategy.CALL_BY_VALUE);
+  }, [parsed, source]);
   const full = parsed.ok ? nblEvaluate(parsed.term) : undefined;
-
-  const submit = () => {
-    if (!current) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
-    if (!expectedStep) return setVerdict({ok: false, kind: "noStepLeft", text: t("labWidgets.noStepLeft")});
-    const typed = parseNbl(value);
-    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
-    if (!nblEquals(typed.term, expectedStep.term)) return setVerdict({ok: false, kind: "notNextStep", text: t("labWidgets.notNextStep")});
-    setAccepted((list) => [...list, expectedStep]);
-    setValue("");
-    setVerdict({ok: true, kind: "step", text: t("labWidgets.stepRule", {rule: expectedStep.rule})});
-  };
-
-  const finish = (asValue: boolean) => {
-    if (!current) return setVerdict({ok: false, kind: "notInTerm", text: invalid ?? ""});
-    if (expectedStep) return setVerdict({ok: false, kind: "canStillReduce", text: t("labWidgets.canStillReduce")});
-    const actuallyValue = isNblValue(current);
-    if (asValue === actuallyValue) {
-      setDone(true);
-      setVerdict({ok: true, text: actuallyValue ? t("labWidgets.endedValue", {value: printNbl(current)}) : t("labWidgets.endedStuck", {term: printNbl(current)})});
-    } else {
-      setVerdict({ok: false, kind: "wrongEnding", text: t("labWidgets.tryAgain")});
-    }
-  };
-
-  const restart = () => { setAccepted([]); setValue(""); setVerdict(undefined); setDone(false); };
+  const {t} = useTranslation();
 
   return (
     <Row
@@ -225,27 +201,11 @@ function EvaluateRow({id, index, source}: {id?: string; index: number; source: s
         </ol>
       ) : invalid}
     >
-      {accepted.length > 0 && (
-        <ol className="space-y-0.5 font-mono text-xs">
-          {accepted.map((step, i) => (
-            <li key={i} className="flex gap-3">→ {printNbl(step.term)} <span className="ml-auto italic text-muted-foreground">{step.rule}</span></li>
-          ))}
-        </ol>
-      )}
-      {!done && (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={submit} placeholder={t("labWidgets.nextStepPlaceholder")}/>
-            <Button size="sm" disabled={!value.trim()} onClick={submit}>{t("labWidgets.check")}</Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={() => finish(true)}>{t("labWidgets.itIsValue")}</Button>
-            <Button size="sm" variant="outline" onClick={() => finish(false)}>{t("labWidgets.itIsStuck")}</Button>
-          </div>
-        </>
-      )}
-      {(accepted.length > 0 || done) && <Button size="sm" variant="ghost" onClick={restart}>{t("lectureWidgets.reset")}</Button>}
-      <Feedback verdict={verdict}/>
+      {evaluation ? (
+        <div className="rounded-lg border bg-background pt-3">
+          <EvaluationPractice key={source} evaluation={evaluation} typeAliases={{}} taskId={taskId} parseInput={readNbl}/>
+        </div>
+      ) : <p className="text-xs text-muted-foreground">{invalid}</p>}
     </Row>
   );
 }
