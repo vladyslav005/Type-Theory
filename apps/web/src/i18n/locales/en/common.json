@@ -430,10 +430,9 @@
     }
   },
   "extensions": {
-    "trigger": "Extensions",
-    "heading": "Active extensions",
+    "trigger": "Language",
     "stlcLabel": "Simply Typed Lambda Calculus",
-    "stlcDescription": "Always on — the base type theory",
+    "stlcDescription": "Simply typed λ-calculus, the default base. Open its submenu to switch sums, tuples, records and lists on or off.",
     "theories": {
       "nbl": {
         "label": "Numbers and booleans (NBL)",
@@ -498,7 +497,14 @@
       "lists": {
         "label": "Lists",
         "description": "nil, cons, isnil, head and tail"
-      }
+      },
+      "hint": "Choose which data types STLC includes. Hover one for its syntax."
+    },
+    "hint": "Pick the base language, then add extensions on top of STLC. Hover an item to see what it adds.",
+    "sections": {
+      "base": "Base",
+      "extensions": "Extensions",
+      "views": "Views"
     }
   },
   "layoutPresets": {

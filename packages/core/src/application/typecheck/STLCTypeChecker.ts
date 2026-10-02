@@ -330,7 +330,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const gated = FEATURE_GATES[node.kind];
     if (!gated || this.stlcFeatures[gated.feature]) return undefined;
     const rule = (Object.values(Rule) as string[]).includes(node.kind) ? node.kind as Rule : Rule.Var;
-    return this.reject(node, rule, `${gated.construct} is switched off — enable "${FEATURE_LABELS[gated.feature]}" under STLC in Extensions to use it`);
+    return this.reject(node, rule, `${gated.construct} is switched off — enable "${FEATURE_LABELS[gated.feature]}" under STLC in the Language menu to use it`);
   }
 
   // NBL is untyped: no constraints, only a gate on which syntax is allowed.

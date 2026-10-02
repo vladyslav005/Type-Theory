@@ -1,4 +1,6 @@
-import { Check, ChevronDown, FlaskConical } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, Circle, FlaskConical } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -6,6 +8,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -18,6 +22,22 @@ import { setCurryHoward, setStlcFeature, setTheoryEnabled } from "@/shared/ui-st
 
 const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl"];
 
+type Base = "stlc" | "untyped" | "nbl";
+
+function SectionLabel({children}: {children: ReactNode}) {
+  return <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{children}</DropdownMenuLabel>;
+}
+
+// Shows the description of whichever item is focused (Radix focuses items on hover), so rows stay one line.
+function DescriptionStrip({text}: {text: string}) {
+  return (
+    <>
+      <DropdownMenuSeparator />
+      <p className="min-h-[3.25rem] px-2 py-1.5 text-xs leading-snug text-muted-foreground">{text}</p>
+    </>
+  );
+}
+
 export interface TypeTheoriesDropdownProps {
   disabled?: boolean;
 }
@@ -26,14 +46,32 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
-  const exclusiveOn = enabledTheories.untyped || enabledTheories.nbl;
   const curryHoward = useAppSelector((state) => state.term.curryHoward);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
-  const baseTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
-  const composableTheories = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
+  const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : "stlc";
+  const exclusiveTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
+  const extensions = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
+  const addedCount = extensions.filter((theory) => enabledTheories[theory.id]).length + (curryHoward ? 1 : 0);
+  const enabledFeatureCount = STLC_FEATURES.filter((feature) => stlcFeatures[feature.id]).length;
+
+  const theoryLabel = (id: TypeTheoryId, fallback: string) => t(`extensions.theories.${id}.label`, fallback);
+  const theoryDescription = (id: TypeTheoryId, fallback: string) => t(`extensions.theories.${id}.description`, fallback);
+  const baseShortLabel = base === "stlc"
+    ? "STLC"
+    : t(`extensions.theories.${base}.shortLabel`, exclusiveTheories.find((theory) => theory.id === base)!.shortLabel);
+
+  const [description, setDescription] = useState<string | undefined>();
+  const [featureDescription, setFeatureDescription] = useState<string | undefined>();
+  const describe = (text: string) => ({onFocus: () => setDescription(text)});
+  const stlcDescription = t("extensions.stlcDescription");
+
+  const chooseBase = (next: string) => {
+    if (next === "stlc") EXCLUSIVE_THEORY_IDS.forEach((id) => dispatch(setTheoryEnabled({id, enabled: false})));
+    else dispatch(setTheoryEnabled({id: next as TypeTheoryId, enabled: true}));
+  };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => !open && setDescription(undefined)}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
@@ -44,94 +82,99 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
         >
           <FlaskConical className="h-3.5 w-3.5" />
           {t("extensions.trigger")}
+          <span className="text-muted-foreground">·</span>
+          <span className="font-semibold">{baseShortLabel}</span>
+          {addedCount > 0 && <span className="text-xs text-muted-foreground">+{addedCount}</span>}
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[22rem]">
-        <DropdownMenuLabel>{t("extensions.heading")}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <DropdownMenuContent align="end" className="w-64">
+        <SectionLabel>{t("extensions.sections.base")}</SectionLabel>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger
             inset
             className="relative"
-            onClick={() => exclusiveOn && EXCLUSIVE_THEORY_IDS.forEach((id) => dispatch(setTheoryEnabled({ id, enabled: false })))}
+            onClick={() => chooseBase("stlc")}
+            {...describe(stlcDescription)}
           >
             <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
-              {!exclusiveOn && <Check className="size-4 text-foreground" />}
+              {base === "stlc" && <Circle className="size-2 fill-current text-foreground" />}
             </span>
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{t("extensions.stlcLabel")}</span>
-              <span className="text-[13px] leading-snug text-muted-foreground">{t("extensions.stlcDescription")}</span>
-            </div>
-            <span className="ml-auto pl-2 text-[11px] text-muted-foreground" title={t("extensions.stlcFeatures.trigger")}>
-              {STLC_FEATURES.filter((feature) => stlcFeatures[feature.id]).length}/{STLC_FEATURES.length}
-            </span>
+            <span className="truncate">{t("extensions.stlcLabel")}</span>
+            <span className="ml-auto pl-2 text-[11px] text-muted-foreground">{enabledFeatureCount}/{STLC_FEATURES.length}</span>
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-72">
+          <DropdownMenuSubContent className="w-60">
+            <SectionLabel>{t("extensions.stlcFeatures.trigger")}</SectionLabel>
             {STLC_FEATURES.map((feature) => (
               <DropdownMenuCheckboxItem
                 key={feature.id}
                 checked={stlcFeatures[feature.id]}
-                disabled={exclusiveOn}
+                disabled={base !== "stlc"}
                 onSelect={(e) => e.preventDefault()}
+                onFocus={() => setFeatureDescription(t(`extensions.stlcFeatures.${feature.id}.description`, feature.description))}
                 onCheckedChange={(checked) => dispatch(setStlcFeature({id: feature.id, enabled: checked}))}
               >
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-medium">{t(`extensions.stlcFeatures.${feature.id}.label`, feature.label)}</span>
-                  <span className="text-[13px] leading-snug text-muted-foreground">{t(`extensions.stlcFeatures.${feature.id}.description`, feature.description)}</span>
-                </div>
+                {t(`extensions.stlcFeatures.${feature.id}.label`, feature.label)}
               </DropdownMenuCheckboxItem>
             ))}
+            <DescriptionStrip text={featureDescription ?? t("extensions.stlcFeatures.hint")}/>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
 
-        {baseTheories.map((theory) => (
-          <DropdownMenuCheckboxItem
-            key={theory.id}
-            checked={enabledTheories[theory.id]}
-            disabled={enabledTheories[theory.id] || curryHoward}
-            onSelect={(e) => e.preventDefault()}
-            onCheckedChange={(checked) => dispatch(setTheoryEnabled({ id: theory.id, enabled: checked }))}
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{t(`extensions.theories.${theory.id}.label`, theory.label)}</span>
-              <span className="text-[13px] leading-snug text-muted-foreground">{t(`extensions.theories.${theory.id}.description`, theory.description)}</span>
-            </div>
-          </DropdownMenuCheckboxItem>
-        ))}
+        <DropdownMenuRadioGroup value={base} onValueChange={chooseBase}>
+          {exclusiveTheories.map((theory) => (
+            <DropdownMenuRadioItem
+              key={theory.id}
+              value={theory.id}
+              disabled={curryHoward}
+              onSelect={(e) => e.preventDefault()}
+              {...describe(theoryDescription(theory.id, theory.description))}
+            >
+              {theoryLabel(theory.id, theory.label)}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
 
-        <DropdownMenuSeparator />
+        <AnimatePresence initial={false}>
+          {base === "stlc" && (
+            // Extensions and the logic view only exist on top of STLC.
+            <motion.div
+              key="stlc-sections"
+              initial={{height: 0, opacity: 0}}
+              animate={{height: "auto", opacity: 1}}
+              exit={{height: 0, opacity: 0}}
+              transition={{duration: 0.2, ease: "easeOut"}}
+              className="overflow-hidden"
+            >
+              <SectionLabel>{t("extensions.sections.extensions")}</SectionLabel>
+              {extensions.map((theory) => (
+                <DropdownMenuCheckboxItem
+                  key={theory.id}
+                  checked={enabledTheories[theory.id]}
+                  disabled={curryHoward}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => dispatch(setTheoryEnabled({id: theory.id, enabled: checked}))}
+                  {...describe(theoryDescription(theory.id, theory.description))}
+                >
+                  {theoryLabel(theory.id, theory.label)}
+                </DropdownMenuCheckboxItem>
+              ))}
 
-        {composableTheories.map((theory) => (
-          <DropdownMenuCheckboxItem
-            key={theory.id}
-            checked={enabledTheories[theory.id]}
-            disabled={curryHoward}
-            onSelect={(e) => e.preventDefault()}
-            onCheckedChange={(checked) => {
-              dispatch(setTheoryEnabled({ id: theory.id, enabled: checked }));
-            }}
-          >
-            <div className="flex flex-col gap-0.5">
-              <span className="font-medium">{t(`extensions.theories.${theory.id}.label`, theory.label)}</span>
-              <span className="text-[13px] leading-snug text-muted-foreground">{t(`extensions.theories.${theory.id}.description`, theory.description)}</span>
-            </div>
-          </DropdownMenuCheckboxItem>
-        ))}
+              <SectionLabel>{t("extensions.sections.views")}</SectionLabel>
+              <DropdownMenuCheckboxItem
+                checked={curryHoward}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(checked) => dispatch(setCurryHoward(checked))}
+                {...describe(t("extensions.curryHoward.description"))}
+              >
+                {t("extensions.curryHoward.label")}
+              </DropdownMenuCheckboxItem>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <DropdownMenuSeparator />
-
-        <DropdownMenuCheckboxItem
-          checked={curryHoward}
-          onSelect={(e) => e.preventDefault()}
-          onCheckedChange={(checked) => dispatch(setCurryHoward(checked))}
-        >
-          <div className="flex flex-col gap-0.5">
-            <span className="font-medium">{t("extensions.curryHoward.label")}</span>
-            <span className="text-[13px] leading-snug text-muted-foreground">{t("extensions.curryHoward.description")}</span>
-          </div>
-        </DropdownMenuCheckboxItem>
+        <DescriptionStrip text={description ?? t("extensions.hint")}/>
       </DropdownMenuContent>
     </DropdownMenu>
   );

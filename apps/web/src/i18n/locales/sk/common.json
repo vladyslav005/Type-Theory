@@ -430,10 +430,9 @@
     }
   },
   "extensions": {
-    "trigger": "Rozšírenia",
-    "heading": "Aktívne rozšírenia",
+    "trigger": "Jazyk",
     "stlcLabel": "Jednoducho typovaný lambda kalkul",
-    "stlcDescription": "Vždy zapnuté — základná typová teória",
+    "stlcDescription": "Jednoducho typovaný λ-kalkul — predvolený základ. V podmenu môžete zapínať a vypínať súčty, n-tice, záznamy a zoznamy.",
     "theories": {
       "nbl": {
         "label": "Čísla a booleovské hodnoty (NBL)",
@@ -498,7 +497,14 @@
       "lists": {
         "label": "Zoznamy",
         "description": "nil, cons, isnil, head a tail"
-      }
+      },
+      "hint": "Vyberte, ktoré dátové typy STLC obsahuje. Prejdite myšou na položku a uvidíte jej syntax."
+    },
+    "hint": "Vyberte základný jazyk a potom k STLC pridajte rozšírenia. Prejdite myšou na položku a uvidíte, čo pridáva.",
+    "sections": {
+      "base": "Základ",
+      "extensions": "Rozšírenia",
+      "views": "Zobrazenia"
     }
   },
   "layoutPresets": {
