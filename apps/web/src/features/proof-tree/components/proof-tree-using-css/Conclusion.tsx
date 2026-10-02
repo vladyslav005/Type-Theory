@@ -85,9 +85,13 @@ export const Conclusion = (props: ConclusionCenterProps) => {
             </TooltipTrigger>
             <TooltipContent
               side="bottom"
-              className="max-w-sm text-xs leading-relaxed border-destructive/30 bg-destructive/5 text-destructive dark:bg-destructive/10"
+              className="max-w-sm px-3 py-2 text-xs leading-relaxed border-destructive/50 border-l-4 border-l-destructive"
             >
-              {props.node.error}
+              <p className="mb-1 flex items-center gap-1 font-semibold text-destructive">
+                <AlertCircle className="h-3 w-3 shrink-0"/>
+                {t("conclusion.error")}
+              </p>
+              <p className="text-popover-foreground">{props.node.error}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

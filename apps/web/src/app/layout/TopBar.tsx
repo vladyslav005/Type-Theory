@@ -128,15 +128,20 @@ export function Topbar({editorRef}: TopbarProps) {
                     )}
                   </AnimatePresence>
                   <TypeTheoriesDropdown/>
-                  <div className="hidden lg:block">
-                    <LayoutPresetsDropdown/>
-                  </div>
                   <Separator orientation="vertical" className="h-6 mx-1"/>
                 </motion.div>
               )}
             </AnimatePresence>
 
             <div className="flex items-center gap-1">
+              {isEditorPage && (
+                <div className="hidden lg:block">
+                  <LayoutPresetsDropdown/>
+                </div>
+              )}
+
+              <LanguageMenu className="rounded-lg size-11 md:size-9"/>
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -144,10 +149,10 @@ export function Topbar({editorRef}: TopbarProps) {
                 className="rounded-lg size-11 md:size-9"
                 aria-label={isDarkMode ? t("topbar.themeToLight") : t("topbar.themeToDark")}
               >
-                {isDarkMode ? <Sun className="w-5 h-5"/> : <Moon className="w-5 h-5"/>}
+                {isDarkMode ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
               </Button>
 
-              <LanguageMenu className="rounded-lg size-11 md:size-9"/>
+              <Separator orientation="vertical" className="hidden md:block h-6 mx-1"/>
 
               {STUDY_MODE && (
                 <Button asChild variant="ghost" size="icon" className="relative rounded-lg size-11 md:size-9">
