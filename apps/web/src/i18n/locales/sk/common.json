@@ -1209,8 +1209,8 @@
       "title": "Súhlas so zberom údajov o používaní",
       "body": "Aby sme mohli vyhodnotiť túto aplikáciu ako učebnú pomôcku, radi by sme počas semestra zaznamenávali, ako ju používate. Zber sa začne iba vtedy, ak ho povolíte.",
       "points": [
-        "Zaznamenáva sa: kedy a ako aplikáciu používate (s dátumom a časom), vaše pokusy o riešenie úloh z cvičení a prednášok a vaše odpovede v úlohách z cvičení.",
-        "Nezaznamenáva sa: vaše meno, e-mail ani iný identifikátor, ani kód, ktorý píšete v editore mimo úloh z cvičení.",
+        "Zaznamenáva sa: kedy a ako aplikáciu používate (s dátumom a časom), vaše pokusy o riešenie úloh z cvičení a prednášok s časom stráveným pri každej, vaše odpovede v úlohách z cvičení a vaše precvičovanie v editore (precvičovaný term, ako dlho a s akým výsledkom).",
+        "Nezaznamenáva sa: vaše meno, e-mail ani iný identifikátor, ani iný kód, ktorý píšete v editore.",
         "Všetko zostáva v tomto prehliadači — nič sa nikam neodosiela.",
         "Na konci semestra si môžete súbor stiahnuť a odovzdať; či to urobíte, je na vás.",
         "Účasť je dobrovoľná a nemá vplyv na hodnotenie.",
@@ -1256,12 +1256,14 @@
         "Použité stránky, panely a komponenty prednášok",
         "Pokusy o riešenie úloh z cvičení a prednášok: výsledok, kategória chyby a zobrazenie riešenia",
         "Vaše odpovede v úlohách z cvičení — uložené, aby ste mohli pokračovať v nedokončenom cvičení, a zahrnuté v stiahnutom súbore",
+        "Čas strávený pri každej úlohe z cvičení a prednášok",
+        "Precvičovanie v editore (vyhodnocovanie a stavba dôkazov): precvičovaný term, čas začiatku, strávený čas, počet krokov a kontrol a či bolo dokončené",
         "Počet typových kontrol, chýb podľa typovacích pravidiel a vyhodnotení"
       ],
       "notCollectedTitle": "Nezaznamenávané údaje",
       "notCollected": [
         "Meno, e-mailová adresa ani iný identifikátor",
-        "Kód napísaný v editore mimo úloh z cvičení",
+        "Kód napísaný v editore okrem termov, ktoré precvičujete v jeho režimoch precvičovania",
         "IP adresa ani informácie o zariadení; žiadne údaje sa neodosielajú"
       ],
       "deleteTitle": "Vymazať všetky zaznamenané údaje?",
@@ -1285,7 +1287,8 @@
       "taskReveals_one": "riešenie zobrazené {{count}}×",
       "taskReveals_few": "riešenie zobrazené {{count}}×",
       "taskReveals_many": "riešenie zobrazené {{count}}×",
-      "taskReveals_other": "riešenie zobrazené {{count}}×"
+      "taskReveals_other": "riešenie zobrazené {{count}}×",
+      "timeSpent": "strávený čas: {{time}}"
     }
   },
   "syntaxBuilder": {

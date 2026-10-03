@@ -3,7 +3,7 @@ import {TransformComponent, TransformWrapper} from "react-zoom-pan-pinch";
 import {ArrowLeft, Crosshair, Download, Upload, ZoomIn, ZoomOut} from "lucide-react";
 import {Separator} from "@/shared/components/ui/separator.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {useMemo, useRef} from "react";
+import {useEffect, useMemo, useRef} from "react";
 import type {ChangeEvent} from "react";
 import {toast} from "sonner";
 import {exitBuildMode, loadManualProof, setManualDefinitions, setManualResults} from "@/shared/ui-state/termSlice.ts";
@@ -24,6 +24,7 @@ import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
 import {Tip} from "@/shared/components/Tip.tsx";
+import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 
 const GUIDE_STEPS = ["root", "premises", "sideConditions", "notation", "definitions", "constraints", "check", "save"];
 
@@ -40,6 +41,16 @@ export function ManualBuilder() {
     setRequireTypeVariableTick(usesConstraints);
     return parseDefinitions(manualDefinitions ?? "");
   }, [manualDefinitions, usesConstraints]);
+
+  const session = usePracticeSession("proofManual", answerKey ? termKey(answerKey.term) : "");
+  const manualResultsList = Object.values(manualResults ?? {});
+  const manualComplete = manualResultsList.length > 0 && manualResultsList.every((r) => !Object.values(r).some((v) => v === "invalid"));
+  const recordedComplete = useRef(false);
+  useEffect(() => {
+    if (!manualComplete || recordedComplete.current) return;
+    recordedComplete.current = true;
+    session.update((entry) => ({...entry, finished: true, allCorrect: true}));
+  }, [manualComplete, session]);
 
   if (!manualTree || !answerKey) return null;
 
@@ -74,10 +85,13 @@ export function ManualBuilder() {
     }
   };
 
-  const check = () => dispatch(setManualResults(checkManualTree(manualTree, answerKey, usesConstraints, parsedDefinitions.definitions)));
+  const check = () => {
+    session.update((entry) => ({...entry, checks: entry.checks + 1}));
+    dispatch(setManualResults(checkManualTree(manualTree, answerKey, usesConstraints, parsedDefinitions.definitions)));
+  };
 
   return (
-    <div className="w-full h-full flex flex-col space-y-4">
+    <div className="w-full h-full flex flex-col space-y-4" {...session.activityProps}>
       <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
         <div className="flex items-center gap-3 min-w-0">
           <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>

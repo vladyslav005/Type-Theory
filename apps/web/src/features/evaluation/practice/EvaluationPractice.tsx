@@ -17,6 +17,7 @@ import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import type {FeedbackMessage} from "@/features/proof-tree/feedback/feedback.ts";
 import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
 import {trackPractice} from "@/shared/activity/taskTracking.ts";
+import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 interface EvaluationPracticeProps {
@@ -98,6 +99,9 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
   const [caretRequest, setCaretRequest] = useState<{position: number; id: number} | undefined>();
 
   const startTerm: Term = evaluation.steps[0]?.before ?? evaluation.result;
+  // Lab tasks are tracked per task; practice in the editor is recorded as its own session with the term.
+  const session = usePracticeSession("evaluation", termKey(startTerm), strategyMode === "any" ? "any" : strategy);
+  const practiceProps = taskId ? {} : session.activityProps;
   const input = drafts[cursor] ?? rows[cursor]?.text ?? "";
   const setInput = (text: string) => setDrafts((d) => ({...d, [cursor]: text}));
   const history = useUndoableText(input, setInput);
@@ -217,6 +221,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     const written = read(text);
     if (!written) return;
     trackPractice(taskId, {type: "step", ok: accepts(position, written)});
+    if (!taskId) session.update((entry) => ({...entry, steps: (entry.steps ?? 0) + 1}));
     const updated = [...rows];
     updated[cursor] = {text, term: written};
     setRows(updated);
@@ -246,6 +251,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     if (!text) return;
     const written = read(text);
     if (!written) return;
+    if (!taskId) session.update((entry) => ({...entry, checks: entry.checks + 1}));
     if (accepts(position, written)) {
       trackPractice(taskId, {type: "check", outcome: "match"});
       setHintOk(true);
@@ -260,6 +266,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
   const decide = (claim: Ending) => {
     const allCorrect = rows.every((_, i) => isCorrect(i)) && claim === actualEnding;
     trackPractice(taskId, {type: "completed", allCorrect});
+    if (!taskId) session.update((entry) => ({...entry, finished: true, allCorrect}));
     setEnding(claim);
     setFeedback([]);
     setHintOk(false);
@@ -462,7 +469,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
 
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
-      <div className="w-full h-full flex flex-col gap-4 px-4 pb-4">
+      <div className="w-full h-full flex flex-col gap-4 px-4 pb-4" {...practiceProps}>
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/30 p-3">
           <p className="text-sm text-muted-foreground">
             {finished ? t("evalPractice.finishedSteps", {count: rows.length}) : t("evalPractice.stepsMade", {count: rows.length})}

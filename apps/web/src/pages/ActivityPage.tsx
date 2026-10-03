@@ -45,6 +45,13 @@ function summarize(data: ActivityData) {
   return {activeSeconds, weeksActive, attempted: attempted.size, solved: solved.size, scopes: [...byScope.values()]};
 }
 
+// Compact duration for progress rows: "45 s", "12 min", "1 h 05 min".
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${Math.round(seconds)} s`;
+  const minutes = Math.round(seconds / 60);
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")} min`;
+}
+
 function formatAt(at: string | undefined, language: string) {
   if (!at) return undefined;
   const date = new Date(at);
@@ -70,6 +77,7 @@ function LabProgressCard({lab, title}: {lab: LabStatus; title: string}) {
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
             {last ? t("activity.page.lastActivity", {at: last}) : t("activity.page.notStarted")}
+            {lab.seconds > 0 && ` · ${t("activity.page.timeSpent", {time: formatDuration(lab.seconds)})}`}
           </p>
         </summary>
         <ul className="divide-y border-t text-xs">
@@ -84,6 +92,7 @@ function LabProgressCard({lab, title}: {lab: LabStatus; title: string}) {
               <span className="shrink-0 tabular-nums text-muted-foreground">
                 {task.items > 1 ? t("activity.page.taskItems", {solved: task.solvedItems, total: task.items}) : task.done ? t("activity.page.taskDone") : ""}
                 {task.started && ` · ${t("activity.page.taskAttempts", {count: task.attempts})}`}
+                {task.seconds > 0 && ` · ${formatDuration(task.seconds)}`}
                 {task.reveals > 0 && ` · ${t("activity.page.taskReveals", {count: task.reveals})}`}
                 {task.lastAt && ` · ${formatAt(task.lastAt, i18n.language)}`}
               </span>
@@ -110,7 +119,7 @@ export function ActivityPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const collecting = consent === "granted";
   const summary = useMemo(() => summarize(data), [data]);
-  const labs = useMemo(() => LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts)), [data.attempts]);
+  const labs = useMemo(() => LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts, data.taskSeconds)), [data.attempts, data.taskSeconds]);
   const lectureScopes = summary.scopes.filter((scope) => scope.scope.startsWith("lecture:"));
   // Saved answers join the file only with consent, like everything else in it.
   const exported = useMemo(

@@ -1,4 +1,4 @@
-import {useMemo} from "react";
+import {useEffect, useMemo, useRef} from "react";
 import {useTranslation} from "react-i18next";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {checkProof, clearProofChecks, enterBuildMode, exitBuildMode} from "@/shared/ui-state/termSlice.ts";
@@ -18,6 +18,8 @@ import {env} from "@/shared/lib/env.ts";
 import {ManualBuilder} from "@/features/proof-tree/manual/ManualBuilder.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Tip} from "@/shared/components/Tip.tsx";
+import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
+import {termKey} from "@/shared/lib/manualParse.ts";
 
 export function ProofTreeBuilder() {
   const {t} = useTranslation();
@@ -26,6 +28,17 @@ export function ProofTreeBuilder() {
   const proof = useAppSelector((state) => state.term.proof);
   // Hook must run unconditionally, before the early return below.
   const registry = useMemo(() => (answerKey ? buildGammaRegistry(answerKey) : new GammaRegistry()), [answerKey]);
+  const session = usePracticeSession("proofSemi", answerKey ? termKey(answerKey.term) : "");
+  const complete = mode !== "manual" && !!studentTree && (() => {
+    const counts = summarizeStudentTree(studentTree);
+    return counts.total > 0 && counts.valid === counts.total;
+  })();
+  const recordedComplete = useRef(false);
+  useEffect(() => {
+    if (!complete || recordedComplete.current) return;
+    recordedComplete.current = true;
+    session.update((entry) => ({...entry, finished: true, allCorrect: true}));
+  }, [complete, session]);
 
   if (mode === "manual" && answerKey) return <ManualBuilder/>;
 
@@ -72,7 +85,7 @@ export function ProofTreeBuilder() {
   const summary = summarizeStudentTree(studentTree);
 
   return (
-    <div className="w-full h-full flex flex-col space-y-4">
+    <div className="w-full h-full flex flex-col space-y-4" {...session.activityProps}>
       <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
         <div className="flex items-center gap-3 min-w-0">
           <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
@@ -94,7 +107,7 @@ export function ProofTreeBuilder() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => dispatch(checkProof())}>{t("proofBuilder.checkProof")}</Button>
+          <Button size="sm" onClick={() => { session.update((entry) => ({...entry, checks: entry.checks + 1})); dispatch(checkProof()); }}>{t("proofBuilder.checkProof")}</Button>
           {hasChecks(studentTree) && (
             <Button size="sm" variant="outline" onClick={() => dispatch(clearProofChecks())}>{t("manualBuilder.clearMarks")}</Button>
           )}

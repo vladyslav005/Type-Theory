@@ -21,7 +21,7 @@ export interface WeekStats {
   buildMode: {entered: Counts; checks: number; ok: Counts; wrong: Counts; messages: Counts; completed: Counts; checksToComplete: Counts};
   evalPractice: {ok: number; wrong: number; unreadable: number; checks: Counts; reveals: Counts; completed: number; completedAllCorrect: number};
   lectureWidgets: Counts;
-  sessions: {mobile: number; desktop: number};
+  sessions: number;
 }
 
 // sec = seconds since this task's first recorded event; at = local date and time of the attempt.
@@ -43,10 +43,27 @@ export interface ActivityEvent {
   detail: string;
 }
 
+// One practice run in the editor (not a lab task): the term practised, when, for how long, and how it went.
+export interface PracticeSession {
+  id: string;
+  mode: "evaluation" | "proofSemi" | "proofManual" | "syntaxDerivation";
+  term: string;
+  strategy?: string;
+  startedAt: string;
+  seconds: number;
+  steps?: number;
+  checks: number;
+  finished?: boolean;
+  allCorrect?: boolean;
+}
+
 export interface ActivityData {
   weeks: Record<string, WeekStats>;
   attempts: Attempt[];
   events: ActivityEvent[];
+  // Active seconds per lab/lecture task id.
+  taskSeconds: Record<string, number>;
+  practice: PracticeSession[];
   truncated?: true;
 }
 
@@ -58,7 +75,7 @@ interface StoredActivity {
   failureStreak: number;
 }
 
-const emptyData = (): ActivityData => ({weeks: {}, attempts: [], events: []});
+const emptyData = (): ActivityData => ({weeks: {}, attempts: [], events: [], taskSeconds: {}, practice: []});
 
 const emptyWeek = (): WeekStats => ({
   activeSeconds: 0,
@@ -71,7 +88,7 @@ const emptyWeek = (): WeekStats => ({
   buildMode: {entered: {}, checks: 0, ok: {}, wrong: {}, messages: {}, completed: {}, checksToComplete: {}},
   evalPractice: {ok: 0, wrong: 0, unreadable: 0, checks: {}, reveals: {}, completed: 0, completedAllCorrect: 0},
   lectureWidgets: {},
-  sessions: {mobile: 0, desktop: 0},
+  sessions: 0,
 });
 
 export function isoWeek(date = new Date()): string {
@@ -176,9 +193,34 @@ export function recordWeek(update: (week: WeekStats, internal: {failureStreak: n
   if (!isCollecting()) return;
   const key = isoWeek();
   const week = withDefaults(emptyWeek(), structuredClone(state.data.weeks[key]));
+  // Weeks stored before sessions became a single count kept a mobile/desktop split.
+  const storedSessions = week.sessions as unknown;
+  if (typeof storedSessions === "object" && storedSessions !== null) {
+    week.sessions = Object.values(storedSessions as Record<string, number>).reduce((sum, n) => sum + (n || 0), 0);
+  }
   const internal = {failureStreak: state.failureStreak};
   update(week, internal);
   state = {...state, failureStreak: internal.failureStreak, data: {...state.data, weeks: {...state.data.weeks, [key]: week}}};
+  changed();
+}
+
+export function addTaskSeconds(task: string, seconds: number) {
+  if (!isCollecting()) return;
+  state = {...state, data: {...state.data, taskSeconds: {...state.data.taskSeconds, [task]: (state.data.taskSeconds[task] ?? 0) + seconds}}};
+  changed();
+}
+
+export function startPracticeSession(session: Omit<PracticeSession, "id" | "startedAt" | "seconds" | "checks">): string | undefined {
+  if (!isCollecting() || state.data.practice.length >= MAX_ATTEMPTS) return undefined;
+  const entry: PracticeSession = {id: crypto.randomUUID(), startedAt: localTimestamp(), seconds: 0, checks: 0, ...session};
+  state = {...state, data: {...state.data, practice: [...state.data.practice, entry]}};
+  changed();
+  return entry.id;
+}
+
+export function updatePracticeSession(id: string | undefined, update: (session: PracticeSession) => PracticeSession) {
+  if (!id || !isCollecting()) return;
+  state = {...state, data: {...state.data, practice: state.data.practice.map((session) => (session.id === id ? update(session) : session))}};
   changed();
 }
 
@@ -209,6 +251,7 @@ export function recordAttempt(attempt: Omit<Attempt, "week" | "sec" | "at">) {
 }
 
 export interface TaskProgress {
+  seconds: number;
   attempts: number;
   solved: boolean;
   reveals: number;
@@ -217,12 +260,12 @@ export interface TaskProgress {
 }
 
 // Per lab (or lecture) scope, per task: how far the student got, derived from the attempt log.
-export function taskProgress(attempts: Attempt[]): Record<string, Record<string, TaskProgress>> {
+export function taskProgress(attempts: Attempt[], taskSeconds: Record<string, number> = {}): Record<string, Record<string, TaskProgress>> {
   const progress: Record<string, Record<string, TaskProgress>> = {};
   for (const attempt of attempts) {
     const [scope, ...rest] = attempt.task.split("/");
     const task = rest.join("/");
-    const entry = (progress[scope] ??= {})[task] ??= {attempts: 0, solved: false, reveals: 0, firstAt: attempt.at, lastAt: attempt.at};
+    const entry = (progress[scope] ??= {})[task] ??= {seconds: taskSeconds[attempt.task] ?? 0, attempts: 0, solved: false, reveals: 0, firstAt: attempt.at, lastAt: attempt.at};
     if (attempt.reveal) entry.reveals += 1;
     else entry.attempts += 1;
     if (attempt.ok) entry.solved = true;
@@ -238,7 +281,7 @@ export function buildExport(data: ActivityData, language: string, work: Record<s
     exportedAt: localTimestamp(),
     exportedWeek: isoWeek(),
     language,
-    progress: taskProgress(data.attempts),
+    progress: taskProgress(data.attempts, data.taskSeconds),
     work,
     ...data,
   };

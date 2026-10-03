@@ -8,7 +8,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
+import {astToText, isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -257,6 +257,7 @@ export function ProofTreeVisualisation({
               <SyntaxDerivationBuilder
                 key={ast?.term?.id ?? "none"}
                 goal={goalFromTexTree(syntaxTree)}
+                term={ast?.term ? astToText({kind: "Program", id: "syntax-term", globals: [], term: ast.term}).replace(/;\s*$/, "") : ""}
                 rules={enabledTheories.nbl ? NBL_SYNTAX_RULES : UNTYPED_SYNTAX_RULES}
                 onNodeHover={handleNodeHover}
               />

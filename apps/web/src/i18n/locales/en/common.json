@@ -1195,8 +1195,8 @@
       "title": "Consent to usage data collection",
       "body": "To evaluate this app as a teaching tool, we'd like to record how you use it during the semester. Collection starts only if you allow it.",
       "points": [
-        "Recorded: when and how you use the app (with date and time), your attempts at lab and lecture tasks, and your answers in lab tasks.",
-        "Not recorded: your name, e-mail or any other identifier, or code you write in the editor outside lab tasks.",
+        "Recorded: when and how you use the app (with date and time), your attempts at lab and lecture tasks with the time spent on each, your answers in lab tasks, and your practice in the editor (the term practised, how long and how it went).",
+        "Not recorded: your name, e-mail or any other identifier, or other code you write in the editor.",
         "Everything stays in this browser — nothing is sent anywhere.",
         "At the end of the semester you can download the file and hand it in; whether you do is up to you.",
         "Taking part is voluntary and has no effect on your grade.",
@@ -1242,12 +1242,14 @@
         "Pages, panels and lecture components used",
         "Lab and lecture task attempts: result, category of error, and whether the solution was displayed",
         "Your answers in lab tasks — saved so you can continue an unfinished lab, and included in the downloaded file",
+        "Time spent on each lab and lecture task",
+        "Practice in the editor (evaluation and proof-building modes): the term practised, start time, time spent, number of steps and checks, and whether it was finished",
         "Number of type checks, errors by typing rule, and evaluations"
       ],
       "notCollectedTitle": "Data not recorded",
       "notCollected": [
         "Name, e-mail address or any other identifier",
-        "Code written in the editor outside lab tasks",
+        "Code written in the editor, apart from the terms you practise on in its practice modes",
         "IP address or device information; no data is transmitted"
       ],
       "deleteTitle": "Delete all recorded data?",
@@ -1267,7 +1269,8 @@
       "taskAttempts_one": "{{count}} attempt",
       "taskAttempts_other": "{{count}} attempts",
       "taskReveals_one": "solution shown {{count}}×",
-      "taskReveals_other": "solution shown {{count}}×"
+      "taskReveals_other": "solution shown {{count}}×",
+      "timeSpent": "time spent: {{time}}"
     }
   },
   "syntaxBuilder": {

@@ -1,5 +1,5 @@
 import {createContext, useContext, useEffect} from "react";
-import {bump, isCollecting, recordWeek} from "@/shared/activity/activityStore.ts";
+import {addTaskSeconds, bump, isCollecting, recordWeek, updatePracticeSession} from "@/shared/activity/activityStore.ts";
 
 const TICK_MS = 15000;
 const IDLE_AFTER_MS = 2 * 60 * 1000;
@@ -7,6 +7,8 @@ const IDLE_AFTER_MS = 2 * 60 * 1000;
 let lastInteraction = Date.now();
 let started = false;
 const activeViews = new Map<string, number>();
+// What the student is working on right now: a lab/lecture task id or an editor practice session.
+let workTarget: {kind: "task" | "practice"; id: string} | undefined;
 
 function tick() {
   if (!isCollecting() || document.visibilityState !== "visible") return;
@@ -16,6 +18,13 @@ function tick() {
     week.activeSeconds += seconds;
     activeViews.forEach((_, view) => bump(week.viewSeconds, view, seconds));
   });
+  if (workTarget?.kind === "task") addTaskSeconds(workTarget.id, seconds);
+  if (workTarget?.kind === "practice") updatePracticeSession(workTarget.id, (session) => ({...session, seconds: session.seconds + seconds}));
+}
+
+// A click or key press inside a task/practice claims the time; one anywhere else (captured first) releases it.
+export function setWorkTarget(kind: "task" | "practice", id: string | undefined) {
+  workTarget = id ? {kind, id} : undefined;
 }
 
 export function startActivityClock() {
@@ -24,6 +33,8 @@ export function startActivityClock() {
   const touch = () => { lastInteraction = Date.now(); };
   ["pointerdown", "keydown", "wheel", "scroll", "touchstart"].forEach((event) =>
     window.addEventListener(event, touch, {passive: true, capture: true}));
+  ["pointerdown", "keydown"].forEach((event) =>
+    window.addEventListener(event, () => { workTarget = undefined; }, {passive: true, capture: true}));
   setInterval(tick, TICK_MS);
 }
 

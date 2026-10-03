@@ -6,6 +6,7 @@ import {cn} from "@/shared/lib/utils.ts";
 import {termLabel} from "@/features/docs/labs/components/nblTermLabel.ts";
 import type {Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackReveal} from "@/shared/activity/taskTracking.ts";
+import {setWorkTarget} from "@/shared/activity/activityClock.ts";
 import {getSavedWork, useSavedState} from "@/shared/activity/savedWork.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 
@@ -28,7 +29,11 @@ export function Row({index, source, children, solution, taskId}: {index: number;
   const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null);
   return (
     <RowActionSlot.Provider value={actionSlot}>
-    <li className="space-y-2 rounded-lg border bg-muted/10 p-3">
+    <li
+      className="space-y-2 rounded-lg border bg-muted/10 p-3"
+      onPointerDown={() => setWorkTarget("task", taskId)}
+      onKeyDown={() => setWorkTarget("task", taskId)}
+    >
       {source !== undefined && (
         <div className="flex items-start gap-3 font-mono text-sm">
           <span className="w-6 shrink-0 text-muted-foreground">{termLabel(index)}</span>

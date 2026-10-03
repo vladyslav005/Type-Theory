@@ -22,9 +22,8 @@ export function useActivitySession() {
   useEffect(() => {
     if (sessionRecorded || !isCollecting()) return;
     sessionRecorded = true;
-    const mobile = window.matchMedia("(max-width: 767px)").matches;
-    recordWeek((week) => { week.sessions[mobile ? "mobile" : "desktop"]++; });
-    recordEvent("session", mobile ? "mobile" : "desktop");
+    recordWeek((week) => { week.sessions++; });
+    recordEvent("session", "");
   }, [consent]);
 
   useEffect(() => {
