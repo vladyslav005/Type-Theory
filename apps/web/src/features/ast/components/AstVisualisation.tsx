@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import type {ChangeEvent} from "react";
 import {useTranslation} from "react-i18next";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
@@ -11,6 +11,7 @@ import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Ast} from "@/features/ast/components/ast/Ast.tsx";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
 import {AstNodePaletteDropdowns} from "@/features/ast/components/ast-editor/AstNodePaletteDropdowns.tsx";
+import {languageNodeTypes} from "@/features/ast/components/ast-editor/languageNodeTypes.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {ButtonGroup, ButtonGroupSeparator} from "@/shared/components/ui/button-group.tsx";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
@@ -43,6 +44,10 @@ export function AstVisualisation({
                                  }: AstVisualisationProps) {
   const {t} = useTranslation();
   const viewerAst = useAppSelector((state) => state.term.ast);
+  const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
+  const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
+  // The palette follows the Language menu, so it only offers nodes the current language can use.
+  const allowedNodeTypes = useMemo(() => languageNodeTypes(enabledTheories, stlcFeatures), [enabledTheories, stlcFeatures]);
   const hasViewerAst = viewerAst !== null && viewerAst !== undefined;
   const containerRef = useRef<HTMLDivElement>(null);
   const astEditorRef = useRef<AstEditorHandle>(null);
@@ -170,7 +175,7 @@ export function AstVisualisation({
                 <TooltipProvider>
                   <div className="flex items-center gap-3">
                     <ButtonGroup>
-                      <AstNodePaletteDropdowns onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)}/>
+                      <AstNodePaletteDropdowns onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)} allowedTypes={allowedNodeTypes}/>
                     </ButtonGroup>
 
                     <ButtonGroupSeparator className="h-6" />
@@ -285,7 +290,7 @@ export function AstVisualisation({
             <div className="h-full flex flex-col">
               <div className="flex-1 rounded-b-xl border overflow-hidden bg-muted/30">
                 <ReactFlowProvider>
-                  <AstEditor ref={astEditorRef} graph={graph} setGraph={setGraph} AST={editorAst} setAST={setEditorAst}/>
+                  <AstEditor ref={astEditorRef} graph={graph} setGraph={setGraph} AST={editorAst} setAST={setEditorAst} allowedTypes={allowedNodeTypes}/>
                 </ReactFlowProvider>
               </div>
               {env.VITE_SHOW_DEBUG_DATA && (

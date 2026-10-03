@@ -67,6 +67,10 @@ export interface AstProps {
   AST: Program,
   editorRef?: RefObject<TextEditorHandle | null>,
   highlightOnHover?: boolean,
+  // Read-only view of a bare term (e.g. a lab solution), without the Program root.
+  termOnly?: boolean;
+  // Bare view without the minimap/center buttons, e.g. a lab solution.
+  hideControls?: boolean;
 }
 
 function TypeFlowNodeDispatch(props: any) {
@@ -192,6 +196,8 @@ export function Ast({
   AST,
   editorRef,
   highlightOnHover = false,
+  termOnly = false,
+  hideControls = false,
 } : AstProps) {
   const { mapAstToFlow } = useMapAstToFlow()
   const { resolvedTheme } = useTheme();
@@ -214,13 +220,16 @@ export function Ast({
   }, [highlightOnHover, editorRef]);
 
   useEffect(() => {
-    const newGraph = mapAstToFlow();
-    const layoutGraph = layoutAstFlow(newGraph.nodes, newGraph.edges);
-    if (newGraph) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setGraph(layoutGraph);
-      setFitToken((t) => t + 1);
-    }
+    const newGraph = mapAstToFlow(AST);
+    if (!newGraph.nodes) return;
+    const programIds = new Set(termOnly ? newGraph.nodes.filter((node) => node.type === "program").map((node) => node.id) : []);
+    const layoutGraph = layoutAstFlow(
+      newGraph.nodes.filter((node) => !programIds.has(node.id)),
+      newGraph.edges.filter((edge) => !programIds.has(edge.source)),
+    );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGraph(layoutGraph);
+    setFitToken((t) => t + 1);
   }, [AST]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onNodesChange = useCallback(
@@ -260,12 +269,14 @@ export function Ast({
         fitView
       >
         <FitViewOnAstChange token={fitToken} />
-        <Panel position="top-right">
-          <div className="flex gap-2">
-            <MiniMapToggleButton showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />
-            <CenterViewButton />
-          </div>
-        </Panel>
+        {!hideControls && (
+          <Panel position="top-right">
+            <div className="flex gap-2">
+              <MiniMapToggleButton showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />
+              <CenterViewButton />
+            </div>
+          </Panel>
+        )}
         <Background />
         {showMiniMap && <MiniMap
           className="bg-background! border-border!"

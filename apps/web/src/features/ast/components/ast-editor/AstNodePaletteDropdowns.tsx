@@ -46,18 +46,17 @@ export function AstNodePaletteDropdowns({onInsert, allowedTypes}: AstNodePalette
               <div key={group.label}>
                 {index > 0 && <DropdownMenuSeparator/>}
                 <DropdownMenuLabel className="text-xs text-muted-foreground">{t(`astNodes.groups.${group.label}`, group.label)}</DropdownMenuLabel>
-                <div className="flex flex-wrap gap-1 px-2 pb-2">
+                <div className="flex flex-col px-1 pb-1">
                   {group.items.map((item) => (
-                    <Button
+                    <button
                       key={item.type}
-                      size="sm"
-                      variant="outline"
-                      title={t(`astNodes.items.${item.type}`, item.title)}
-                      className="h-7 px-2 font-mono font-bold text-xs"
+                      type="button"
+                      className="flex items-center gap-2 rounded-sm px-2 py-1 text-left text-xs hover:bg-accent hover:text-accent-foreground"
                       onClick={() => onInsert(item.type)}
                     >
-                      {item.label}
-                    </Button>
+                      <span className="w-12 shrink-0 rounded border bg-muted/40 px-1 text-center font-mono font-bold">{item.label}</span>
+                      <span>{t(`astNodes.items.${item.type}`, item.title)}</span>
+                    </button>
                   ))}
                 </div>
               </div>

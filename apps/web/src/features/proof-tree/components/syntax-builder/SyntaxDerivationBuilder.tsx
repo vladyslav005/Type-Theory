@@ -3,6 +3,7 @@ import {useTranslation} from "react-i18next";
 import type {SourcePosition} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {SyntaxDerivationTree} from "./SyntaxDerivationTree.tsx";
+import {PanZoomCanvas} from "@/features/proof-tree/components/PanZoomCanvas.tsx";
 import {syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "./syntaxGoal.ts";
 
 interface SyntaxDerivationBuilderProps {
@@ -43,18 +44,16 @@ export function SyntaxDerivationBuilder({goal, rules, onNodeHover}: SyntaxDeriva
           <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setChecked(false); }}>{t("lectureWidgets.reset")}</Button>
         </div>
       </div>
-      <div className="flex-1 w-full rounded-xl bg-muted/30 border overflow-auto">
-        <div className="min-w-fit min-h-full flex items-center justify-center p-8">
-          <SyntaxDerivationTree
-            goal={goal}
-            choices={choices}
-            rules={rules}
-            onChoose={choose}
-            showVerdicts={checked}
-            onNodeHover={onNodeHover}
-          />
-        </div>
-      </div>
+      <PanZoomCanvas className="flex-1">
+        <SyntaxDerivationTree
+          goal={goal}
+          choices={choices}
+          rules={rules}
+          onChoose={choose}
+          showVerdicts={checked}
+          onNodeHover={onNodeHover}
+        />
+      </PanZoomCanvas>
     </div>
   );
 }

@@ -752,12 +752,37 @@ function reconstruct(node: AstFlowNode, nodeMap: NodeMap, edges: Edge[], visitin
   }
 }
 
+const isTermKind = (kind: unknown) =>
+  typeof kind === "string" && !kind.startsWith("Ty") && !kind.endsWith("Type") && !kind.startsWith("Kind");
+
+// With several unconnected candidates the largest tree wins; the others count as loose nodes.
+function rootTermNode(graph: AstFlowGraph): AstFlowGraph["nodes"][number] | undefined {
+  const hasParent = new Set(graph.edges.map((edge) => edge.target));
+  const childrenOf = new Map<string, string[]>();
+  graph.edges.forEach((edge) => childrenOf.set(edge.source, [...(childrenOf.get(edge.source) ?? []), edge.target]));
+  const size = (id: string, seen = new Set<string>()): number => {
+    if (seen.has(id)) return 0;
+    seen.add(id);
+    return 1 + (childrenOf.get(id) ?? []).reduce((sum, child) => sum + size(child, seen), 0);
+  };
+  return graph.nodes
+    .filter((node) => !hasParent.has(node.id) && isTermKind((node.data as {term?: {kind?: unknown}})?.term?.kind))
+    .sort((a, b) => size(b.id) - size(a.id))[0];
+}
+
 export function graphToAst(graph: AstFlowGraph): Program {
   const programNode = graph.nodes.find((n) => n.type === "program");
   const nodeMap: NodeMap = new Map(graph.nodes.map((n) => [n.id, n] as const));
 
   if (!programNode) {
-    return { id: `program-${Date.now()}`, kind: "Program", globals: [] };
+    // Builders without declarations have no Program node: the root term is a node nothing points into.
+    const root = rootTermNode(graph);
+    return {
+      id: "program-rootless",
+      kind: "Program",
+      globals: [],
+      ...(root ? {term: reconstruct(root, nodeMap, graph.edges, new Set()) as Term} : {}),
+    };
   }
 
   return reconstruct(programNode, nodeMap, graph.edges, new Set()) as Program;

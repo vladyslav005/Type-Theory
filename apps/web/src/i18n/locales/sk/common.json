@@ -688,7 +688,8 @@
       "System Fω": "System Fω",
       "System λP": "System λP",
       "Kinds": "Druhy",
-      "Decls": "Deklar."
+      "Decls": "Deklar.",
+      "Numbers & booleans (NBL)": "Čísla a booleovské hodnoty (NBL)"
     },
     "items": {
       "abstraction": "Abstrakcia (λx.e)",
@@ -737,7 +738,10 @@
       "kindArrow": "Funkčný druh (K→K, alebo T→K pre závislý druh v System λP)",
       "funDecl": "Deklarácia funkcie",
       "varDecl": "Deklarácia premennej",
-      "typeAliasDecl": "Typový alias (typedef X = T)"
+      "typeAliasDecl": "Typový alias (typedef X = T)",
+      "succ": "Nasledovník (succ t)",
+      "pred": "Predchodca (pred t)",
+      "iszero": "Test nuly (iszero t)"
     }
   },
   "astEditor": {

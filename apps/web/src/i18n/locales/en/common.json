@@ -688,7 +688,8 @@
       "System Fω": "System Fω",
       "System λP": "System λP",
       "Kinds": "Kinds",
-      "Decls": "Decls"
+      "Decls": "Decls",
+      "Numbers & booleans (NBL)": "Numbers & booleans (NBL)"
     },
     "items": {
       "abstraction": "Abstraction (λx.e)",
@@ -737,7 +738,10 @@
       "kindArrow": "Function Kind (K→K, or T→K for a System λP dependent kind)",
       "funDecl": "Function Declaration",
       "varDecl": "Variable Declaration",
-      "typeAliasDecl": "Type Alias (typedef X = T)"
+      "typeAliasDecl": "Type Alias (typedef X = T)",
+      "succ": "Successor (succ t)",
+      "pred": "Predecessor (pred t)",
+      "iszero": "Zero test (iszero t)"
     }
   },
   "astEditor": {

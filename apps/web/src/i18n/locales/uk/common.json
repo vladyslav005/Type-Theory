@@ -688,7 +688,8 @@
       "System Fω": "System Fω",
       "System λP": "System λP",
       "Kinds": "Роди",
-      "Decls": "Оголош."
+      "Decls": "Оголош.",
+      "Numbers & booleans (NBL)": "Числа та булеві значення (NBL)"
     },
     "items": {
       "abstraction": "Абстракція (λx.e)",
@@ -737,7 +738,10 @@
       "kindArrow": "Функціональний рід (K→K, або T→K для залежного роду в System λP)",
       "funDecl": "Оголошення функції",
       "varDecl": "Оголошення змінної",
-      "typeAliasDecl": "Псевдонім типу (typedef X = T)"
+      "typeAliasDecl": "Псевдонім типу (typedef X = T)",
+      "succ": "Наступник (succ t)",
+      "pred": "Попередник (pred t)",
+      "iszero": "Перевірка на нуль (iszero t)"
     }
   },
   "astEditor": {
