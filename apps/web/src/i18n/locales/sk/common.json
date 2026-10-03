@@ -1317,6 +1317,8 @@
     "doesNotFitTooltip": "Toto pravidlo nezodpovedá tvaru termu, preto sa nedá rozložiť na predpoklady. Kliknite a vyberte iné pravidlo."
   },
   "feedbackPage": {
+    "button": "Spätná väzba",
+    "aria": "Poslať spätnú väzbu",
     "metaTitle": "Spätná väzba — tt",
     "title": "Spätná väzba",
     "intro": "Pomôžte zlepšiť túto aplikáciu — vyplňte dotazník alebo pošlite nápad priamo vývojárovi.",

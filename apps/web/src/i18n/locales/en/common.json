@@ -1295,6 +1295,8 @@
     "doesNotFitTooltip": "This rule doesn't match the term's shape, so it can't be split into premises. Click to pick another rule."
   },
   "feedbackPage": {
+    "button": "Feedback",
+    "aria": "Give feedback",
     "metaTitle": "Feedback — tt",
     "title": "Feedback",
     "intro": "Help make this app better — fill in a questionnaire or send an idea straight to the developer.",
