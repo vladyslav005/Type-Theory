@@ -752,7 +752,12 @@
     "centerView": "Vycentrovať",
     "clearAll": "Vymazať všetky uzly a hrany",
     "duplicate": "Duplikovať",
-    "delete": "Odstrániť"
+    "delete": "Odstrániť",
+    "marqueeOn": "Výber obdĺžnikom: zapnutý — ťahaním vyberiete, stredným/pravým tlačidlom posúvate",
+    "marqueeOff": "Výber obdĺžnikom: vypnutý — ťahaním posúvate, Shift+ťahanie vyberá",
+    "deleteSelection": "Zmazať výber (Del)",
+    "showMinimap": "Zobraziť minimapu",
+    "hideMinimap": "Skryť minimapu"
   },
   "evaluationPanel": {
     "gammaContext": "Kontext Γ",
@@ -1135,7 +1140,24 @@
       "note": "Čítajte zdola nahor: ak platia všetky predpoklady nad čiarou, platí aj záver pod ňou. Názov je len označenie pravidla."
     },
     "trace": "Kroky redukcie",
-    "diverges": "Vyhodnotenie sa nezastavilo — prerušili sme ho po {{count}} krokoch. Tento term sa pri tejto stratégii redukuje donekonečna (diverguje)."
+    "diverges": "Vyhodnotenie sa nezastavilo — prerušili sme ho po {{count}} krokoch. Tento term sa pri tejto stratégii redukuje donekonečna (diverguje).",
+    "astCheck": {
+      "correct": "Všetky uzly sú správne — strom zodpovedá termu.",
+      "wrong_one": "{{count}} uzol nesedí.",
+      "wrong_few": "{{count}} uzly nesedia.",
+      "wrong_many": "{{count}} uzla nesedí.",
+      "wrong_other": "{{count}} uzlov nesedí.",
+      "missing_one": "{{count}} miesto je ešte prázdne.",
+      "missing_few": "{{count}} miesta sú ešte prázdne.",
+      "missing_many": "{{count}} miesta je ešte prázdneho.",
+      "missing_other": "{{count}} miest je ešte prázdnych.",
+      "loose_one": "{{count}} uzol nie je pripojený k stromu.",
+      "loose_few": "{{count}} uzly nie sú pripojené k stromu.",
+      "loose_many": "{{count}} uzla nie je pripojeného k stromu.",
+      "loose_other": "{{count}} uzlov nie je pripojených k stromu."
+    },
+    "astHelp": "Ako zostaviť strom",
+    "astAddFirst": "Pridajte prvý uzol — stane sa koreňom termu"
   },
   "docsLab": {
     "lab": "Cvičenie",
@@ -1146,7 +1168,6 @@
     "notTranslatedMessage": "Toto cvičenie zatiaľ nie je dostupné vo vašom jazyku — zobrazuje sa verzia: {{language}}."
   },
   "labWidgets": {
-    "pickNode": "vyberte…",
     "check": "Skontrolovať",
     "tryAgain": "Ešte nie — skúste znova.",
     "correct": "Správne.",
@@ -1173,7 +1194,9 @@
     "runTests": "Spustiť testy",
     "testsPassed": "Prešlo {{passed}} z {{total}} testov.",
     "contextTitle": "Definície, ktoré môžete použiť",
-    "contextNumerals": "0, 1, 2, … sú Churchove numerály: n = λ s . λ z . s (… (s z)) s n aplikáciami s."
+    "astInstructions": "Prvý pridaný uzol je koreň termu; ďalšie uzly pripojte pod neho a doplňte literály (true, false, 0). Uzol if potrebuje vetvu else — pridajte ju priamo na uzle.",
+    "notATerm": "Nie je to term",
+    "notATermCorrect": "Správne — toto nie je term jazyka NBL, takže úloha preň nemá odpoveď."
   },
   "activity": {
     "consent": {

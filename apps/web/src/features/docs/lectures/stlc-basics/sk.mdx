@@ -203,7 +203,9 @@ Skúste ten istý strom zostaviť ručne nižšie, len z doteraz predstavených 
 {/* typeVar is included only because param type is a connectable node, not an inline field. */}
 
 <AstBuilder
+  id="ast-identity-application"
   allowedTypes={["abstraction", "application", "variable", "literal", "typeVar"]}
+  expectedSource="(λ x : Bool . x) true"
   instructions="Zostavte (λ x : Bool . x) true: Aplikáciu, ktorej dvaja potomkovia sú Abstrakcia (parameter x : Bool, telo je Premenná x) a Bool Literál (true). Paleta nižšie ponúka len to, čo prednáška doteraz pokryla — bez skákania dopredu."
 />
 

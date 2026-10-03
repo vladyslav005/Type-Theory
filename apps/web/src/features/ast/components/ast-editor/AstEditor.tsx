@@ -78,6 +78,7 @@ import {RecursiveTypeFlowNode} from "@/features/ast/components/ast/flow/Recursiv
 import {KindStarFlowNode} from "@/features/ast/components/ast/flow/KindStarFlowNode.tsx";
 import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlowNode.tsx";
 import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon, BoxSelect} from "lucide-react";
+import {Tip} from "@/shared/components/Tip.tsx";
 
 const HANDLE_LABELS: Record<string, string> = {
   "global-decl": "decl",
@@ -109,6 +110,10 @@ export interface AstProps {
   setAST: (ast: Program) => void,
   graph: AstFlowGraph,
   setGraph:  React.Dispatch<React.SetStateAction<AstFlowGraph>>,
+  // Limits the drop-to-create menu to the node types a task needs, like the palette.
+  allowedTypes?: string[],
+  // Builders keep only the essential tools: no box select, clear-all (they have Reset) or minimap.
+  compactToolbar?: boolean,
 }
 
 export interface AstEditorHandle {
@@ -229,6 +234,7 @@ const VALID_NODE_TYPES_BY_KIND: Record<AddOnDropKind, string[]> = {
     "typeAbs", "typeApp",
     "nil", "cons", "isNil", "headOp", "tailOp",
     "fold", "unfold",
+    "succ", "pred", "iszero",
   ],
   type: ["typeVar", "typeArrow", "sumType", "tupleType", "variantType", "recordType", "forallType", "typeConstructorAbs", "typeConstructorApp", "typePi", "typeIndexApp", "listType", "recursiveType"],
   kind: ["kindStar", "kindArrow"],
@@ -241,6 +247,16 @@ const VALID_NODE_TYPES_BY_KIND: Record<AddOnDropKind, string[]> = {
 // Skeleton for each newly-added node kind; null for the original 8 kinds.
 function makeDefaultTermNode(nodeType: string, id: string): { type: string; term: any } | null {
   switch (nodeType) {
+    case "succ":
+    case "pred":
+    case "iszero":
+      return {
+        type: "nblOp",
+        term: {
+          id, kind: nodeType === "succ" ? "Succ" : nodeType === "pred" ? "Pred" : "IsZero",
+          term: { id: `${id}-term`, kind: "Lit", value: "0" },
+        },
+      };
     case "inl":
     case "inr":
       return {
@@ -589,6 +605,8 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   setAST,
   graph,
   setGraph,
+  allowedTypes,
+  compactToolbar = false,
 }, ref) {
   const {t} = useTranslation();
   const rf = useReactFlow();
@@ -1423,7 +1441,8 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
               />
               <div className="max-h-64 overflow-y-auto space-y-0.5">
                 {(() => {
-                  const options = connectDraft ? VALID_NODE_TYPES_BY_KIND[connectDraft.kind] : [];
+                  const options = (connectDraft ? VALID_NODE_TYPES_BY_KIND[connectDraft.kind] : [])
+                    .filter((type) => !allowedTypes || allowedTypes.includes(type));
                   const q = addOnDropSearch.trim().toLowerCase();
                   const filtered = q ? options.filter((nt) => nt.toLowerCase().includes(q)) : options;
                   if (filtered.length === 0) {
@@ -1519,44 +1538,56 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
       >
         <Panel position="top-right">
           <div className="flex gap-2">
-            <Button size="icon" variant="secondary" onClick={undo} title={t("astEditor.undo")}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="secondary" onClick={redo} title={t("astEditor.redo")}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <Redo2 className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="secondary" onClick={autoLayout} title={t("astEditor.autoLayout")}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant={marqueeSelect ? "secondary" : "outline"}
-              onClick={() => setMarqueeSelect((prev) => !prev)}
-              title={marqueeSelect ? "Marquee select: on (drag to box-select, middle/right-drag to pan)" : "Marquee select: off (drag to pan, Shift+drag to box-select)"}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <BoxSelect className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="secondary" onClick={() => rf.fitView()} title={t("astEditor.centerView")}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <Crosshair className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="secondary" onClick={deleteSelection}
-              disabled={selectedNodeIds.length === 0 && selectedEdgeIds.length === 0}
-              title="Delete selection (Del)" className="shadow-lg hover:shadow-xl transition-shadow">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant="secondary" onClick={clearAll}
-              title={t("astEditor.clearAll")}
-              className="shadow-lg hover:shadow-xl transition-shadow hover:text-destructive">
-              <Eraser className="h-4 w-4" />
-            </Button>
-            <Button size="icon" variant={showMiniMap ? "secondary" : "outline"}
-              onClick={() => setShowMiniMap((prev) => !prev)}
-              title={showMiniMap ? "Hide Minimap" : "Show Minimap"}
-              className="shadow-lg hover:shadow-xl transition-shadow">
-              <MapIcon className="h-4 w-4" />
-            </Button>
+            <Tip label={t("astEditor.undo")}>
+              <Button size="icon" variant="secondary" onClick={undo} className="shadow-lg hover:shadow-xl transition-shadow">
+                <Undo2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+            <Tip label={t("astEditor.redo")}>
+              <Button size="icon" variant="secondary" onClick={redo} className="shadow-lg hover:shadow-xl transition-shadow">
+                <Redo2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+            <Tip label={t("astEditor.autoLayout")}>
+              <Button size="icon" variant="secondary" onClick={autoLayout} className="shadow-lg hover:shadow-xl transition-shadow">
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </Tip>
+            {!compactToolbar && (
+              <Tip label={marqueeSelect ? t("astEditor.marqueeOn") : t("astEditor.marqueeOff")}>
+                <Button size="icon" variant={marqueeSelect ? "secondary" : "outline"} onClick={() => setMarqueeSelect((prev) => !prev)}
+                  className="shadow-lg hover:shadow-xl transition-shadow">
+                  <BoxSelect className="h-4 w-4" />
+                </Button>
+              </Tip>
+            )}
+            <Tip label={t("astEditor.centerView")}>
+              <Button size="icon" variant="secondary" onClick={() => rf.fitView()} className="shadow-lg hover:shadow-xl transition-shadow">
+                <Crosshair className="h-4 w-4" />
+              </Button>
+            </Tip>
+            <Tip label={t("astEditor.deleteSelection")}>
+              <Button size="icon" variant="secondary" onClick={deleteSelection}
+                disabled={selectedNodeIds.length === 0 && selectedEdgeIds.length === 0}
+                className="shadow-lg hover:shadow-xl transition-shadow">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </Tip>
+            {!compactToolbar && (
+              <>
+                <Tip label={t("astEditor.clearAll")}>
+                  <Button size="icon" variant="secondary" onClick={clearAll} className="shadow-lg hover:shadow-xl transition-shadow hover:text-destructive">
+                    <Eraser className="h-4 w-4" />
+                  </Button>
+                </Tip>
+                <Tip label={showMiniMap ? t("astEditor.hideMinimap") : t("astEditor.showMinimap")}>
+                  <Button size="icon" variant={showMiniMap ? "secondary" : "outline"} onClick={() => setShowMiniMap((prev) => !prev)}
+                    className="shadow-lg hover:shadow-xl transition-shadow">
+                    <MapIcon className="h-4 w-4" />
+                  </Button>
+                </Tip>
+              </>
+            )}
           </div>
         </Panel>
         <Background />

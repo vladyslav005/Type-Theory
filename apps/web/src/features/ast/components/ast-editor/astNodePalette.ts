@@ -83,6 +83,14 @@ export const AST_NODE_PALETTE: PaletteCategory[] = [
           {type: "ifCondition", label: "if", title: "Conditional (if/then/elseif/else)"},
         ],
       },
+      {
+        label: "Numbers & booleans (NBL)",
+        items: [
+          {type: "succ", label: "succ", title: "Successor (succ t)"},
+          {type: "pred", label: "pred", title: "Predecessor (pred t)"},
+          {type: "iszero", label: "iszero", title: "Zero test (iszero t)"},
+        ],
+      },
     ],
   },
   {

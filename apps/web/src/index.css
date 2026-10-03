@@ -201,3 +201,16 @@
     text-underline-offset: 2px;
   }
 }
+
+/* AST builder check marks — the outline sits on React Flow's node wrapper */
+.react-flow__node.ast-check-valid {
+  outline: 2px solid rgb(16 185 129 / 0.85);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+
+.react-flow__node.ast-check-invalid {
+  outline: 2px solid rgb(239 68 68 / 0.85);
+  outline-offset: 3px;
+  border-radius: 14px;
+}

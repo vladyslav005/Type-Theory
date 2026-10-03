@@ -752,7 +752,12 @@
     "centerView": "Center View",
     "clearAll": "Clear all nodes and edges",
     "duplicate": "Duplicate",
-    "delete": "Delete"
+    "delete": "Delete",
+    "marqueeOn": "Box select: on — drag to select, middle/right-drag to pan",
+    "marqueeOff": "Box select: off — drag to pan, Shift+drag to select",
+    "deleteSelection": "Delete selection (Del)",
+    "showMinimap": "Show minimap",
+    "hideMinimap": "Hide minimap"
   },
   "evaluationPanel": {
     "gammaContext": "Γ context",
@@ -1128,7 +1133,18 @@
       "note": "Read bottom-up: if every premise above the line holds, then the conclusion below it holds. The label is just the rule's name."
     },
     "trace": "Reduction steps",
-    "diverges": "The evaluation didn't stop — it was cut off after {{count}} steps. This term keeps reducing forever (it diverges) under this strategy."
+    "diverges": "The evaluation didn't stop — it was cut off after {{count}} steps. This term keeps reducing forever (it diverges) under this strategy.",
+    "astCheck": {
+      "correct": "Every node is correct — the tree matches the term.",
+      "wrong_one": "{{count}} node doesn't match.",
+      "wrong_other": "{{count}} nodes don't match.",
+      "missing_one": "{{count}} slot is still empty.",
+      "missing_other": "{{count}} slots are still empty.",
+      "loose_one": "{{count}} node isn't connected to the tree.",
+      "loose_other": "{{count}} nodes aren't connected to the tree."
+    },
+    "astHelp": "How to build the tree",
+    "astAddFirst": "Add the first node — it becomes the root of the term"
   },
   "docsLab": {
     "lab": "Lab",
@@ -1139,7 +1155,6 @@
     "notTranslatedMessage": "This lab isn't available in your language yet — showing the {{language}} version."
   },
   "labWidgets": {
-    "pickNode": "choose…",
     "check": "Check",
     "tryAgain": "Not quite — try again.",
     "correct": "Correct.",
@@ -1165,7 +1180,9 @@
     "runTests": "Run tests",
     "testsPassed": "{{passed}} of {{total}} tests passed.",
     "contextTitle": "Definitions you can use",
-    "contextNumerals": "0, 1, 2, … are Church numerals: n = λ s . λ z . s (… (s z)) with n applications of s."
+    "astInstructions": "The first node you add is the root of the term; connect the rest below it and fill in the literals (true, false, 0). An if needs its else branch — add it on the node.",
+    "notATerm": "It's not a term",
+    "notATermCorrect": "Correct — this isn't a term of NBL, so the task has no answer for it."
   },
   "activity": {
     "consent": {
