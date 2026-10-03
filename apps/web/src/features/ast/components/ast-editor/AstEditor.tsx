@@ -79,6 +79,7 @@ import {KindStarFlowNode} from "@/features/ast/components/ast/flow/KindStarFlowN
 import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlowNode.tsx";
 import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon, BoxSelect} from "lucide-react";
 import {Tip} from "@/shared/components/Tip.tsx";
+import {TERM_NODE_TYPES} from "@/features/ast/components/ast-editor/astNodePalette.ts";
 
 const HANDLE_LABELS: Record<string, string> = {
   "global-decl": "decl",
@@ -226,16 +227,7 @@ function expectedChildKind(sourceKind: string | undefined, handleId: string | un
 
 const VALID_NODE_TYPES_BY_KIND: Record<AddOnDropKind, string[]> = {
   decl: ["funDecl", "varDecl", "typeAliasDecl"],
-  term: [
-    "abstraction", "application", "variable", "literal",
-    "inl", "inr", "ifCondition", "case", "variantCase", "variant",
-    "ascribe", "tupleProjection", "recordProjection", "record",
-    "sequencing", "tuple", "dummyAbstraction", "let", "binOp", "fix",
-    "typeAbs", "typeApp",
-    "nil", "cons", "isNil", "headOp", "tailOp",
-    "fold", "unfold",
-    "succ", "pred", "iszero",
-  ],
+  term: TERM_NODE_TYPES,
   type: ["typeVar", "typeArrow", "sumType", "tupleType", "variantType", "recordType", "forallType", "typeConstructorAbs", "typeConstructorApp", "typePi", "typeIndexApp", "listType", "recursiveType"],
   kind: ["kindStar", "kindArrow"],
   // What "from" on a KindArrow can create fresh: any Kind, or (for the System λP dependent

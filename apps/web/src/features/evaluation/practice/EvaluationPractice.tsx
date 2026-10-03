@@ -17,6 +17,7 @@ import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import type {FeedbackMessage} from "@/features/proof-tree/feedback/feedback.ts";
 import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
 import {trackPractice} from "@/shared/activity/taskTracking.ts";
+import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 interface EvaluationPracticeProps {
   evaluation: EvaluationResult;
@@ -81,12 +82,12 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
   const {t} = useTranslation();
   const {strategy} = evaluation;
 
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useSavedState<Row[]>(taskId && `${taskId}#rows`, []);
   // The step being worked on; rows.length means a new step after the last one.
-  const [cursor, setCursor] = useState(0);
+  const [cursor, setCursor] = useSavedState(taskId && `${taskId}#cursor`, 0);
   // Unsaved text per step, so moving around never loses what was typed.
-  const [drafts, setDrafts] = useState<Record<number, string>>({});
-  const [ending, setEnding] = useState<Ending | undefined>();
+  const [drafts, setDrafts] = useSavedState<Record<number, string>>(taskId && `${taskId}#drafts`, {});
+  const [ending, setEnding] = useSavedState<Ending | undefined>(taskId && `${taskId}#ending`, undefined);
   const [ownViewMode, setOwnViewMode] = useState<"single" | "all">("all");
   const viewMode = controlledViewMode ?? ownViewMode;
   const [feedback, setFeedback] = useState<FeedbackMessage[]>([]);

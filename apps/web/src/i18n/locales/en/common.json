@@ -1186,16 +1186,22 @@
     "contextTitle": "Definitions you can use",
     "astInstructions": "The first node you add is the root of the term; connect the rest below it and fill in the literals (true, false, 0). An if needs its else branch — add it on the node.",
     "notATerm": "It's not a term",
-    "notATermCorrect": "Correct — this isn't a term of NBL, so the task has no answer for it."
+    "notATermCorrect": "Correct — this isn't a term of NBL, so the task has no answer for it.",
+    "startSolving": "Start solving",
+    "hideEditor": "Hide editor"
   },
   "activity": {
     "consent": {
       "title": "Consent to usage data collection",
-      "body": "For the purpose of evaluating this application within the course, anonymous usage statistics may be recorded in this browser. Collection starts only with your consent.",
+      "body": "To evaluate this app as a teaching tool, we'd like to record how you use it during the semester. Collection starts only if you allow it.",
       "points": [
-        "No personal data and no entered content (code, terms, answers) is recorded.",
-        "The data is stored only in this browser and is not transmitted anywhere.",
-        "Consent may be withdrawn and the data deleted at any time on the “Usage data collection” page."
+        "Recorded: when and how you use the app (with date and time), your attempts at lab and lecture tasks, and your answers in lab tasks.",
+        "Not recorded: your name, e-mail or any other identifier, or code you write in the editor outside lab tasks.",
+        "Everything stays in this browser — nothing is sent anywhere.",
+        "At the end of the semester you can download the file and hand it in; whether you do is up to you.",
+        "Taking part is voluntary and has no effect on your grade.",
+        "You can withdraw at any time and delete all data on the “Usage data collection” page.",
+        "Either way, your lab answers are saved in this browser so you can continue where you left off."
       ],
       "allow": "Enable collection",
       "decline": "Do not enable",
@@ -1208,7 +1214,7 @@
     "page": {
       "metaTitle": "Usage data collection — tt",
       "title": "Usage data collection",
-      "intro": "For the purpose of evaluating this application as a teaching tool, anonymous usage statistics are recorded during the semester. The data is stored exclusively in this browser and is not transmitted to any server. At the end of the semester, the student may download the data and hand it in voluntarily.",
+      "intro": "For the purpose of evaluating this application as a teaching tool, usage data is recorded during the semester, including the dates and times of your activity and your answers in lab tasks. The data is stored exclusively in this browser and is not transmitted to any server. At the end of the semester, the student may download the data and hand it in voluntarily.",
       "statusOn": "Collection enabled",
       "statusOff": "Collection disabled",
       "statusHint": "Collection may be disabled or re-enabled at any time. Disabling it does not delete data already recorded.",
@@ -1232,21 +1238,36 @@
       "collectedTitle": "Data recorded",
       "collected": [
         "Active usage time, aggregated by calendar week",
+        "Date and time of each session, page visit and task attempt",
         "Pages, panels and lecture components used",
         "Lab and lecture task attempts: result, category of error, and whether the solution was displayed",
+        "Your answers in lab tasks — saved so you can continue an unfinished lab, and included in the downloaded file",
         "Number of type checks, errors by typing rule, and evaluations"
       ],
       "notCollectedTitle": "Data not recorded",
       "notCollected": [
         "Name, e-mail address or any other identifier",
-        "Code, terms or answers entered",
-        "Exact dates and times (calendar weeks only)",
+        "Code written in the editor outside lab tasks",
         "IP address or device information; no data is transmitted"
       ],
       "deleteTitle": "Delete all recorded data?",
-      "deleteBody": "All data recorded in this browser will be permanently deleted. This action cannot be undone.",
+      "deleteBody": "All data recorded in this browser, including your saved lab answers, will be permanently deleted. This action cannot be undone.",
       "deleteConfirm": "Delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "labsTitle": "Your progress",
+      "lecturesTitle": "Lectures",
+      "labItems": "{{solved}} / {{total}} items solved",
+      "labTasks": "{{done}} / {{total}} tasks complete",
+      "lastActivity": "Last activity: {{at}}",
+      "notStarted": "Not started yet",
+      "taskDone": "done",
+      "taskStarted": "in progress",
+      "taskNotStarted": "not started",
+      "taskItems": "{{solved}} / {{total}} solved",
+      "taskAttempts_one": "{{count}} attempt",
+      "taskAttempts_other": "{{count}} attempts",
+      "taskReveals_one": "solution shown {{count}}×",
+      "taskReveals_other": "solution shown {{count}}×"
     }
   },
   "syntaxBuilder": {

@@ -1,4 +1,4 @@
-import {useMemo, useState} from "react";
+import {useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {
   nblConstants,
@@ -15,7 +15,7 @@ import {AntlrParserAdapter, elaborateNbl, EvaluationStrategy, Evaluator, type Pr
 import {Button} from "@/shared/components/ui/button.tsx";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
-import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
+import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
@@ -23,6 +23,7 @@ import {Ast} from "@/features/ast/components/ast/Ast.tsx";
 import {SyntaxDerivationTree} from "@/features/proof-tree/components/syntax-builder/SyntaxDerivationTree.tsx";
 import {PanZoomCanvas} from "@/features/proof-tree/components/PanZoomCanvas.tsx";
 import {goalFromNbl, syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
+import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 export type NblTaskType = "derivation" | "tree" | "size" | "depth" | "constants" | "evaluate";
 
@@ -51,7 +52,7 @@ function DerivationRow({id, index, source}: {id?: string; index: number; source:
   const {t} = useTranslation();
   const taskId = useTaskId(id, source);
   const goal = useMemo(() => goalFromNbl(nblSyntaxDerivation(source)), [source]);
-  const [choices, setChoices] = useState<SyntaxChoices>({});
+  const [choices, setChoices] = useSavedState<SyntaxChoices>(taskId && `${taskId}#choices`, {});
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const progress = syntaxProgress(goal, choices);
 
@@ -73,13 +74,15 @@ function DerivationRow({id, index, source}: {id?: string; index: number; source:
 
   return (
     <Row taskId={taskId} index={index} source={source} solution={<pre className="font-mono overflow-x-auto">{outline(goal).join("\n")}</pre>}>
-      <PanZoomCanvas className="h-64" compact>
-        <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
-      </PanZoomCanvas>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
-        <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
-      </div>
+      <SolveArea taskId={taskId}>
+        <PanZoomCanvas className="h-64" compact>
+          <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
+        </PanZoomCanvas>
+        <div className="flex gap-2">
+          <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+          <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
+        </div>
+      </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -90,7 +93,7 @@ function NumberRow({id, index, source, metric}: {id?: string; index: number; sou
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const expected = parsed.ok ? (metric === "size" ? nblSize(parsed.term) : nblDepth(parsed.term)) : undefined;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
@@ -101,11 +104,13 @@ function NumberRow({id, index, source, metric}: {id?: string; index: number; sou
 
   return (
     <Row taskId={taskId} index={index} source={source} solution={invalid ?? String(expected)}>
-      <div className="flex flex-wrap items-center gap-2">
-        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} inputMode="numeric" placeholder="0" spellCheck={false}/>
-        <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-        <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
-      </div>
+      <SolveArea taskId={taskId}>
+        <div className="flex flex-wrap items-center gap-2">
+          <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} inputMode="numeric" placeholder="0" spellCheck={false}/>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+          <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
+        </div>
+      </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -119,7 +124,7 @@ function ConstantsRow({id, index, source}: {id?: string; index: number; source: 
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseNbl(source), [source]);
   const expected = parsed.ok ? nblConstants(parsed.term) : undefined;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const invalid = useInvalidNote(parsed.ok ? parsed.term : undefined, parsed.ok ? undefined : parsed.message);
 
@@ -135,11 +140,13 @@ function ConstantsRow({id, index, source}: {id?: string; index: number; source: 
 
   return (
     <Row taskId={taskId} index={index} source={source} solution={invalid ?? formatSet(expected!)}>
-      <div className="flex flex-wrap items-center gap-2">
-        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" widthClass="w-48"/>
-        <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-        <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
-      </div>
+      <SolveArea taskId={taskId}>
+        <div className="flex flex-wrap items-center gap-2">
+          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" widthClass="w-48"/>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+          <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
+        </div>
+      </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -176,16 +183,19 @@ function TreeRow({id, index, source}: {id?: string; index: number; source: strin
         </div>
       ) : invalid}
     >
-      <AstBuilder
-        compact
-        expected={expected ?? unmatchable}
-        allowedTypes={AST_NODE_TYPES}
-        instructions={t("labWidgets.astInstructions")}
-        onCheck={(result) => trackTask(taskId, {
-          ok: result.correct,
-          kind: result.correct ? undefined : result.wrong > 0 ? "wrongNode" : result.missing > 0 ? "treeIncomplete" : "looseNode",
-        })}
-      />
+      <SolveArea taskId={taskId}>
+        <AstBuilder
+          compact
+          saveKey={taskId}
+          expected={expected ?? unmatchable}
+          allowedTypes={AST_NODE_TYPES}
+          instructions={t("labWidgets.astInstructions")}
+          onCheck={(result) => trackTask(taskId, {
+            ok: result.correct,
+            kind: result.correct ? undefined : result.wrong > 0 ? "wrongNode" : result.missing > 0 ? "treeIncomplete" : "looseNode",
+          })}
+        />
+      </SolveArea>
       <div className="flex gap-2">
         <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
       </div>
@@ -226,9 +236,11 @@ function EvaluateRow({id, index, source}: {id?: string; index: number; source: s
       ) : invalid}
     >
       {evaluation && (
-        <div className="rounded-lg border bg-background pt-3">
-          <EvaluationPractice key={source} evaluation={evaluation} typeAliases={{}} taskId={taskId} parseInput={readNbl}/>
-        </div>
+        <SolveArea taskId={taskId}>
+          <div className="rounded-lg border bg-background pt-3">
+            <EvaluationPractice key={source} evaluation={evaluation} typeAliases={{}} taskId={taskId} parseInput={readNbl}/>
+          </div>
+        </SolveArea>
       )}
       <div className="flex gap-2">
         <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>

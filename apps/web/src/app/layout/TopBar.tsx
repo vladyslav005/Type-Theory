@@ -106,10 +106,10 @@ export function Topbar({editorRef}: TopbarProps) {
               {isEditorPage && (
                 <motion.div
                   key="workspace-tools"
-                  initial={{opacity: 0}}
-                  animate={{opacity: 1}}
-                  exit={{opacity: 0}}
-                  transition={{duration: 0.15}}
+                  initial={{opacity: 0, x: 40}}
+                  animate={{opacity: 1, x: 0}}
+                  exit={{opacity: 0, x: 40}}
+                  transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
                   className="hidden md:flex items-center gap-2 min-w-0"
                 >
                   <ExamplesDropdown onSelect={onSelectExample}/>
@@ -134,11 +134,20 @@ export function Topbar({editorRef}: TopbarProps) {
             </AnimatePresence>
 
             <div className="flex items-center gap-1">
-              {isEditorPage && (
-                <div className="hidden lg:block">
-                  <LayoutPresetsDropdown/>
-                </div>
-              )}
+              <AnimatePresence initial={false}>
+                {isEditorPage && (
+                  <motion.div
+                    key="layout-presets"
+                    initial={{opacity: 0, x: 24}}
+                    animate={{opacity: 1, x: 0}}
+                    exit={{opacity: 0, x: 24}}
+                    transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
+                    className="hidden lg:block"
+                  >
+                    <LayoutPresetsDropdown/>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <LanguageMenu className="rounded-lg size-11 md:size-9"/>
 

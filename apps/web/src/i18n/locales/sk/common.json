@@ -1200,17 +1200,22 @@
     "contextTitle": "Definície, ktoré môžete použiť",
     "astInstructions": "Prvý pridaný uzol je koreň termu; ďalšie uzly pripojte pod neho a doplňte literály (true, false, 0). Uzol if potrebuje vetvu else — pridajte ju priamo na uzle.",
     "notATerm": "Nie je to term",
-    "notATermCorrect": "Správne — toto nie je term jazyka NBL, takže úloha preň nemá odpoveď."
+    "notATermCorrect": "Správne — toto nie je term jazyka NBL, takže úloha preň nemá odpoveď.",
+    "startSolving": "Začať riešiť",
+    "hideEditor": "Skryť editor"
   },
   "activity": {
     "consent": {
       "title": "Súhlas so zberom údajov o používaní",
-      "body": "Na účely vyhodnotenia tejto aplikácie v rámci predmetu sa môžu v tomto prehliadači zaznamenávať anonymné štatistiky používania. Zber sa začne iba s vaším súhlasom.",
+      "body": "Aby sme mohli vyhodnotiť túto aplikáciu ako učebnú pomôcku, radi by sme počas semestra zaznamenávali, ako ju používate. Zber sa začne iba vtedy, ak ho povolíte.",
       "points": [
-        "Nezaznamenávajú sa osobné údaje ani zadaný obsah (kód, termy, odpovede).",
-        "Údaje sa ukladajú iba v tomto prehliadači a nikam sa neodosielajú.",
+        "Zaznamenáva sa: kedy a ako aplikáciu používate (s dátumom a časom), vaše pokusy o riešenie úloh z cvičení a prednášok a vaše odpovede v úlohách z cvičení.",
+        "Nezaznamenáva sa: vaše meno, e-mail ani iný identifikátor, ani kód, ktorý píšete v editore mimo úloh z cvičení.",
+        "Všetko zostáva v tomto prehliadači — nič sa nikam neodosiela.",
+        "Na konci semestra si môžete súbor stiahnuť a odovzdať; či to urobíte, je na vás.",
         "Účasť je dobrovoľná a nemá vplyv na hodnotenie.",
-        "Súhlas je možné kedykoľvek odvolať a údaje vymazať na stránke „Zber údajov o používaní“."
+        "Súhlas môžete kedykoľvek odvolať a všetky údaje vymazať na stránke „Zber údajov o používaní“.",
+        "V každom prípade sa vaše odpovede z cvičení ukladajú v tomto prehliadači, aby ste mohli pokračovať tam, kde ste skončili."
       ],
       "allow": "Povoliť zber",
       "decline": "Nepovoliť",
@@ -1223,7 +1228,7 @@
     "page": {
       "metaTitle": "Zber údajov o používaní — tt",
       "title": "Zber údajov o používaní",
-      "intro": "Na účely vyhodnotenia tejto aplikácie ako učebnej pomôcky sa počas semestra zaznamenávajú anonymné štatistiky používania. Údaje sa ukladajú výlučne v tomto prehliadači a neodosielajú sa na žiadny server. Na konci semestra si ich študent môže stiahnuť a dobrovoľne odovzdať.",
+      "intro": "Na účely vyhodnotenia tejto aplikácie ako učebnej pomôcky sa počas semestra zaznamenávajú údaje o používaní vrátane dátumov a časov vašej aktivity a vašich odpovedí v úlohách z cvičení. Údaje sa ukladajú výlučne v tomto prehliadači a neodosielajú sa na žiadny server. Na konci semestra si ich študent môže stiahnuť a dobrovoľne odovzdať.",
       "statusOn": "Zber je zapnutý",
       "statusOff": "Zber je vypnutý",
       "statusHint": "Zber je možné kedykoľvek vypnúť alebo opätovne zapnúť. Vypnutím sa už zaznamenané údaje nevymažú.",
@@ -1247,21 +1252,40 @@
       "collectedTitle": "Zaznamenávané údaje",
       "collected": [
         "Čas aktívneho používania, súhrnne po kalendárnych týždňoch",
+        "Dátum a čas každej relácie, návštevy stránky a pokusu o úlohu",
         "Použité stránky, panely a komponenty prednášok",
         "Pokusy o riešenie úloh z cvičení a prednášok: výsledok, kategória chyby a zobrazenie riešenia",
+        "Vaše odpovede v úlohách z cvičení — uložené, aby ste mohli pokračovať v nedokončenom cvičení, a zahrnuté v stiahnutom súbore",
         "Počet typových kontrol, chýb podľa typovacích pravidiel a vyhodnotení"
       ],
       "notCollectedTitle": "Nezaznamenávané údaje",
       "notCollected": [
         "Meno, e-mailová adresa ani iný identifikátor",
-        "Zadaný kód, termy ani odpovede",
-        "Presné dátumy a časy (iba kalendárne týždne)",
+        "Kód napísaný v editore mimo úloh z cvičení",
         "IP adresa ani informácie o zariadení; žiadne údaje sa neodosielajú"
       ],
       "deleteTitle": "Vymazať všetky zaznamenané údaje?",
-      "deleteBody": "Všetky údaje zaznamenané v tomto prehliadači budú natrvalo vymazané. Túto akciu nie je možné vrátiť.",
+      "deleteBody": "Všetky údaje zaznamenané v tomto prehliadači vrátane uložených odpovedí z cvičení budú natrvalo vymazané. Túto akciu nie je možné vrátiť.",
       "deleteConfirm": "Vymazať",
-      "cancel": "Zrušiť"
+      "cancel": "Zrušiť",
+      "labsTitle": "Váš postup",
+      "lecturesTitle": "Prednášky",
+      "labItems": "{{solved}} / {{total}} položiek vyriešených",
+      "labTasks": "{{done}} / {{total}} úloh dokončených",
+      "lastActivity": "Posledná aktivita: {{at}}",
+      "notStarted": "Zatiaľ nezačaté",
+      "taskDone": "hotovo",
+      "taskStarted": "rozpracované",
+      "taskNotStarted": "nezačaté",
+      "taskItems": "{{solved}} / {{total}} vyriešených",
+      "taskAttempts_one": "{{count}} pokus",
+      "taskAttempts_few": "{{count}} pokusy",
+      "taskAttempts_many": "{{count}} pokusu",
+      "taskAttempts_other": "{{count}} pokusov",
+      "taskReveals_one": "riešenie zobrazené {{count}}×",
+      "taskReveals_few": "riešenie zobrazené {{count}}×",
+      "taskReveals_many": "riešenie zobrazené {{count}}×",
+      "taskReveals_other": "riešenie zobrazené {{count}}×"
     }
   },
   "syntaxBuilder": {

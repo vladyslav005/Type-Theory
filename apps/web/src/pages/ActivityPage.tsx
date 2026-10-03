@@ -1,6 +1,6 @@
 import {useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {BarChart3, Check, Download, Trash2, X} from "lucide-react";
+import {BarChart3, Check, CheckCircle2, Circle, CircleDot, Download, Trash2, X} from "lucide-react";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
@@ -8,8 +8,10 @@ import {Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Dia
 import {usePageMeta} from "@/shared/hooks/usePageMeta.ts";
 import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
 import {buildExport, deleteActivityData, setConsent, type ActivityData} from "@/shared/activity/activityStore.ts";
+import {deleteSavedWork, getSavedWork} from "@/shared/activity/savedWork.ts";
 import {useActivity} from "@/shared/activity/useActivity.ts";
 import {LAB_REGISTRY, getLabText} from "@/features/docs/labs/labRegistry.ts";
+import {labStatus, type LabStatus} from "@/features/docs/labs/labProgress.ts";
 import {LECTURE_REGISTRY, getLectureText} from "@/features/docs/lectureRegistry.ts";
 
 interface ScopeProgress {
@@ -43,6 +45,56 @@ function summarize(data: ActivityData) {
   return {activeSeconds, weeksActive, attempted: attempted.size, solved: solved.size, scopes: [...byScope.values()]};
 }
 
+function formatAt(at: string | undefined, language: string) {
+  if (!at) return undefined;
+  const date = new Date(at);
+  return Number.isNaN(date.getTime()) ? undefined : new Intl.DateTimeFormat(language, {dateStyle: "medium", timeStyle: "short"}).format(date);
+}
+
+function LabProgressCard({lab, title}: {lab: LabStatus; title: string}) {
+  const {t, i18n} = useTranslation();
+  const percent = lab.totalItems === 0 ? 0 : Math.round((lab.solvedItems / lab.totalItems) * 100);
+  const last = formatAt(lab.lastAt, i18n.language);
+  return (
+    <li className="rounded-lg border bg-background">
+      <details>
+        <summary className="cursor-pointer list-none p-3">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate font-medium">{title}</span>
+            <span className="shrink-0 tabular-nums text-muted-foreground">
+              {t("activity.page.labItems", {solved: lab.solvedItems, total: lab.totalItems})} · {t("activity.page.labTasks", {done: lab.tasksDone, total: lab.tasks.length})}
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all" style={{width: `${percent}%`}}/>
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {last ? t("activity.page.lastActivity", {at: last}) : t("activity.page.notStarted")}
+          </p>
+        </summary>
+        <ul className="divide-y border-t text-xs">
+          {lab.tasks.map((task) => (
+            <li key={task.id} className="flex items-center gap-2 px-3 py-2">
+              {task.done
+                ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-label={t("activity.page.taskDone")}/>
+                : task.started
+                  ? <CircleDot className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" aria-label={t("activity.page.taskStarted")}/>
+                  : <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" aria-label={t("activity.page.taskNotStarted")}/>}
+              <span className="min-w-0 flex-1 truncate">{task.heading}</span>
+              <span className="shrink-0 tabular-nums text-muted-foreground">
+                {task.items > 1 ? t("activity.page.taskItems", {solved: task.solvedItems, total: task.items}) : task.done ? t("activity.page.taskDone") : ""}
+                {task.started && ` · ${t("activity.page.taskAttempts", {count: task.attempts})}`}
+                {task.reveals > 0 && ` · ${t("activity.page.taskReveals", {count: task.reveals})}`}
+                {task.lastAt && ` · ${formatAt(task.lastAt, i18n.language)}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
+  );
+}
+
 function Stat({value, label}: {value: string; label: string}) {
   return (
     <div className="rounded-xl border bg-background p-4">
@@ -58,7 +110,13 @@ export function ActivityPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const collecting = consent === "granted";
   const summary = useMemo(() => summarize(data), [data]);
-  const exported = useMemo(() => JSON.stringify(buildExport(data, i18n.language), null, 2), [data, i18n.language]);
+  const labs = useMemo(() => LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts)), [data.attempts]);
+  const lectureScopes = summary.scopes.filter((scope) => scope.scope.startsWith("lecture:"));
+  // Saved answers join the file only with consent, like everything else in it.
+  const exported = useMemo(
+    () => JSON.stringify(buildExport(data, i18n.language, collecting ? getSavedWork() : {}), null, 2),
+    [data, i18n.language, collecting],
+  );
 
   usePageMeta(t("activity.page.metaTitle"), undefined, undefined, {noindex: true});
 
@@ -109,9 +167,14 @@ export function ActivityPage() {
             <Stat value={`${summary.solved} / ${summary.attempted}`} label={t("activity.page.tasksSolved")}/>
             <Stat value={String(summary.weeksActive)} label={t("activity.page.weeksActive")}/>
           </div>
-          {summary.scopes.length > 0 ? (
+          <h3 className="pt-2 text-sm font-semibold">{t("activity.page.labsTitle")}</h3>
+          <ul className="space-y-2">
+            {labs.map((lab) => <LabProgressCard key={lab.slug} lab={lab} title={scopeTitle(`lab:${lab.slug}`)}/>)}
+          </ul>
+          {lectureScopes.length > 0 && <h3 className="pt-2 text-sm font-semibold">{t("activity.page.lecturesTitle")}</h3>}
+          {lectureScopes.length > 0 ? (
             <ul className="space-y-2">
-              {summary.scopes.map((scope) => (
+              {lectureScopes.map((scope) => (
                 <li key={scope.scope} className="rounded-lg border bg-background p-3">
                   <div className="flex items-center justify-between gap-3 text-sm">
                     <span className="min-w-0 truncate">{scopeTitle(scope.scope)}</span>
@@ -125,7 +188,7 @@ export function ActivityPage() {
                 </li>
               ))}
             </ul>
-          ) : (
+          ) : summary.scopes.length === 0 && (
             <p className="text-sm text-muted-foreground">{t("activity.page.noTasks")}</p>
           )}
         </section>
@@ -175,7 +238,7 @@ export function ActivityPage() {
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild><Button variant="outline">{t("activity.page.cancel")}</Button></DialogClose>
-            <Button variant="destructive" onClick={() => { deleteActivityData(); setConfirmDelete(false); }}>{t("activity.page.deleteConfirm")}</Button>
+            <Button variant="destructive" onClick={() => { deleteActivityData(); deleteSavedWork(); setConfirmDelete(false); }}>{t("activity.page.deleteConfirm")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

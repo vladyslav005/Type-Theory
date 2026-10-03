@@ -1,10 +1,10 @@
-import {useMemo, useState} from "react";
+import {useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
-import {Feedback, Row} from "@/features/docs/labs/components/taskUi.tsx";
+import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
 import {appendName, LabContext} from "@/features/docs/labs/components/LabContext.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
@@ -20,6 +20,7 @@ import {
   requiredParentheses,
   variableOccurrences,
 } from "@/features/docs/labs/lambda/lambdaEngine.ts";
+import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 export type LambdaTaskType = "parens" | "scope" | "normal-form" | "church" | "define";
 
@@ -27,7 +28,7 @@ function ParensRow({id, index, source}: {id?: string; index: number; source: str
   const {t} = useTranslation();
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
 
   const check = () => {
@@ -43,10 +44,12 @@ function ParensRow({id, index, source}: {id?: string; index: number; source: str
 
   return (
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
-      <div className="flex flex-wrap items-center gap-2">
-        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source}/>
-        <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-      </div>
+      <SolveArea taskId={taskId}>
+        <div className="flex flex-wrap items-center gap-2">
+          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source}/>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        </div>
+      </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -59,8 +62,8 @@ function ScopeRow({id, index, source}: {id?: string; index: number; source: stri
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(source), [source]);
   const occurrences = useMemo(() => (parsed.ok ? variableOccurrences(parsed.term) : []), [parsed]);
-  const [marks, setMarks] = useState<Mark[]>([]);
-  const [checked, setChecked] = useState(false);
+  const [marks, setMarks] = useSavedState<Mark[]>(taskId && `${taskId}#marks`, []);
+  const [checked, setChecked] = useSavedState(taskId && `${taskId}#checked`, false);
 
   const cycle = (i: number) => {
     setChecked(false);
@@ -156,9 +159,11 @@ function NormalFormRow({id, index, source}: {id?: string; index: number; source:
   return (
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? solution : parsed.message}>
       {normalized && (
-        <div className="rounded-lg border bg-background pt-3">
-          <EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId} strategyMode="any"/>
-        </div>
+        <SolveArea taskId={taskId}>
+          <div className="rounded-lg border bg-background pt-3">
+            <EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId} strategyMode="any"/>
+          </div>
+        </SolveArea>
       )}
     </Row>
   );
@@ -170,7 +175,7 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
   const parsed = useMemo(() => parseLambda(labNotation(source), true), [source]);
   const normalized = useMemo(() => (parsed.ok ? normalize(parsed.program) : undefined), [parsed]);
   const decoded = useMemo(() => (normalized && !normalized.limit ? decodeChurch(normalized.result) : undefined), [normalized]);
-  const [value, setValue] = useState("");
+  const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
 
   const check = () => {
@@ -196,11 +201,13 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
         </div>
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} widthClass="w-72"/>
-        <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-      </div>
-      <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
+      <SolveArea taskId={taskId}>
+        <div className="flex flex-wrap items-center gap-2">
+          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} widthClass="w-72"/>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        </div>
+        <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
+      </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
   );
@@ -209,9 +216,9 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
 export function DefineTask({id, tests, solution}: {id?: string; tests: [string, string][]; solution?: string}) {
   const {t} = useTranslation();
   const taskId = useTaskId(id);
-  const [value, setValue] = useState("");
-  const [results, setResults] = useState<{call: string; expected: string; ok: boolean}[]>();
-  const [error, setError] = useState<string>();
+  const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
+  const [results, setResults] = useSavedState<{call: string; expected: string; ok: boolean}[] | undefined>(taskId && `${taskId}#results`, undefined);
+  const [error, setError] = useSavedState<string | undefined>(taskId && `${taskId}#error`, undefined);
 
   const run = () => {
     const candidate = parseLambda(labNotation(value), true);
@@ -238,11 +245,13 @@ export function DefineTask({id, tests, solution}: {id?: string; tests: [string, 
   return (
     <ul className="list-none print:hidden">
       <Row taskId={taskId} index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
-        <div className="flex flex-wrap items-center gap-2">
-          <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
-          <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
-        </div>
-        <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
+        <SolveArea taskId={taskId}>
+          <div className="flex flex-wrap items-center gap-2">
+            <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
+            <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
+          </div>
+          <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
+        </SolveArea>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (
           <div className="space-y-1.5">

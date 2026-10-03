@@ -1,6 +1,6 @@
 import {useEffect, useSyncExternalStore} from "react";
 import {useLocation} from "react-router-dom";
-import {bump, getActivitySnapshot, isCollecting, recordWeek, subscribeActivity} from "@/shared/activity/activityStore.ts";
+import {bump, getActivitySnapshot, isCollecting, recordEvent, recordWeek, subscribeActivity} from "@/shared/activity/activityStore.ts";
 import {startActivityClock} from "@/shared/activity/activityClock.ts";
 
 export function useActivity() {
@@ -24,11 +24,13 @@ export function useActivitySession() {
     sessionRecorded = true;
     const mobile = window.matchMedia("(max-width: 767px)").matches;
     recordWeek((week) => { week.sessions[mobile ? "mobile" : "desktop"]++; });
+    recordEvent("session", mobile ? "mobile" : "desktop");
   }, [consent]);
 
   useEffect(() => {
     if (pathname === lastRecordedPath || !isCollecting()) return;
     lastRecordedPath = pathname;
     recordWeek((week) => bump(week.pages, pathname));
+    recordEvent("page", pathname);
   }, [pathname, consent]);
 }

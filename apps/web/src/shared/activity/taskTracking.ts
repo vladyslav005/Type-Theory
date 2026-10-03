@@ -1,5 +1,6 @@
-import {createContext, useCallback, useContext, useState} from "react";
+import {createContext, useCallback, useContext} from "react";
 import {bump, recordAttempt, recordWeek} from "@/shared/activity/activityStore.ts";
+import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 // Set by the lab/lecture page, e.g. "lab:nbl" — task ids only need to be unique within one page.
 export const TaskScopeContext = createContext<string | undefined>(undefined);
@@ -29,11 +30,12 @@ export function trackReveal(taskId: string | undefined) {
 
 // Drop-in for useState<Verdict>(): every defined verdict is logged as one attempt.
 export function useTrackedVerdict<V extends {ok: boolean; kind?: string} | undefined>(taskId: string | undefined) {
-  const [verdict, setVerdictState] = useState<V>();
+  // Saved with the student's work, so a solved task still shows as solved after a reload.
+  const [verdict, setVerdictState] = useSavedState<V>(taskId && `${taskId}#verdict`, undefined as V);
   const setVerdict = useCallback((next: V) => {
-    setVerdictState(() => next);
+    setVerdictState(next);
     if (next) trackTask(taskId, {ok: next.ok, kind: next.ok ? next.kind : next.kind ?? "wrong"});
-  }, [taskId]);
+  }, [taskId, setVerdictState]);
   return [verdict, setVerdict] as const;
 }
 

@@ -9,11 +9,13 @@ import type {Program, Term} from "@vladyslav005/tt-core";
 import type {AstFlowGraph} from "@/shared/presentation/flow/types.ts";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
 import {AstNodePaletteDropdowns} from "@/features/ast/components/ast-editor/AstNodePaletteDropdowns.tsx";
+import {TERM_NODE_TYPES} from "@/features/ast/components/ast-editor/astNodePalette.ts";
 import {AntlrParserAdapter, astToText} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {ButtonGroup} from "@/shared/components/ui/button-group.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {checkAst, type AstCheck} from "@/features/docs/workspace/astCheck.ts";
+import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 const DECLARATION_TYPES = ["funDecl", "varDecl", "typeAliasDecl", "typeConstructorDecl"];
 
@@ -41,6 +43,8 @@ interface AstBuilderProps {
   onCheck?: (result: AstCheck) => void;
   // Tighter layout for lab rows.
   compact?: boolean;
+  // Task id under which the tree is saved, so an unfinished lab resumes with it.
+  saveKey?: string;
 }
 
 const programKey = (ast: Program) => (ast.term ? astToText(ast) : "");
@@ -48,7 +52,7 @@ const programKey = (ast: Program) => (ast.term ? astToText(ast) : "");
 // Standalone, Redux-free instance of the main app's AST editor.
 const sourceParser = new AntlrParserAdapter();
 
-export function AstBuilder({id, label, instructions, allowedTypes, expected: expectedTerm, expectedSource, onCheck, compact = false}: AstBuilderProps) {
+export function AstBuilder({id, label, instructions, allowedTypes, expected: expectedTerm, expectedSource, onCheck, compact = false, saveKey: saveKeyProp}: AstBuilderProps) {
   const {t} = useTranslation();
   const expected = useMemo(
     () => expectedTerm ?? (expectedSource ? sourceParser.parseExpression(`${expectedSource.replace(/;\s*$/, "")};`).term : undefined),
@@ -56,20 +60,35 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
   );
   const astEditorRef = useRef<AstEditorHandle>(null);
   const taskId = useTaskId(expectedSource && !onCheck ? id : undefined);
+  const saveKey = saveKeyProp ?? taskId;
 
   const termOnly = !!allowedTypes && !allowedTypes.some((type) => DECLARATION_TYPES.includes(type));
-  const [{ast, graph}, setState] = useState(() => emptyState(termOnly));
+  // The first node becomes the term's root, so only term nodes are offered for it.
+  const rootTypes = useMemo(() => (allowedTypes ?? TERM_NODE_TYPES).filter((type) => TERM_NODE_TYPES.includes(type)), [allowedTypes]);
+  const [saved, setState] = useSavedState(saveKey && `${saveKey}#ast`, () => emptyState(termOnly));
+  // A tree saved before the builder dropped the Program node may still hold one.
+  const {ast, graph} = useMemo(() => {
+    if (!termOnly || !saved.graph.nodes.some((node) => node.type === "program")) return saved;
+    const programIds = new Set(saved.graph.nodes.filter((node) => node.type === "program").map((node) => node.id));
+    return {
+      ast: saved.ast,
+      graph: {
+        nodes: saved.graph.nodes.filter((node) => !programIds.has(node.id)),
+        edges: saved.graph.edges.filter((edge) => !programIds.has(edge.source) && !programIds.has(edge.target)),
+      },
+    };
+  }, [saved, termOnly]);
   const [check, setCheck] = useState<{result: AstCheck; key: string} | undefined>();
 
   // Marks belong to the tree that was checked — any structural change clears them.
   const setAst = useCallback((next: Program) => {
     setState((prev) => ({...prev, ast: next}));
     setCheck((current) => (current && current.key !== programKey(next) ? undefined : current));
-  }, []);
+  }, [setState]);
   const setGraph = useCallback(
     (updater: AstFlowGraph | ((prev: AstFlowGraph) => AstFlowGraph)) =>
       setState((prev) => ({...prev, graph: typeof updater === "function" ? updater(prev.graph) : updater})),
-    [],
+    [setState],
   );
 
   const markedGraph = useMemo<AstFlowGraph>(() => ({
@@ -139,7 +158,7 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
               <ButtonGroup>
                 <AstNodePaletteDropdowns
                   onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
-                  allowedTypes={allowedTypes}
+                  allowedTypes={rootTypes}
                 />
               </ButtonGroup>
             </div>

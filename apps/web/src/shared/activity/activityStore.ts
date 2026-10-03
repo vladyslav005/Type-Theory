@@ -2,7 +2,7 @@ import {version as appVersion} from "../../../package.json";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 
 const STORAGE_KEY = "tt.activity.v1";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const MAX_ATTEMPTS = 20000;
 const SAVE_DELAY_MS = 2000;
 
@@ -24,20 +24,29 @@ export interface WeekStats {
   sessions: {mobile: number; desktop: number};
 }
 
-// sec = seconds since this task's first recorded event, never a wall-clock time.
+// sec = seconds since this task's first recorded event; at = local date and time of the attempt.
 export interface Attempt {
   task: string;
   week: string;
   sec: number;
+  at: string;
   ok?: boolean;
   kind?: string;
   score?: string;
   reveal?: true;
 }
 
+// Session starts and page visits, each with its local date and time.
+export interface ActivityEvent {
+  at: string;
+  type: "session" | "page";
+  detail: string;
+}
+
 export interface ActivityData {
   weeks: Record<string, WeekStats>;
   attempts: Attempt[];
+  events: ActivityEvent[];
   truncated?: true;
 }
 
@@ -49,7 +58,7 @@ interface StoredActivity {
   failureStreak: number;
 }
 
-const emptyData = (): ActivityData => ({weeks: {}, attempts: []});
+const emptyData = (): ActivityData => ({weeks: {}, attempts: [], events: []});
 
 const emptyWeek = (): WeekStats => ({
   activeSeconds: 0,
@@ -72,6 +81,14 @@ export function isoWeek(date = new Date()): string {
   const yearStart = Date.UTC(d.getUTCFullYear(), 0, 1);
   const week = Math.ceil(((d.getTime() - yearStart) / 86400000 + 1) / 7);
   return `${d.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+// Local date and time with the UTC offset, e.g. 2026-10-03T14:05:12+02:00.
+export function localTimestamp(date = new Date()): string {
+  const pad = (n: number) => String(Math.abs(n)).padStart(2, "0");
+  const offset = -date.getTimezoneOffset();
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+    + `${offset >= 0 ? "+" : "-"}${pad(Math.trunc(offset / 60))}:${pad(offset % 60)}`;
 }
 
 export const bump = (counts: Counts, key: string, by = 1) => {
@@ -165,7 +182,13 @@ export function recordWeek(update: (week: WeekStats, internal: {failureStreak: n
   changed();
 }
 
-export function recordAttempt(attempt: Omit<Attempt, "week" | "sec">) {
+export function recordEvent(type: ActivityEvent["type"], detail: string) {
+  if (!isCollecting() || state.data.events.length >= MAX_ATTEMPTS) return;
+  state = {...state, data: {...state.data, events: [...state.data.events, {at: localTimestamp(), type, detail}]}};
+  changed();
+}
+
+export function recordAttempt(attempt: Omit<Attempt, "week" | "sec" | "at">) {
   if (!isCollecting()) return;
   if (state.data.attempts.length >= MAX_ATTEMPTS) {
     if (!state.data.truncated) {
@@ -176,7 +199,7 @@ export function recordAttempt(attempt: Omit<Attempt, "week" | "sec">) {
   }
   const now = Date.now();
   const firstSeen = state.taskFirstSeen[attempt.task] ?? now;
-  const entry: Attempt = {...attempt, week: isoWeek(), sec: Math.round((now - firstSeen) / 1000)};
+  const entry: Attempt = {...attempt, week: isoWeek(), sec: Math.round((now - firstSeen) / 1000), at: localTimestamp(new Date(now))};
   state = {
     ...state,
     taskFirstSeen: {...state.taskFirstSeen, [attempt.task]: firstSeen},
@@ -185,12 +208,38 @@ export function recordAttempt(attempt: Omit<Attempt, "week" | "sec">) {
   changed();
 }
 
-export function buildExport(data: ActivityData, language: string) {
+export interface TaskProgress {
+  attempts: number;
+  solved: boolean;
+  reveals: number;
+  firstAt: string;
+  lastAt: string;
+}
+
+// Per lab (or lecture) scope, per task: how far the student got, derived from the attempt log.
+export function taskProgress(attempts: Attempt[]): Record<string, Record<string, TaskProgress>> {
+  const progress: Record<string, Record<string, TaskProgress>> = {};
+  for (const attempt of attempts) {
+    const [scope, ...rest] = attempt.task.split("/");
+    const task = rest.join("/");
+    const entry = (progress[scope] ??= {})[task] ??= {attempts: 0, solved: false, reveals: 0, firstAt: attempt.at, lastAt: attempt.at};
+    if (attempt.reveal) entry.reveals += 1;
+    else entry.attempts += 1;
+    if (attempt.ok) entry.solved = true;
+    entry.lastAt = attempt.at ?? entry.lastAt;
+  }
+  return progress;
+}
+
+export function buildExport(data: ActivityData, language: string, work: Record<string, unknown> = {}) {
   return {
     schemaVersion: SCHEMA_VERSION,
     appVersion,
+    exportedAt: localTimestamp(),
     exportedWeek: isoWeek(),
     language,
+    progress: taskProgress(data.attempts),
+    work,
     ...data,
   };
 }

@@ -15,6 +15,18 @@ export interface PaletteCategory {
   groups: PaletteGroup[];
 }
 
+// Node types that build a term (not a type, kind or declaration) — what a term slot or a tree's root can hold.
+export const TERM_NODE_TYPES = [
+  "abstraction", "application", "variable", "literal",
+  "inl", "inr", "ifCondition", "case", "variantCase", "variant",
+  "ascribe", "tupleProjection", "recordProjection", "record",
+  "sequencing", "tuple", "dummyAbstraction", "let", "binOp", "fix",
+  "typeAbs", "typeApp",
+  "nil", "cons", "isNil", "headOp", "tailOp",
+  "fold", "unfold",
+  "succ", "pred", "iszero",
+];
+
 // Every node type insertable from the AST editor's toolbar, grouped for the header dropdowns.
 export const AST_NODE_PALETTE: PaletteCategory[] = [
   {
