@@ -61,7 +61,7 @@
   },
   "nav": {
     "editor": "Editor",
-    "docs": "Guide",
+    "docs": "Learn",
     "about": "About"
   },
   "topbar": {
@@ -89,8 +89,8 @@
     "rulesReference": "Rules Reference"
   },
   "docsIndex": {
-    "title": "Guide",
-    "description": "A hands-on introduction to typed lambda calculus, taught alongside this app. Each lecture pairs a short concept explanation with concrete steps to try in the editor, so the theory and the tool stay attached to each other.",
+    "title": "Learn",
+    "description": "A hands-on introduction to typed lambda calculus, taught alongside this app. Each lecture pairs a short concept explanation with concrete steps to try in the editor.",
     "downloadComplete": "Download Complete Guide",
     "downloadCompleteTooltip": "Download every lecture as one PDF, in reading order",
     "lecturesHeading": "Lectures",
@@ -107,7 +107,7 @@
     "reference": "Reference",
     "rules": "Rules",
     "grammar": "Grammar & Symbols",
-    "menu": "Guide Menu",
+    "menu": "Learn Menu",
     "labs": "Labs"
   },
   "docsLecture": {
