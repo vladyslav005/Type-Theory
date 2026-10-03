@@ -80,7 +80,8 @@
     "rights": "© {{year}}",
     "basedOn": "Študijné materiály vychádzajú z kurzu",
     "courseLink": "Teória typov, KPI FEI TUKE",
-    "activity": "Zber údajov o používaní"
+    "activity": "Zber údajov o používaní",
+    "feedback": "Spätná väzba"
   },
   "guide": {
     "lecture": "Prednáška",
@@ -910,8 +911,9 @@
     "hideStack": "Skryť zásobník volaní",
     "goBack": "Späť",
     "reload": "Obnoviť stránku",
-    "persists": "Ak problém pretrváva,",
-    "openIssue": "nahláste issue"
+    "persists": "Ak problém pretrváva, nahláste ho — podrobnosti o chybe sa vyplnia automaticky.",
+    "report": "Nahlásiť túto chybu",
+    "reportDetails": "Podrobnosti o chybe (vyplnené automaticky):"
   },
   "meta": {
     "main": "tt — Interaktívne ihrisko typovaného lambda kalkulu"
@@ -1245,7 +1247,7 @@
       "handInTitle": "Odovzdanie údajov",
       "handInStep1": "Na konci semestra zvoľte „Stiahnuť súbor“. Uloží sa súbor s názvom tt-activity-<dátum>.json.",
       "handInStep2": "Súbor odovzdajte v súlade s pokynmi vyučujúceho.",
-      "handInStep3": "Ak ste používali viac počítačov alebo prehliadačov, stiahnite a odovzdajte súbor z každého z nich.",
+      "handInStep3": "Ak ste používali viac počítačov alebo prehliadačov, stiahnite súbor na každom z ostatných, importujte ich sem a odovzdajte iba spojený súbor z tohto prehliadača.",
       "download": "Stiahnuť súbor",
       "delete": "Vymazať údaje",
       "showRaw": "Zobraziť presný obsah súboru",
@@ -1288,7 +1290,13 @@
       "taskReveals_few": "riešenie zobrazené {{count}}×",
       "taskReveals_many": "riešenie zobrazené {{count}}×",
       "taskReveals_other": "riešenie zobrazené {{count}}×",
-      "timeSpent": "strávený čas: {{time}}"
+      "timeSpent": "strávený čas: {{time}}",
+      "import": "Importovať súbor",
+      "importHint": "Pridajte súbor stiahnutý na inom počítači alebo v inom prehliadači — jeho postup a odpovede sa spoja s týmito.",
+      "importInvalid": "Toto nie je súbor s údajmi o používaní z tejto aplikácie.",
+      "importOwn": "Tento súbor pochádza z tohto prehliadača — jeho údaje tu už sú.",
+      "importNeedsConsent": "Na import údajov najprv povoľte zber.",
+      "importDone": "Importované: {{attempts}} nových pokusov o úlohy a {{answers}} uložených odpovedí."
     }
   },
   "syntaxBuilder": {
@@ -1307,5 +1315,26 @@
     "incomplete_other": "{{count}} uzlov ešte nemá pravidlo.",
     "doesNotFit": "nesedí — vyberte iné",
     "doesNotFitTooltip": "Toto pravidlo nezodpovedá tvaru termu, preto sa nedá rozložiť na predpoklady. Kliknite a vyberte iné pravidlo."
+  },
+  "feedbackPage": {
+    "metaTitle": "Spätná väzba — tt",
+    "title": "Spätná väzba",
+    "intro": "Pomôžte zlepšiť túto aplikáciu — vyplňte dotazník alebo pošlite nápad priamo vývojárovi.",
+    "questionnaires": {
+      "title": "Dotazníky",
+      "empty": "Momentálne nie sú otvorené žiadne dotazníky."
+    },
+    "suggestion": {
+      "title": "Navrhnite niečo",
+      "description": "Chýbajúca funkcia, niečo nejasné, nápad na cvičenie — čokoľvek. Odosiela sa anonymne, pokiaľ nezadáte kontakt.",
+      "message": "Váš návrh",
+      "placeholder": "Čo by ste chceli pridať alebo zmeniť?",
+      "contact": "Kontakt (nepovinné)",
+      "contactPlaceholder": "E-mail alebo Discord, ak chcete odpoveď",
+      "send": "Odoslať návrh",
+      "sending": "Odosiela sa…",
+      "sent": "Ďakujeme! Váš návrh bol odoslaný.",
+      "failed": "Návrh sa nepodarilo odoslať. Skúste to neskôr."
+    }
   }
 }

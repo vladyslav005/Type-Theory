@@ -41,6 +41,16 @@ if (typeof window !== "undefined") {
 
 export const getSavedWork = () => work;
 
+// Answers from another browser fill in tasks not worked on here; answers already here are kept.
+export function importSavedWork(incoming: unknown): number {
+  if (!incoming || typeof incoming !== "object") return 0;
+  const added = Object.entries(incoming as Record<string, unknown>).filter(([key]) => !(key in work));
+  if (added.length === 0) return 0;
+  work = {...work, ...Object.fromEntries(added)};
+  saveSoon();
+  return added.length;
+}
+
 export function deleteSavedWork() {
   work = {};
   saveSoon();

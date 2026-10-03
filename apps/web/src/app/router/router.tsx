@@ -25,6 +25,7 @@ export const router = createBrowserRouter([
       {index: true, element: <HomePage/>},
       {path: "/main", lazy: async () => ({Component: (await loadMainPage()).MainPage})},
       {path: "/about", element: <Navigate to="/" replace/>},
+      {path: "/feedback", lazy: async () => ({Component: (await import("@/pages/FeedbackPage.tsx")).FeedbackPage})},
       ...(STUDY_MODE ? [{path: "/activity", lazy: async () => ({Component: (await import("@/pages/ActivityPage.tsx")).ActivityPage})}] : []),
       {
         path: "/docs", lazy: async () => ({Component: (await loadDocsLayout()).DocsLayout}),

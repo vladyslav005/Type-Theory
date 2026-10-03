@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useState} from "react";
 import {Info} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {toast} from "sonner";
@@ -16,40 +16,23 @@ import {
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {buildBugReportAttachments} from "@/shared/lib/bugReportAttachments.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {env} from "@/shared/lib/env.ts";
-import {loadTurnstile} from "@/shared/lib/turnstile.ts";
+import {useTurnstile} from "@/shared/hooks/useTurnstile.ts";
 
-export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChange: (open: boolean) => void}) {
+// `initialDescription` pre-fills the text when the dialog opens (e.g. an error's details on the error page).
+export function BugReportDialog({open, onOpenChange, initialDescription}: {open: boolean; onOpenChange: (open: boolean) => void; initialDescription?: string}) {
   const {t, i18n} = useTranslation();
   const term = useAppSelector((s) => s.term);
   const [description, setDescription] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
+  if (open && !prefilled && initialDescription) {
+    setPrefilled(true);
+    setDescription(initialDescription);
+  }
   const [contact, setContact] = useState("");
   const [website, setWebsite] = useState("");
   const [attachState, setAttachState] = useState(true);
   const [sending, setSending] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileContainerRef = useRef<HTMLDivElement>(null);
-  const turnstileWidgetIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!open || !env.VITE_TURNSTILE_SITE_KEY) return;
-    let cancelled = false;
-    loadTurnstile().then(() => {
-      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
-      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-        sitekey: env.VITE_TURNSTILE_SITE_KEY!,
-        callback: setTurnstileToken,
-        "expired-callback": () => setTurnstileToken(null),
-        "error-callback": () => setTurnstileToken(null),
-      });
-    }).catch(() => setTurnstileToken(null));
-    return () => {
-      cancelled = true;
-      if (turnstileWidgetIdRef.current && window.turnstile) window.turnstile.remove(turnstileWidgetIdRef.current);
-      turnstileWidgetIdRef.current = null;
-      setTurnstileToken(null);
-    };
-  }, [open]);
+  const {enabled: turnstileEnabled, token: turnstileToken, containerRef: turnstileRef, reset: resetTurnstile, ready: turnstileReady} = useTurnstile(open);
 
   const submit = async () => {
     setSending(true);
@@ -89,9 +72,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
       onOpenChange(false);
     } catch {
       toast.error(t("bugReport.failed"));
-      // A Turnstile token is single-use; get a fresh one for the next attempt.
-      if (turnstileWidgetIdRef.current && window.turnstile) window.turnstile.reset(turnstileWidgetIdRef.current);
-      setTurnstileToken(null);
+      resetTurnstile();
     } finally {
       setSending(false);
     }
@@ -171,7 +152,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
             </TooltipProvider>
           </div>
 
-          {env.VITE_TURNSTILE_SITE_KEY && <div ref={turnstileContainerRef} className="flex justify-center"/>}
+          {turnstileEnabled && <div ref={turnstileRef} className="flex justify-center"/>}
         </div>
 
         <DialogFooter>
@@ -180,7 +161,7 @@ export function BugReportDialog({open, onOpenChange}: {open: boolean; onOpenChan
           </Button>
           <Button
             onClick={submit}
-            disabled={sending || !description.trim() || (!!env.VITE_TURNSTILE_SITE_KEY && !turnstileToken)}
+            disabled={sending || !description.trim() || !turnstileReady}
           >
             {sending ? t("bugReport.sending") : t("bugReport.send")}
           </Button>

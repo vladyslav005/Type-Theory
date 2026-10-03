@@ -64,12 +64,21 @@ export interface ActivityData {
   // Active seconds per lab/lecture task id.
   taskSeconds: Record<string, number>;
   practice: PracticeSession[];
+  // Totals imported from other browsers, one part per source, replaced (not added) on re-import.
+  parts?: Record<string, SourcePart>;
   truncated?: true;
+}
+
+export interface SourcePart {
+  weeks: Record<string, WeekStats>;
+  taskSeconds: Record<string, number>;
 }
 
 interface StoredActivity {
   consent: Consent;
   data: ActivityData;
+  // Random id of this browser's data, so its totals merge correctly when imported elsewhere.
+  origin: string;
   // Local bookkeeping only, stripped from the export.
   taskFirstSeen: Record<string, number>;
   failureStreak: number;
@@ -127,7 +136,7 @@ function withDefaults<T>(defaults: T, stored: unknown): T {
 }
 
 function load(): StoredActivity {
-  const fallback: StoredActivity = {consent: "unset", data: emptyData(), taskFirstSeen: {}, failureStreak: 0};
+  const fallback: StoredActivity = {consent: "unset", data: emptyData(), origin: crypto.randomUUID(), taskFirstSeen: {}, failureStreak: 0};
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback;
@@ -135,6 +144,7 @@ function load(): StoredActivity {
     return {
       consent: parsed.consent === "granted" || parsed.consent === "denied" ? parsed.consent : "unset",
       data: parsed.data && typeof parsed.data === "object" ? {...emptyData(), ...parsed.data} : emptyData(),
+      origin: typeof parsed.origin === "string" ? parsed.origin : crypto.randomUUID(),
       taskFirstSeen: parsed.taskFirstSeen ?? {},
       failureStreak: typeof parsed.failureStreak === "number" ? parsed.failureStreak : 0,
     };
@@ -250,6 +260,63 @@ export function recordAttempt(attempt: Omit<Attempt, "week" | "sec" | "at">) {
   changed();
 }
 
+// Adds numeric leaves of two counter objects (weeks, seconds) key by key.
+function sumCounters<T>(a: T, b: T): T {
+  if (typeof a === "number" || typeof b === "number") return ((Number(a) || 0) + (Number(b) || 0)) as T;
+  if (typeof a !== "object" || a === null) return b;
+  if (typeof b !== "object" || b === null) return a;
+  const result: Record<string, unknown> = {...(a as Record<string, unknown>)};
+  for (const [key, value] of Object.entries(b as Record<string, unknown>)) result[key] = key in result ? sumCounters(result[key], value) : value;
+  return result as T;
+}
+
+// This browser's totals plus every imported source's — what the page shows and the export carries.
+export function combinedTotals(data: ActivityData): SourcePart {
+  return Object.values(data.parts ?? {}).reduce<SourcePart>(
+    (total, part) => ({weeks: sumCounters(total.weeks, part.weeks ?? {}), taskSeconds: sumCounters(total.taskSeconds, part.taskSeconds ?? {})}),
+    {weeks: data.weeks, taskSeconds: data.taskSeconds},
+  );
+}
+
+const unique = <T,>(items: T[], key: (item: T) => string) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const k = key(item);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+};
+
+export type ImportResult = {ok: true; attempts: number; events: number; practice: number} | {ok: false; reason: "invalid" | "own" | "notCollecting"};
+
+// Merges a downloaded file from another browser: logs are de-duplicated, totals stored per source.
+export function importActivity(file: unknown): ImportResult {
+  if (!isCollecting()) return {ok: false, reason: "notCollecting"};
+  const incoming = file as Partial<ReturnType<typeof buildExport>>;
+  if (!incoming || typeof incoming !== "object" || !Array.isArray(incoming.attempts) || typeof incoming.weeks !== "object") return {ok: false, reason: "invalid"};
+  if (incoming.origin === state.origin) return {ok: false, reason: "own"};
+
+  const fallbackOrigin = `import-${incoming.exportedAt ?? incoming.exportedWeek ?? "unknown"}`;
+  const incomingParts: Record<string, SourcePart> = incoming.parts && typeof incoming.parts === "object"
+    ? incoming.parts as Record<string, SourcePart>
+    : {[incoming.origin ?? fallbackOrigin]: {weeks: incoming.weeks ?? {}, taskSeconds: incoming.taskSeconds ?? {}}};
+  const parts = {...state.data.parts};
+  for (const [origin, part] of Object.entries(incomingParts)) if (origin !== state.origin) parts[origin] = part;
+
+  const attempts = unique([...state.data.attempts, ...incoming.attempts], (a) => JSON.stringify([a.task, a.at, a.sec, a.ok, a.kind, a.reveal]));
+  const events = unique([...state.data.events, ...(incoming.events ?? [])], (e) => `${e.at}|${e.type}|${e.detail}`);
+  const practice = unique([...state.data.practice, ...(incoming.practice ?? [])], (p) => p.id);
+  const added = {
+    attempts: attempts.length - state.data.attempts.length,
+    events: events.length - state.data.events.length,
+    practice: practice.length - state.data.practice.length,
+  };
+  state = {...state, data: {...state.data, attempts, events, practice, parts}};
+  changed(true);
+  return {ok: true, ...added};
+}
+
 export interface TaskProgress {
   seconds: number;
   attempts: number;
@@ -275,14 +342,22 @@ export function taskProgress(attempts: Attempt[], taskSeconds: Record<string, nu
 }
 
 export function buildExport(data: ActivityData, language: string, work: Record<string, unknown> = {}) {
+  const totals = combinedTotals(data);
+  const {parts, weeks, taskSeconds, ...logs} = data;
   return {
     schemaVersion: SCHEMA_VERSION,
     appVersion,
     exportedAt: localTimestamp(),
     exportedWeek: isoWeek(),
     language,
-    progress: taskProgress(data.attempts, data.taskSeconds),
+    origin: state.origin,
+    progress: taskProgress(data.attempts, totals.taskSeconds),
     work,
-    ...data,
+    ...logs,
+    // Combined over every source, so the file reads as one student's whole record.
+    weeks: totals.weeks,
+    taskSeconds: totals.taskSeconds,
+    // Each source's own totals, so importing this file elsewhere never counts anything twice.
+    parts: {...parts, [state.origin]: {weeks, taskSeconds}},
   };
 }

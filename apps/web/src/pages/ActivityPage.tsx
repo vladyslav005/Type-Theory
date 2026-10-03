@@ -1,14 +1,17 @@
-import {useMemo, useState} from "react";
+import {useMemo, useRef, useState} from "react";
+import type {ChangeEvent} from "react";
 import {useTranslation} from "react-i18next";
-import {BarChart3, Check, CheckCircle2, Circle, CircleDot, Download, Trash2, X} from "lucide-react";
+import {BarChart3, Check, CheckCircle2, Circle, CircleDot, Download, Trash2, Upload, X} from "lucide-react";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/shared/components/ui/dialog.tsx";
 import {usePageMeta} from "@/shared/hooks/usePageMeta.ts";
 import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
-import {buildExport, deleteActivityData, setConsent, type ActivityData} from "@/shared/activity/activityStore.ts";
-import {deleteSavedWork, getSavedWork} from "@/shared/activity/savedWork.ts";
+import {buildExport, combinedTotals, deleteActivityData, importActivity, setConsent, type ActivityData} from "@/shared/activity/activityStore.ts";
+import {deleteSavedWork, getSavedWork, importSavedWork} from "@/shared/activity/savedWork.ts";
+import {Tip} from "@/shared/components/Tip.tsx";
+import {toast} from "sonner";
 import {useActivity} from "@/shared/activity/useActivity.ts";
 import {LAB_REGISTRY, getLabText} from "@/features/docs/labs/labRegistry.ts";
 import {labStatus, type LabStatus} from "@/features/docs/labs/labProgress.ts";
@@ -21,7 +24,7 @@ interface ScopeProgress {
 }
 
 function summarize(data: ActivityData) {
-  const weeks = Object.values(data.weeks);
+  const weeks = Object.values(combinedTotals(data).weeks);
   const activeSeconds = weeks.reduce((sum, week) => sum + week.activeSeconds, 0);
   const weeksActive = weeks.filter((week) => week.activeSeconds > 0).length;
 
@@ -119,7 +122,32 @@ export function ActivityPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const collecting = consent === "granted";
   const summary = useMemo(() => summarize(data), [data]);
-  const labs = useMemo(() => LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts, data.taskSeconds)), [data.attempts, data.taskSeconds]);
+  const labs = useMemo(() => {
+    const {taskSeconds} = combinedTotals(data);
+    return LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts, taskSeconds));
+  }, [data]);
+  const importInput = useRef<HTMLInputElement>(null);
+
+  // Brings in a file downloaded on another computer or browser; merging never counts anything twice.
+  const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await file.text());
+    } catch {
+      toast.error(t("activity.page.importInvalid"));
+      return;
+    }
+    const result = importActivity(parsed);
+    if (!result.ok) {
+      toast.error(t(result.reason === "own" ? "activity.page.importOwn" : result.reason === "notCollecting" ? "activity.page.importNeedsConsent" : "activity.page.importInvalid"));
+      return;
+    }
+    const answers = importSavedWork((parsed as {work?: unknown}).work);
+    toast.success(t("activity.page.importDone", {attempts: result.attempts, answers}));
+  };
   const lectureScopes = summary.scopes.filter((scope) => scope.scope.startsWith("lecture:"));
   // Saved answers join the file only with consent, like everything else in it.
   const exported = useMemo(
@@ -211,6 +239,12 @@ export function ActivityPage() {
           </ol>
           <div className="flex flex-wrap gap-2 pt-1">
             <Button onClick={download} className="gap-2"><Download className="h-4 w-4"/>{t("activity.page.download")}</Button>
+            <Tip label={collecting ? t("activity.page.importHint") : t("activity.page.importNeedsConsent")}>
+              <Button variant="outline" disabled={!collecting} onClick={() => importInput.current?.click()} className="gap-2">
+                <Upload className="h-4 w-4"/>{t("activity.page.import")}
+              </Button>
+            </Tip>
+            <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={importFile}/>
             <Button variant="outline" onClick={() => setConfirmDelete(true)} className="gap-2"><Trash2 className="h-4 w-4"/>{t("activity.page.delete")}</Button>
           </div>
           <details className="text-sm">

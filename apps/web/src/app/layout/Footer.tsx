@@ -28,6 +28,8 @@ export function Footer() {
             {t("footer.courseLink")}
           </a>
         </span>
+        <span aria-hidden="true">·</span>
+        <Link to="/feedback" className="underline underline-offset-2 hover:text-foreground">{t("footer.feedback")}</Link>
         {STUDY_MODE && (
           <>
             <span aria-hidden="true">·</span>

@@ -1,8 +1,9 @@
 import {useState} from "react";
 import {useTranslation} from "react-i18next";
 import {useRouteError, useNavigate} from "react-router-dom";
-import {AlertTriangle, ChevronDown, ChevronUp} from "lucide-react";
+import {AlertTriangle, Bug, ChevronDown, ChevronUp} from "lucide-react";
 import {Button} from "@/shared/components/ui/button.tsx";
+import {BugReportDialog} from "@/shared/components/BugReportDialog.tsx";
 import i18n from "@/i18n";
 
 function getErrorMessage(error: unknown): string {
@@ -28,6 +29,7 @@ export function ErrorPage() {
   const error = useRouteError();
   const navigate = useNavigate();
   const [stackOpen, setStackOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const stack = getStackTrace(error);
 
@@ -81,18 +83,26 @@ export function ErrorPage() {
           </Button>
         </div>
 
-        <div className="pt-8 border-t border-border">
-          <p className="text-sm text-muted-foreground">
-            {t("errorPage.persists")}{" "}
-            <a
-              href="https://github.com/vladyslav005/Type-Theory/issues"
-              className="text-primary hover:underline"
-            >
-              {t("errorPage.openIssue")}
-            </a>
-            .
-          </p>
+        <div className="flex flex-col items-center gap-3 pt-8 border-t border-border">
+          <p className="text-sm text-muted-foreground">{t("errorPage.persists")}</p>
+          <Button variant="outline" className="gap-2" onClick={() => setReportOpen(true)}>
+            <Bug className="h-4 w-4"/>
+            {t("errorPage.report")}
+          </Button>
         </div>
+        <BugReportDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          initialDescription={[
+            "",
+            "",
+            "---",
+            t("errorPage.reportDetails"),
+            `URL: ${window.location.href}`,
+            `Error: ${getErrorMessage(error)}`,
+            ...(stack ? ["", stack] : []),
+          ].join("\n")}
+        />
 
       </div>
     </div>

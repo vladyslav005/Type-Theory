@@ -80,7 +80,8 @@
     "rights": "© {{year}}",
     "basedOn": "Study materials are based on the course",
     "courseLink": "Type Theory, KPI FEI TUKE",
-    "activity": "Usage data collection"
+    "activity": "Usage data collection",
+    "feedback": "Feedback"
   },
   "guide": {
     "lecture": "Lecture",
@@ -908,8 +909,9 @@
     "hideStack": "Hide stack trace",
     "goBack": "Go Back",
     "reload": "Reload Page",
-    "persists": "If the problem persists, please",
-    "openIssue": "open an issue"
+    "persists": "If the problem persists, please report it — the error details are filled in for you.",
+    "report": "Report this error",
+    "reportDetails": "Error details (filled in automatically):"
   },
   "meta": {
     "main": "tt — Interactive Typed Lambda Calculus Playground"
@@ -1231,7 +1233,7 @@
       "handInTitle": "Submission of data",
       "handInStep1": "At the end of the semester, select “Download file”. A file named tt-activity-<date>.json will be saved.",
       "handInStep2": "Submit the file in accordance with the instructions of the course instructor.",
-      "handInStep3": "If multiple computers or browsers were used, download and submit the file from each of them.",
+      "handInStep3": "If you used more than one computer or browser, download the file on each of the others, import those files here, and hand in only the combined file from this browser.",
       "download": "Download file",
       "delete": "Delete data",
       "showRaw": "Display the exact content of the file",
@@ -1270,7 +1272,13 @@
       "taskAttempts_other": "{{count}} attempts",
       "taskReveals_one": "solution shown {{count}}×",
       "taskReveals_other": "solution shown {{count}}×",
-      "timeSpent": "time spent: {{time}}"
+      "timeSpent": "time spent: {{time}}",
+      "import": "Import file",
+      "importHint": "Add a file downloaded on another computer or browser — its progress and answers join this one.",
+      "importInvalid": "This isn't a usage data file from this app.",
+      "importOwn": "This file comes from this browser — its data is already here.",
+      "importNeedsConsent": "Enable collection first to import data.",
+      "importDone": "Imported: {{attempts}} new task attempts and {{answers}} saved answers."
     }
   },
   "syntaxBuilder": {
@@ -1285,5 +1293,26 @@
     "incomplete_other": "{{count}} nodes still need a rule.",
     "doesNotFit": "doesn't fit — pick again",
     "doesNotFitTooltip": "This rule doesn't match the term's shape, so it can't be split into premises. Click to pick another rule."
+  },
+  "feedbackPage": {
+    "metaTitle": "Feedback — tt",
+    "title": "Feedback",
+    "intro": "Help make this app better — fill in a questionnaire or send an idea straight to the developer.",
+    "questionnaires": {
+      "title": "Questionnaires",
+      "empty": "No questionnaires are open right now."
+    },
+    "suggestion": {
+      "title": "Suggest something",
+      "description": "A feature you're missing, something confusing, an idea for a lab — anything goes. Sent anonymously unless you leave a contact.",
+      "message": "Your suggestion",
+      "placeholder": "What would you like to see added or changed?",
+      "contact": "Contact (optional)",
+      "contactPlaceholder": "Email or Discord handle, if you'd like a reply",
+      "send": "Send suggestion",
+      "sending": "Sending…",
+      "sent": "Thanks! Your suggestion was sent.",
+      "failed": "Couldn't send the suggestion. Please try again later."
+    }
   }
 }
