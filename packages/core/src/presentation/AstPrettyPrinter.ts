@@ -49,7 +49,7 @@ export class AstPrettyPrinter {
     }
 
     if (program.term) {
-      parts.push(this.printTerm(program.term) + ";");
+      parts.push(this.printTerm(program.term) + (program.termType ? ` : ${this.printType(program.termType)}` : "") + ";");
     }
 
     return parts.join("\n");

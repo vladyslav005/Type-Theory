@@ -103,6 +103,11 @@ const FEATURE_LABELS: {[feature in StlcFeatureId]: string} = {
   lists: "Lists",
 };
 
+export interface CheckOptions {
+  // Main expression must be written `term : T;` — never required under Type inference, Let-polymorphism, Untyped or NBL.
+  requireTermType?: boolean;
+}
+
 export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   private schemeContext: Gamma<TypeScheme> = new Gamma<TypeScheme>();
@@ -170,7 +175,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   // Runs inference over the whole program, then solves whatever constraints are still outstanding
   // (a nested `let` already solved+generalized its own value eagerly, via checkLet).
-  public check(program: Program): InferProofTree {
+  public check(program: Program, options: CheckOptions = {}): InferProofTree {
     this.schemeContext = new Gamma<TypeScheme>();
     this.varOrigin = new Gamma<VarOrigin>();
     this.errorBuffer = [];
@@ -198,12 +203,53 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       result = {...proof, type: ERROR_TYPE, error: msg};
     }
 
+    this.checkTermType(program, result, options.requireTermType ?? false);
+
     // `proof` still has any `let`/global value subtree already locally solved (see
     // rawValueProofs) — splice the truly-unresolved versions back in before replaying steps,
     // or a let-local step would have nothing left to visibly resolve.
     const trueRawProof = this.restoreRawValueProofs(proof) as InferProofTree;
     this.inferenceProofSnapshots = this.buildInferenceSnapshots(trueRawProof);
     return result;
+  }
+
+  // Reported as program errors, not on the proof root: the tree stays a correct derivation of the term's actual type.
+  private checkTermType(program: Program, proof: InferProofTree, required: boolean): void {
+    if (!program.term) return;
+    const pos = program.term.pos;
+    const {typeInference, letPolymorphism, untyped, nbl} = this.theories;
+
+    if (!program.termType) {
+      if (required && !typeInference && !letPolymorphism && !untyped && !nbl) {
+        this.errorBuffer.push(new TypeCheckError("State the type of the main expression — write it as term : T;", pos));
+      }
+      return;
+    }
+
+    if (nbl) {
+      this.errorBuffer.push(new TypeCheckError(`NBL has no types — remove the ": T" after the main expression`, pos));
+      return;
+    }
+    const kindCheck = this.checkKindAnnotation(this.expandAliases(program.termType));
+    if (kindCheck.rejected) {
+      this.errorBuffer.push(new TypeCheckError(`Main expression: ${kindCheck.message}`, pos));
+      return;
+    }
+    if (proof.error || proof.type.id === ERROR_TYPE.id) return;
+    if (!typeEquals(proof.type, kindCheck.normalized) && !this.unifiable(proof.type, kindCheck.normalized)) {
+      this.errorBuffer.push(new TypeCheckError(
+        `The main expression has type ${typeToString(proof.type)}, but its stated type is ${typeToString(kindCheck.normalized)}`, pos));
+    }
+  }
+
+  // Under inference the term's type may still hold unsolved variables (λx. x : ?a → ?a); any instance of it is fine.
+  private unifiable(inferred: Type, stated: Type): boolean {
+    try {
+      new TypeInferenceEngine().solve([{left: inferred, right: stated}]);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private restoreRawValueProofs(node: ProofTree): ProofTree {

@@ -3,6 +3,7 @@ import type {ExprContext} from "@/antlr/LambdaParser.ts";
 import LambdaVisitor from "@/antlr/LambdaVisitor.ts";
 import {GlobalDeclVisitor} from "@/adapter/GlobalDeclVisitor.ts";
 import {TermBuilderVisitor} from "@/adapter/TermBuilderVisitor.ts";
+import {TypeBuilderVisitor} from "@/adapter/TypeBuilderVisitor.ts";
 
 
 export class ProgramBuilderVisitor extends LambdaVisitor<Program> {
@@ -16,6 +17,10 @@ export class ProgramBuilderVisitor extends LambdaVisitor<Program> {
       ? new TermBuilderVisitor().visit(ctx.term())
       : undefined
 
-    return {id: crypto.randomUUID(), kind: "Program", globals, term }
+    const termType = ctx.type_()
+      ? new TypeBuilderVisitor().visit(ctx.type_())
+      : undefined
+
+    return {id: crypto.randomUUID(), kind: "Program", globals, term, ...(termType ? {termType} : {})}
   }
 }

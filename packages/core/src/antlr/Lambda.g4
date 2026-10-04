@@ -1,7 +1,7 @@
 grammar Lambda;
 
 expression
-    : ( globalDecl )* (term SEMI)? EOF              # Expr
+    : ( globalDecl )* (term (COLON type)? SEMI)? EOF              # Expr
     ;
 
 
