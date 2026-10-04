@@ -1366,10 +1366,13 @@
     "aria": "Poslať spätnú väzbu",
     "metaTitle": "Spätná väzba — tt",
     "title": "Spätná väzba",
-    "intro": "Pomôžte zlepšiť túto aplikáciu — vyplňte dotazník alebo pošlite nápad priamo vývojárovi.",
+    "intro": "Vaše odpovede a nápady priamo ovplyvňujú, ako sa aplikácia bude ďalej vyvíjať.",
     "questionnaires": {
       "title": "Dotazníky",
-      "empty": "Momentálne nie sú otvorené žiadne dotazníky."
+      "empty": "Momentálne nie sú otvorené žiadne dotazníky.",
+      "open": "Otvoriť dotazník",
+      "minutes": "~{{count}} min",
+      "anonymous": "Anonymný"
     },
     "suggestion": {
       "title": "Navrhnite niečo",

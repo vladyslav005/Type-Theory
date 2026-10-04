@@ -114,21 +114,31 @@ export function FeedbackPage() {
             {t("feedbackPage.questionnaires.title")}
           </h2>
           {QUESTIONNAIRES.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {QUESTIONNAIRES.map((q) => (
-                <li key={q.url}>
-                  <a
-                    href={q.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3 transition-colors hover:bg-muted"
-                  >
-                    <span className="min-w-0">
-                      <span className="block font-medium">{localized(q.title, i18n.language)}</span>
-                      {q.description && <span className="block text-sm text-muted-foreground">{localized(q.description, i18n.language)}</span>}
-                    </span>
-                    <ExternalLink className="size-4 shrink-0 text-muted-foreground"/>
-                  </a>
+                <li key={q.url} className="rounded-lg border bg-background p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold">{localized(q.title, i18n.language)}</h3>
+                      {q.minutes && (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {t("feedbackPage.questionnaires.minutes", {count: q.minutes})}
+                        </span>
+                      )}
+                      {q.anonymous && (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {t("feedbackPage.questionnaires.anonymous")}
+                        </span>
+                      )}
+                    </div>
+                    <Button asChild size="sm">
+                      <a href={q.url} target="_blank" rel="noopener noreferrer">
+                        {t("feedbackPage.questionnaires.open")}
+                        <ExternalLink className="size-4"/>
+                      </a>
+                    </Button>
+                  </div>
+                  {q.description && <p className="mt-2 text-sm text-muted-foreground">{localized(q.description, i18n.language)}</p>}
                 </li>
               ))}
             </ul>

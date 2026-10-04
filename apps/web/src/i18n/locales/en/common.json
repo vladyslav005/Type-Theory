@@ -1342,10 +1342,13 @@
     "aria": "Give feedback",
     "metaTitle": "Feedback — tt",
     "title": "Feedback",
-    "intro": "Help make this app better — fill in a questionnaire or send an idea straight to the developer.",
+    "intro": "Your answers and ideas directly shape how the app develops.",
     "questionnaires": {
       "title": "Questionnaires",
-      "empty": "No questionnaires are open right now."
+      "empty": "No questionnaires are open right now.",
+      "open": "Open questionnaire",
+      "minutes": "~{{count}} min",
+      "anonymous": "Anonymous"
     },
     "suggestion": {
       "title": "Suggest something",
