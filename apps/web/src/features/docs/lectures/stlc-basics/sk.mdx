@@ -73,7 +73,7 @@ učí táto aplikácia — zvyčajne skrytú za kompilátorom. Pár myšlienok, 
 lebo ste ich pravdepodobne stretli aj bez názvu:
 
 - **Odvodzovanie typov** — TypeScript, Rust a Kotlin, ktoré odhadnú typ, ktorý ste
-  nenapísali — je úsudok Γ ⊢ t : T, riešené automaticky namiesto kontroly
+  nenapísali — je typovacia relácia Γ ⊢ t : T, riešená automaticky namiesto kontroly
   voči anotácii (neskoršia prednáška).
 - **Generiká** — explicitné typové parametre ako `T` v Jave, TypeScripte či Ruste —
   sú explicitný polymorfizmus (neskoršia prednáška) s prívetivejšou syntaxou.
@@ -217,11 +217,11 @@ Pamätáte si `true + 1` z rozcvičky, alebo zaseknuté `succ true` z jazyka NBL
 nebráni v napísaní takého termu, ale nič neznamená a pri vyhodnotení sa **zasekne**: nie je hodnotou
 a nevzťahuje sa naň žiadne pravidlo. Typovanie to zachytí *predtým*, než sa čokoľvek spustí, tak, že
 pre každý podterm odpovie na jednu otázku: pri tom, čo je v rozsahu platnosti, dáva to zmysel a čo to
-produkuje? Táto otázka má názov — **typovací úsudok**:
+produkuje? Táto otázka má názov — **typovacia relácia**:
 
 <MathBlock>{"\\Gamma \\vdash t : T"}</MathBlock>
 
-- Čítajte ho ako „v kontexte Γ má term `t` typ `T`".
+- Čítajte ju ako „v kontexte Γ má term `t` typ `T`".
 - `Γ` (veľké gama) je **kontext** — zoznam parametrov, ktoré sú práve v rozsahu platnosti, každý
   spárovaný so svojím typom, tak ako signatúra funkcie hovorí, čo je dostupné v jej tele.
 - Uzavretý term (kombinátor z úvodnej prednášky) sa dá kontrolovať voči prázdnemu kontextu; term s
@@ -265,7 +265,7 @@ zatiaľ nechajte všetko vypnuté. Táto prednáška potrebuje len čisté STLC.
   steps={[
     <>Otvorte <strong>Editor</strong>, vymažte ho a napíšte <code>(λ x : Bool . x) true;</code>.</>,
     <>Pozrite sa na panel <strong>AST</strong> — ten istý tvar aplikácia/abstrakcia/literál, ktorý ste práve zostavili ručne.</>,
-    <>Prepnite na panel <strong>Strom dôkazu</strong> — je to úsudok Γ ⊢ t : T zostavené naživo, jedno pravidlo na uzol, zodpovedajúce kartám T-App/T-Abs/T-Var/T-Const vyššie.</>,
+    <>Prepnite na panel <strong>Strom dôkazu</strong> — je to dôkaz sekventu Γ ⊢ t : T zostavený naživo, jedno pravidlo na uzol, zodpovedajúce kartám T-App/T-Abs/T-Var/T-Const vyššie.</>,
     <>Zámerne to pokazte: zmeňte <code>true</code> na <code>5</code>. Premisa T-App, že typ argumentu sa zhoduje s typom parametra, teraz zlyhá a chyba presne ukáže kde.</>,
   ]}
 />

@@ -606,7 +606,7 @@
     "centerView": "Vycentrovať",
     "prevStep": "Predchádzajúci krok",
     "nextStep": "Ďalší krok",
-    "restart": "Začať znova od cieľového úsudku",
+    "restart": "Začať znova od koreňa stromu",
     "stepCount": "Krok {{step}} / {{total}}",
     "expandContext": "Rozbaliť kontext",
     "collapseContext": "Zbaliť kontext"
@@ -622,7 +622,7 @@
     "checkProof": "Skontrolovať dôkaz",
     "exit": "Zavrieť",
     "resetNode": "Vynulovať tento uzol",
-    "buildJudgementType": "Zostavte typ tohto úsudku",
+    "buildJudgementType": "Zostavte typ tohto sekventu",
     "setType": "Nastaviť typ",
     "contextQuestion": "Čo sa tu pridáva do kontextu?",
     "setBinding": "Nastaviť väzbu",
@@ -895,7 +895,7 @@
     "explore": {
       "basics": {
         "title": "Základy STLC",
-        "desc": "Termy, typy a úsudok Γ ⊢ t : T — základ, na ktorom stavia všetko ostatné."
+        "desc": "Termy, typy a typovacia relácia Γ ⊢ t : T — základ, na ktorom stavia všetko ostatné."
       },
       "rules": {
         "title": "Pravidlá typovania a vyhodnocovania",
@@ -957,8 +957,8 @@
       "factParse": "Vedľajšiu podmienku sa nepodarilo prečítať: {{detail}}",
       "factForm": "Tu je potrebný iný druh vedľajšej podmienky.",
       "factMismatch": "Táto vedľajšia podmienka nesedí.",
-      "constraintsRequired": "Časť s obmedzeniami (C) v tomto úsudku nie je správna.",
-      "constraintsNotExpected": "Časť s obmedzeniami (C) v tomto úsudku nie je správna.",
+      "constraintsRequired": "Časť s obmedzeniami (C) v tomto sekvente nie je správna.",
+      "constraintsNotExpected": "Časť s obmedzeniami (C) v tomto sekvente nie je správna.",
       "definitionDuplicate": "{{name}} je definované viackrát s rôznym obsahom.",
       "factContextParse": "Kontext vo vedľajšej podmienke sa nepodarilo prečítať: {{detail}}",
       "factContextMissing": "{{name}} nie je v {{context}} = {{contents}}, takže to neplatí.",
@@ -1223,16 +1223,16 @@
     "hideEditor": "Skryť editor"
   },
   "typingLab": {
-    "hint": "Pre každý úsudok vyberte typové pravidlo — jeho premisy sa doplnia automaticky. Ak sa žiadne pravidlo nedá použiť, term nie je správne typovaný.",
-    "wrong_one": "{{count}} pravidlo nesedí na svoj úsudok.",
-    "wrong_few": "{{count}} pravidlá nesedia na svoje úsudky.",
-    "wrong_many": "{{count}} pravidla nesedí na svoje úsudky.",
-    "wrong_other": "{{count}} pravidiel nesedí na svoje úsudky.",
+    "hint": "Pre každý sekvent vyberte typovacie pravidlo — jeho premisy sa doplnia automaticky. Ak sa žiadne pravidlo nedá použiť, term nie je správne typovaný.",
+    "wrong_one": "{{count}} pravidlo nesedí na svoj sekvent.",
+    "wrong_few": "{{count}} pravidlá nesedia na svoje sekventy.",
+    "wrong_many": "{{count}} pravidla nesedí na svoje sekventy.",
+    "wrong_other": "{{count}} pravidiel nesedí na svoje sekventy.",
     "doneWellTyped": "Odvodenie je hotové — term je správne typovaný.",
-    "doneIllTyped": "Správne — tam sa nedá použiť žiadne typové pravidlo, term teda nie je správne typovaný.",
-    "doneNotTerm": "Správne — toto nie je ani term, takže sa naň nedá použiť žiadne typové pravidlo.",
+    "doneIllTyped": "Správne — tam sa nedá použiť žiadne typovacie pravidlo, term teda nie je správne typovaný.",
+    "doneNotTerm": "Správne — toto nie je ani term, takže sa naň nedá použiť žiadne typovacie pravidlo.",
     "solutionNotTerm": "Nie je to term {{detail}}",
-    "solutionIllTyped": "Term nie je správne typovaný — žiadne typové pravidlo neodvodí {{judgement}}.",
+    "solutionIllTyped": "Term nie je správne typovaný — žiadne typovacie pravidlo neodvodí {{judgement}}.",
     "notWellTyped": "Nie je správne typovaný",
     "notWellTypedCorrect": "Správne — term nie je správne typovaný, takže nie je čo vyhodnocovať.",
     "applyHint": "Aplikujte term na argumenty správnych typov a vyhodnoťte ho krok po kroku (volanie hodnotou). Pre typ ako A si najprv zadeklarujte premennú, napr. a : A; — posledný riadok je aplikácia.",

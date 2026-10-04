@@ -29,7 +29,7 @@
       "translations": {
         "sk": {
           "title": "Základy STLC",
-          "summary": "Termy, typy a úsudok Γ ⊢ t : T — základ, na ktorom stojí všetko ostatné."
+          "summary": "Termy, typy a typovacia relácia Γ ⊢ t : T — základ, na ktorom stojí všetko ostatné."
         }
       }
     },
