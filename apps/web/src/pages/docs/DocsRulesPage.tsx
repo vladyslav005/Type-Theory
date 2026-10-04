@@ -22,8 +22,8 @@ const staggerContainer = {
 // semantics of their own (logic, kinding, inference) simply have no eval groups.
 // `label` is the short form used by the category filter chips. An untyped topic has no
 // type group, so it carries its own `title`/`note`.
+// Listed in lecture order (lectures.config.json).
 const TOPIC_PAIRINGS: {typeId: string; label: string; evalIds: string[]; title?: string; note?: string}[] = [
-  {typeId: "stlc", label: "STLC", evalIds: ["stlc-eval"]},
   {
     typeId: "nbl",
     label: "NBL",
@@ -31,14 +31,15 @@ const TOPIC_PAIRINGS: {typeId: string; label: string; evalIds: string[]; title?:
     title: "Numbers & Booleans (NBL)",
     note: "Untyped arithmetic expressions (TAPL ch. 3) — no typing rules, only evaluation. Enable the NBL extension to run these in the editor.",
   },
-  {typeId: "curry-howard", label: "Curry–Howard", evalIds: []},
+  {typeId: "stlc", label: "STLC", evalIds: ["stlc-eval"]},
   {typeId: "data-types", label: "Tuples & Variants", evalIds: ["data-types-eval", "lists-eval"]},
-  {typeId: "iso-recursive", label: "Iso-recursive", evalIds: ["iso-recursive-eval"]},
   {typeId: "recursion", label: "Recursion", evalIds: ["recursion-eval"]},
+  {typeId: "iso-recursive", label: "Iso-recursive", evalIds: ["iso-recursive-eval"]},
   {typeId: "let-polymorphism", label: "Let & Inference", evalIds: []},
   {typeId: "system-f", label: "System F", evalIds: ["system-f-eval"]},
   {typeId: "system-f-omega", label: "System Fω", evalIds: []},
   {typeId: "system-lambda-p", label: "System λP", evalIds: []},
+  {typeId: "curry-howard", label: "Curry–Howard", evalIds: []},
 ];
 
 function ruleMatches(rule: RuleDefinition, groupTitle: string, terms: string[]): boolean {

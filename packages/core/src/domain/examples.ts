@@ -368,8 +368,19 @@ getOrElse none 42 : Nat;`,
       },
       {
         label: "Records",
-        description: "a labeled record literal <name=1, flag=true>, projected by field name with .flag",
-        code: `(<name=1, flag=true>.flag) : Bool;`,
+        description: "a record declared with its type <name: String, age: Nat>, then projected by field name with .age",
+        code: `person = <name="Ann", age=30> : <name: String, age: Nat>;
+
+person.age : Nat;`,
+      },
+      {
+        label: "Record Types: Function over Records",
+        description: "typedef names a record type; birthday takes a Person and builds a new one with age + 1",
+        code: `typedef Person = <name: String, age: Nat>;
+
+birthday = λ p : Person . <name=p.name, age=p.age + 1> : Person -> Person;
+
+birthday <name="Ann", age=30> : Person;`,
       },
       {
         label: "Chained Projections",

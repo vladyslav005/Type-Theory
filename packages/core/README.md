@@ -116,6 +116,7 @@ term ::= ID                                       (* variable *)
 type ::= ID | 'Nat' | 'Bool' | 'Unit' | 'String'
        | type '->' type                            (* right-associative *)
        | type '+' type                              (* sum type *)
+       | '<' ID ':' type (',' ID ':' type)* '>'      (* record type *)
        | '<' type ('*' type)* '>'                    (* tuple type *)
        | '[' ID ':' type (',' ID ':' type)* ']'      (* variant type *)
        | '(' type ')'

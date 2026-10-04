@@ -85,7 +85,7 @@ export function typeLabel(type: Type): string {
     case "VariantType":
       return `[${type.variants.map((v) => `${v.label}:${typeLabel(v.type)}`).join(", ")}]`;
     case "RecordType":
-      return `{${type.fields.map((f) => `${f.label}:${typeLabel(f.type)}`).join(", ")}}`;
+      return `<${type.fields.map((f) => `${f.label}:${typeLabel(f.type)}`).join(", ")}>`;
     case "TyForall":
       return `∀${type.typeVariable}.${typeLabel(type.type)}`;
     case "ListType":
@@ -386,7 +386,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
           [l:]
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-7 px-2 text-xs font-mono" onClick={() => onChange({kind: "record", fields: [{label: "", type: null}]})}>
-          {"{l:}"}
+          {"⟨l:⟩"}
         </Button>
         <Button type="button" size="sm" variant="outline" className="h-7 px-2 text-xs font-mono" onClick={() => onChange({kind: "list", elementType: null})}>
           List
@@ -551,7 +551,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
         onChange(isVariant ? {...value, variants: next} : {...value, fields: next});
       return container(
         <>
-          <span className="text-muted-foreground text-xs">{isVariant ? "[" : "{"}</span>
+          <span className="text-muted-foreground text-xs">{isVariant ? "[" : "⟨"}</span>
           {items.map((item, i) => (
             <span key={i} className="inline-flex items-center gap-0.5">
               {i > 0 && <span className="text-muted-foreground text-xs">,</span>}
@@ -566,7 +566,7 @@ export function TypeSlotPicker({value, onChange, contextTypes = [], topLevel = t
               <button type="button" className="text-muted-foreground hover:text-destructive text-[10px]" onClick={() => setItems(items.filter((_, j) => j !== i))}>✕</button>
             </span>
           ))}
-          <span className="text-muted-foreground text-xs">{isVariant ? "]" : "}"}</span>
+          <span className="text-muted-foreground text-xs">{isVariant ? "]" : "⟩"}</span>
           <button type="button" className="text-xs px-1 rounded border border-dashed hover:bg-accent" onClick={() => setItems([...items, {label: "", type: null}])}>+</button>
         </>,
       );

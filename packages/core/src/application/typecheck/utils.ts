@@ -141,10 +141,10 @@ export function typeToString(a: Type): string {
       return `(${typeToString(a.left)} + ${typeToString(a.right)})`;
 
     case "VariantType":
-      return `<${a.variants.map((v) => `${v.label}:${typeToString(v.type)}`).join(", ")}>`;
+      return `[${a.variants.map((v) => `${v.label}: ${typeToString(v.type)}`).join(", ")}]`;
 
     case "RecordType":
-      return `{${a.fields.map((f) => `${f.label}:${typeToString(f.type)}`).join(", ")}}`;
+      return `<${a.fields.map((f) => `${f.label}: ${typeToString(f.type)}`).join(", ")}>`;
 
     case "TyMetaVar":
       return a.name;

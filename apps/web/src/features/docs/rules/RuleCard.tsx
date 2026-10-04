@@ -4,8 +4,8 @@ import {Card, CardContent} from "@/shared/components/ui/card.tsx";
 import type {RuleDefinition} from "@/features/docs/rules/ruleDefinitions.ts";
 
 const ruleNameStyle = {fontFamily: "'Times New Roman', Times, serif"};
-// Scrolls instead of wrapping; overflow-y must be pinned too or MathJax spawns a stray scrollbar.
-const mathRow = "overflow-x-auto overflow-y-hidden max-w-full [&_mjx-container]:!m-0 [&_mjx-container]:!inline-flex";
+// Scrolls instead of wrapping; overflow-y pinned against stray MathJax scrollbars, px-1 absorbs glyph overhang.
+const mathRow = "overflow-x-auto overflow-y-hidden max-w-full px-1 [&_mjx-container]:!m-0 [&_mjx-container]:!inline-flex";
 
 // Mirrors the real Proof Tree panel's visual language (proof-tree-using-css/ProofTree.css).
 export function RuleCard({rule, className}: {rule: RuleDefinition; className?: string}) {
@@ -16,7 +16,7 @@ export function RuleCard({rule, className}: {rule: RuleDefinition; className?: s
       <CardContent className="pt-6 pb-4 flex flex-col items-center gap-3">
         <div className="flex flex-col w-full">
           {hasPremises && (
-            <div className={cn("flex flex-wrap items-end justify-center gap-x-5 gap-y-1 px-1 pb-1", mathRow)}>
+            <div className={cn("flex flex-wrap items-end justify-center gap-x-5 gap-y-1 pb-1", mathRow)}>
               {rule.premisesTex.map((premise, i) => (
                 <MathJax key={i} inline>{`\\(${premise}\\)`}</MathJax>
               ))}

@@ -48,6 +48,7 @@ import { VariantTypeContext } from "./LambdaParser.js";
 import { FunctionTypeContext } from "./LambdaParser.js";
 import { ParenTypeContext } from "./LambdaParser.js";
 import { SumTypeContext } from "./LambdaParser.js";
+import { RecordTypeContext } from "./LambdaParser.js";
 import { TypeConstructorApplicationContext } from "./LambdaParser.js";
 import { ListTypeContext } from "./LambdaParser.js";
 import { TupleTypeContext } from "./LambdaParser.js";
@@ -595,6 +596,18 @@ export default class LambdaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitSumType?: (ctx: SumTypeContext) => void;
+	/**
+	 * Enter a parse tree produced by the `RecordType`
+	 * labeled alternative in `LambdaParser.type`.
+	 * @param ctx the parse tree
+	 */
+	enterRecordType?: (ctx: RecordTypeContext) => void;
+	/**
+	 * Exit a parse tree produced by the `RecordType`
+	 * labeled alternative in `LambdaParser.type`.
+	 * @param ctx the parse tree
+	 */
+	exitRecordType?: (ctx: RecordTypeContext) => void;
 	/**
 	 * Enter a parse tree produced by the `TypeConstructorApplication`
 	 * labeled alternative in `LambdaParser.type`.

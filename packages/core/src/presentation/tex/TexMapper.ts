@@ -753,9 +753,9 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "SumType":
         return `(${this.typeToTex(type.left)} + ${this.typeToTex(type.right)})`
       case "VariantType":
-        return `\\langle ${type.variants.map((v) => `${v.label}:${this.typeToTex(v.type)}`).join(", ")} \\rangle`
+        return `[ ${type.variants.map((v) => `${v.label}:${this.typeToTex(v.type)}`).join(", ")} ]`
       case "RecordType":
-        return `\\{ ${type.fields.map((f) => `${f.label}:${this.typeToTex(f.type)}`).join(", ")} \\}`
+        return `\\langle ${type.fields.map((f) => `${f.label}:${this.typeToTex(f.type)}`).join(", ")} \\rangle`
       case "TyForall":
         return `\\forall ${binderTex(type.typeVariable)}.\\, ${this.typeToTex(type.type)}`
       case "TyConstructorAbs":
@@ -806,21 +806,21 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "SumType":
         return [t("("), ...rec(type.left), t(" + "), ...rec(type.right), t(")")];
       case "VariantType": {
-        const segs: TexSegment[] = [t("\\langle ")];
+        const segs: TexSegment[] = [t("[ ")];
         type.variants.forEach((v, i) => {
           if (i > 0) segs.push(t(", "));
           segs.push(t(`${v.label}:`), ...rec(v.type));
         });
-        segs.push(t(" \\rangle"));
+        segs.push(t(" ]"));
         return segs;
       }
       case "RecordType": {
-        const segs: TexSegment[] = [t("\\{ ")];
+        const segs: TexSegment[] = [t("\\langle ")];
         type.fields.forEach((f, i) => {
           if (i > 0) segs.push(t(", "));
           segs.push(t(`${f.label}:`), ...rec(f.type));
         });
-        segs.push(t(" \\}"));
+        segs.push(t(" \\rangle"));
         return segs;
       }
       case "TyForall":

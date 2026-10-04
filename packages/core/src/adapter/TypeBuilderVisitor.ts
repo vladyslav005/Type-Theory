@@ -1,4 +1,4 @@
-import type {SumType, TupleType, TyArrow, Type, TyIdentifier, VariantType, TyForall, TyConstructorAbs, TyConstructorApp, TyPi, TyIndexApp, ListType, RecursiveType} from "@/domain/ast";
+import type {SumType, TupleType, TyArrow, Type, TyIdentifier, VariantType, RecordType, TyForall, TyConstructorAbs, TyConstructorApp, TyPi, TyIndexApp, ListType, RecursiveType} from "@/domain/ast";
 import LambdaVisitor from "@/antlr/LambdaVisitor.ts";
 import {sourcePos} from "@/adapter/sourcePos.ts";
 import {
@@ -10,7 +10,7 @@ import {
   TupleTypeContext,
   type TypeConstructorAbstractionContext,
   type TypeConstructorApplicationContext,
-  type TypeIdentifierContext, VariantTypeContext,
+  type TypeIdentifierContext, VariantTypeContext, RecordTypeContext,
   type PiTypeContext,
   type TypeIndexApplicationContext,
   type RecursiveTypeContext,
@@ -60,6 +60,18 @@ export class TypeBuilderVisitor
       kind: "TupleType",
       id: crypto.randomUUID(),
       elements: ctx.type__list().map((t) => this.visit(t)),
+      pos: sourcePos(ctx),
+    }
+  }
+
+  visitRecordType = (ctx: RecordTypeContext): RecordType => {
+    return {
+      kind: "RecordType",
+      id: crypto.randomUUID(),
+      fields: ctx.ID_list().map((id, index) => ({
+        label: id.getText(),
+        type: this.visit(ctx.type_(index))
+      })),
       pos: sourcePos(ctx),
     }
   }

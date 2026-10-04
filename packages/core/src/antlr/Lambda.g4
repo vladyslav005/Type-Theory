@@ -96,6 +96,7 @@ type
     | MU typeVariable DOT type                                   # RecursiveType
 
     // 5. Atomic / grouped types
+    | LT ID COLON type (COMMA ID COLON type)* MT                 # RecordType
     | LT type (MUL type)* MT                                     # TupleType
     | LBRACK ID COLON type (COMMA ID COLON type)* RBRACK         # VariantType
     | LPAREN type RPAREN                                         # ParenType

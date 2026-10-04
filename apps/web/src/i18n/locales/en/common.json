@@ -324,7 +324,11 @@
       },
       "records": {
         "label": "Records",
-        "description": "a labeled record literal <name=1, flag=true>, projected by field name with .flag"
+        "description": "a record declared with its type <name: String, age: Nat>, then projected by field name with .age"
+      },
+      "record-types-function-over-records": {
+        "label": "Record Types: Function over Records",
+        "description": "typedef names a record type; birthday takes a Person and builds a new one with age + 1"
       },
       "chained-projections": {
         "label": "Chained Projections",

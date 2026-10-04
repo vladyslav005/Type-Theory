@@ -324,7 +324,11 @@
       },
       "records": {
         "label": "Записи",
-        "description": "мічений літерал запису <name=1, flag=true>, проєкція за іменем поля через .flag"
+        "description": "запис, оголошений з типом <name: String, age: Nat>, потім проєкція за іменем поля через .age"
+      },
+      "record-types-function-over-records": {
+        "label": "Типи записів: функція над записами",
+        "description": "typedef називає тип запису; birthday приймає Person і будує новий з age + 1"
       },
       "chained-projections": {
         "label": "Ланцюжок проєкцій",

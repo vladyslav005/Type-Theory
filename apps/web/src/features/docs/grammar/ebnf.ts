@@ -53,6 +53,7 @@ type        ::= type type                                        (* type constru
               | 'λ' type-variable ':' kind '.' type                (* type constructor abstraction, Fω *)
               | 'Π' ID ':' type '.' type                           (* dependent function type, λP *)
               | 'μ' type-variable '.' type                         (* recursive type *)
+              | '<' ID ':' type { ',' ID ':' type } '>'            (* record type *)
               | '<' type { '*' type } '>'                          (* tuple type *)
               | '[' ID ':' type { ',' ID ':' type } ']'            (* variant type *)
               | '(' type ')'

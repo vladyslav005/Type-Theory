@@ -324,7 +324,11 @@
       },
       "records": {
         "label": "Záznamy",
-        "description": "označený literál záznamu <name=1, flag=true>, projektovaný podľa názvu poľa cez .flag"
+        "description": "záznam deklarovaný s typom <name: String, age: Nat>, potom projektovaný podľa názvu poľa cez .age"
+      },
+      "record-types-function-over-records": {
+        "label": "Typy záznamov: funkcia nad záznamami",
+        "description": "typedef pomenuje typ záznamu; birthday vezme Person a vytvorí nový s age + 1"
       },
       "chained-projections": {
         "label": "Reťazené projekcie",

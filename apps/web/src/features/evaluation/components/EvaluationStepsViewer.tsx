@@ -54,27 +54,27 @@ function TypeView({ type }: { type: Type }) {
     case "VariantType":
       return (
         <>
-          <span className="text-muted-foreground">⟨</span>
+          <span className="text-muted-foreground">[</span>
           {type.variants.map((v, i) => (
             <span key={v.label}>
               {i > 0 && <span className="text-muted-foreground">, </span>}
               {v.label}:<TypeView type={v.type} />
             </span>
           ))}
-          <span className="text-muted-foreground">⟩</span>
+          <span className="text-muted-foreground">]</span>
         </>
       );
     case "RecordType":
       return (
         <>
-          <span className="text-muted-foreground">{"{"}</span>
+          <span className="text-muted-foreground">⟨</span>
           {type.fields.map((f, i) => (
             <span key={f.label}>
               {i > 0 && <span className="text-muted-foreground">, </span>}
               {f.label}:<TypeView type={f.type} />
             </span>
           ))}
-          <span className="text-muted-foreground">{"}"}</span>
+          <span className="text-muted-foreground">⟩</span>
         </>
       );
     case "TyForall":

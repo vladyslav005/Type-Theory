@@ -48,6 +48,7 @@ import { VariantTypeContext } from "./LambdaParser.js";
 import { FunctionTypeContext } from "./LambdaParser.js";
 import { ParenTypeContext } from "./LambdaParser.js";
 import { SumTypeContext } from "./LambdaParser.js";
+import { RecordTypeContext } from "./LambdaParser.js";
 import { TypeConstructorApplicationContext } from "./LambdaParser.js";
 import { ListTypeContext } from "./LambdaParser.js";
 import { TupleTypeContext } from "./LambdaParser.js";
@@ -378,6 +379,13 @@ export default class LambdaVisitor<Result> extends ParseTreeVisitor<Result> {
 	 * @return the visitor result
 	 */
 	visitSumType?: (ctx: SumTypeContext) => Result;
+	/**
+	 * Visit a parse tree produced by the `RecordType`
+	 * labeled alternative in `LambdaParser.type`.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	visitRecordType?: (ctx: RecordTypeContext) => Result;
 	/**
 	 * Visit a parse tree produced by the `TypeConstructorApplication`
 	 * labeled alternative in `LambdaParser.type`.
