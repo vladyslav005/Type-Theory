@@ -11,7 +11,7 @@ export interface LabTaskInfo {
   items: number;
 }
 
-const TASK_COMPONENTS = /<(NblTask|LambdaTask|PredictThenVerify|AstBuilder)\b([\s\S]*?)\/>/g;
+const TASK_COMPONENTS = /<(NblTask|LambdaTask|TypingTask|PredictThenVerify|AstBuilder)\b([\s\S]*?)\/>/g;
 
 function arrayLengths(source: string): Record<string, number> {
   const lengths: Record<string, number> = {};

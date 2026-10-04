@@ -102,7 +102,9 @@ export const SyntaxDerivationTree = memo(function SyntaxDerivationTree({goal, ch
         >
           {goal.tex !== undefined
             ? <MathJax key={goal.tex}>{`\\[ ${goal.tex} \\]`}</MathJax>
-            : <span className="font-mono whitespace-nowrap">{goal.text} ∈ <i>Term</i></span>}
+            : goal.judgement !== undefined
+              ? <span className="font-mono whitespace-nowrap">{goal.judgement}</span>
+              : <span className="font-mono whitespace-nowrap">{goal.text} ∈ <i>Term</i></span>}
           {choice !== undefined && (
             <Tip label={t("proofBuilder.resetNode")}>
               <button

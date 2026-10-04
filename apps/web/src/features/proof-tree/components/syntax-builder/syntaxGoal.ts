@@ -7,6 +7,8 @@ export interface SyntaxGoal {
   key: string;
   tex?: string;
   text?: string;
+  // A whole judgement in plain text, e.g. a typing judgement `x:A ⊢ x : A`.
+  judgement?: string;
   rule?: string;
   pos?: SourcePosition;
   children: SyntaxGoal[];

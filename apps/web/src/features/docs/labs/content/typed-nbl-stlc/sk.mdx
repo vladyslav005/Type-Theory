@@ -1,0 +1,150 @@
+export const nblTerms = [
+  "if iszero 0 then true else false : Bool",
+  "if iszero (pred (succ 0)) then true else false : Bool",
+  "succ( if iszero (succ (succ 0)) then false else (pred (succ (succ 0)))) : Nat",
+  "pred( iszero( if iszero (pred (succ (succ (succ 0)))) then true else (succ (succ 0)))) : Nat",
+  "succ( if iszero (succ (succ (pred (succ (succ (succ 0)))))) then (succ (succ (pred (succ 0)))) else (pred (succ (succ 0))) else (pred (succ (succ 0)))) : Nat",
+]
+
+## Ciele
+
+Po tomto cvičení viete overiť typovú správnosť termov typovaného jazyka NBL a jednoducho typovaného
+λ-kalkulu odvodzovacím stromom a správne typovaný term vyhodnotiť pre vhodné argumenty.
+
+Pomôcka: riešené príklady nájdete v tretej prednáške — [Jednoducho typovaný λ-kalkul](/docs/stlc-basics).
+Typové pravidlá sú zhrnuté aj v [prehľade pravidiel](/docs/rules).
+
+## Krok 1: Typovaný NBL
+
+### Úloha 1.1
+
+Majme dané nasledujúce termy s uvedenými typmi.
+
+<NblTerms terms={nblTerms} />
+
+Odvodzovacím stromom overte, či sú správne typované. Pre každý úsudok vyberte typové pravidlo; ak sa
+žiadne pravidlo nedá použiť, term nie je správne typovaný.
+
+<TypingTask id="nbl-typing" type="derivation" terms={nblTerms} />
+
+## Krok 2: Jednoducho typovaný λ-kalkul
+
+Pri každom terme najprv odvodzovacím stromom overte, či je správne typovaný. Ak áno, aplikujte ho na
+vhodné argumenty a vyhodnoťte ho; ak nie, označte to.
+
+### Úloha 2.1
+
+<MathBlock>{"\\lambda x: A \\to B. \\lambda y: A.\\ x\\ y : (A \\to B) \\to A \\to B"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask id="stlc-1-typing" type="derivation" calculus="stlc" term="λ x : A -> B . λ y : A . x y : (A -> B) -> A -> B" />
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask
+  id="stlc-1-evaluate"
+  type="evaluate"
+  term="λ x : A -> B . λ y : A . x y : (A -> B) -> A -> B"
+  example={"g : A -> B;\na : A;\n(λ x : A -> B . λ y : A . x y) g a"}
+/>
+
+### Úloha 2.2
+
+<MathBlock>{"\\lambda f: A \\to B. \\lambda x: A. \\lambda y: B.\\ f\\ x\\ (f\\ y) : (A \\to B) \\to A \\to B \\to B"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask id="stlc-2-typing" type="derivation" calculus="stlc" term="λ f : A -> B . λ x : A . λ y : B . f x (f y) : (A -> B) -> A -> B -> B" />
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask id="stlc-2-evaluate" type="evaluate" term="λ f : A -> B . λ x : A . λ y : B . f x (f y) : (A -> B) -> A -> B -> B" />
+
+### Úloha 2.3
+
+<MathBlock>{"\\lambda x: A. \\lambda y: B. \\lambda z: C.\\ x\\ y\\ z : A \\to B \\to C \\to C"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask id="stlc-3-typing" type="derivation" calculus="stlc" term="λ x : A . λ y : B . λ z : C . x y z : A -> B -> C -> C" />
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask id="stlc-3-evaluate" type="evaluate" term="λ x : A . λ y : B . λ z : C . x y z : A -> B -> C -> C" />
+
+### Úloha 2.4
+
+<MathBlock>{"\\lambda x: Bool. \\lambda y: Bool.\\ and\\ x\\ y : Bool \\to Bool \\to Bool"}</MathBlock>
+
+Overte, či je správne typovaný v typovom kontexte <Math>{"\\Gamma = \\{and: Bool \\to Bool \\to Bool\\}"}</Math>.
+
+<TypingTask
+  id="stlc-4-typing"
+  type="derivation"
+  calculus="stlc"
+  context="and : Bool -> Bool -> Bool"
+  term="λ x : Bool . λ y : Bool . and x y : Bool -> Bool -> Bool"
+/>
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný). Funkciu `and` môžete nechať ako
+premennú z kontextu, alebo ju definovať, napr. `and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;`.
+
+<TypingTask
+  id="stlc-4-evaluate"
+  type="evaluate"
+  context="and : Bool -> Bool -> Bool"
+  term="λ x : Bool . λ y : Bool . and x y : Bool -> Bool -> Bool"
+  example={"and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;\n(λ x : Bool . λ y : Bool . and x y) true false"}
+/>
+
+### Úloha 2.5
+
+<MathBlock>{"\\lambda f: A \\to Nat \\to B. \\lambda x: Nat. \\lambda y: A.\\ f\\ y\\ (succ\\ x) : (A \\to Nat \\to B) \\to Nat \\to A \\to B"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask id="stlc-5-typing" type="derivation" calculus="stlc" term="λ f : A -> Nat -> B . λ x : Nat . λ y : A . f y (succ x) : (A -> Nat -> B) -> Nat -> A -> B" />
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask
+  id="stlc-5-evaluate"
+  type="evaluate"
+  term="λ f : A -> Nat -> B . λ x : Nat . λ y : A . f y (succ x) : (A -> Nat -> B) -> Nat -> A -> B"
+  example={"g : A -> Nat -> B;\na : A;\n(λ f : A -> Nat -> B . λ x : Nat . λ y : A . f y (succ x)) g 0 a"}
+/>
+
+### Úloha 2.6
+
+<MathBlock>{"\\lambda f: A \\to Bool. \\lambda x: A. \\lambda y: A.\\ if\\ b\\ x\\ then\\ b\\ y\\ else\\ false : (A \\to Bool) \\to A \\to A \\to Bool"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask id="stlc-6-typing" type="derivation" calculus="stlc" term="λ f : A -> Bool . λ x : A . λ y : A . if b x then b y else false : (A -> Bool) -> A -> A -> Bool" />
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask id="stlc-6-evaluate" type="evaluate" term="λ f : A -> Bool . λ x : A . λ y : A . if b x then b y else false : (A -> Bool) -> A -> A -> Bool" />
+
+### Úloha 2.7
+
+<MathBlock>{"\\begin{array}{l} \\lambda f: Bool \\to Bool \\to A. \\lambda b: B \\to Bool. \\lambda x: B. \\lambda y: Nat.\\\\ f\\ (if\\ b\\ x\\ then\\ iszero\\ y\\ else\\ false)\\ true :\\\\ (Bool \\to Bool \\to A) \\to (B \\to Bool) \\to B \\to Nat \\to A \\end{array}"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask
+  id="stlc-7-typing"
+  type="derivation"
+  calculus="stlc"
+  term="λ f : Bool -> Bool -> A . λ b : B -> Bool . λ x : B . λ y : Nat . f (if b x then iszero y else false) true : (Bool -> Bool -> A) -> (B -> Bool) -> B -> Nat -> A"
+/>
+
+Vyhodnoťte ho pre vhodné argumenty (ak je správne typovaný).
+
+<TypingTask
+  id="stlc-7-evaluate"
+  type="evaluate"
+  term="λ f : Bool -> Bool -> A . λ b : B -> Bool . λ x : B . λ y : Nat . f (if b x then iszero y else false) true : (Bool -> Bool -> A) -> (B -> Bool) -> B -> Nat -> A"
+  example={"g : Bool -> Bool -> A;\np : B -> Bool;\nv : B;\n(λ f : Bool -> Bool -> A . λ b : B -> Bool . λ x : B . λ y : Nat . f (if b x then iszero y else false) true) g p v 0"}
+/>

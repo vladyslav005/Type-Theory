@@ -1222,6 +1222,35 @@
     "startSolving": "Začať riešiť",
     "hideEditor": "Skryť editor"
   },
+  "typingLab": {
+    "hint": "Pre každý úsudok vyberte typové pravidlo — jeho premisy sa doplnia automaticky. Ak sa žiadne pravidlo nedá použiť, term nie je správne typovaný.",
+    "wrong_one": "{{count}} pravidlo nesedí na svoj úsudok.",
+    "wrong_few": "{{count}} pravidlá nesedia na svoje úsudky.",
+    "wrong_many": "{{count}} pravidla nesedí na svoje úsudky.",
+    "wrong_other": "{{count}} pravidiel nesedí na svoje úsudky.",
+    "doneWellTyped": "Odvodenie je hotové — term je správne typovaný.",
+    "doneIllTyped": "Správne — tam sa nedá použiť žiadne typové pravidlo, term teda nie je správne typovaný.",
+    "doneNotTerm": "Správne — toto nie je ani term, takže sa naň nedá použiť žiadne typové pravidlo.",
+    "solutionNotTerm": "Nie je to term {{detail}}",
+    "solutionIllTyped": "Term nie je správne typovaný — žiadne typové pravidlo neodvodí {{judgement}}.",
+    "notWellTyped": "Nie je správne typovaný",
+    "notWellTypedCorrect": "Správne — term nie je správne typovaný, takže nie je čo vyhodnocovať.",
+    "applyHint": "Aplikujte term na argumenty správnych typov a vyhodnoťte ho krok po kroku (volanie hodnotou). Pre typ ako A si najprv zadeklarujte premennú, napr. a : A; — posledný riadok je aplikácia.",
+    "apply": "Aplikovať",
+    "notApplied": "Posledný riadok musí aplikovať zadaný term na {{count}} argumenty: ({{term}}) …",
+    "illTyped": "Táto aplikácia nie je správne typovaná: {{detail}}",
+    "cannotApplyNotTerm": "Toto nie je term, takže sa nedá aplikovať.",
+    "problem": {
+      "unbound": "{{name}} nie je v typovom kontexte.",
+      "notFunction": "{{term}} má typ {{type}}, ktorý nie je funkčný typ.",
+      "argument": "{{term}} má typ {{actual}}, ale očakáva sa {{expected}}.",
+      "condition": "podmienka if má typ {{type}}, nie Bool.",
+      "branches": "vetvy if majú rôzne typy, {{then}} a {{else}}.",
+      "needsNat": "{{term}} má typ {{type}}, ale očakáva sa Nat.",
+      "unsupported": "{{construct}} sa v tejto úlohe nedá použiť.",
+      "declaration": "{{name}} je deklarované ako {{expected}}, ale jeho hodnota má typ {{actual}}."
+    }
+  },
   "activity": {
     "consent": {
       "title": "Súhlas so zberom údajov o používaní",

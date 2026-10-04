@@ -67,6 +67,42 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
         description: "Both branches must agree on a single result type.",
         wide: true,
       },
+      {
+        id: "T-True",
+        premisesTex: [],
+        conclusionTex: "\\Gamma \\vdash \\text{true} : \\text{Bool}",
+        description: "Typed NBL: true is a Bool.",
+      },
+      {
+        id: "T-False",
+        premisesTex: [],
+        conclusionTex: "\\Gamma \\vdash \\text{false} : \\text{Bool}",
+        description: "Typed NBL: false is a Bool.",
+      },
+      {
+        id: "T-Zero",
+        premisesTex: [],
+        conclusionTex: "\\Gamma \\vdash 0 : \\text{Nat}",
+        description: "Typed NBL: 0 is a Nat.",
+      },
+      {
+        id: "T-Succ",
+        premisesTex: ["\\Gamma \\vdash t_1 : \\text{Nat}"],
+        conclusionTex: "\\Gamma \\vdash \\text{succ}\\ t_1 : \\text{Nat}",
+        description: "Typed NBL: the successor of a Nat is a Nat.",
+      },
+      {
+        id: "T-Pred",
+        premisesTex: ["\\Gamma \\vdash t_1 : \\text{Nat}"],
+        conclusionTex: "\\Gamma \\vdash \\text{pred}\\ t_1 : \\text{Nat}",
+        description: "Typed NBL: the predecessor of a Nat is a Nat.",
+      },
+      {
+        id: "T-IsZero",
+        premisesTex: ["\\Gamma \\vdash t_1 : \\text{Nat}"],
+        conclusionTex: "\\Gamma \\vdash \\text{iszero}\\ t_1 : \\text{Bool}",
+        description: "Typed NBL: testing a Nat for zero gives a Bool.",
+      },
       // {
       //   id: "T-BinOp",
       //   premisesTex: ["\\Gamma \\vdash t_1 : \\text{Nat}", "\\Gamma \\vdash t_2 : \\text{Nat}"],

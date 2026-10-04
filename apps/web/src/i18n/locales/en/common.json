@@ -1208,6 +1208,33 @@
     "startSolving": "Start solving",
     "hideEditor": "Hide editor"
   },
+  "typingLab": {
+    "hint": "Pick a typing rule for each judgement — its premises appear automatically. If no rule fits, the term is not well typed.",
+    "wrong_one": "{{count}} rule doesn't fit its judgement.",
+    "wrong_other": "{{count}} rules don't fit their judgements.",
+    "doneWellTyped": "Derivation complete — the term is well typed.",
+    "doneIllTyped": "Correct — no typing rule applies there, so the term is not well typed.",
+    "doneNotTerm": "Correct — this isn't even a term, so no typing rule applies.",
+    "solutionNotTerm": "Not a term {{detail}}",
+    "solutionIllTyped": "Not well typed — no typing rule derives {{judgement}}.",
+    "notWellTyped": "It's not well typed",
+    "notWellTypedCorrect": "Correct — the term is not well typed, so there is nothing to evaluate.",
+    "applyHint": "Apply the term to arguments of the right types, then evaluate it step by step (call-by-value). For a type like A, declare a variable first, e.g. a : A; — the last line is the application.",
+    "apply": "Apply",
+    "notApplied": "The last line must apply the given term to {{count}} arguments: ({{term}}) …",
+    "illTyped": "This application is not well typed: {{detail}}",
+    "cannotApplyNotTerm": "This is not a term, so it can't be applied.",
+    "problem": {
+      "unbound": "{{name}} is not in the context.",
+      "notFunction": "{{term}} has type {{type}}, which is not a function type.",
+      "argument": "{{term}} has type {{actual}}, but {{expected}} is expected.",
+      "condition": "the condition of if has type {{type}}, not Bool.",
+      "branches": "the branches of if have different types, {{then}} and {{else}}.",
+      "needsNat": "{{term}} has type {{type}}, but Nat is expected.",
+      "unsupported": "{{construct}} can't be used in this task.",
+      "declaration": "{{name}} is declared as {{expected}}, but its value has type {{actual}}."
+    }
+  },
   "activity": {
     "consent": {
       "title": "Consent to usage data collection",
