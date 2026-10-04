@@ -527,7 +527,13 @@
     "sections": {
       "base": "Base",
       "extensions": "Extensions",
-      "views": "Views"
+      "views": "Views",
+      "checking": "Checking"
+    },
+    "requireTermType": {
+      "label": "Require main expression type",
+      "description": "The main expression must state its type: term : T; — checked against the type the checker derives.",
+      "exempt": "Not required while Type inference or Let-polymorphism is on."
     }
   },
   "layoutPresets": {
@@ -1171,6 +1177,11 @@
     "unknownConstant": "“{{name}}” is not a constant of NBL (0, true, false).",
     "treeIncomplete": "Fill in every node of the tree first.",
     "cannotRead": "Couldn't read that term: {{detail}}.",
+    "forbidden": "Build it yourself — {{names}} cannot be used in this task.",
+    "notNormal": "That can still be reduced — write the final value, e.g. 3 or true.",
+    "defineHint": "You can add your own helpers first, one per line: double = λ n . plus n n; — the last line is the term that gets tested. Ctrl+Enter runs the tests.",
+    "redefined": "{{names}} is already defined — pick a different name.",
+    "recursiveDefinition": "{{names}} uses itself or a helper defined below it — for recursion use fixx.",
     "endedValue": "The evaluation ends in the value {{value}}.",
     "endedStuck": "The evaluation gets stuck at {{term}} — no rule applies and it is not a value.",
     "parensChanged": "That's a different term — adding parentheses must not change the meaning.",

@@ -4,7 +4,7 @@ import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {elaborateNbl, ParseSyntaxError} from "@vladyslav005/tt-core";
+import {elaborateNbl, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 
@@ -20,6 +20,7 @@ export function useTermHooks() {
   const ast = useAppSelector((state) => state.term.ast);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
+  const requireTermType = useAppSelector((state) => state.term.requireTermType);
 
   function parseTerm(term: string): Program {
     const program = parser.parseExpression(term);
@@ -29,7 +30,7 @@ export function useTermHooks() {
   function typecheckTerm(ast: Program): ProofTree {
     typeCheckerSLTC.setTheories(enabledTheories);
     typeCheckerSLTC.setStlcFeatures(stlcFeatures);
-    return typeCheckerSLTC.check(ast);
+    return typeCheckerSLTC.check(ast, {requireTermType});
   }
 
   // Returns the parsed Program on success (a term to evaluate exists, whether or not it
@@ -65,13 +66,13 @@ export function useTermHooks() {
       if (!ast) return undefined;
 
       if (!ast.term) {
-        dispatch(pushProcessingError(new Error("No main expression — write a term after the declarations")));
+        dispatch(pushProcessingError(new Error(noMainExpressionMessage(ast))));
         return undefined;
       }
 
       typeCheckerSLTC.setTheories(enabledTheories);
       typeCheckerSLTC.setStlcFeatures(stlcFeatures);
-      proof = typeCheckerSLTC.check(ast);
+      proof = typeCheckerSLTC.check(ast, {requireTermType});
 
       const typeErrors = typeCheckerSLTC.getErrors();
       typeErrors.forEach(e => dispatch(pushProcessingError(e)));

@@ -3,24 +3,35 @@ import {useTranslation} from "react-i18next";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
-import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
 import {appendName, LabContext} from "@/features/docs/labs/components/LabContext.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {
+  type AnswerProblem,
   decodeChurch,
   equalTerms,
   etaNormal,
   fullyParenthesized,
+  isNormalForm,
   labNotation,
   normalize,
+  parseAnswer,
   parseLambda,
   printTerm,
   requiredParentheses,
   variableOccurrences,
+  withHead,
 } from "@/features/docs/labs/lambda/lambdaEngine.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
+
+function useDescribeProblem() {
+  const {t} = useTranslation();
+  return (problem: AnswerProblem) => problem.kind === "cannotRead"
+    ? t("labWidgets.cannotRead", {detail: problem.detail})
+    : t(`labWidgets.${problem.kind}`, {names: problem.names.join(", ")});
+}
 
 export type LambdaTaskType = "parens" | "scope" | "normal-form" | "church" | "define";
 
@@ -46,7 +57,7 @@ function ParensRow({id, index, source}: {id?: string; index: number; source: str
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
       <SolveArea taskId={taskId}>
         <div className="flex flex-wrap items-center gap-2">
-          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source}/>
+          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source} compact className="w-full max-w-md"/>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
         </div>
       </SolveArea>
@@ -171,6 +182,7 @@ function NormalFormRow({id, index, source}: {id?: string; index: number; source:
 
 function ChurchRow({id, index, source}: {id?: string; index: number; source: string}) {
   const {t} = useTranslation();
+  const describeProblem = useDescribeProblem();
   const taskId = useTaskId(id, source);
   const parsed = useMemo(() => parseLambda(labNotation(source), true), [source]);
   const normalized = useMemo(() => (parsed.ok ? normalize(parsed.program) : undefined), [parsed]);
@@ -181,8 +193,9 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
   const check = () => {
     if (!normalized) return;
     if (normalized.limit) return setVerdict({ok: false, kind: "diverges", text: t("labWidgets.diverges")});
-    const typed = parseLambda(labNotation(value), true);
-    if (!typed.ok) return setVerdict({ok: false, kind: "cannotRead", text: t("labWidgets.cannotRead", {detail: typed.message})});
+    const typed = parseAnswer(value);
+    if (!typed.ok) return setVerdict({ok: false, kind: typed.problem.kind, text: describeProblem(typed.problem)});
+    if (!isNormalForm(typed.program, typed.term)) return setVerdict({ok: false, kind: "notNormal", text: t("labWidgets.notNormal")});
     const typedResult = normalize(typed.program);
     setVerdict(!typedResult.limit && equalTerms(typedResult.result, normalized.result)
       ? {ok: true, text: t("labWidgets.correct")}
@@ -203,7 +216,7 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
     >
       <SolveArea taskId={taskId}>
         <div className="flex flex-wrap items-center gap-2">
-          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} widthClass="w-72"/>
+          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} compact className="w-72"/>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
         </div>
         <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
@@ -213,26 +226,28 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
   );
 }
 
-export function DefineTask({id, tests, solution}: {id?: string; tests: [string, string][]; solution?: string}) {
+export function DefineTask({id, tests, solution, forbid = []}: {id?: string; tests: [string, string][]; solution?: string; forbid?: string[]}) {
   const {t} = useTranslation();
+  const describeProblem = useDescribeProblem();
   const taskId = useTaskId(id);
   const [value, setValue] = useSavedState(taskId && `${taskId}#value`, "");
   const [results, setResults] = useSavedState<{call: string; expected: string; ok: boolean}[] | undefined>(taskId && `${taskId}#results`, undefined);
   const [error, setError] = useSavedState<string | undefined>(taskId && `${taskId}#error`, undefined);
 
   const run = () => {
-    const candidate = parseLambda(labNotation(value), true);
-    if (!candidate.ok) {
+    const answer = parseAnswer(value, forbid);
+    if (!answer.ok) {
       setResults(undefined);
-      trackTask(taskId, {ok: false, kind: "cannotRead"});
-      return setError(t("labWidgets.cannotRead", {detail: candidate.message}));
+      trackTask(taskId, {ok: false, kind: answer.problem.kind});
+      return setError(describeProblem(answer.problem));
     }
     setError(undefined);
     const outcome = tests.map(([args, expected]) => {
-      const call = parseLambda(labNotation(`(${value}) ${args}`), true);
+      const call = parseLambda(labNotation(`f ${args}`), true);
       const want = parseLambda(labNotation(expected), true);
-      if (!call.ok || !want.ok) return {call: args, expected, ok: false};
-      const got = normalize(call.program);
+      const fresh = parseAnswer(value, forbid);
+      if (!call.ok || !want.ok || !fresh.ok) return {call: args, expected, ok: false};
+      const got = normalize({...fresh.program, term: withHead(call.term, fresh.term)});
       return {call: args, expected, ok: !got.limit && equalTerms(got.result, normalize(want.program).result)};
     });
     const passedCount = outcome.filter((r) => r.ok).length;
@@ -247,10 +262,11 @@ export function DefineTask({id, tests, solution}: {id?: string; tests: [string, 
       <Row taskId={taskId} index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
         <SolveArea taskId={taskId}>
           <div className="flex flex-wrap items-center gap-2">
-            <TermInput value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} widthClass="w-full max-w-xl"/>
+            <LabEditor value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")}/>
             <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
           </div>
-          <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
+          <p className="text-[11px] text-muted-foreground">{t("labWidgets.defineHint")}</p>
+          <LabContext hide={forbid} onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
         </SolveArea>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (
@@ -273,8 +289,8 @@ export function DefineTask({id, tests, solution}: {id?: string; tests: [string, 
   );
 }
 
-export function LambdaTask({id, type, terms = [], tests = [], solution}: {id?: string; type: LambdaTaskType; terms?: string[]; tests?: [string, string][]; solution?: string}) {
-  if (type === "define") return <DefineTask id={id} tests={tests} solution={solution}/>;
+export function LambdaTask({id, type, terms = [], tests = [], solution, forbid}: {id?: string; type: LambdaTaskType; terms?: string[]; tests?: [string, string][]; solution?: string; forbid?: string[]}) {
+  if (type === "define") return <DefineTask id={id} tests={tests} solution={solution} forbid={forbid}/>;
   return (
     <ol className="space-y-3 list-none print:hidden">
       {terms.map((source, index) => {

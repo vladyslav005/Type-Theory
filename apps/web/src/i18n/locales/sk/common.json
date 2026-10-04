@@ -527,7 +527,13 @@
     "sections": {
       "base": "Základ",
       "extensions": "Rozšírenia",
-      "views": "Zobrazenia"
+      "views": "Zobrazenia",
+      "checking": "Kontrola"
+    },
+    "requireTermType": {
+      "label": "Vyžadovať typ hlavného výrazu",
+      "description": "Hlavný výraz musí uviesť svoj typ: term : T; — porovná sa s typom, ktorý odvodí kontrola typov.",
+      "exempt": "Nevyžaduje sa, kým je zapnutá typová inferencia alebo let-polymorfizmus."
     }
   },
   "layoutPresets": {
@@ -1184,6 +1190,11 @@
     "unknownConstant": "„{{name}}“ nie je konštanta NBL (0, true, false).",
     "treeIncomplete": "Najprv vyplňte všetky uzly stromu.",
     "cannotRead": "Tento term sa nedá prečítať: {{detail}}.",
+    "forbidden": "Zostavte to sami — {{names}} sa v tejto úlohe nedá použiť.",
+    "notNormal": "Toto sa dá ešte redukovať — napíšte výslednú hodnotu, napr. 3 alebo true.",
+    "defineHint": "Najprv si môžete zadefinovať vlastné pomocné termy, jeden na riadok: double = λ n . plus n n; — posledný riadok je term, ktorý sa testuje. Ctrl+Enter spustí testy.",
+    "redefined": "{{names}} je už definované — zvoľte iný názov.",
+    "recursiveDefinition": "{{names}} používa samo seba alebo definíciu pod ním — na rekurziu použite fixx.",
     "endedValue": "Vyhodnotenie končí hodnotou {{value}}.",
     "endedStuck": "Vyhodnotenie sa zasekne pri {{term}} — žiadne pravidlo sa nedá použiť a nie je to hodnota.",
     "parensChanged": "To je iný term — pridanie zátvoriek nesmie zmeniť význam.",

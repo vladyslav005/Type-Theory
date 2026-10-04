@@ -14,7 +14,8 @@ import {
 import {AntlrParserAdapter, elaborateNbl, EvaluationStrategy, Evaluator, type Program, type Term} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
-import {TermInput} from "@/features/docs/labs/components/TermInput.tsx";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
+import {NBL_LANGUAGE_ID} from "@/features/editor/hooks/setUpEditor.ts";
 import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
@@ -142,7 +143,7 @@ function ConstantsRow({id, index, source}: {id?: string; index: number; source: 
     <Row taskId={taskId} index={index} source={source} solution={invalid ?? formatSet(expected!)}>
       <SolveArea taskId={taskId}>
         <div className="flex flex-wrap items-center gap-2">
-          <TermInput value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" widthClass="w-48"/>
+          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" language={NBL_LANGUAGE_ID} compact className="w-48"/>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
           <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
         </div>

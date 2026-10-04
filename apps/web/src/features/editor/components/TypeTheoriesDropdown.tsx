@@ -18,7 +18,7 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { STLC_FEATURES, TYPE_THEORIES, type TypeTheoryId } from "@vladyslav005/tt-core";
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
-import { setCurryHoward, setStlcFeature, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
+import { setCurryHoward, setRequireTermType, setStlcFeature, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
 
 const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl"];
 
@@ -48,6 +48,8 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const curryHoward = useAppSelector((state) => state.term.curryHoward);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
+  const requireTermType = useAppSelector((state) => state.term.requireTermType);
+  const termTypeExempt = enabledTheories.typeInference || enabledTheories.letPolymorphism;
   const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : "stlc";
   const exclusiveTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
   const extensions = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
@@ -170,6 +172,18 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
               >
                 {t("extensions.curryHoward.label")}
               </DropdownMenuCheckboxItem>
+
+              <SectionLabel>{t("extensions.sections.checking")}</SectionLabel>
+              <DropdownMenuCheckboxItem
+                checked={requireTermType && !termTypeExempt}
+                disabled={termTypeExempt}
+                onSelect={(e) => e.preventDefault()}
+                onCheckedChange={(checked) => dispatch(setRequireTermType(checked))}
+                {...describe(t("extensions.requireTermType.description"))}
+              >
+                {t("extensions.requireTermType.label")}
+              </DropdownMenuCheckboxItem>
+              {termTypeExempt && <p className="px-2 pb-1 pl-8 text-[11px] leading-snug text-muted-foreground">{t("extensions.requireTermType.exempt")}</p>}
             </motion.div>
           )}
         </AnimatePresence>

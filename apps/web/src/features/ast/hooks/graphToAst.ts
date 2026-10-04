@@ -290,6 +290,8 @@ function reconstruct(node: AstFlowNode, nodeMap: NodeMap, edges: Edge[], visitin
         id: raw.id ?? node.id,
         kind: "Program",
         globals: [],
+        // The graph has no node for the main expression's stated type, so keep the one it was mapped from.
+        ...(raw.termType ? {termType: raw.termType} : {}),
       };
 
       const globals: Array<{ index: number; decl: GlobalDecl }> = [];

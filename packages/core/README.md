@@ -65,7 +65,7 @@ The parser (ANTLR4, grammar in [`src/antlr/Lambda.g4`](./src/antlr/Lambda.g4)) a
 as zero or more global declarations followed by an optional final term:
 
 ```
-program    ::= declaration* (term ';')?
+program    ::= declaration* (term (':' type)? ';')?
 
 declaration
            ::= ID ':' type ';'                  (* declare a free variable's type *)
@@ -75,6 +75,11 @@ declaration
 ```
 
 Note the declaration order is `name = term : type`, not `name : type = term`.
+
+The final term may state its type (`term : T;`), which the checker verifies.
+`checker.check(program, {requireTermType: true})` makes it mandatory, except while
+`typeInference`, `letPolymorphism`, `untyped` or `nbl` is enabled. A lone variable as the
+final term must be parenthesized (`(x) : T;`), since `x : T;` is a declaration.
 
 ### Terms
 
@@ -189,14 +194,19 @@ and `getErrors()` collects them all in one place.
 enum EvaluationStrategy { NORMAL, CALL_BY_VALUE, CALL_BY_NAME }
 
 class Evaluator {
-  constructor(maximumSteps?: number); // default 500
+  constructor(maximumSteps?: number, limits?: EvaluationLimits); // default 500 steps, no other limits
   evaluate(program: Program, strategy: EvaluationStrategy): EvaluationResult;
+}
+
+interface EvaluationLimits {
+  maximumTermSize?: number;            // give up once the term has more AST nodes than this
+  timeLimitMs?: number;                // give up after this many milliseconds
 }
 
 interface EvaluationResult {
   result: Term;                        // final term (normal form, or stuck/limited)
   steps: ReductionStep[];              // one entry per reduction, with before/after
-  reachedStepLimit: boolean;
+  reachedStepLimit: boolean;           // also true when a size/time limit stopped it
   errors?: { message: string; stuckTermId?: string }[];
   globals: Record<string, Term>;
 }

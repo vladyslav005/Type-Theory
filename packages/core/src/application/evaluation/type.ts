@@ -29,6 +29,12 @@ export interface EvaluationError {
   stuckTermId?: string;
 }
 
+export interface EvaluationLimits {
+  // Stops once the term has more AST nodes than this.
+  maximumTermSize?: number;
+  timeLimitMs?: number;
+}
+
 export interface EvaluationResult {
   result: Term;
   steps: ReductionStep[];

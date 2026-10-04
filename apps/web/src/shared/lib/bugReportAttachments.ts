@@ -42,7 +42,7 @@ function computeMissing(term: TermState) {
     if (ast?.term && !proof) {
       const checker = new SLTLCTypeChecker();
       checker.setTheories(term.enabledTheories);
-      proof = checker.check(ast);
+      proof = checker.check(ast, {requireTermType: term.requireTermType});
       inferenceSteps = checker.getInferenceSteps();
       typeAliases = checker.getTypeAliases();
     }

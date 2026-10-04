@@ -14,7 +14,8 @@ import {termKey} from "@/shared/lib/manualParse.ts";
 const parser = new AntlrParserAdapter();
 // Recursive fixx-based definitions (lab 3) need far more than the default 500 steps
 // even for tiny inputs — pred's pair-shifting trick alone is O(n) reduction steps.
-const evaluator = new Evaluator(5000);
+// Correct lab solutions peak around 500 nodes and 30 ms; wrong ones can grow exponentially.
+const evaluator = new Evaluator(5000, {maximumTermSize: 5000, timeLimitMs: 1000});
 
 type Parsed = {ok: true; program: Program; term: Term} | {ok: false; message: string};
 
@@ -33,16 +34,93 @@ export function labNotation(text: string): string {
     .replace(/\b\d+\b/g, (digits) => churchNumeral(Number(digits)));
 }
 
+const PRELUDE_NAMES = parser.parseExpression(PRELUDE_CODE).globals.map((declaration) => declaration.name);
+const PRELUDE_GLOBALS = PRELUDE_NAMES.length;
+
 export function parseLambda(text: string, withPrelude = false): Parsed {
   const source = text.trim().replace(/[;\s]+$/, "");
   if (!source) return {ok: false, message: "nothing written here"};
   try {
     const program = parser.parseExpression(`${withPrelude ? `${PRELUDE_CODE}\n` : ""}${source};`);
     if (!program.term) return {ok: false, message: "not a term"};
+    if (program.globals.length > (withPrelude ? PRELUDE_GLOBALS : 0)) return {ok: false, message: "write a single term, without your own definitions"};
     return {ok: true, program, term: program.term};
   } catch (error) {
     return {ok: false, message: messageOf(error)};
   }
+}
+
+export type AnswerProblem =
+  | {kind: "cannotRead"; detail: string}
+  | {kind: "redefined" | "recursiveDefinition" | "forbidden"; names: string[]};
+
+export type Answer = {ok: true; program: Program; term: Term} | {ok: false; problem: AnswerProblem};
+
+// A define-task answer: the student's own helper definitions followed by the term under test.
+// Helpers may only use the prelude and helpers above them, so recursion still has to go through fixx.
+export function parseAnswer(text: string, forbid: string[] = []): Answer {
+  const source = labNotation(text).trim().replace(/[;\s]+$/, "");
+  if (!source) return {ok: false, problem: {kind: "cannotRead", detail: "nothing written here"}};
+  let program: Program;
+  try {
+    program = parser.parseExpression(`${PRELUDE_CODE}\n${source};`);
+  } catch (error) {
+    return {ok: false, problem: {kind: "cannotRead", detail: messageOf(error)}};
+  }
+  if (!program.term) return {ok: false, problem: {kind: "cannotRead", detail: "the last line must be the term to test"}};
+
+  const own = program.globals.slice(PRELUDE_GLOBALS).filter((declaration) => declaration.kind === "FunDecl" || declaration.kind === "VarDecl");
+  const names = own.map((declaration) => declaration.name);
+  const redefined = names.filter((name, i) => PRELUDE_NAMES.includes(name) || names.indexOf(name) !== i);
+  if (redefined.length > 0) return {ok: false, problem: {kind: "redefined", names: [...new Set(redefined)]}};
+
+  const recursive = own.filter((declaration, i) => [...freeVariables(declaration.value)].some((name) => names.indexOf(name) >= i));
+  if (recursive.length > 0) return {ok: false, problem: {kind: "recursiveDefinition", names: recursive.map((declaration) => declaration.name)}};
+
+  const used = new Set([...own.flatMap((declaration) => [...freeVariables(declaration.value)]), ...freeVariables(program.term)]);
+  const forbidden = forbid.filter((name) => used.has(name));
+  if (forbidden.length > 0) return {ok: false, problem: {kind: "forbidden", names: forbidden}};
+
+  return {ok: true, program, term: program.term};
+}
+
+// A bare prelude name is a value (`one`), but applied it unfolds (`succ 2` still reduces).
+export function isNormalForm(program: Program, term: Term): boolean {
+  const definitions = new Map<string, Term>();
+  for (const declaration of program.globals) {
+    if (declaration.kind === "FunDecl" || declaration.kind === "VarDecl") definitions.set(declaration.name, declaration.value);
+  }
+  const unfolding = new Set<string>();
+  const check = (node: Term, bound: Set<string>): boolean => {
+    switch (node.kind) {
+      case "Var": {
+        const definition = definitions.get(node.name);
+        if (bound.has(node.name) || !definition || unfolding.has(node.name) || PRELUDE_NAMES.includes(node.name)) return true;
+        unfolding.add(node.name);
+        const normal = check(definition, new Set());
+        unfolding.delete(node.name);
+        return normal;
+      }
+      case "Abs":
+        return check(node.body, new Set([...bound, node.param]));
+      case "App":
+        return !startsWithAbs(node.func, bound) && check(node.func, bound) && check(node.arg, bound);
+      default:
+        return true;
+    }
+  };
+  const startsWithAbs = (node: Term, bound: Set<string>): boolean => {
+    if (node.kind === "Abs") return true;
+    if (node.kind !== "Var" || bound.has(node.name)) return false;
+    const definition = definitions.get(node.name);
+    return !!definition && !unfolding.has(node.name) && startsWithAbs(definition, new Set());
+  };
+  return check(term, new Set());
+}
+
+// Replaces the head of an application spine (`f a b`) with the given function.
+export function withHead(term: Term, head: Term): Term {
+  return term.kind === "App" ? {...term, func: withHead(term.func, head)} : head;
 }
 
 export interface Normalized {

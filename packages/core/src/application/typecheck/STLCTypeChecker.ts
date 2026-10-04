@@ -103,6 +103,13 @@ const FEATURE_LABELS: {[feature in StlcFeatureId]: string} = {
   lists: "Lists",
 };
 
+// A trailing `x : T;` is a declaration, not a typed main expression, so say how to write the latter.
+export function noMainExpressionMessage(program: Program): string {
+  const last = program.globals[program.globals.length - 1];
+  const hint = last?.kind === "VarDecl" ? ` — "${last.name} : …;" declares a variable; to state the type of a lone variable as the main expression write (${last.name}) : T;` : "";
+  return `No main expression — write a term after your declarations${hint}`;
+}
+
 export interface CheckOptions {
   // Main expression must be written `term : T;` — never required under Type inference, Let-polymorphism, Untyped or NBL.
   requireTermType?: boolean;
@@ -433,6 +440,31 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     }
   }
 
+  // An eliminator needs its subject's shape now, but e.g. an application's result stays a type
+  // variable until check() solves — so peek at the solution without recording or committing it.
+  // undefined: the subject's own constraints fail, which check() reports itself.
+  private resolvedType(proof: InferProofTree): Type | undefined {
+    if (proof.type.kind !== "TyMetaVar") return proof.type;
+    try {
+      const scratch = new TypeInferenceEngine();
+      return scratch.applySubstitution(proof.type, scratch.solve(proof.constraints).substitution);
+    } catch {
+      return undefined;
+    }
+  }
+
+  // Keeps the subject's constraints so check() reports the real error, without adding a misleading one here.
+  private deferToSolver(node: ASTNode, rule: Rule, premise: InferProofTree): InferProofTree {
+    return {
+      rule,
+      term: node as never,
+      type: this.engine.freshTyMetaVar(),
+      gamma: this.schemeContext.serializeGamma(),
+      premises: [premise],
+      constraints: premise.constraints,
+    };
+  }
+
   // Solves + applies a proof's own constraints immediately, rather than deferring to check() —
   // needed where a fully concrete type is required right now (e.g. a global declaration's value).
   private solveLocally(proof: InferProofTree): InferProofTree {
@@ -702,7 +734,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     node.globals.forEach((g) => this.visit(g));
 
     if (!node.term) {
-      const msg = "No main expression — write a term after your declarations";
+      const msg = noMainExpressionMessage(node);
       this.errorBuffer.push(new TypeCheckError(msg, node.pos));
       return {
         rule: Rule.Var,
@@ -1122,13 +1154,13 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     if (gate) return gate;
 
     const scrutineeProof = this.visit(node.variable);
+    const scrutineeType = this.resolvedType(scrutineeProof);
+    if (!scrutineeType) return this.deferToSolver(node, this.ruleFor(Rule.Case, Rule.CtCase), scrutineeProof);
 
-    if (scrutineeProof.type.kind !== "SumType") {
-      const msg = `"case" scrutinee must have a sum type, but got ${typeToString(scrutineeProof.type)}`;
+    if (scrutineeType.kind !== "SumType") {
+      const msg = `"case" scrutinee must have a sum type, but got ${typeToString(scrutineeType)}`;
       return this.reject(node, this.ruleFor(Rule.Case, Rule.CtCase), msg, [scrutineeProof]);
     }
-
-    const scrutineeType = scrutineeProof.type;
 
     const inlProof = this.withBinding(
       node.inl.variable,
@@ -1164,13 +1196,13 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     if (gate) return gate;
 
     const scrutineeProof = this.visit(node.variable);
+    const scrutineeType = this.resolvedType(scrutineeProof);
+    if (!scrutineeType) return this.deferToSolver(node, this.ruleFor(Rule.VariantCase, Rule.CtVariantCase), scrutineeProof);
 
-    if (scrutineeProof.type.kind !== "VariantType") {
-      const msg = `"case" scrutinee must have a variant type, but got ${typeToString(scrutineeProof.type)}`;
+    if (scrutineeType.kind !== "VariantType") {
+      const msg = `"case" scrutinee must have a variant type, but got ${typeToString(scrutineeType)}`;
       return this.reject(node, this.ruleFor(Rule.VariantCase, Rule.CtVariantCase), msg, [scrutineeProof]);
     }
-
-    const scrutineeType = scrutineeProof.type;
     const premises: InferProofTree[] = [scrutineeProof];
     const constraints: Constraint[] = [...scrutineeProof.constraints];
     const errors: string[] = [];
@@ -1298,15 +1330,17 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     if (gate) return gate;
 
     const recordProof = this.visit(node.term);
+    const recordType = this.resolvedType(recordProof);
+    if (!recordType) return this.deferToSolver(node, this.ruleFor(Rule.RecordProjection, Rule.CtRecordProjection), recordProof);
 
-    if (recordProof.type.kind !== "RecordType") {
-      const msg = `Projection ".${node.label}" requires a record type, but got ${typeToString(recordProof.type)}`;
+    if (recordType.kind !== "RecordType") {
+      const msg = `Projection ".${node.label}" requires a record type, but got ${typeToString(recordType)}`;
       return this.reject(node, this.ruleFor(Rule.RecordProjection, Rule.CtRecordProjection), msg, [recordProof]);
     }
 
-    const field = recordProof.type.fields.find((f) => f.label === node.label);
+    const field = recordType.fields.find((f) => f.label === node.label);
     if (!field) {
-      const msg = `Record type ${typeToString(recordProof.type)} has no field "${node.label}"`;
+      const msg = `Record type ${typeToString(recordType)} has no field "${node.label}"`;
       return this.reject(node, this.ruleFor(Rule.RecordProjection, Rule.CtRecordProjection), msg, [recordProof]);
     }
 
@@ -1369,21 +1403,23 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     if (gate) return gate;
 
     const tupleProof = this.visit(node.tuple);
+    const tupleType = this.resolvedType(tupleProof);
+    if (!tupleType) return this.deferToSolver(node, this.ruleFor(Rule.TupleProjection, Rule.CtTupleProjection), tupleProof);
 
-    if (tupleProof.type.kind !== "TupleType") {
-      const msg = `Projection ".${node.index}" requires a tuple type, but got ${typeToString(tupleProof.type)}`;
+    if (tupleType.kind !== "TupleType") {
+      const msg = `Projection ".${node.index}" requires a tuple type, but got ${typeToString(tupleType)}`;
       return this.reject(node, this.ruleFor(Rule.TupleProjection, Rule.CtTupleProjection), msg, [tupleProof]);
     }
 
-    if (node.index < 1 || node.index > tupleProof.type.elements.length) {
-      const msg = `Tuple index ${node.index} is out of bounds for ${typeToString(tupleProof.type)} (valid range: 1..${tupleProof.type.elements.length})`;
+    if (node.index < 1 || node.index > tupleType.elements.length) {
+      const msg = `Tuple index ${node.index} is out of bounds for ${typeToString(tupleType)} (valid range: 1..${tupleType.elements.length})`;
       return this.reject(node, this.ruleFor(Rule.TupleProjection, Rule.CtTupleProjection), msg, [tupleProof]);
     }
 
     return {
       rule: this.ruleFor(Rule.TupleProjection, Rule.CtTupleProjection),
       term: node,
-      type: tupleProof.type.elements[node.index - 1],
+      type: tupleType.elements[node.index - 1],
       gamma: this.schemeContext.serializeGamma(),
       premises: [tupleProof],
       constraints: tupleProof.constraints,
@@ -1817,9 +1853,11 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     }
 
     const termProof = this.visit(node.term);
+    const forallType = this.resolvedType(termProof);
+    if (!forallType) return this.deferToSolver(node, Rule.TypeApp, termProof);
 
-    if (termProof.type.kind !== "TyForall") {
-      const msg = `Type application expects a universal type (∀X. T), but got ${typeToString(termProof.type)}`;
+    if (forallType.kind !== "TyForall") {
+      const msg = `Type application expects a universal type (∀X. T), but got ${typeToString(forallType)}`;
       return this.reject(node, Rule.TypeApp, msg, [termProof]);
     }
 
@@ -1829,8 +1867,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     }
 
     const instantiated = substituteTypeVariable(
-      termProof.type.type,
-      termProof.type.typeVariable,
+      forallType.type,
+      forallType.typeVariable,
       kindCheck.normalized,
     );
 

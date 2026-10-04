@@ -11,6 +11,7 @@ export interface PersistedTermState {
   enabledTheories: TypeTheoryConfig;
   curryHoward: boolean;
   stlcFeatures: StlcFeatureConfig;
+  requireTermType: boolean;
   evaluationStrategy: EvaluationStrategy;
   fontSize: number;
   showMinimap: boolean;
@@ -40,6 +41,7 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       enabledTheories,
       curryHoward: parsed.curryHoward === true && isPlainStlc(enabledTheories),
       stlcFeatures: {...DEFAULT_STLC_FEATURES, ...parsed.stlcFeatures},
+      requireTermType: parsed.requireTermType === true,
       evaluationStrategy,
       fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)
         ? parsed.fontSize
@@ -60,6 +62,7 @@ export function persistTermState(state: TermState): void {
     enabledTheories: state.enabledTheories,
     curryHoward: state.curryHoward,
     stlcFeatures: state.stlcFeatures,
+    requireTermType: state.requireTermType,
     evaluationStrategy: state.evaluationStrategy,
     fontSize: state.fontSize,
     showMinimap: state.showMinimap,

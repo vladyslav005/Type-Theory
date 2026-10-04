@@ -55,6 +55,8 @@ export interface TermState {
   enabledTheories: TypeTheoryConfig;
   curryHoward: boolean;
   stlcFeatures: StlcFeatureConfig;
+  // Main expression must be written `term : T;` (never enforced under inference or let-polymorphism).
+  requireTermType: boolean;
   evaluationStrategy: EvaluationStrategy;
   buildMode: BuildModeState;
   // When on, editor changes auto-trigger parse/type-check/evaluate — see TextEditor's
@@ -81,6 +83,7 @@ export const initialTermState: TermState = {
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
   stlcFeatures: DEFAULT_STLC_FEATURES,
+  requireTermType: false,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
   buildMode: {active: false},
   autoBuild: false,
@@ -196,6 +199,10 @@ const counterSlice = createSlice({
 
     setStlcFeature: (state, action: { payload: { id: StlcFeatureId; enabled: boolean } }) => {
       state.stlcFeatures[action.payload.id] = action.payload.enabled;
+    },
+
+    setRequireTermType: (state, action: { payload: boolean }) => {
+      state.requireTermType = action.payload;
     },
 
     // The logic reading only exists for plain STLC, so turning it on clears every theory.
@@ -408,6 +415,7 @@ export const {
   setShowMinimap,
   setCurryHoward,
   setStlcFeature,
+  setRequireTermType,
   setProof,
   setTypeAliases,
   setInferenceSteps,

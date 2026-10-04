@@ -7,6 +7,7 @@ import type {
 import {
   EvaluationStrategy,
   type EvaluationError,
+  type EvaluationLimits,
   type EvaluationResult,
   type ReductionStep,
 } from "@/application/evaluation/type.ts";
@@ -19,6 +20,7 @@ export class Evaluator {
 
   constructor(
     private readonly maximumSteps = 500,
+    private readonly limits: EvaluationLimits = {},
   ) {}
 
   public evaluate(
@@ -40,6 +42,7 @@ export class Evaluator {
     const reductionVisitor = new ReductionVisitor(strategy, globals);
 
     let currentTerm = initialTerm;
+    const deadline = this.limits.timeLimitMs === undefined ? Infinity : Date.now() + this.limits.timeLimitMs;
 
     for (
       let index = 0;
@@ -62,6 +65,9 @@ export class Evaluator {
 
       this.evaluationSteps.push(step);
       currentTerm = step.after;
+
+      // A step can double the term (e.g. Y on numerals), exhausting memory long before the step limit.
+      if (Date.now() > deadline || this.exceedsSize(currentTerm)) break;
     }
 
     return {
@@ -71,6 +77,22 @@ export class Evaluator {
       strategy,
       globals: Object.fromEntries(globals),
     };
+  }
+
+  private exceedsSize(term: Term): boolean {
+    const maximum = this.limits.maximumTermSize;
+    if (maximum === undefined) return false;
+    let count = 0;
+    const pending: unknown[] = [term];
+    while (pending.length > 0) {
+      const node = pending.pop();
+      if (!node || typeof node !== "object") continue;
+      if ("kind" in node && ++count > maximum) return true;
+      for (const [key, value] of Object.entries(node)) {
+        if (key !== "pos" && typeof value === "object") pending.push(value);
+      }
+    }
+    return false;
   }
 
   private collectErrors(term: Term): EvaluationError[] {

@@ -1,5 +1,5 @@
 // Hand-transcribed from src/shared/core/antlr/Lambda.g4 — that's the source of truth if they drift.
-export const EBNF_GRAMMAR = `program     ::= { global-decl } [ term ';' ]
+export const EBNF_GRAMMAR = `program     ::= { global-decl } [ term [ ':' type ] ';' ]
 
 global-decl ::= ID ':' type ';'                                  (* variable declaration *)
               | ID '=' term ':' type ';'                         (* function/value declaration *)

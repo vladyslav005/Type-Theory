@@ -27,6 +27,7 @@ Vyhodnoťte `plus 3 2`.
 <LambdaTask
   id="plus"
   type="define"
+  forbid={["plus"]}
   solution="fixx (λ self . λ m . λ n . test (iszero n) m (self (succ m) (pred n)))"
   tests={[
     ["3 2", "5"],
@@ -59,6 +60,7 @@ Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `times 3 2`.
 <LambdaTask
   id="times"
   type="define"
+  forbid={["times"]}
   solution="fixx (λ self . λ m . λ n . test (iszero n) zero (plus m (self m (pred n))))"
   tests={[
     ["3 2", "6"],
@@ -112,5 +114,6 @@ Rovnaké kroky ako v úlohe 1.1. Vyhodnoťte `sum 3`.
   tests={[
     ["3", "6"],
     ["0", "0"],
+    ["4", "10"],
   ]}
 />

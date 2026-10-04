@@ -12,7 +12,7 @@ const DEFINITIONS = PRELUDE_CODE.split("\n")
   .filter((match): match is RegExpMatchArray => match !== null)
   .map(([, name, body]) => ({name: toLabNotation(name), body: toLabNotation(body)}));
 
-export function LabContext({onInsert}: {onInsert: (name: string) => void}) {
+export function LabContext({onInsert, hide = []}: {onInsert: (name: string) => void; hide?: string[]}) {
   const {t} = useTranslation();
   return (
     <details className="text-[11px]">
@@ -20,7 +20,7 @@ export function LabContext({onInsert}: {onInsert: (name: string) => void}) {
         {t("labWidgets.contextTitle")}
       </summary>
       <div className="mt-1 max-h-40 overflow-y-auto rounded-md border bg-muted/20 px-2 py-1 font-mono leading-snug">
-        {DEFINITIONS.map(({name, body}) => (
+        {DEFINITIONS.filter(({name}) => !hide.includes(name)).map(({name, body}) => (
           <div key={name} className="flex gap-1.5 whitespace-nowrap">
             <Tip label={t("evalPractice.insertName", {name})}>
               <button type="button" className="font-semibold hover:underline" onClick={() => onInsert(name)}>{name}</button>

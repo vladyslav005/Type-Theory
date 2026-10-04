@@ -17,7 +17,7 @@ export {
 export {AstVisitor} from "@/application/AstVisitor";
 export {ProofTreeVisitor} from "@/application/ProofTreeVisitor";
 
-export {SLTLCTypeChecker, type CheckOptions} from "@/application/typecheck/STLCTypeChecker";
+export {SLTLCTypeChecker, noMainExpressionMessage, type CheckOptions} from "@/application/typecheck/STLCTypeChecker";
 export * from "@/application/typecheck/ProofTree";
 export {TypeCheckError} from "@/application/typecheck/TypeCheckError";
 export {

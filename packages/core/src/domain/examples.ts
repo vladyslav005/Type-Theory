@@ -22,7 +22,7 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
       {
         label: "Identity Function",
         description: "the simplest possible term — apply λx:T.x to a variable a:T and get a back unchanged",
-        code: "a : T;\n(λ x : T . x) a;",
+        code: "a : T;\n(λ x : T . x) a : T;",
       },
       {
         label: "Type Alias: Basic Synonym",
@@ -31,7 +31,7 @@ export const EXAMPLE_GROUPS: ExampleGroup[] = [
 
 f = λ x : MyNat . x + 1 : MyNat -> MyNat;
 
-f 5;`,
+f 5 : MyNat;`,
       },
       {
         label: "Type Alias: Chained",
@@ -40,7 +40,7 @@ f 5;`,
 typedef Score = Id;
 
 s : Score;
-s + 10;`,
+s + 10 : Nat;`,
       },
       {
         label: "Type Alias: Function Type",
@@ -51,7 +51,7 @@ apply = λ f : IntFn . λ x : Nat . f x : IntFn -> Nat -> Nat;
 
 inc = λ x : Nat . x + 1 : Nat -> Nat;
 
-apply inc 5;`,
+apply inc 5 : Nat;`,
       },
       {
         label: "Application Chain: compose & twice",
@@ -71,37 +71,37 @@ twice =
     f (f x)
   : (T -> T) -> T -> T;
 
-twice ((compose identity) identity);`,
+twice ((compose identity) identity) : T -> T;`,
       },
       {
         label: "Alpha Conversion",
         description: "the outer y (bound outside) is shadowed by the inner λy — the body's x still refers to the outer parameter, unaffected by the name clash",
-        code: `y: T; (λ x : T . λ y : T . x) y;`,
+        code: `y: T; (λ x : T . λ y : T . x) y : T -> T;`,
       },
       {
         label: "Booleans & If",
         description: "if/then/elseif/else chain over Bool — the first true branch wins (elseif true then 200 short-circuits before else)",
-        code: `(if false then 100 elseif true then 200 else 300);`,
+        code: `(if false then 100 elseif true then 200 else 300) : Nat;`,
       },
       {
         label: "Ascription & Sequencing",
         description: "unit; 42 sequences a Unit-typed effect then a Nat result, and the whole thing is ascribed to Nat",
-        code: `((unit; 42) as Nat);`,
+        code: `((unit; 42) as Nat) : Nat;`,
       },
       {
         label: "Dummy Abstraction: λ_",
         description: "λ_:T.t discards its argument entirely — the parameter is never given a name, so it can't be referenced in the body",
-        code: `((λ _ : Nat . true) 5);`,
+        code: `((λ _ : Nat . true) 5) : Bool;`,
       },
       {
         label: "Arithmetic",
         description: "+ - * / over Nat — all four share one precedence level (left-to-right), so group with parens to control order",
-        code: `((2 + 3) * 4 - 1) / 3;`,
+        code: `((2 + 3) * 4 - 1) / 3 : Nat;`,
       },
       {
         label: "Comparison",
         description: "< <= > >= == != over Nat, each producing a Bool usable directly in an if",
-        code: `if (2 + 3) >= 5 then (10 == 10) else (10 != 10);`,
+        code: `(if (2 + 3) >= 5 then (10 == 10) else (10 != 10)) : Bool;`,
       },
     ],
   },
@@ -322,14 +322,14 @@ isEven three;`,
         description: "inl 5 : Nat+Bool builds the left alternative; case ... of inl x => ... || inr y => ... recovers it, picking the Nat branch",
         code: `value = (inl 5 as Nat+Bool) : Nat+Bool;
 
-(case value || inl x => x || inr y => 0);`,
+(case value || inl x => x || inr y => 0) : Nat;`,
       },
       {
         label: "Variants: Labeled Sum",
         description: "an n-ary labeled sum type ([circle:Nat, square:Nat]) generalizing binary inl/inr — matched with case ... of [label=x] => ...",
         code: `shape = ([circle=1] as [circle:Nat, square:Nat]) : [circle:Nat, square:Nat];
 
-(case shape of [circle=r] => r || [square=s] => s);`,
+(case shape of [circle=r] => r || [square=s] => s) : Nat;`,
       },
       {
         label: "Enums via Variants (Traffic Light)",
@@ -342,7 +342,7 @@ green  = ([green=unit] as Light) : Light;
 
 next = λ l : Light . (case l of [red=u] => green || [yellow=u] => red || [green=u] => yellow) : Light -> Light;
 
-next red;`,
+next red : Light;`,
       },
       {
         label: "Optional (Maybe) via Sum Types",
@@ -354,7 +354,7 @@ none  = (inr unit as Nat+Unit) : OptionNat;
 
 getOrElse = λ o : OptionNat . λ d : Nat . (case o || inl x => x || inr u => d) : OptionNat -> Nat -> Nat;
 
-getOrElse none 42;`,
+getOrElse none 42 : Nat;`,
       },
     ],
   },
@@ -364,19 +364,19 @@ getOrElse none 42;`,
       {
         label: "Tuples",
         description: "a heterogeneous tuple literal <1, true, 2>, projected positionally with .2",
-        code: `(<1, true, 2>.2);`,
+        code: `(<1, true, 2>.2) : Bool;`,
       },
       {
         label: "Records",
         description: "a labeled record literal <name=1, flag=true>, projected by field name with .flag",
-        code: `(<name=1, flag=true>.flag);`,
+        code: `(<name=1, flag=true>.flag) : Bool;`,
       },
       {
         label: "Chained Projections",
         description: "projecting through a function's result (swap<7,9>).1, plus a tuple-inside-a-record chain .2.label",
         code: `swap = λ p : <Nat*Nat> . <p.2, p.1> : <Nat*Nat> -> <Nat*Nat>;
 
-<((swap <7, 9>).1), (<10, <label=20, flag=true>>.2.label)>;`,
+<((swap <7, 9>).1), (<10, <label=20, flag=true>>.2.label)> : <Nat * Nat>;`,
       },
     ],
   },
@@ -386,17 +386,17 @@ getOrElse none 42;`,
       {
         label: "Head of a List",
         description: "cons/nil construction, then head extracts the first element — the lecture's own worked example (reduces to 3)",
-        code: `head[Nat] cons[Nat] 3 (cons[Nat] 8 nil[Nat]);`,
+        code: `head[Nat] cons[Nat] 3 (cons[Nat] 8 nil[Nat]) : Nat;`,
       },
       {
         label: "isnil: Empty vs. Non-empty",
         description: "isnil[Nat] tests whether a list is nil — here on a non-empty list (cons 1 nil), so it reduces to false",
-        code: `isnil[Nat] (cons[Nat] 1 nil[Nat]);`,
+        code: `isnil[Nat] (cons[Nat] 1 nil[Nat]) : Bool;`,
       },
       {
         label: "tail: Drop the First Element",
         description: "tail[Nat] on a two-element list (cons 1 (cons 2 nil)) drops the head, leaving cons[Nat] 2 nil[Nat]",
-        code: `tail[Nat] (cons[Nat] 1 (cons[Nat] 2 nil[Nat]));`,
+        code: `tail[Nat] (cons[Nat] 1 (cons[Nat] 2 nil[Nat])) : List Nat;`,
       },
     ],
   },
@@ -416,7 +416,7 @@ iszero = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => true || [succ=y] 
 
 pred = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => zero || [succ=y] => y) : NatRec -> NatRec;
 
-iszero zero;`,
+iszero zero : Bool;`,
       },
       {
         label: "Nat via μ: iszero(succ zero) = false",
@@ -431,7 +431,7 @@ iszero = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => true || [succ=y] 
 
 pred = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => zero || [succ=y] => y) : NatRec -> NatRec;
 
-iszero (succ zero);`,
+iszero (succ zero) : Bool;`,
       },
       {
         label: "Nat via μ: pred(succ n) = n",
@@ -444,7 +444,7 @@ succ = λ n : NatRec . fold[NatRec] ([succ=n] as [zero:Unit, succ:NatRec]) : Nat
 
 pred = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => zero || [succ=y] => y) : NatRec -> NatRec;
 
-pred (succ zero);`,
+pred (succ zero) : NatRec;`,
       },
       {
         label: "Nat via μ: pred(zero) = zero",
@@ -455,14 +455,14 @@ zero = fold[NatRec] ([zero=unit] as [zero:Unit, succ:NatRec]) : NatRec;
 
 pred = λ n : NatRec . (case unfold[NatRec] n of [zero=x] => zero || [succ=y] => y) : NatRec -> NatRec;
 
-pred zero;`,
+pred zero : NatRec;`,
       },
       {
         label: "fold/unfold cancellation (E-unfoldfold)",
         description: "unfold[T](fold[T] v) → v in a single evaluation step — the core isomorphism rule, isolated from the Nat encoding so it's visible on its own",
         code: `typedef NatRec = μX.[zero:Unit, succ:X];
 
-unfold[NatRec] (fold[NatRec] ([zero=unit] as [zero:Unit, succ:NatRec]));`,
+unfold[NatRec] (fold[NatRec] ([zero=unit] as [zero:Unit, succ:NatRec])) : [zero:Unit, succ:NatRec];`,
       },
       {
         label: "μ over a function type",
@@ -471,7 +471,7 @@ unfold[NatRec] (fold[NatRec] ([zero=unit] as [zero:Unit, succ:NatRec]));`,
 
 identity = fold[SelfFn] (λ x : SelfFn . x) : SelfFn;
 
-unfold[SelfFn] identity;`,
+unfold[SelfFn] identity : SelfFn -> SelfFn;`,
       },
     ],
   },
@@ -483,19 +483,19 @@ unfold[SelfFn] identity;`,
         description: "the classic fix g factorial encoding, g : (Nat->Nat)->Nat->Nat — g's own recursive call goes through the fixpoint operator instead of naming itself",
         code: `g = λ f : Nat -> Nat . λ n : Nat . if n == 0 then 1 else n * (f (n - 1)) : (Nat -> Nat) -> Nat -> Nat;
 
-(fix g) 5;`,
+(fix g) 5 : Nat;`,
       },
       {
         label: "Fibonacci via fix",
         description: "same fixpoint pattern as factorial, but with two recursive calls per step, g : (Nat->Nat)->Nat->Nat",
         code: `fib = λ f : Nat -> Nat . λ n : Nat . if n <= 1 then n else (f (n - 1)) + (f (n - 2)) : (Nat -> Nat) -> Nat -> Nat;
 
-(fix fib) 7;`,
+(fix fib) 7 : Nat;`,
       },
       {
         label: "Non-terminating fix",
         description: "fix (λx:Nat.x) unfolds to itself forever with no base case — hits the evaluator's step limit rather than a value",
-        code: `fix (λ x : Nat . x);`,
+        code: `fix (λ x : Nat . x) : Nat;`,
       },
     ],
   },
@@ -552,7 +552,7 @@ unfold[SelfFn] identity;`,
         description: "explicit type abstraction ΛX.λx:X.x : ∀X.X->X, instantiated explicitly at Nat and Bool via id[Nat]/id[Bool] — enable the System F theory",
         code: `id = ΛX. λ x : X . x : ∀X. X -> X;
 
-<(id[Nat] 5), (id[Bool] true)>;`,
+<(id[Nat] 5), (id[Bool] true)> : <Nat * Bool>;`,
       },
       {
         label: "Polymorphic Compose (System F)",
@@ -562,7 +562,7 @@ unfold[SelfFn] identity;`,
 inc = λ x : Nat . x + 1 : Nat -> Nat;
 isZero = λ x : Nat . (x == 0) : Nat -> Bool;
 
-(compose[Nat][Nat][Bool] isZero inc) 5;`,
+(compose[Nat][Nat][Bool] isZero inc) 5 : Bool;`,
       },
     ],
   },
@@ -576,7 +576,7 @@ isZero = λ x : Nat . (x == 0) : Nat -> Bool;
 
 f = λ x : (Id Nat) . x + 1 : (Id Nat) -> (Id Nat);
 
-f 5;`,
+f 5 : Nat;`,
       },
       {
         label: "Endo Constructor (System Fω)",
@@ -587,7 +587,7 @@ inc = λ x : Nat . x + 1 : Nat -> Nat;
 
 apply = λ f : (Endo Nat) . λ x : Nat . f x : (Endo Nat) -> Nat -> Nat;
 
-apply inc 5;`,
+apply inc 5 : Nat;`,
       },
     ],
   },
@@ -615,7 +615,7 @@ v3 : Vec[3];
 vecHead = λ n : Nat . λ x : Vec[n] . n : Π n : Nat . Vec[n] -> Nat;
 
 // vecHead 3 has type Vec[3] -> Nat, and v3 : Vec[3] — matches, type-checks.
-vecHead 3 v3;`,
+vecHead 3 v3 : Nat;`,
       },
       {
         label: "Dependent Head: Index Mismatch (System λP)",
