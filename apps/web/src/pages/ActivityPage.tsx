@@ -8,7 +8,7 @@ import {Label} from "@/shared/components/ui/label.tsx";
 import {Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/shared/components/ui/dialog.tsx";
 import {usePageMeta} from "@/shared/hooks/usePageMeta.ts";
 import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
-import {buildExport, combinedTotals, deleteActivityData, importActivity, setConsent, type ActivityData} from "@/shared/activity/activityStore.ts";
+import {buildExport, combinedTotals, deleteActivityData, importActivity, isAnswer, setConsent, type ActivityData} from "@/shared/activity/activityStore.ts";
 import {deleteSavedWork, getSavedWork, importSavedWork} from "@/shared/activity/savedWork.ts";
 import {Tip} from "@/shared/components/Tip.tsx";
 import {toast} from "sonner";
@@ -31,9 +31,10 @@ function summarize(data: ActivityData) {
   const attempted = new Set<string>();
   const solved = new Set<string>();
   data.attempts.forEach((attempt) => {
+    // "/steps" ids come from an earlier build that tracked step practice as a separate task.
     if (attempt.reveal || attempt.task.endsWith("/steps")) return;
     attempted.add(attempt.task);
-    if (attempt.ok && attempt.kind !== "step") solved.add(attempt.task);
+    if (attempt.ok && isAnswer(attempt)) solved.add(attempt.task);
   });
 
   const byScope = new Map<string, ScopeProgress>();
@@ -124,7 +125,7 @@ export function ActivityPage() {
   const summary = useMemo(() => summarize(data), [data]);
   const labs = useMemo(() => {
     const {taskSeconds} = combinedTotals(data);
-    return LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts, taskSeconds));
+    return LAB_REGISTRY.map((lab) => labStatus(lab.slug, data.attempts, taskSeconds)).filter((lab) => lab.tasks.length > 0);
   }, [data]);
   const importInput = useRef<HTMLInputElement>(null);
 

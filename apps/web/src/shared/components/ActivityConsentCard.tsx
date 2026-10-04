@@ -38,7 +38,7 @@ export function ActivityConsentCard() {
         </Link>
         <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" className="sm:flex-1" onClick={() => setConsent("denied")}>{t("activity.consent.decline")}</Button>
-          <Button variant="default" className="sm:flex-1" onClick={() => setConsent("granted")}>{t("activity.consent.allow")}</Button>
+          <Button variant="outline" className="sm:flex-1" onClick={() => setConsent("granted")}>{t("activity.consent.allow")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

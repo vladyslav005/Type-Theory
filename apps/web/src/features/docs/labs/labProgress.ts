@@ -1,4 +1,4 @@
-import type {Attempt} from "@/shared/activity/activityStore.ts";
+import {isAnswer, type Attempt} from "@/shared/activity/activityStore.ts";
 import {labTasks, type LabTaskInfo} from "@/features/docs/labs/labTaskCatalog.ts";
 
 export interface TaskStatus extends LabTaskInfo {
@@ -21,8 +21,6 @@ export interface LabStatus {
   lastAt?: string;
 }
 
-// Practice steps and hint checks are activity, not answers — they never mark an item solved.
-const isWorkingStep = (attempt: Attempt) => attempt.kind === "step" || attempt.kind === "wrongStep" || !!attempt.kind?.startsWith("check:");
 const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
 
 export function labStatus(slug: string, attempts: Attempt[], taskSeconds: Record<string, number> = {}): LabStatus {
@@ -30,7 +28,7 @@ export function labStatus(slug: string, attempts: Attempt[], taskSeconds: Record
   const ofLab = attempts.filter((attempt) => attempt.task.startsWith(prefix));
   const tasks = labTasks(slug).map((info): TaskStatus => {
     const own = ofLab.filter((attempt) => attempt.task.slice(prefix.length).split("/")[0] === info.id);
-    const solved = new Set(own.filter((a) => a.ok && !a.reveal && !isWorkingStep(a)).map((a) => a.task));
+    const solved = new Set(own.filter((a) => a.ok && isAnswer(a)).map((a) => a.task));
     const solvedItems = Math.min(solved.size, info.items);
     const taskPrefix = `${prefix}${info.id}`;
     const seconds = Object.entries(taskSeconds)
@@ -40,7 +38,7 @@ export function labStatus(slug: string, attempts: Attempt[], taskSeconds: Record
       ...info,
       seconds,
       solvedItems,
-      attempts: own.filter((a) => !a.reveal && !isWorkingStep(a)).length,
+      attempts: own.filter(isAnswer).length,
       reveals: own.filter((a) => a.reveal).length,
       started: own.length > 0,
       done: solvedItems >= info.items,

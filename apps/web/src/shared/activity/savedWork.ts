@@ -5,9 +5,8 @@ import {useCallback, useState, type SetStateAction} from "react";
 const STORAGE_KEY = "tt.labWork.v1";
 const SAVE_DELAY_MS = 500;
 
-function load(): Record<string, unknown> {
+function load(raw = readStorage()): Record<string, unknown> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : {};
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
@@ -15,27 +14,53 @@ function load(): Record<string, unknown> {
   }
 }
 
+function readStorage() {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
 let work = load();
+// Keys this tab changed since its last save; only these go on top of what other tabs saved.
+let dirty = new Set<string>();
+let cleared = false;
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 
-function saveSoon() {
+function saveNow() {
   if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    saveTimer = undefined;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(work));
-    } catch {
-      // Storage full or unavailable — work just won't be restored.
-    }
-  }, SAVE_DELAY_MS);
+  saveTimer = undefined;
+  const merged = cleared ? {} : load();
+  dirty.forEach((key) => {
+    if (key in work) merged[key] = work[key];
+    else delete merged[key];
+  });
+  work = merged;
+  dirty = new Set();
+  cleared = false;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(work));
+  } catch {
+    // Storage full or unavailable — work just won't be restored.
+  }
+}
+
+function saveSoon(keys: string[]) {
+  keys.forEach((key) => dirty.add(key));
+  if (!saveTimer) saveTimer = setTimeout(saveNow, SAVE_DELAY_MS);
 }
 
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => {
-    if (!saveTimer) return;
-    clearTimeout(saveTimer);
-    saveTimer = undefined;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(work)); } catch { /* ignore */ }
+  window.addEventListener("pagehide", () => { if (saveTimer) saveNow(); });
+  window.addEventListener("storage", (event) => {
+    if (event.key !== STORAGE_KEY && event.key !== null) return;
+    const incoming = load(event.key === null ? readStorage() : event.newValue);
+    dirty.forEach((key) => {
+      if (key in work) incoming[key] = work[key];
+      else delete incoming[key];
+    });
+    work = incoming;
   });
 }
 
@@ -47,13 +72,15 @@ export function importSavedWork(incoming: unknown): number {
   const added = Object.entries(incoming as Record<string, unknown>).filter(([key]) => !(key in work));
   if (added.length === 0) return 0;
   work = {...work, ...Object.fromEntries(added)};
-  saveSoon();
+  saveSoon(added.map(([key]) => key));
   return added.length;
 }
 
 export function deleteSavedWork() {
   work = {};
-  saveSoon();
+  dirty = new Set();
+  cleared = true;
+  saveSoon([]);
 }
 
 // useState that survives reloads under `key` (a task id plus a field); without a key it is plain state.
@@ -66,9 +93,11 @@ export function useSavedState<T>(key: string | undefined, initial: T | (() => T)
     setValueState((previous) => {
       const resolved = typeof next === "function" ? (next as (prev: T) => T)(previous) : next;
       if (key) {
-        if (resolved === undefined) delete work[key];
-        else work = {...work, [key]: resolved};
-        saveSoon();
+        if (resolved === undefined) {
+          work = {...work};
+          delete work[key];
+        } else work = {...work, [key]: resolved};
+        saveSoon([key]);
       }
       return resolved;
     });

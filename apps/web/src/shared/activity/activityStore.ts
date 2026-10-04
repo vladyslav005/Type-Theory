@@ -4,7 +4,6 @@ import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 const STORAGE_KEY = "tt.activity.v1";
 const SCHEMA_VERSION = 2;
 const MAX_ATTEMPTS = 20000;
-const SAVE_DELAY_MS = 2000;
 
 export type Consent = "unset" | "granted" | "denied";
 
@@ -135,10 +134,9 @@ function withDefaults<T>(defaults: T, stored: unknown): T {
   return merged as T;
 }
 
-function load(): StoredActivity {
+function load(raw = readStorage()): StoredActivity {
   const fallback: StoredActivity = {consent: "unset", data: emptyData(), origin: crypto.randomUUID(), taskFirstSeen: {}, failureStreak: 0};
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as Partial<StoredActivity>;
     return {
@@ -153,33 +151,54 @@ function load(): StoredActivity {
   }
 }
 
-let state = load();
+function readStorage() {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+let lastRaw = readStorage();
+let state = load(lastRaw);
 let snapshot = {consent: state.consent, data: state.data};
-let saveTimer: ReturnType<typeof setTimeout> | undefined;
 const listeners = new Set<() => void>();
 
-function saveNow() {
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = undefined;
+const notify = () => {
+  snapshot = {consent: state.consent, data: state.data};
+  listeners.forEach((listener) => listener());
+};
+
+// Picks up what other open tabs saved, so every change builds on the latest stored data.
+function sync() {
+  const raw = readStorage();
+  if (raw === null || raw === lastRaw) return false;
+  lastRaw = raw;
+  state = load(raw);
+  return true;
+}
+
+// Saved on every change (never delayed), so another open tab never overwrites unsaved records.
+function changed() {
+  notify();
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    lastRaw = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, lastRaw);
   } catch {
     // Storage full or unavailable — stats just won't persist.
   }
 }
 
-function changed(immediate = false) {
-  snapshot = {consent: state.consent, data: state.data};
-  listeners.forEach((listener) => listener());
-  if (immediate) saveNow();
-  else if (!saveTimer) saveTimer = setTimeout(saveNow, SAVE_DELAY_MS);
-}
-
 if (typeof window !== "undefined") {
-  window.addEventListener("pagehide", () => { if (saveTimer) saveNow(); });
+  window.addEventListener("storage", (event) => {
+    if ((event.key === STORAGE_KEY || event.key === null) && sync()) notify();
+  });
 }
 
-export const isCollecting = () => STUDY_MODE && state.consent === "granted";
+export const isCollecting = () => {
+  sync();
+  return STUDY_MODE && state.consent === "granted";
+};
 
 export function subscribeActivity(listener: () => void) {
   listeners.add(listener);
@@ -189,13 +208,15 @@ export function subscribeActivity(listener: () => void) {
 export const getActivitySnapshot = () => snapshot;
 
 export function setConsent(consent: Consent) {
+  sync();
   state = {...state, consent};
-  changed(true);
+  changed();
 }
 
 export function deleteActivityData() {
+  sync();
   state = {...state, data: emptyData(), taskFirstSeen: {}, failureStreak: 0};
-  changed(true);
+  changed();
 }
 
 // Mutates a fresh copy so the snapshot handed to React always changes identity.
@@ -313,9 +334,13 @@ export function importActivity(file: unknown): ImportResult {
     practice: practice.length - state.data.practice.length,
   };
   state = {...state, data: {...state.data, attempts, events, practice, parts}};
-  changed(true);
+  changed();
   return {ok: true, ...added};
 }
+
+// Practice steps and hint checks are activity, not answers — they never mark a task solved.
+export const isWorkingStep = (attempt: Attempt) => attempt.kind === "step" || attempt.kind === "wrongStep" || !!attempt.kind?.startsWith("check:");
+export const isAnswer = (attempt: Attempt) => !attempt.reveal && !isWorkingStep(attempt);
 
 export interface TaskProgress {
   seconds: number;
@@ -334,8 +359,8 @@ export function taskProgress(attempts: Attempt[], taskSeconds: Record<string, nu
     const task = rest.join("/");
     const entry = (progress[scope] ??= {})[task] ??= {seconds: taskSeconds[attempt.task] ?? 0, attempts: 0, solved: false, reveals: 0, firstAt: attempt.at, lastAt: attempt.at};
     if (attempt.reveal) entry.reveals += 1;
-    else entry.attempts += 1;
-    if (attempt.ok) entry.solved = true;
+    else if (isAnswer(attempt)) entry.attempts += 1;
+    if (attempt.ok && isAnswer(attempt)) entry.solved = true;
     entry.lastAt = attempt.at ?? entry.lastAt;
   }
   return progress;
