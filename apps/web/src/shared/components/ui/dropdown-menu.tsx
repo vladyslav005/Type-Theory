@@ -3,6 +3,7 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 
 function DropdownMenu({
   ...props
@@ -34,8 +35,10 @@ function DropdownMenuContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  // Same fullscreen-portal fix as Popover — see useFullscreenElement.
+  const fullscreenElement = useFullscreenElement();
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal container={fullscreenElement}>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}

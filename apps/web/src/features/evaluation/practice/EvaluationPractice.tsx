@@ -520,7 +520,8 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
                   </li>
                 ))}
               </ol>
-              {showSummary ? summary : editor}
+              {editor}
+              {showSummary && summary}
             </>
           ) : (
             <>
@@ -531,7 +532,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
                   </Button>
                 </Tip>
                 <span className="text-xs text-muted-foreground">
-                  {atEnd ? (finished ? t("evalPractice.viewingSummary") : t("evalPractice.viewingCurrent")) : t("evalPractice.viewingStep", {current: cursor + 1, total: rows.length})}
+                  {atEnd ? t("evalPractice.viewingCurrent") : t("evalPractice.viewingStep", {current: cursor + 1, total: rows.length})}
                 </span>
                 <Tip label={t("evalPractice.tip.forward")}>
                   <Button size="sm" variant="outline" className="h-7 px-2" disabled={atEnd} onClick={() => moveTo(cursor + 1)}>
@@ -539,7 +540,8 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
                   </Button>
                 </Tip>
               </div>
-              {showSummary ? summary : editor}
+              {editor}
+              {showSummary && summary}
             </>
           )}
         </div>

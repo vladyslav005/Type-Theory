@@ -685,6 +685,11 @@
     "variable": "variable"
   },
   "astPanel": {
+    "lecturePreviewHint": "Preview of the edited AST as a lecture-style tree: only the main expression, without declarations or types. Nodes can't be moved or edited here — to keep editing, switch back to the card view with the button in the top-right corner of the tree.",
+    "viewLecture": "Switch to the lecture tree — the main expression drawn as on the lecture slides, without declarations or types",
+    "viewCards": "Switch to the card view — the whole program with declarations and types, the same view the AST editor uses",
+    "lectureHint": "Lecture-style tree: only the main expression, without declarations or type annotations. To see the whole program, switch to the card view with the button in the top-right corner of the tree. It's the same view the AST editor (the Editor tab) uses for editing, but works for viewing too.",
+    "lectureEmpty": "No main expression to draw — the program only has declarations. Switch to the card view (button in the top-right corner) to see them.",
     "tabViewer": "Viewer",
     "tabEditor": "Editor",
     "highlightInEditor": "Highlight in editor",
@@ -1114,7 +1119,6 @@
     "finishedSteps_other": "Finished after {{count}} steps",
     "viewingStep": "Your step {{current}} of {{total}}",
     "viewingCurrent": "Next step",
-    "viewingSummary": "Result",
     "verdictCorrect": "Your evaluation is correct.",
     "verdictWrong": "Your evaluation has mistakes — see the marked steps.",
     "youSaidValue": "You said the final term is a value —",

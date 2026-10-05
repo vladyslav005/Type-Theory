@@ -79,6 +79,7 @@ import {KindStarFlowNode} from "@/features/ast/components/ast/flow/KindStarFlowN
 import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlowNode.tsx";
 import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon, BoxSelect} from "lucide-react";
 import {Tip} from "@/shared/components/Tip.tsx";
+import {AstStyleToggle} from "@/features/ast/components/ast/lecture/AstStyleToggle.tsx";
 import {TERM_NODE_TYPES} from "@/features/ast/components/ast-editor/astNodePalette.ts";
 
 const HANDLE_LABELS: Record<string, string> = {
@@ -115,6 +116,7 @@ export interface AstProps {
   allowedTypes?: string[],
   // Builders keep only the essential tools: no box select, clear-all (they have Reset) or minimap.
   compactToolbar?: boolean,
+  onPreviewLecture?: () => void,
 }
 
 export interface AstEditorHandle {
@@ -599,6 +601,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   setGraph,
   allowedTypes,
   compactToolbar = false,
+  onPreviewLecture,
 }, ref) {
   const {t} = useTranslation();
   const rf = useReactFlow();
@@ -1530,6 +1533,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
       >
         <Panel position="top-right">
           <div className="flex gap-2">
+            {onPreviewLecture && <AstStyleToggle style="cards" onChange={onPreviewLecture}/>}
             <Tip label={t("astEditor.undo")}>
               <Button size="icon" variant="secondary" onClick={undo} className="shadow-lg hover:shadow-xl transition-shadow">
                 <Undo2 className="h-4 w-4" />

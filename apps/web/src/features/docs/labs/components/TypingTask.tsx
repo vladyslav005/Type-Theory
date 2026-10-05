@@ -33,6 +33,7 @@ import {
 } from "@/features/docs/labs/typing/labTyping.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
+import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 
 export type TypingTaskType = "derivation" | "evaluate";
 type Calculus = "nbl" | "stlc";
@@ -197,9 +198,11 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
         {invalid ? (
           <p className="text-xs text-destructive">{t("labWidgets.cannotRead", {detail: invalid})}</p>
         ) : (
-          <>
+          <FullscreenArea title={listed ? source : undefined}>
+            {({full, button}) => (
+            <>
             {context && (
-              <div className="space-y-1">
+              <div className="shrink-0 space-y-1">
                 <p className="text-xs text-muted-foreground">{t("manualBuilder.definitions")}</p>
                 <BracketTextarea
                   value={work.definitions}
@@ -215,15 +218,19 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
               </div>
             )}
             <ManualActionsContext.Provider value={actions}>
-              <PanZoomCanvas className="h-96" compact>
+              <PanZoomCanvas className={full ? "min-h-0 flex-1" : "h-96"} compact>
                 <ManualNodeView node={work.tree} results={results} usesConstraints={false}/>
               </PanZoomCanvas>
             </ManualActionsContext.Provider>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
               <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
+              <span className="ml-auto">{button}</span>
             </div>
-          </>
+            {full && <Feedback verdict={verdict}/>}
+            </>
+            )}
+          </FullscreenArea>
         )}
       </SolveArea>
       <div className="flex gap-2">

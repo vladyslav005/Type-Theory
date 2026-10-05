@@ -1,5 +1,5 @@
 import {useTranslation} from "react-i18next";
-import {useCallback, useMemo, useRef, useState} from "react";
+import {useCallback, useMemo, useRef, useState, type ReactNode} from "react";
 import {trackTask, trackWidgetUse, useTaskId} from "@/shared/activity/taskTracking.ts";
 import {Info, Plus} from "lucide-react";
 import {Tip} from "@/shared/components/Tip.tsx";
@@ -8,6 +8,9 @@ import "@xyflow/react/dist/style.css";
 import type {Program, Term} from "@vladyslav005/tt-core";
 import type {AstFlowGraph} from "@/shared/presentation/flow/types.ts";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
+import {Ast} from "@/features/ast/components/ast/Ast.tsx";
+import {HelpHint} from "@/shared/components/HelpHint.tsx";
+import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {AstNodePaletteDropdowns} from "@/features/ast/components/ast-editor/AstNodePaletteDropdowns.tsx";
 import {TERM_NODE_TYPES} from "@/features/ast/components/ast-editor/astNodePalette.ts";
 import {AntlrParserAdapter, astToText} from "@vladyslav005/tt-core";
@@ -45,6 +48,8 @@ interface AstBuilderProps {
   compact?: boolean;
   // Task id under which the tree is saved, so an unfinished lab resumes with it.
   saveKey?: string;
+  // Shown on top in fullscreen, where the surrounding task text is out of sight.
+  title?: ReactNode;
 }
 
 const programKey = (ast: Program) => (ast.term ? astToText(ast) : "");
@@ -52,7 +57,7 @@ const programKey = (ast: Program) => (ast.term ? astToText(ast) : "");
 // Standalone, Redux-free instance of the main app's AST editor.
 const sourceParser = new AntlrParserAdapter();
 
-export function AstBuilder({id, label, instructions, allowedTypes, expected: expectedTerm, expectedSource, onCheck, compact = false, saveKey: saveKeyProp}: AstBuilderProps) {
+export function AstBuilder({id, label, instructions, allowedTypes, expected: expectedTerm, expectedSource, onCheck, compact = false, saveKey: saveKeyProp, title}: AstBuilderProps) {
   const {t} = useTranslation();
   const expected = useMemo(
     () => expectedTerm ?? (expectedSource ? sourceParser.parseExpression(`${expectedSource.replace(/;\s*$/, "")};`).term : undefined),
@@ -79,6 +84,7 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
     };
   }, [saved, termOnly]);
   const [check, setCheck] = useState<{result: AstCheck; key: string} | undefined>();
+  const [preview, setPreview] = useState(false);
 
   // Marks belong to the tree that was checked — any structural change clears them.
   const setAst = useCallback((next: Program) => {
@@ -120,8 +126,10 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
   ].filter(Boolean).join(" ");
 
   return (
-    <div className={cn("space-y-3 print:hidden", compact ? "" : "rounded-xl border bg-muted/20 p-4")}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <FullscreenArea title={title} className={cn("space-y-3 print:hidden", compact ? "" : "rounded-xl border bg-muted/20 p-4")}>
+      {({full, button}) => (
+      <>
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
         {compact ? <span/> : (
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label ?? t("lectureWidgets.buildYourself")}</p>
@@ -129,26 +137,33 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           </div>
         )}
         <div className="flex items-center gap-2">
-          {/* How-to hints live in a tooltip so the task stays uncluttered. */}
-          <Tip label={[compact ? instructions : undefined, t("lectureWidgets.astTip")].filter(Boolean).join(" ")}>
-            <span className="text-muted-foreground hover:text-foreground" aria-label={t("lectureWidgets.astHelp")}>
-              <Info className="h-4 w-4"/>
-            </span>
-          </Tip>
-          <ButtonGroup>
-            <AstNodePaletteDropdowns
-              onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
-              allowedTypes={allowedTypes}
-            />
-          </ButtonGroup>
-          {expected && <Button size="sm" onClick={runCheck}>{t("labWidgets.check")}</Button>}
-          {check && <Button size="sm" variant="outline" onClick={() => setCheck(undefined)}>{t("manualBuilder.clearMarks")}</Button>}
-          <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
+        {preview ? (
+          <HelpHint text={t("astPanel.lecturePreviewHint")}/>
+        ) : (
+          <div className="flex items-center gap-2">
+            {/* How-to hints live in a tooltip so the task stays uncluttered. */}
+            <Tip label={[compact ? instructions : undefined, t("lectureWidgets.astTip")].filter(Boolean).join(" ")}>
+              <span className="text-muted-foreground hover:text-foreground" aria-label={t("lectureWidgets.astHelp")}>
+                <Info className="h-4 w-4"/>
+              </span>
+            </Tip>
+            <ButtonGroup>
+              <AstNodePaletteDropdowns
+                onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
+                allowedTypes={allowedTypes}
+              />
+            </ButtonGroup>
+            {expected && <Button size="sm" onClick={runCheck}>{t("labWidgets.check")}</Button>}
+            {check && <Button size="sm" variant="outline" onClick={() => setCheck(undefined)}>{t("manualBuilder.clearMarks")}</Button>}
+            <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
+          </div>
+        )}
+        {button}
         </div>
       </div>
 
-      <div className={cn("relative rounded-md border overflow-hidden bg-background", compact ? "h-72" : "h-80")}>
-        {graph.nodes.length === 0 && (
+      <div className={cn("relative rounded-md border overflow-hidden bg-background", full ? "min-h-0 flex-1" : compact ? "h-72" : "h-80")}>
+        {!preview && graph.nodes.length === 0 && (
           <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-background/90 px-5 py-4 text-center">
               <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -165,7 +180,12 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           </div>
         )}
         <ReactFlowProvider>
-          <AstEditor ref={astEditorRef} graph={markedGraph} setGraph={setGraph} AST={ast} setAST={setAst} allowedTypes={allowedTypes} compactToolbar/>
+          {preview ? (
+            <Ast AST={ast} viewStyle="lecture" onViewStyleChange={(style) => setPreview(style === "lecture")} hideControls/>
+          ) : (
+            <AstEditor ref={astEditorRef} graph={markedGraph} setGraph={setGraph} AST={ast} setAST={setAst} allowedTypes={allowedTypes}
+              compactToolbar onPreviewLecture={() => setPreview(true)}/>
+          )}
         </ReactFlowProvider>
       </div>
 
@@ -182,6 +202,8 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           astToText(ast)
         )}
       </p>
-    </div>
+      </>
+      )}
+    </FullscreenArea>
   );
 }

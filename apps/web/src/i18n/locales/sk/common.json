@@ -685,6 +685,11 @@
     "variable": "premennej"
   },
   "astPanel": {
+    "lecturePreviewHint": "Náhľad upravovaného AST v podobe stromu z prednášok: iba hlavný výraz, bez deklarácií a typov. Uzly tu nemožno presúvať ani upravovať — ak chcete pokračovať v úpravách, vráťte sa do podrobného zobrazenia tlačidlom v pravom hornom rohu stromu.",
+    "viewLecture": "Zobraziť strom ako na prednáške — iba hlavný výraz, bez deklarácií a typov",
+    "viewCards": "Zobraziť podrobný strom — celý program vrátane deklarácií a typov, rovnako ako v editore AST",
+    "lectureHint": "Strom v podobe, akú poznáte z prednášok: obsahuje iba hlavný výraz, bez deklarácií a typových anotácií. Celý program uvidíte v podrobnom zobrazení — prepnete sa doň tlačidlom v pravom hornom rohu stromu. Rovnaké zobrazenie používa editor AST (karta Editor) na úpravy, no poslúži aj na prezeranie.",
+    "lectureEmpty": "Program nemá hlavný výraz, ktorý by sa dal nakresliť — obsahuje iba deklarácie. Tie nájdete v podrobnom zobrazení (tlačidlo v pravom hornom rohu).",
     "tabViewer": "Prehliadač",
     "tabEditor": "Editor",
     "highlightInEditor": "Zvýrazniť v editore",
@@ -1120,7 +1125,6 @@
     "finishedSteps_other": "Hotovo po {{count}} krokoch",
     "viewingStep": "Váš krok {{current}} z {{total}}",
     "viewingCurrent": "Ďalší krok",
-    "viewingSummary": "Výsledok",
     "verdictCorrect": "Vaše vyhodnotenie je správne.",
     "verdictWrong": "Vo vyhodnotení sú chyby — pozrite označené kroky.",
     "youSaidValue": "Povedali ste, že výsledný term je hodnota —",

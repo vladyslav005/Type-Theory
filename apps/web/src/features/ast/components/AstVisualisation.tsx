@@ -9,6 +9,8 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Maximize2, Minimize2, Copy, ClipboardPaste, Download, Upload, Network} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Ast} from "@/features/ast/components/ast/Ast.tsx";
+import {HelpHint} from "@/shared/components/HelpHint.tsx";
+import {type AstViewStyle, useAstViewStyle} from "@/features/ast/hooks/useAstViewStyle.ts";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
 import {AstNodePaletteDropdowns} from "@/features/ast/components/ast-editor/AstNodePaletteDropdowns.tsx";
 import {languageNodeTypes} from "@/features/ast/components/ast-editor/languageNodeTypes.ts";
@@ -49,10 +51,13 @@ export function AstVisualisation({
   // The palette follows the Language menu, so it only offers nodes the current language can use.
   const allowedNodeTypes = useMemo(() => languageNodeTypes(enabledTheories, stlcFeatures), [enabledTheories, stlcFeatures]);
   const hasViewerAst = viewerAst !== null && viewerAst !== undefined;
+  const lectureView = useAstViewStyle() === "lecture";
   const containerRef = useRef<HTMLDivElement>(null);
   const astEditorRef = useRef<AstEditorHandle>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   const [activeTab, setActiveTab] = useState<AstTab>("viewer");
+  const [editorStyle, setEditorStyle] = useState<AstViewStyle>("cards");
+  const editorPreview = activeTab === "editor" && editorStyle === "lecture";
   const [highlightOnHover, setHighlightOnHover] = useState(true);
 
   // Clear any lingering highlight when leaving the viewer tab or this panel unmounts —
@@ -174,11 +179,15 @@ export function AstVisualisation({
               {activeTab === "editor" && (
                 <TooltipProvider>
                   <div className="flex items-center gap-3">
-                    <ButtonGroup>
-                      <AstNodePaletteDropdowns onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)} allowedTypes={allowedNodeTypes}/>
-                    </ButtonGroup>
+                    {!editorPreview && (
+                      <>
+                        <ButtonGroup>
+                          <AstNodePaletteDropdowns onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)} allowedTypes={allowedNodeTypes}/>
+                        </ButtonGroup>
 
-                    <ButtonGroupSeparator className="h-6" />
+                        <ButtonGroupSeparator className="h-6" />
+                      </>
+                    )}
 
                     <ButtonGroup>
                       <Tooltip>
@@ -193,7 +202,7 @@ export function AstVisualisation({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-1.5" onClick={copyFromViewer} disabled={!viewerAst}>
+                          <Button variant="outline" size="sm" className="gap-1.5" onClick={copyFromViewer} disabled={!viewerAst || editorPreview}>
                             <Download className="h-3.5 w-3.5" />
                             {t("astPanel.btnCopyFromViewer")}
                           </Button>
@@ -217,7 +226,7 @@ export function AstVisualisation({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-1.5" onClick={uploadEditorAst}>
+                          <Button variant="outline" size="sm" className="gap-1.5" onClick={uploadEditorAst} disabled={editorPreview}>
                             <Upload className="h-3.5 w-3.5" />
                             {t("astPanel.btnUploadJson")}
                           </Button>
@@ -248,6 +257,8 @@ export function AstVisualisation({
               )}
             </div>
 
+            {activeTab === "viewer" && hasViewerAst && lectureView && <HelpHint text={t("astPanel.lectureHint")}/>}
+            {editorPreview && <HelpHint text={t("astPanel.lecturePreviewHint")}/>}
             <Button
               size="icon"
               variant="ghost"
@@ -290,7 +301,12 @@ export function AstVisualisation({
             <div className="h-full flex flex-col">
               <div className="flex-1 rounded-b-xl border overflow-hidden bg-muted/30">
                 <ReactFlowProvider>
-                  <AstEditor ref={astEditorRef} graph={graph} setGraph={setGraph} AST={editorAst} setAST={setEditorAst} allowedTypes={allowedNodeTypes}/>
+                  {editorPreview ? (
+                    <Ast AST={editorAst} viewStyle="lecture" onViewStyleChange={(style) => setEditorStyle(style)}/>
+                  ) : (
+                    <AstEditor ref={astEditorRef} graph={graph} setGraph={setGraph} AST={editorAst} setAST={setEditorAst}
+                      allowedTypes={allowedNodeTypes} onPreviewLecture={() => setEditorStyle("lecture")}/>
+                  )}
                 </ReactFlowProvider>
               </div>
               {env.VITE_SHOW_DEBUG_DATA && (

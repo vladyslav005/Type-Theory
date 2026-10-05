@@ -61,12 +61,20 @@ import {UnfoldFlowNode} from "@/features/ast/components/ast/flow/UnfoldFlowNode"
 import {RecursiveTypeFlowNode} from "@/features/ast/components/ast/flow/RecursiveTypeFlowNode";
 import {KindStarFlowNode} from "@/features/ast/components/ast/flow/KindStarFlowNode.tsx";
 import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlowNode.tsx";
+import {useTranslation} from "react-i18next";
+import {LectureFlowNode} from "@/features/ast/components/ast/lecture/LectureFlowNode.tsx";
+import {AstStyleToggle} from "@/features/ast/components/ast/lecture/AstStyleToggle.tsx";
+import {layoutLectureTree, toLectureGraph} from "@/features/ast/components/ast/lecture/lectureTree.ts";
+import {type AstViewStyle, useAstViewStyle} from "@/features/ast/hooks/useAstViewStyle.ts";
 
 
 export interface AstProps {
   AST: Program,
   editorRef?: RefObject<TextEditorHandle | null>,
   highlightOnHover?: boolean,
+  // Overrides the remembered view style, e.g. for the Editor tab's lecture preview.
+  viewStyle?: AstViewStyle,
+  onViewStyleChange?: (style: AstViewStyle) => void,
   // Read-only view of a bare term (e.g. a lab solution), without the Program root.
   termOnly?: boolean;
   // Bare view without the minimap/center buttons, e.g. a lab solution.
@@ -192,18 +200,25 @@ const nodeTypes: NodeTypes = {
   unfold: UnfoldFlowNode,
 } as NodeTypes;
 
+const lectureNodeTypes: NodeTypes = Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, LectureFlowNode]));
+
 export function Ast({
   AST,
   editorRef,
   highlightOnHover = false,
   termOnly = false,
   hideControls = false,
+  viewStyle,
+  onViewStyleChange,
 } : AstProps) {
   const { mapAstToFlow } = useMapAstToFlow()
   const { resolvedTheme } = useTheme();
   const [graph, setGraph] = useState<AstFlowGraph>({ nodes: [], edges: [] });
   const [fitToken, setFitToken] = useState(0);
   const [showMiniMap, setShowMiniMap] = useState(false);
+  const rememberedStyle = useAstViewStyle();
+  const lecture = (viewStyle ?? rememberedStyle) === "lecture";
+  const {t} = useTranslation();
 
   const handleNodeMouseEnter = useCallback(
     (_event: unknown, node: AstFlowNode) => {
@@ -228,15 +243,21 @@ export function Ast({
   useEffect(() => {
     const newGraph = mapAstToFlow(AST);
     if (!newGraph.nodes) return;
-    const programIds = new Set(termOnly ? newGraph.nodes.filter((node) => node.type === "program").map((node) => node.id) : []);
-    const layoutGraph = layoutAstFlow(
-      newGraph.nodes.filter((node) => !programIds.has(node.id)),
-      newGraph.edges.filter((edge) => !programIds.has(edge.source)),
-    );
+    let layoutGraph: AstFlowGraph;
+    if (lecture) {
+      const lectureGraph = toLectureGraph(newGraph);
+      layoutGraph = layoutLectureTree(lectureGraph.nodes, lectureGraph.edges);
+    } else {
+      const programIds = new Set(termOnly ? newGraph.nodes.filter((node) => node.type === "program").map((node) => node.id) : []);
+      layoutGraph = layoutAstFlow(
+        newGraph.nodes.filter((node) => !programIds.has(node.id)),
+        newGraph.edges.filter((edge) => !programIds.has(edge.source)),
+      );
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setGraph(layoutGraph);
     setFitToken((t) => t + 1);
-  }, [AST]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [AST, lecture]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onNodesChange = useCallback(
     (changes: any) => {
@@ -268,23 +289,32 @@ export function Ast({
         onEdgesChange={onEdgesChange}
         onNodeMouseEnter={handleNodeMouseEnter}
         onNodeMouseLeave={handleNodeMouseLeave}
-        nodeTypes={nodeTypes}
+        nodeTypes={lecture ? lectureNodeTypes : nodeTypes}
         nodesConnectable={false}
+        nodesDraggable={!lecture}
         panActivationKeyCode={null}
         colorMode={resolvedTheme === "dark" ? "dark" : "light"}
         fitView
       >
         <FitViewOnAstChange token={fitToken} />
-        {!hideControls && (
-          <Panel position="top-right">
-            <div className="flex gap-2">
-              <MiniMapToggleButton showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />
-              <CenterViewButton />
-            </div>
+        {lecture && graph.nodes.length === 0 && (
+          <Panel position="top-left" className="max-w-xs rounded-md border bg-background/90 px-2.5 py-1.5 text-xs text-muted-foreground shadow-sm">
+            {t("astPanel.lectureEmpty")}
           </Panel>
         )}
-        <Background />
-        {showMiniMap && <MiniMap
+        <Panel position="top-right">
+          <div className="flex gap-2">
+            <AstStyleToggle style={viewStyle} onChange={onViewStyleChange}/>
+            {!hideControls && (
+              <>
+                {!lecture && <MiniMapToggleButton showMiniMap={showMiniMap} setShowMiniMap={setShowMiniMap} />}
+                <CenterViewButton />
+              </>
+            )}
+          </div>
+        </Panel>
+        {!lecture && <Background />}
+        {showMiniMap && !lecture && <MiniMap
           className="bg-background! border-border!"
           nodeColor={(node) => {
             if (node.type === 'program') return 'hsl(var(--primary))';

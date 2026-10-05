@@ -3,6 +3,7 @@ import { XIcon } from "lucide-react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/shared/lib/utils"
+import { useFullscreenElement } from "@/shared/hooks/useFullscreenElement"
 import { Button } from "@/shared/components/ui/button"
 
 function Dialog({
@@ -20,7 +21,9 @@ function DialogTrigger({
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+  // Same fullscreen-portal fix as Popover — see useFullscreenElement.
+  const fullscreenElement = useFullscreenElement();
+  return <DialogPrimitive.Portal data-slot="dialog-portal" container={fullscreenElement} {...props} />
 }
 
 function DialogClose({
