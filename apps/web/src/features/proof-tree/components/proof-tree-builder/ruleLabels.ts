@@ -33,6 +33,9 @@ export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.TypeAbs]: "T-TAbs",
   [Rule.TypeApp]: "T-TApp",
   [Rule.TPiApp]: "T-PiApp",
+  [Rule.Succ]: "T-Succ",
+  [Rule.Pred]: "T-Pred",
+  [Rule.IsZero]: "T-IsZero",
 };
 
 const CT_LABELS: Partial<Record<Rule, string>> = {
@@ -81,7 +84,12 @@ const RULE_THEORY: Partial<Record<Rule, TypeTheoryId>> = {
   [Rule.TypeAbs]: "systemF",
   [Rule.TypeApp]: "systemF",
   [Rule.TPiApp]: "systemLambdaP",
+  [Rule.Succ]: "typedNbl",
+  [Rule.Pred]: "typedNbl",
+  [Rule.IsZero]: "typedNbl",
 };
+
+const TYPED_NBL_RULES: readonly Rule[] = [Rule.Lit, Rule.If, Rule.Succ, Rule.Pred, Rule.IsZero];
 
 // The full rule set, in the order offered to the student.
 export const BUILDER_RULES: readonly Rule[] = [
@@ -114,6 +122,9 @@ export const BUILDER_RULES: readonly Rule[] = [
   Rule.TypeAbs,
   Rule.TypeApp,
   Rule.TPiApp,
+  Rule.Succ,
+  Rule.Pred,
+  Rule.IsZero,
   Rule.CtVar,
   Rule.CtVarLet,
   Rule.CtAbs,
@@ -155,6 +166,7 @@ const RULE_FEATURE: Partial<Record<Rule, StlcFeatureId>> = {
 };
 
 export function rulesForTheories(theories: TypeTheoryConfig, features: StlcFeatureConfig = DEFAULT_STLC_FEATURES): Rule[] {
+  if (theories.typedNbl) return [...TYPED_NBL_RULES];
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
   return BUILDER_RULES.filter((rule) => {
     if (isCtRule(rule) && !usesConstraints) return false;

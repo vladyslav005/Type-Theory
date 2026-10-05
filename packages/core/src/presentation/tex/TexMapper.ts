@@ -46,6 +46,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
   private readonly gammaRegistry: GammaRegistry;
   private registryBuilt = false;
   private typeAliasRegistry: TypeAliasRegistry;
+  private nblRuleNames = false;
 
   // gammaRegistry is shared with LetPolymorphismTexMapper so Γ_n numbering stays continuous across a `let` boundary.
   constructor(typeAliasRegistry: TypeAliasRegistry = new TypeAliasRegistry({}), gammaRegistry: GammaRegistry = new GammaRegistry()) {
@@ -60,6 +61,11 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     this.typeAliasRegistry = new TypeAliasRegistry(aliases);
     this.gammaRegistry.reset();
     this.registryBuilt = false;
+  }
+
+  // Typed NBL names its literal rules after the literal (TAPL ch. 8): T-True, T-False, T-Zero.
+  setNblRuleNames(enabled: boolean): void {
+    this.nblRuleNames = enabled;
   }
 
   visit(node: ProofTree): TexTree {
@@ -172,6 +178,10 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     };
   }
 
+  private static nblLitRuleLabel(value: string): string {
+    return value === "true" ? "T-True" : value === "false" ? "T-False" : "T-Zero";
+  }
+
   private static litRuleLabel(value: string): string {
     if (value === "unit" || value === "Unit") return "T-Unit";
     if (value === "true" || value === "True" || value === "false" || value === "False") return "T-Bool";
@@ -227,7 +237,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     const value = (node.term as any).value as string
     return {
       ...this.judgements(node),
-      rule: TexMapper.litRuleLabel(value),
+      rule: this.nblRuleNames ? TexMapper.nblLitRuleLabel(value) : TexMapper.litRuleLabel(value),
       children: []
     }
   }
@@ -417,7 +427,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
   protected visitNblOp(node: ProofTree): TexTree {
     return {
       ...this.judgements(node),
-      rule: node.rule,
+      rule: `T-${node.rule}`,
       children: node.premises.map(child => this.visit(child))
     }
   }

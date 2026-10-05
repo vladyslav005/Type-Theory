@@ -1,10 +1,18 @@
-import {useMemo} from "react";
+import {useCallback, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {EvaluationStrategy, Evaluator, type Program, type Term} from "@vladyslav005/tt-core";
+import {DEFAULT_TYPE_THEORY_CONFIG, EvaluationStrategy, Evaluator, SLTLCTypeChecker, TexMapper, type ProofTree, type Program, type Term} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {PanZoomCanvas} from "@/features/proof-tree/components/PanZoomCanvas.tsx";
 import {SyntaxDerivationTree} from "@/features/proof-tree/components/syntax-builder/SyntaxDerivationTree.tsx";
-import {syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
+import {expectedChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
+import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
+import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
+import {ManualActionsContext, type ManualActions} from "@/features/proof-tree/manual/manualActions.ts";
+import {checkManualTree, manualNodeRules, type ManualResults} from "@/features/proof-tree/manual/manualCheck.ts";
+import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
+import {contextToText, countManualNodes, createManualNode, findManualNode, removeManualNode, type ManualNode} from "@/shared/ui-state/manualProof.ts";
+import {parseDefinitions, termKey} from "@/shared/lib/manualParse.ts";
+import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
@@ -30,6 +38,7 @@ export type TypingTaskType = "derivation" | "evaluate";
 type Calculus = "nbl" | "stlc";
 
 const evaluator = new Evaluator(500, {maximumTermSize: 5000, timeLimitMs: 1000});
+const solutionMapper = new TexMapper();
 
 // `term : Type` — the stated type follows the last " : ", since types never contain one.
 const splitStated = (source: string) => {
@@ -53,55 +62,173 @@ function useTypingGoal(source: string, context: string | undefined, calculus: Ca
   }, [source, context, calculus]);
 }
 
-function outline(goal: SyntaxGoal, noRule: string, depth = 0): string[] {
-  return [
-    `${"  ".repeat(depth)}${goal.judgement}   ${goal.rule ?? `✗ ${noRule}`}`,
-    ...(goal.rule ? goal.children.flatMap((child) => outline(child, noRule, depth + 1)) : []),
-  ];
+interface ManualWork {
+  tree: ManualNode;
+  definitions: string;
+}
+
+const derivationChecker = new SLTLCTypeChecker();
+
+// The core checker's derivation of the term — the answer key the manual tree is checked against.
+function coreDerivation(program: Program, calculus: Calculus): ProofTree {
+  derivationChecker.setTheories({...DEFAULT_TYPE_THEORY_CONFIG, typedNbl: calculus === "nbl"});
+  return derivationChecker.check(program);
+}
+
+function solvedChoices(goal: SyntaxGoal, choices: SyntaxChoices = {}): SyntaxChoices {
+  choices[goal.key] = expectedChoice(goal);
+  goal.children.forEach((child) => solvedChoices(child, choices));
+  return choices;
+}
+
+function editTree(work: ManualWork, edit: (tree: ManualNode) => void): ManualWork {
+  const tree = structuredClone(work.tree);
+  edit(tree);
+  return {...work, tree};
 }
 
 function DerivationRow({id, index, source, context, calculus, listed}: {id?: string; index: number; source: string; context?: string; calculus: Calculus; listed: boolean}) {
   const {t} = useTranslation();
   const taskId = useTaskId(id, ...(listed ? [source] : []));
-  const {goal, invalid} = useTypingGoal(source, context, calculus);
-  const [choices, setChoices] = useSavedState<SyntaxChoices>(taskId && `${taskId}#choices`, {});
+  const {goal, parsed, invalid} = useTypingGoal(source, context, calculus);
+  const answer = useMemo(() => (parsed ? coreDerivation(parsed.program, calculus) : undefined), [parsed, calculus]);
+  const problem = parsed ? firstProblem(goal) : goal;
+  const initialWork = (): ManualWork => ({
+    tree: {
+      ...createManualNode("judgement", answer ? termKey(answer.term) : splitStated(source).term),
+      gamma: context ? "Γ_1" : "∅",
+      type: splitStated(source).type,
+    },
+    definitions: context && answer ? `Γ_1 = ${contextToText(answer.gamma, true)}` : "",
+  });
+  const [work, setWork] = useSavedState<ManualWork>(taskId && `${taskId}#manual`, initialWork);
+  const [results, setResults] = useState<ManualResults>({});
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
-  const progress = syntaxProgress(goal, choices);
+  const definitions = useMemo(() => parseDefinitions(work.definitions), [work.definitions]);
 
-  const choose = (key: string, rule: string | undefined) => {
-    setChoices((current) => withChoice(current, key, rule));
+  const changed = useCallback((nodeId?: string) => {
+    setVerdict(undefined);
+    setResults((current) => {
+      if (!nodeId) return {};
+      const next = {...current};
+      delete next[nodeId];
+      return next;
+    });
+  }, [setVerdict]);
+
+  const actions = useMemo<ManualActions>(() => ({
+    setField: (nodeId, field, value) => {
+      setWork((current) => editTree(current, (tree) => {
+        const node = findManualNode(tree, nodeId);
+        if (node) node[field] = value;
+      }));
+      changed(nodeId);
+    },
+    setConstraintsShown: (nodeId, shown) => {
+      setWork((current) => editTree(current, (tree) => {
+        const node = findManualNode(tree, nodeId);
+        if (node) node.constraintsShown = shown;
+      }));
+      changed(nodeId);
+    },
+    addPremise: (parentId, kind) => {
+      setWork((current) => editTree(current, (tree) => findManualNode(tree, parentId)?.premises.push(createManualNode(kind))));
+      changed(parentId);
+    },
+    removePremise: (nodeId) => {
+      setWork((current) => editTree(current, (tree) => removeManualNode(tree, nodeId)));
+      changed();
+    },
+  }), [setWork, changed]);
+
+  const check = () => {
+    if (!answer) return;
+    const checked = checkManualTree(work.tree, answer, false, definitions.definitions);
+    setResults(checked);
+    const wrong = Object.values(checked).filter((result) => Object.values(result).some((value) => value === "invalid")).length;
+    const complete = countManualNodes(work.tree) === manualNodeRules(work.tree, answer).expected;
+    if (wrong > 0) return setVerdict({ok: false, kind: "wrongNode", text: t("typingLab.manualWrong", {count: wrong})});
+    if (problem) return setVerdict({ok: false, kind: "illTypedTree", text: t("typingLab.manualIllTyped")});
+    if (!complete) return setVerdict({ok: false, kind: "treeIncomplete", text: t("typingLab.manualIncomplete")});
+    setVerdict({ok: true, text: t("typingLab.doneWellTyped")});
+  };
+
+  const claimIllTyped = () => setVerdict(problem
+    ? {ok: true, text: t(invalid ? "typingLab.doneNotTerm" : "typingLab.doneIllTyped")}
+    : {ok: false, kind: "claimedIllTyped", text: t("labWidgets.tryAgain")});
+
+  const reset = () => {
+    setWork(initialWork());
+    setResults({});
     setVerdict(undefined);
   };
 
-  const check = () => {
-    if (progress.wrong > 0) return setVerdict({ok: false, kind: "wrongRule", text: t("typingLab.wrong", {count: progress.wrong})});
-    if (!progress.done) return setVerdict({ok: false, kind: "treeIncomplete", text: t("syntaxBuilder.incomplete", {count: Math.max(progress.unchosen, 1)})});
-    setVerdict({ok: true, text: t(invalid ? "typingLab.doneNotTerm" : progress.belongs ? "typingLab.doneWellTyped" : "typingLab.doneIllTyped")});
-  };
+  const texTree = useMemo(() => {
+    if (!answer || problem) return undefined;
+    solutionMapper.setTypeAliases({});
+    solutionMapper.setNblRuleNames(calculus === "nbl");
+    return solutionMapper.visit(answer);
+  }, [answer, problem, calculus]);
 
-  const solution = invalid
-    ? t("typingLab.solutionNotTerm", {detail: invalid})
-    : <pre className="font-mono overflow-x-auto">{outline(goal, t("syntaxBuilder.noRuleShort")).join("\n")}</pre>;
+  const solution = invalid ? t("typingLab.solutionNotTerm", {detail: invalid}) : texTree ? (
+    <div className="flex h-80 w-full flex-col overflow-hidden rounded-md bg-background">
+      <ProofTreeCanvas texTree={texTree} treeKey={`solution-${source}`} exportFilename="typing-derivation.tex"/>
+    </div>
+  ) : (
+    <div className="space-y-2">
+      <p>{t("typingLab.solutionIllTyped", {judgement: problem?.judgement ?? ""})}</p>
+      <PanZoomCanvas className="pointer-events-none h-72" compact>
+        <SyntaxDerivationTree
+          goal={goal}
+          choices={solvedChoices(goal)}
+          rules={calculus === "stlc" ? STLC_TYPING_RULES : NBL_TYPING_RULES}
+          onChoose={() => {}}
+          showVerdicts={false}
+          compact
+        />
+      </PanZoomCanvas>
+    </div>
+  );
 
   return (
     <Row taskId={taskId} index={index} source={listed ? source : undefined} solution={solution}>
       <SolveArea taskId={taskId}>
-        <p className="text-xs text-muted-foreground">{t("typingLab.hint")}</p>
-        <PanZoomCanvas className="h-72" compact>
-          <SyntaxDerivationTree
-            goal={goal}
-            choices={choices}
-            rules={calculus === "stlc" ? STLC_TYPING_RULES : NBL_TYPING_RULES}
-            onChoose={choose}
-            showVerdicts={verdict !== undefined}
-            compact
-          />
-        </PanZoomCanvas>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
-        </div>
+        <p className="text-xs text-muted-foreground">{t("typingLab.manualHint")}</p>
+        {invalid ? (
+          <p className="text-xs text-destructive">{t("labWidgets.cannotRead", {detail: invalid})}</p>
+        ) : (
+          <>
+            {context && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">{t("manualBuilder.definitions")}</p>
+                <BracketTextarea
+                  value={work.definitions}
+                  onChange={(e) => { setWork((current) => ({...current, definitions: applyShortcuts(e.target.value)})); changed(); }}
+                  minRows={2}
+                  spellCheck={false}
+                  textClassName="p-2 font-mono text-xs leading-normal"
+                  className="rounded border bg-background outline-none focus:ring-1 focus:ring-ring"
+                />
+                {definitions.errors.map((error, i) => (
+                  <p key={i} className="text-[11px] text-destructive">{t("manualBuilder.definitionError", {line: error.line, message: error.message})}</p>
+                ))}
+              </div>
+            )}
+            <ManualActionsContext.Provider value={actions}>
+              <PanZoomCanvas className="h-96" compact>
+                <ManualNodeView node={work.tree} results={results} usesConstraints={false}/>
+              </PanZoomCanvas>
+            </ManualActionsContext.Provider>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+              <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
+            </div>
+          </>
+        )}
       </SolveArea>
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={claimIllTyped}>{t("typingLab.notWellTyped")}</Button>
+      </div>
       <Feedback verdict={verdict}/>
     </Row>
   );

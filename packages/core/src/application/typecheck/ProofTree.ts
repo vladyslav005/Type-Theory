@@ -106,7 +106,7 @@ export enum Rule {
   Fold = "Fold",
   Unfold = "Unfold",
 
-  // NBL (untyped) — no typing rule; the checker only gates the syntax.
+  // NBL operators: untyped NBL only gates the syntax; otherwise typed by T-Succ, T-Pred, T-IsZero.
   Succ = "Succ",
   Pred = "Pred",
   IsZero = "IsZero",

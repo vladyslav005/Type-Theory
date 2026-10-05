@@ -24,7 +24,7 @@ export function useTermHooks() {
 
   function parseTerm(term: string): Program {
     const program = parser.parseExpression(term);
-    return enabledTheories.nbl ? elaborateNbl(program) : program;
+    return enabledTheories.nbl || enabledTheories.typedNbl ? elaborateNbl(program) : program;
   }
 
   function typecheckTerm(ast: Program): ProofTree {

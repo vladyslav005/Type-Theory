@@ -2,8 +2,7 @@ import {memo} from "react";
 import {useTranslation} from "react-i18next";
 import {Plus, X} from "lucide-react";
 import type {ManualField, ManualNode, ManualNodeResult, ManualVerdict} from "@/shared/ui-state/manualProof.ts";
-import {useAppDispatch} from "@/shared/hooks/reduxHooks.ts";
-import {addManualPremise, removeManualPremise, setManualConstraintsShown, setManualField} from "@/shared/ui-state/termSlice.ts";
+import {useManualActions} from "@/features/proof-tree/manual/manualActions.ts";
 import {cn} from "@/shared/lib/utils.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketInput} from "@/shared/components/BracketInput.tsx";
@@ -81,10 +80,10 @@ interface ManualNodeViewProps {
 
 export const ManualNodeView = memo(function ManualNodeView({node, results, usesConstraints, root = true}: ManualNodeViewProps) {
   const {t} = useTranslation();
-  const dispatch = useAppDispatch();
+  const actions = useManualActions();
   const result = results[node.id];
   const constraintsShown = usesConstraints && (node.constraintsShown ?? true);
-  const set = (field: ManualField) => (value: string) => dispatch(setManualField({nodeId: node.id, field, value}));
+  const set = (field: ManualField) => (value: string) => actions.setField(node.id, field, value);
 
   const isLeaf = node.premises.length === 0;
   const rootClass = root ? "root" : "not-root";
@@ -95,7 +94,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
       <button
         type="button"
         className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-        onClick={() => dispatch(removeManualPremise({nodeId: node.id}))}
+        onClick={() => actions.removePremise(node.id)}
       >
         <X className="h-3 w-3"/>
       </button>
@@ -156,7 +155,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: false}))}
+                  onClick={() => actions.setConstraintsShown(node.id, false)}
                 >
                   <X className="h-3 w-3"/>
                 </button>
@@ -167,7 +166,7 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
               <button
                 type="button"
                 className="shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-mono hover:bg-accent"
-                onClick={() => dispatch(setManualConstraintsShown({nodeId: node.id, shown: true}))}
+                onClick={() => actions.setConstraintsShown(node.id, true)}
               >
                 + C
               </button>
@@ -194,14 +193,14 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
         <button
           type="button"
           className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
-          onClick={() => dispatch(addManualPremise({parentId: node.id, kind: "judgement"}))}
+          onClick={() => actions.addPremise(node.id, "judgement")}
         >
           <Plus className="h-3 w-3"/>{t("manualBuilder.addPremise")}
         </button>
         <button
           type="button"
           className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
-          onClick={() => dispatch(addManualPremise({parentId: node.id, kind: "fact"}))}
+          onClick={() => actions.addPremise(node.id, "fact")}
         >
           <Plus className="h-3 w-3"/>{t("manualBuilder.addSideCondition")}
         </button>

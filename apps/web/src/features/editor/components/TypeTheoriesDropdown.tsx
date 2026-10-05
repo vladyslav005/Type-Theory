@@ -20,9 +20,9 @@ import { STLC_FEATURES, TYPE_THEORIES, type TypeTheoryId } from "@vladyslav005/t
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { setCurryHoward, setRequireTermType, setStlcFeature, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
 
-const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl"];
+const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
 
-type Base = "stlc" | "untyped" | "nbl";
+type Base = "stlc" | "untyped" | "nbl" | "typedNbl";
 
 function SectionLabel({children}: {children: ReactNode}) {
   return <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{children}</DropdownMenuLabel>;
@@ -50,7 +50,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
   const requireTermType = useAppSelector((state) => state.term.requireTermType);
   const termTypeExempt = enabledTheories.typeInference || enabledTheories.letPolymorphism;
-  const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : "stlc";
+  const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : enabledTheories.typedNbl ? "typedNbl" : "stlc";
   const exclusiveTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
   const extensions = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
   const addedCount = extensions.filter((theory) => enabledTheories[theory.id]).length + (curryHoward ? 1 : 0);
@@ -71,6 +71,22 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
     if (next === "stlc") EXCLUSIVE_THEORY_IDS.forEach((id) => dispatch(setTheoryEnabled({id, enabled: false})));
     else dispatch(setTheoryEnabled({id: next as TypeTheoryId, enabled: true}));
   };
+
+  const checkingSection = (
+    <>
+      <SectionLabel>{t("extensions.sections.checking")}</SectionLabel>
+      <DropdownMenuCheckboxItem
+        checked={requireTermType && !termTypeExempt}
+        disabled={termTypeExempt}
+        onSelect={(e) => e.preventDefault()}
+        onCheckedChange={(checked) => dispatch(setRequireTermType(checked))}
+        {...describe(t("extensions.requireTermType.description"))}
+      >
+        {t("extensions.requireTermType.label")}
+      </DropdownMenuCheckboxItem>
+      {termTypeExempt && <p className="px-2 pb-1 pl-8 text-[11px] leading-snug text-muted-foreground">{t("extensions.requireTermType.exempt")}</p>}
+    </>
+  );
 
   return (
     <DropdownMenu onOpenChange={(open) => !open && setDescription(undefined)}>
@@ -173,17 +189,19 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
                 {t("extensions.curryHoward.label")}
               </DropdownMenuCheckboxItem>
 
-              <SectionLabel>{t("extensions.sections.checking")}</SectionLabel>
-              <DropdownMenuCheckboxItem
-                checked={requireTermType && !termTypeExempt}
-                disabled={termTypeExempt}
-                onSelect={(e) => e.preventDefault()}
-                onCheckedChange={(checked) => dispatch(setRequireTermType(checked))}
-                {...describe(t("extensions.requireTermType.description"))}
-              >
-                {t("extensions.requireTermType.label")}
-              </DropdownMenuCheckboxItem>
-              {termTypeExempt && <p className="px-2 pb-1 pl-8 text-[11px] leading-snug text-muted-foreground">{t("extensions.requireTermType.exempt")}</p>}
+              {checkingSection}
+            </motion.div>
+          )}
+          {base === "typedNbl" && (
+            <motion.div
+              key="typed-nbl-sections"
+              initial={{height: 0, opacity: 0}}
+              animate={{height: "auto", opacity: 1}}
+              exit={{height: 0, opacity: 0}}
+              transition={{duration: 0.2, ease: "easeOut"}}
+              className="overflow-hidden"
+            >
+              {checkingSection}
             </motion.div>
           )}
         </AnimatePresence>

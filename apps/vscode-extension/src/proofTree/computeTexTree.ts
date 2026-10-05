@@ -21,11 +21,13 @@ export function computeTexTree(
 	try {
 		const mapper = effectiveMode === "logic" ? new LogicMapper() : new TexMapper();
 		mapper.setTypeAliases(typeAliases ?? {});
+		if (mapper instanceof TexMapper) mapper.setNblRuleNames(theories.typedNbl);
 		return { texTree: mapper.visit(proof), effectiveMode, logicAvailable };
 	} catch (error) {
 		if (error instanceof NonStlcProofError) {
 			const fallback = new TexMapper();
 			fallback.setTypeAliases(typeAliases ?? {});
+			fallback.setNblRuleNames(theories.typedNbl);
 			return { texTree: fallback.visit(proof), effectiveMode: "derivation", logicAvailable };
 		}
 		throw error;

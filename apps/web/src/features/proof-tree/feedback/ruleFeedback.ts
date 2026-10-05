@@ -11,7 +11,7 @@ export interface ChosenRule {
 }
 
 const OPERATORS: BinaryOperator[] = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!="];
-const LITERAL_NAMES = ["Lit", "Unit", "True", "False", "String", "Nv"];
+const LITERAL_NAMES = ["Lit", "Unit", "True", "False", "String", "Nv", "Zero"];
 
 const RULE_KIND_EXCEPTIONS: Partial<Record<string, Term["kind"]>> = {
   VarLet: "Var",
@@ -62,7 +62,8 @@ export function ruleFeedback(chosen: ChosenRule | undefined, label: string, answ
   if (term.kind === "BinOp" && chosen.operator && chosen.operator !== term.operator) {
     return {code: "feedback.ruleOperator", params: {rule: label}};
   }
-  if (term.kind === "Lit" && chosen.literal && chosen.literal !== "Lit" && chosen.literal !== literalClass(term.value)) {
+  const literalMatches = (literal: string) => literal === literalClass(term.kind === "Lit" ? term.value : "") || (literal === "Zero" && term.kind === "Lit" && term.value === "0");
+  if (term.kind === "Lit" && chosen.literal && chosen.literal !== "Lit" && !literalMatches(chosen.literal)) {
     return {code: "feedback.ruleLiteral", params: {rule: label}};
   }
   return {code: "feedback.ruleOther", params: {rule: label}};

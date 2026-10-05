@@ -7,6 +7,7 @@ const STRATEGY_KEY = "tt.evaluationStrategy";
 const TYPE_THEORY_IDS: TypeTheoryId[] = [
 	"untyped",
 	"nbl",
+	"typedNbl",
 	"letPolymorphism",
 	"typeInference",
 	"isoRecursiveTypes",

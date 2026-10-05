@@ -87,7 +87,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   const fontSize = useAppSelector((state) => state.term.fontSize);
   const showMinimap = useAppSelector((state) => state.term.showMinimap);
   const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped || state.term.enabledTheories.nbl);
-  const isNbl = useAppSelector((state) => state.term.enabledTheories.nbl);
+  const isNbl = useAppSelector((state) => state.term.enabledTheories.nbl || state.term.enabledTheories.typedNbl);
   const editorLanguage = isNbl && language === "lambda" ? NBL_LANGUAGE_ID : language;
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 

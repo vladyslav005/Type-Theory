@@ -49,7 +49,7 @@ class AnalysisCache {
 		const parser = new AntlrParserAdapter();
 		try {
 			const parsed = parser.parseExpression(document.getText());
-			const program = theories.nbl ? elaborateNbl(parsed) : parsed;
+			const program = theories.nbl || theories.typedNbl ? elaborateNbl(parsed) : parsed;
 			const checker = new SLTLCTypeChecker();
 			checker.setTheories(theories);
 			const proof = checker.check(program);

@@ -39,6 +39,7 @@ const GROUP_SHORT_LABELS: Record<string, string> = {
   "STLC": "STLC",
   "Untyped Lambda Calculus": "Untyped",
   "Numbers & Booleans (NBL)": "NBL",
+  "Typed Numbers & Booleans": "Typed NBL",
   "Sums & Variants": "Sums",
   "Tuples & Records": "Tuples",
   "Lists": "Lists",

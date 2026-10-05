@@ -5,7 +5,7 @@ const STORAGE_KEY = "tt.activity.v1";
 const SCHEMA_VERSION = 2;
 const MAX_ATTEMPTS = 20000;
 
-export type Consent = "unset" | "granted" | "denied";
+export type Consent = "granted" | "denied";
 
 export type Counts = Record<string, number>;
 
@@ -135,12 +135,12 @@ function withDefaults<T>(defaults: T, stored: unknown): T {
 }
 
 function load(raw = readStorage()): StoredActivity {
-  const fallback: StoredActivity = {consent: "unset", data: emptyData(), origin: crypto.randomUUID(), taskFirstSeen: {}, failureStreak: 0};
+  const fallback: StoredActivity = {consent: "granted", data: emptyData(), origin: crypto.randomUUID(), taskFirstSeen: {}, failureStreak: 0};
   try {
     if (!raw) return fallback;
     const parsed = JSON.parse(raw) as Partial<StoredActivity>;
     return {
-      consent: parsed.consent === "granted" || parsed.consent === "denied" ? parsed.consent : "unset",
+      consent: parsed.consent === "denied" ? "denied" : "granted",
       data: parsed.data && typeof parsed.data === "object" ? {...emptyData(), ...parsed.data} : emptyData(),
       origin: typeof parsed.origin === "string" ? parsed.origin : crypto.randomUUID(),
       taskFirstSeen: parsed.taskFirstSeen ?? {},

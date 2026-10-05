@@ -99,13 +99,14 @@ export class EvaluationRunError extends Error {
 }
 
 // Replace STLC instead of extending it, so enabling one clears every other theory.
-const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl"];
+const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
 
 const STLC_EXAMPLE_GROUP = "STLC";
 
 const THEORY_EXAMPLE_GROUPS: Partial<Record<TypeTheoryId, string>> = {
   untyped: "Untyped Lambda Calculus",
   nbl: "Numbers & Booleans (NBL)",
+  typedNbl: "Typed Numbers & Booleans",
   letPolymorphism: "Let & Polymorphism",
   typeInference: "Type Inference",
   isoRecursiveTypes: "Iso-recursive Types (μ)",

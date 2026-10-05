@@ -315,6 +315,31 @@ isEven three;`,
     ],
   },
   {
+    title: "Typed Numbers & Booleans",
+    items: [
+      {
+        label: "Well-Typed Conditional",
+        description: "if iszero (pred (succ 0)) then succ 0 else 0 — T-If needs a Bool condition and two branches of the same type, here Nat; enable the Typed NBL theory",
+        code: `if iszero (pred (succ 0)) then succ 0 else 0 : Nat;`,
+      },
+      {
+        label: "Typed Arithmetic Chain",
+        description: "each succ/pred needs a Nat argument (T-Succ, T-Pred) and gives back a Nat, down to T-Zero at the leaf",
+        code: `succ (pred (succ (succ 0))) : Nat;`,
+      },
+      {
+        label: "Ill-Typed: pred of a Boolean",
+        description: "iszero 0 has type Bool, but T-Pred needs a Nat — the stuck term from untyped NBL is now rejected before it runs",
+        code: `pred (iszero 0) : Nat;`,
+      },
+      {
+        label: "Ill-Typed: Mismatched Branches",
+        description: "the condition is fine, but T-If needs both branches to share one type — Bool and Nat don't",
+        code: `if iszero 0 then true else 0 : Bool;`,
+      },
+    ],
+  },
+  {
     title: "Sums & Variants",
     items: [
       {

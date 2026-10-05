@@ -305,7 +305,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   visit(node: ASTNode): InferProofTree {
-    const proof = this.theories.nbl && node.kind !== "Program"
+    const proof = (this.theories.nbl || this.theories.typedNbl) && node.kind !== "Program"
       ? this.visitNbl(node)
       : this.rejectIfFeatureDisabled(node) ?? super.visit(node);
     proof.id = node.id;
@@ -389,6 +389,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   // NBL is untyped: no constraints, only a gate on which syntax is allowed.
   private visitNbl(node: ASTNode): InferProofTree {
     const untyped = (rule: Rule, children: Term[]): InferProofTree => {
+      if (this.theories.typedNbl) return super.visit(node);
       const premises = children.map((child) => this.visit(child));
       return {
         rule,
@@ -401,7 +402,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     };
     const outsideNbl = (construct: string) => {
       const rule = (Object.values(Rule) as string[]).includes(node.kind) ? node.kind as Rule : Rule.Var;
-      return this.reject(node, rule, `${construct} ${construct.endsWith("s") ? "are" : "is"} not part of NBL — only true, false, 0, succ, pred, iszero and if/then/else, or disable "Numbers and booleans (NBL)"`);
+      const theory = this.theories.typedNbl ? "Typed numbers and booleans (typed NBL)" : "Numbers and booleans (NBL)";
+      return this.reject(node, rule, `${construct} ${construct.endsWith("s") ? "are" : "is"} not part of NBL — only true, false, 0, succ, pred, iszero and if/then/else, or disable "${theory}"`);
     };
 
     switch (node.kind) {
@@ -1722,16 +1724,29 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     };
   }
 
+  // T-Succ, T-Pred, T-IsZero: Succ/Pred/IsZero nodes only exist after elaborateNbl, so no theory gate here.
+  private visitTypedNblOp(node: Succ | Pred | IsZero, rule: Rule, result: "Nat" | "Bool"): InferProofTree {
+    const argProof = this.visit(node.term);
+    return {
+      rule,
+      term: node,
+      type: {kind: "TyIdentifier", id: crypto.randomUUID(), name: result},
+      gamma: this.schemeContext.serializeGamma(),
+      premises: [argProof],
+      constraints: [...argProof.constraints, {left: argProof.type, right: {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"}}],
+    };
+  }
+
   protected visitSucc(node: Succ): InferProofTree {
-    return this.reject(node, Rule.Succ, `"succ" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
+    return this.visitTypedNblOp(node, Rule.Succ, "Nat");
   }
 
   protected visitPred(node: Pred): InferProofTree {
-    return this.reject(node, Rule.Pred, `"pred" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
+    return this.visitTypedNblOp(node, Rule.Pred, "Nat");
   }
 
   protected visitIsZero(node: IsZero): InferProofTree {
-    return this.reject(node, Rule.IsZero, `"iszero" is not part of plain STLC — enable "Numbers and booleans (NBL)" to use it`);
+    return this.visitTypedNblOp(node, Rule.IsZero, "Bool");
   }
 
   protected visitLet(node: Let): InferProofTree {

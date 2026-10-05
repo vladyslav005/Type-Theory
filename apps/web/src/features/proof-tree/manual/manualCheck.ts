@@ -177,7 +177,7 @@ function acceptedRuleNames(answer: ProofTree): string[] {
   const ct = isCtRule(answer.rule);
   const prefix = ct ? "CT-" : "T-";
   if (answer.rule === Rule.Lit || answer.rule === Rule.CtLit) {
-    ["Lit", "Unit", "True", "False", "String", "Nv"].forEach((n) => names.add(`${prefix}${n}`));
+    ["Lit", "Unit", "True", "False", "String", "Nv", "Zero"].forEach((n) => names.add(`${prefix}${n}`));
   }
   if (answer.rule === Rule.BinOp || answer.rule === Rule.CtBinOp) {
     const operator = (answer.term as {operator?: never}).operator;

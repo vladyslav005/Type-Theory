@@ -8,9 +8,11 @@ import {NonStlcProofError} from "@vladyslav005/tt-core";
 export function useProofHooks() {
   const {texMapper, logicMapper} = useDependencies();
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
+  const typedNbl = useAppSelector((state) => state.term.enabledTheories.typedNbl);
 
   function toTexTree(proof: ProofTree): TexTree {
     texMapper.setTypeAliases(typeAliases);
+    texMapper.setNblRuleNames(typedNbl);
     return texMapper.visit(proof);
   }
 

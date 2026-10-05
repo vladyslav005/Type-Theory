@@ -1,8 +1,9 @@
-export type TypeTheoryId = "untyped" | "nbl" | "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes";
+export type TypeTheoryId = "untyped" | "nbl" | "typedNbl" | "letPolymorphism" | "typeInference" | "systemF" | "systemFOmega" | "systemLambdaP" | "isoRecursiveTypes";
 
 export interface TypeTheoryConfig {
   untyped: boolean;
   nbl: boolean;
+  typedNbl: boolean;
   letPolymorphism: boolean;
   typeInference: boolean;
   systemF: boolean;
@@ -14,6 +15,7 @@ export interface TypeTheoryConfig {
 export const DEFAULT_TYPE_THEORY_CONFIG: TypeTheoryConfig = {
   untyped: false,
   nbl: false,
+  typedNbl: false,
   letPolymorphism: false,
   typeInference: false,
   systemF: false,
@@ -46,6 +48,12 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
     label: "Numbers and booleans (NBL)",
     shortLabel: "NBL",
     description: "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else — no variables, functions, declarations or types. Selecting it disables every other extension.",
+  },
+  {
+    id: "typedNbl",
+    label: "Typed numbers and booleans (typed NBL)",
+    shortLabel: "Typed NBL",
+    description: "Typed arithmetic expressions (TAPL ch. 8): the NBL terms with types Bool and Nat and the rules T-True, T-False, T-Zero, T-Succ, T-Pred, T-IsZero and T-If. Selecting it disables every other extension.",
   },
   {
     id: "letPolymorphism",

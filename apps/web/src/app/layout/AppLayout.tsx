@@ -5,7 +5,6 @@ import {Footer} from "@/app/layout/Footer.tsx";
 import {FeedbackButton} from "@/shared/components/FeedbackButton.tsx";
 import {BugReportButton} from "@/shared/components/BugReportButton.tsx";
 import {env} from "@/shared/lib/env.ts";
-import {ActivityConsentCard} from "@/shared/components/ActivityConsentCard.tsx";
 import {useActivitySession} from "@/shared/activity/useActivity.ts";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 
@@ -30,7 +29,6 @@ export function AppLayout() {
       )}
       <Outlet context={{editorRef} satisfies AppOutletContext}/>
       {!hideFooter && <Footer></Footer>}
-      <ActivityConsentCard/>
       {env.VITE_SHOW_FEEDBACK_BUTTONS && (
         <>
           <FeedbackButton/>

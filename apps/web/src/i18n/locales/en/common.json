@@ -192,6 +192,7 @@
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (Type Constructors)",
       "System λP (Dependent Types)": "System λP (Dependent Types)",
+      "Typed Numbers & Booleans": "Typed Numbers & Booleans",
       "Numbers & Booleans (NBL)": "Numbers & Booleans (NBL)"
     },
     "groupsShort": {
@@ -207,6 +208,7 @@
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
       "System λP (Dependent Types)": "Sys λP",
+      "Typed Numbers & Booleans": "Typed NBL",
       "Numbers & Booleans (NBL)": "NBL"
     },
     "items": {
@@ -453,6 +455,22 @@
       "prefix-operators-without-parentheses": {
         "label": "Prefix Operators Without Parentheses",
         "description": "succ succ pred 0 reads as succ (succ (pred 0)) — operators apply to everything on their right"
+      },
+      "well-typed-conditional": {
+        "label": "Well-Typed Conditional",
+        "description": "if iszero (pred (succ 0)) then succ 0 else 0 — T-If needs a Bool condition and two branches of the same type, here Nat; enable the Typed NBL theory"
+      },
+      "typed-arithmetic-chain": {
+        "label": "Typed Arithmetic Chain",
+        "description": "each succ/pred needs a Nat argument (T-Succ, T-Pred) and gives back a Nat, down to T-Zero at the leaf"
+      },
+      "ill-typed-pred-of-a-boolean": {
+        "label": "Ill-Typed: pred of a Boolean",
+        "description": "iszero 0 has type Bool, but T-Pred needs a Nat — the stuck term from untyped NBL is now rejected before it runs"
+      },
+      "ill-typed-mismatched-branches": {
+        "label": "Ill-Typed: Mismatched Branches",
+        "description": "the condition is fine, but T-If needs both branches to share one type — Bool and Nat don't"
       }
     }
   },
@@ -465,6 +483,11 @@
         "label": "Numbers and booleans (NBL)",
         "shortLabel": "NBL",
         "description": "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else. Disables every other extension."
+      },
+      "typedNbl": {
+        "label": "Typed numbers and booleans (typed NBL)",
+        "shortLabel": "Typed NBL",
+        "description": "Typed arithmetic expressions (TAPL ch. 8): the NBL terms with types Bool and Nat, typed by T-True, T-False, T-Zero, T-Succ, T-Pred, T-IsZero and T-If. Disables every other extension."
       },
       "letPolymorphism": {
         "label": "Let-polymorphism",
@@ -1209,6 +1232,11 @@
     "hideEditor": "Hide editor"
   },
   "typingLab": {
+    "manualHint": "Build the derivation tree yourself: for each sequent fill in Γ, the type and the rule name, and add as many premises as the rule has (a T-Var also needs its side condition x : T ∈ Γ). If no rule applies somewhere, the term is not well typed.",
+    "manualWrong_one": "{{count}} sequent has a mistake.",
+    "manualWrong_other": "{{count}} sequents have mistakes.",
+    "manualIllTyped": "Everything you wrote is correct, but this tree can't be completed — is there a sequent no rule derives?",
+    "manualIncomplete": "No mistakes so far, but the tree isn't finished yet.",
     "hint": "Pick a typing rule for each judgement — its premises appear automatically. If no rule fits, the term is not well typed.",
     "wrong_one": "{{count}} rule doesn't fit its judgement.",
     "wrong_other": "{{count}} rules don't fit their judgements.",
@@ -1236,22 +1264,6 @@
     }
   },
   "activity": {
-    "consent": {
-      "title": "Consent to usage data collection",
-      "body": "To evaluate this app as a teaching tool, we'd like to record how you use it during the semester. Collection starts only if you allow it.",
-      "points": [
-        "Recorded: when and how you use the app (with date and time), your attempts at lab and lecture tasks with the time spent on each, your answers in lab tasks, and your practice in the editor (the term practised, how long and how it went).",
-        "Not recorded: your name, e-mail or any other identifier, or other code you write in the editor.",
-        "Everything stays in this browser — nothing is sent anywhere.",
-        "At the end of the semester you can download the file and hand it in; whether you do is up to you.",
-        "Taking part is voluntary and has no effect on your grade.",
-        "You can withdraw at any time and delete all data on the “Usage data collection” page.",
-        "Either way, your lab answers are saved in this browser so you can continue where you left off."
-      ],
-      "allow": "Enable collection",
-      "decline": "Do not enable",
-      "learnMore": "Details of the data recorded"
-    },
     "indicator": {
       "on": "Usage data collection: enabled",
       "off": "Usage data collection: disabled"

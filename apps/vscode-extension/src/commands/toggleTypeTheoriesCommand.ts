@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { TYPE_THEORIES, TypeTheoryId } from "@vladyslav005/tt-core";
 import { getTypeTheoryConfig, setTypeTheoryEnabled } from "../settings";
 
-const EXCLUSIVE_IDS: TypeTheoryId[] = ["untyped", "nbl"];
+const EXCLUSIVE_IDS: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
 
 interface TheoryPickItem extends vscode.QuickPickItem {
 	id: TypeTheoryId;

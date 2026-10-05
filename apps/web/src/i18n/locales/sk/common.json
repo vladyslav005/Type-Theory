@@ -192,6 +192,7 @@
       "System F": "System F",
       "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
       "System λP (Dependent Types)": "System λP (závislé typy)",
+      "Typed Numbers & Booleans": "Typované čísla a booleovské hodnoty",
       "Numbers & Booleans (NBL)": "Čísla a booleovské hodnoty (NBL)"
     },
     "groupsShort": {
@@ -207,6 +208,7 @@
       "System F": "Sys F",
       "System Fω (Type Constructors)": "Sys Fω",
       "System λP (Dependent Types)": "Sys λP",
+      "Typed Numbers & Booleans": "Typovaný NBL",
       "Numbers & Booleans (NBL)": "NBL"
     },
     "items": {
@@ -453,6 +455,22 @@
       "prefix-operators-without-parentheses": {
         "label": "Prefixové operátory bez zátvoriek",
         "description": "succ succ pred 0 sa číta ako succ (succ (pred 0)) — operátor sa aplikuje na všetko napravo"
+      },
+      "well-typed-conditional": {
+        "label": "Dobre typovaná podmienka",
+        "description": "if iszero (pred (succ 0)) then succ 0 else 0 — T-If vyžaduje podmienku typu Bool a dve vetvy rovnakého typu, tu Nat; zapnite teóriu Typovaný NBL"
+      },
+      "typed-arithmetic-chain": {
+        "label": "Typovaný aritmetický reťazec",
+        "description": "každé succ/pred potrebuje argument typu Nat (T-Succ, T-Pred) a vracia Nat, až po T-Zero v liste"
+      },
+      "ill-typed-pred-of-a-boolean": {
+        "label": "Zle typované: pred booleovskej hodnoty",
+        "description": "iszero 0 má typ Bool, ale T-Pred vyžaduje Nat — zaseknutý term z netypovaného NBL je teraz odmietnutý ešte pred vyhodnotením"
+      },
+      "ill-typed-mismatched-branches": {
+        "label": "Zle typované: nezhodné vetvy",
+        "description": "podmienka je v poriadku, ale T-If vyžaduje, aby obe vetvy mali rovnaký typ — Bool a Nat ho nemajú"
       }
     }
   },
@@ -465,6 +483,11 @@
         "label": "Čísla a booleovské hodnoty (NBL)",
         "shortLabel": "NBL",
         "description": "Netypované aritmetické výrazy (TAPL, kap. 3): len true, false, 0, succ, pred, iszero a if/then/else. Vypne všetky ostatné rozšírenia."
+      },
+      "typedNbl": {
+        "label": "Typované čísla a booleovské hodnoty (typovaný NBL)",
+        "shortLabel": "Typovaný NBL",
+        "description": "Typované aritmetické výrazy (TAPL, kap. 8): termy NBL s typmi Bool a Nat a pravidlami T-True, T-False, T-Zero, T-Succ, T-Pred, T-IsZero a T-If. Vypne všetky ostatné rozšírenia."
       },
       "letPolymorphism": {
         "label": "Let-polymorfizmus",
@@ -1223,6 +1246,13 @@
     "hideEditor": "Skryť editor"
   },
   "typingLab": {
+    "manualHint": "Odvodzovací strom zostavte sami: pre každý sekvent vyplňte Γ, typ a názov pravidla a pridajte toľko premís, koľko má pravidlo (T-Var potrebuje aj bočnú podmienku x : T ∈ Γ). Ak sa niekde nedá použiť žiadne pravidlo, term nie je správne typovaný.",
+    "manualWrong_one": "{{count}} sekvent obsahuje chybu.",
+    "manualWrong_few": "{{count}} sekventy obsahujú chyby.",
+    "manualWrong_many": "{{count}} sekventu obsahuje chyby.",
+    "manualWrong_other": "{{count}} sekventov obsahuje chyby.",
+    "manualIllTyped": "Všetko, čo ste napísali, je správne, ale tento strom sa nedá dokončiť — existuje sekvent, ktorý neodvodí žiadne pravidlo?",
+    "manualIncomplete": "Zatiaľ bez chýb, ale strom ešte nie je hotový.",
     "hint": "Pre každý sekvent vyberte typovacie pravidlo — jeho premisy sa doplnia automaticky. Ak sa žiadne pravidlo nedá použiť, term nie je správne typovaný.",
     "wrong_one": "{{count}} pravidlo nesedí na svoj sekvent.",
     "wrong_few": "{{count}} pravidlá nesedia na svoje sekventy.",
@@ -1252,22 +1282,6 @@
     }
   },
   "activity": {
-    "consent": {
-      "title": "Súhlas so zberom údajov o používaní",
-      "body": "Aby sme mohli vyhodnotiť túto aplikáciu ako učebnú pomôcku, radi by sme počas semestra zaznamenávali, ako ju používate. Zber sa začne iba vtedy, ak ho povolíte.",
-      "points": [
-        "Zaznamenáva sa: kedy a ako aplikáciu používate (s dátumom a časom), vaše pokusy o riešenie úloh z cvičení a prednášok s časom stráveným pri každej, vaše odpovede v úlohách z cvičení a vaše precvičovanie v editore (precvičovaný term, ako dlho a s akým výsledkom).",
-        "Nezaznamenáva sa: vaše meno, e-mail ani iný identifikátor, ani iný kód, ktorý píšete v editore.",
-        "Všetko zostáva v tomto prehliadači — nič sa nikam neodosiela.",
-        "Na konci semestra si môžete súbor stiahnuť a odovzdať; či to urobíte, je na vás.",
-        "Účasť je dobrovoľná a nemá vplyv na hodnotenie.",
-        "Súhlas môžete kedykoľvek odvolať a všetky údaje vymazať na stránke „Zber údajov o používaní“.",
-        "V každom prípade sa vaše odpovede z cvičení ukladajú v tomto prehliadači, aby ste mohli pokračovať tam, kde ste skončili."
-      ],
-      "allow": "Povoliť zber",
-      "decline": "Nepovoliť",
-      "learnMore": "Podrobnosti o zaznamenávaných údajoch"
-    },
     "indicator": {
       "on": "Zber údajov o používaní: zapnutý",
       "off": "Zber údajov o používaní: vypnutý"

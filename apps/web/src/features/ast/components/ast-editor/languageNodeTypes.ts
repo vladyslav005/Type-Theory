@@ -23,7 +23,7 @@ const BY_EXTENSION: Partial<Record<keyof TypeTheoryConfig, string[]>> = {
 
 // The AST node types the current Language menu choice can actually use, for the editor's palette.
 export function languageNodeTypes(theories: TypeTheoryConfig, features: StlcFeatureConfig): string[] {
-  if (theories.nbl) return ["literal", "ifCondition", "succ", "pred", "iszero"];
+  if (theories.nbl || theories.typedNbl) return ["literal", "ifCondition", "succ", "pred", "iszero"];
   if (theories.untyped) return ["abstraction", "application", "variable", "funDecl"];
   const types = new Set(STLC_CORE);
   (Object.keys(BY_FEATURE) as (keyof StlcFeatureConfig)[]).forEach((feature) => features[feature] && BY_FEATURE[feature].forEach((type) => types.add(type)));

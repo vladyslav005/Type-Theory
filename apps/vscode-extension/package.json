@@ -123,6 +123,11 @@
           "default": false,
           "description": "Untyped arithmetic expressions (TAPL ch. 3): only true, false, 0, succ, pred, iszero and if/then/else. Enabling it disables every other type theory extension."
         },
+        "tt.typeTheories.typedNbl": {
+          "type": "boolean",
+          "default": false,
+          "description": "Typed arithmetic expressions (TAPL ch. 8): the NBL terms with types Bool and Nat, typed by T-True, T-False, T-Zero, T-Succ, T-Pred, T-IsZero and T-If. Enabling it disables every other type theory extension."
+        },
         "tt.evaluationStrategy": {
           "type": "string",
           "enum": [
