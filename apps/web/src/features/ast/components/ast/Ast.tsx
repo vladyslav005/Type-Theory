@@ -208,8 +208,14 @@ export function Ast({
   const handleNodeMouseEnter = useCallback(
     (_event: unknown, node: AstFlowNode) => {
       if (!highlightOnHover) return;
-      const pos = (node.data?.term as {pos?: SourcePosition} | undefined)?.pos ?? null;
-      editorRef?.current?.highlightRange?.(pos);
+      const term = node.data?.term as {kind?: string; pos?: SourcePosition} | undefined;
+      const editor = editorRef?.current;
+      if (term?.kind === "Program" && editor) {
+        const lines = editor.getValue().split("\n");
+        editor.highlightRange?.({line: 1, column: 0, length: 0, endLine: lines.length, endColumn: lines[lines.length - 1].length});
+        return;
+      }
+      editor?.highlightRange?.(term?.pos ?? null);
     },
     [highlightOnHover, editorRef],
   );
