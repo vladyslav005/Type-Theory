@@ -616,7 +616,7 @@
     "justSolvedConstraint": "Just solved",
     "noNewBindings": "No new bindings — already consistent with what's known",
     "empty": "Type a valid expression to generate a proof tree.",
-    "emptyUntyped": "Build the term to see its syntax derivation — a proof that it belongs to untyped lambda calculus.",
+    "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
     "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading.",
     "emptyNbl": "Build the term to see its syntax derivation — a proof that it belongs to NBL.",
     "tabSyntax": "Syntax derivation",

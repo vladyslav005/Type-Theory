@@ -8,7 +8,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
-import {astToText, isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
+import {astToText, isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
@@ -101,11 +101,11 @@ export function ProofTreeVisualisation({
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
   const noTypes = enabledTheories.untyped || enabledTheories.nbl;
   const hasProof = !noTypes && proof !== null && proof !== undefined;
-  const syntaxTree = noTypes && ast?.term ? syntaxDerivation(ast.term, enabledTheories.nbl ? "nbl" : "untyped") : null;
+  const syntaxTree = enabledTheories.nbl && ast?.term ? syntaxDerivation(ast.term, "nbl") : null;
   const logicAvailable = !hasProof || isPlainStlcProof(proof);
   const showLogicTab = curryHoward && logicAvailable;
   const effectiveTab: ProofTreeTab =
-    (activeTab === "logic" && !showLogicTab)
+    enabledTheories.untyped || (activeTab === "logic" && !showLogicTab)
       ? "automatic"
       : activeTab;
 
@@ -156,9 +156,9 @@ export function ProofTreeVisualisation({
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
-              <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
+              {!enabledTheories.untyped && <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
-                  <TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger>
+                  <TabsTrigger value="automatic">{t(enabledTheories.nbl ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger>
                   <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
                   {curryHoward && (logicAvailable ? (
                     <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
@@ -175,7 +175,7 @@ export function ProofTreeVisualisation({
                     </TooltipProvider>
                   ))}
                 </TabsList>
-              </Tabs>
+              </Tabs>}
 
               {effectiveTab === "automatic" && hasProof && hasInferenceSteps && (
                 <TooltipProvider>
@@ -258,7 +258,7 @@ export function ProofTreeVisualisation({
                 key={ast?.term?.id ?? "none"}
                 goal={goalFromTexTree(syntaxTree)}
                 term={ast?.term ? astToText({kind: "Program", id: "syntax-term", globals: [], term: ast.term}).replace(/;\s*$/, "") : ""}
-                rules={enabledTheories.nbl ? NBL_SYNTAX_RULES : UNTYPED_SYNTAX_RULES}
+                rules={NBL_SYNTAX_RULES}
                 onNodeHover={handleNodeHover}
               />
             ) : (

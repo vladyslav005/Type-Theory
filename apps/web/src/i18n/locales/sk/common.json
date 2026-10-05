@@ -616,7 +616,7 @@
     "justSolvedConstraint": "Práve vyriešené",
     "noNewBindings": "Žiadne nové väzby — už v súlade s tým, čo je známe",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
-    "emptyUntyped": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do netypovaného lambda kalkulu.",
+    "emptyUntyped": "Netypovaný lambda kalkul nemá typovú deriváciu na zobrazenie.",
     "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie.",
     "emptyNbl": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do NBL.",
     "tabSyntax": "Syntaktické odvodenie",
