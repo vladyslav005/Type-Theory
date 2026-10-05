@@ -3,7 +3,7 @@ import {createSlice} from "@reduxjs/toolkit";
 import type {Program, SourcePosition, Type} from "@vladyslav005/tt-core";
 import type {InferenceStep, ProofTree, Rule} from "@vladyslav005/tt-core";
 import {EvaluationStrategy, type EvaluationResult} from "@vladyslav005/tt-core";
-import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
+import {DEFAULT_TYPE_THEORY_CONFIG, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig, type TypeTheoryId} from "@vladyslav005/tt-core";
 import {
   buildStudentNode,
   type ConstraintPair,
@@ -70,6 +70,13 @@ export interface TermState {
   examplesTopic: string;
 }
 
+export const APP_DEFAULT_STLC_FEATURES: StlcFeatureConfig = {
+  sums: false,
+  tuples: false,
+  records: false,
+  lists: false,
+};
+
 export const initialTermState: TermState = {
   termText: undefined,
   processingErrors: undefined,
@@ -82,7 +89,7 @@ export const initialTermState: TermState = {
   evaluation: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
-  stlcFeatures: DEFAULT_STLC_FEATURES,
+  stlcFeatures: APP_DEFAULT_STLC_FEATURES,
   requireTermType: false,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
   buildMode: {active: false},
@@ -179,8 +186,7 @@ const counterSlice = createSlice({
       const {id, enabled} = action.payload;
       if (!enabled) {
         state.enabledTheories[id] = false;
-        // Coming back to STLC from a replacement theory starts with every STLC feature on.
-        if (EXCLUSIVE_THEORIES.includes(id)) state.stlcFeatures = DEFAULT_STLC_FEATURES;
+        if (EXCLUSIVE_THEORIES.includes(id)) state.stlcFeatures = APP_DEFAULT_STLC_FEATURES;
         syncExamplesTopic(state);
         return;
       }

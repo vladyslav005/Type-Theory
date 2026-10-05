@@ -1,6 +1,6 @@
 import {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, isPlainStlc, type StlcFeatureConfig, type TypeTheoryConfig} from "@vladyslav005/tt-core";
-import type {TermState} from "@/shared/ui-state/termSlice.ts";
+import {DEFAULT_TYPE_THEORY_CONFIG, isPlainStlc, type StlcFeatureConfig, type TypeTheoryConfig} from "@vladyslav005/tt-core";
+import {APP_DEFAULT_STLC_FEATURES, type TermState} from "@/shared/ui-state/termSlice.ts";
 
 const STORAGE_KEY = "tt.settings.v1";
 
@@ -40,7 +40,7 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       // shows up even for a browser with an older persisted blob.
       enabledTheories,
       curryHoward: parsed.curryHoward === true && isPlainStlc(enabledTheories),
-      stlcFeatures: {...DEFAULT_STLC_FEATURES, ...parsed.stlcFeatures},
+      stlcFeatures: {...APP_DEFAULT_STLC_FEATURES, ...parsed.stlcFeatures},
       requireTermType: parsed.requireTermType === true,
       evaluationStrategy,
       fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)

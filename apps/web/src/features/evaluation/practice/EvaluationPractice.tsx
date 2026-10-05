@@ -279,9 +279,14 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     moveTo(0, 0);
   };
 
-  const insertText = (text: string) => {
+  const insertText = (raw: string) => {
     const start = Math.min(selection.start, input.length);
     const end = Math.min(selection.end, input.length);
+    const before = input[start - 1];
+    const after = input[end];
+    const text = (before !== undefined && !/[\s([{<]/.test(before) ? " " : "")
+      + raw
+      + (after !== undefined && !/[\s)\]}>,;]/.test(after) ? " " : "");
     const caret = start + text.length;
     history.change(input.slice(0, start) + text + input.slice(end), true);
     setSelection({start: caret, end: caret});

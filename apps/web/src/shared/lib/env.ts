@@ -6,6 +6,8 @@ const EnvSchema = z.object({
   VITE_SHOW_DEBUG_DATA: z.string().optional().transform((v) => v === "true"),
   // Side "Feedback" and "Report bug" tabs. On by default — set VITE_SHOW_FEEDBACK_BUTTONS=false to hide.
   VITE_SHOW_FEEDBACK_BUTTONS: z.string().optional().transform((v) => v !== "false"),
+  // Just the side "Feedback" tab. On by default — set VITE_SHOW_FEEDBACK_TAB=false to hide it.
+  VITE_SHOW_FEEDBACK_TAB: z.string().optional().transform((v) => v !== "false"),
   // Semester study: opt-in usage tracking + /activity page, with auto-build hidden and forced off.
   // On by default — set VITE_STUDY_MODE=false to disable all of it and restore auto-build.
   VITE_STUDY_MODE: z.string().optional().transform((v) => v !== "false"),
@@ -17,6 +19,7 @@ const EnvSchema = z.object({
 const raw = {
   VITE_SHOW_DEBUG_DATA: import.meta.env.VITE_SHOW_DEBUG_DATA,
   VITE_SHOW_FEEDBACK_BUTTONS: import.meta.env.VITE_SHOW_FEEDBACK_BUTTONS,
+  VITE_SHOW_FEEDBACK_TAB: import.meta.env.VITE_SHOW_FEEDBACK_TAB,
   VITE_TURNSTILE_SITE_KEY: import.meta.env.VITE_TURNSTILE_SITE_KEY,
   VITE_STUDY_MODE: import.meta.env.VITE_STUDY_MODE,
 };

@@ -31,7 +31,7 @@ export function AppLayout() {
       {!hideFooter && <Footer></Footer>}
       {env.VITE_SHOW_FEEDBACK_BUTTONS && (
         <>
-          <FeedbackButton/>
+          {env.VITE_SHOW_FEEDBACK_TAB && <FeedbackButton/>}
           <BugReportButton/>
         </>
       )}

@@ -138,7 +138,16 @@ interface TermViewProps {
   selectedId?: string;
   resultId?: string;
   errorId?: string;
+  // Drop an application's own parentheses (left-associative chains, lambda bodies, the root term).
+  bare?: boolean;
+  // Something follows this term inside the same parentheses, so a trailing λ must be wrapped.
+  trailing?: boolean;
 }
+
+const TermNestedContext = createContext(false);
+
+// Their body runs to the end, so `λx. t s` would read as `λx. (t s)` without the parens.
+const EXTENDS_RIGHT = new Set<Term["kind"]>(["Abs", "DummyAbstraction", "TypeAbs", "Let", "IfCondition"]);
 
 export interface TermPick {
   pickedId?: string;
@@ -163,7 +172,12 @@ export function TermPickProvider({ value, children }: { value: TermPick | undefi
 
 export function TermView(props: TermViewProps) {
   const pick = useContext(TermPickContext);
-  const node = <TermNodeView {...props} />;
+  const nested = useContext(TermNestedContext);
+  const node = (
+    <TermNestedContext.Provider value={true}>
+      <TermNodeView {...props} bare={props.bare ?? !nested} />
+    </TermNestedContext.Provider>
+  );
   if (!pick) return node;
 
   const isPicked = pick.pickedId === props.term.id;
@@ -199,7 +213,10 @@ function TermNodeView({
   selectedId,
   resultId,
   errorId,
+  bare,
+  trailing,
 }: TermViewProps) {
+  const ids = {selectedId, resultId, errorId};
   const isError = errorId !== undefined && term.id === errorId;
   const isResult = !isError && resultId !== undefined && term.id === resultId;
   const isSelected = !isError && !isResult && selectedId !== undefined && term.id === selectedId;
@@ -222,19 +239,31 @@ function TermNodeView({
               </>
             )}
             <span className="text-muted-foreground"> . </span>
-            <TermView term={term.body} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            <TermView term={term.body} {...ids} bare trailing={trailing} />
           </>
         );
-      case "App":
+      case "App": {
+        const followed = bare ? trailing : false;
+        const open = <span className="text-muted-foreground">(</span>;
+        const close = <span className="text-muted-foreground">)</span>;
+        const func = EXTENDS_RIGHT.has(term.func.kind)
+          ? <>{open}<TermView term={term.func} {...ids} />{close}</>
+          : <TermView term={term.func} {...ids} bare trailing />;
+        const arg = term.arg.kind === "App"
+          ? <TermView term={term.arg} {...ids} bare={false} />
+          : EXTENDS_RIGHT.has(term.arg.kind) && followed
+            ? <>{open}<TermView term={term.arg} {...ids} />{close}</>
+            : <TermView term={term.arg} {...ids} bare trailing={followed} />;
         return (
           <>
-            <span className="text-muted-foreground">(</span>
-            <TermView term={term.func} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            {!bare && open}
+            {func}
             <span className="text-muted-foreground"> </span>
-            <TermView term={term.arg} selectedId={selectedId} resultId={resultId} errorId={errorId} />
-            <span className="text-muted-foreground">)</span>
+            {arg}
+            {!bare && close}
           </>
         );
+      }
       case "Let":
         return (
           <>
