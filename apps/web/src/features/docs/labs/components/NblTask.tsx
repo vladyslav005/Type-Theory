@@ -25,6 +25,7 @@ import {SyntaxDerivationTree} from "@/features/proof-tree/components/syntax-buil
 import {PanZoomCanvas} from "@/features/proof-tree/components/PanZoomCanvas.tsx";
 import {goalFromNbl, syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
+import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 
 export type NblTaskType = "derivation" | "tree" | "size" | "depth" | "constants" | "evaluate";
 
@@ -76,13 +77,21 @@ function DerivationRow({id, index, source}: {id?: string; index: number; source:
   return (
     <Row taskId={taskId} index={index} source={source} solution={<pre className="font-mono overflow-x-auto">{outline(goal).join("\n")}</pre>}>
       <SolveArea taskId={taskId}>
-        <PanZoomCanvas className="h-64" compact>
-          <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
-        </PanZoomCanvas>
-        <div className="flex gap-2">
-          <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
-          <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
-        </div>
+        <FullscreenArea title={source}>
+          {({full, button}) => (
+            <>
+              <PanZoomCanvas className={full ? "min-h-0 flex-1" : "h-64"} compact>
+                <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
+              </PanZoomCanvas>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
+                <span className="ml-auto">{button}</span>
+              </div>
+              {full && <Feedback verdict={verdict}/>}
+            </>
+          )}
+        </FullscreenArea>
       </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
@@ -187,6 +196,7 @@ function TreeRow({id, index, source}: {id?: string; index: number; source: strin
       <SolveArea taskId={taskId}>
         <AstBuilder
           compact
+          title={source}
           saveKey={taskId}
           expected={expected ?? unmatchable}
           allowedTypes={AST_NODE_TYPES}
