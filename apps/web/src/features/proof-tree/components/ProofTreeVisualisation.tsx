@@ -51,6 +51,7 @@ export function ProofTreeVisualisation({
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   // Not Radix's <TabsContent> — mounting TransformWrapper inside it hung the tab.
   const [activeTab, setActiveTab] = useState<ProofTreeTab>("automatic");
+  const [builderToolbar, setBuilderToolbar] = useState<HTMLDivElement | null>(null);
   useViewTime(`proofTree:${activeTab}`);
   const [stepByStep, setStepByStep] = useState(false);
   const [highlightOnHover, setHighlightOnHover] = useState(true);
@@ -239,6 +240,8 @@ export function ProofTreeVisualisation({
               )}
             </div>
 
+            <div ref={setBuilderToolbar} className={cn("flex items-center shrink-0", effectiveTab !== "build-check" && "hidden")}/>
+
             <Button
               size="icon"
               variant="ghost"
@@ -260,6 +263,7 @@ export function ProofTreeVisualisation({
                 term={ast?.term ? astToText({kind: "Program", id: "syntax-term", globals: [], term: ast.term}).replace(/;\s*$/, "") : ""}
                 rules={enabledTheories.nbl ? NBL_SYNTAX_RULES : UNTYPED_SYNTAX_RULES}
                 onNodeHover={handleNodeHover}
+                toolbarTarget={builderToolbar}
               />
             ) : (
               <div className="h-full p-6">
@@ -268,7 +272,7 @@ export function ProofTreeVisualisation({
             )
           ) : effectiveTab === "build-check" ? (
             <div className="h-full overflow-auto">
-              <ProofTreeBuilder/>
+              <ProofTreeBuilder toolbarTarget={builderToolbar}/>
             </div>
           ) : noTypes && syntaxTree ? (
             <div className="w-full h-full flex flex-col">

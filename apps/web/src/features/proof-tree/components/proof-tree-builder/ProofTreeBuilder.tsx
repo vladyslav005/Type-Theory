@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef} from "react";
+import {createPortal} from "react-dom";
 import {useTranslation} from "react-i18next";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {checkProof, clearProofChecks, enterBuildMode, exitBuildMode} from "@/shared/ui-state/termSlice.ts";
@@ -21,7 +22,7 @@ import {Tip} from "@/shared/components/Tip.tsx";
 import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 import {termKey} from "@/shared/lib/manualParse.ts";
 
-export function ProofTreeBuilder() {
+export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | null}) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const {studentTree, answerKey, mode} = useAppSelector((state) => state.term.buildMode);
@@ -40,7 +41,7 @@ export function ProofTreeBuilder() {
     session.update((entry) => ({...entry, finished: true, allCorrect: true}));
   }, [complete, session]);
 
-  if (mode === "manual" && answerKey) return <ManualBuilder/>;
+  if (mode === "manual" && answerKey) return <ManualBuilder toolbarTarget={toolbarTarget}/>;
 
   if (!studentTree || !answerKey) {
     const hasErrors = !proof || countProofErrors(proof) > 0;
@@ -84,35 +85,41 @@ export function ProofTreeBuilder() {
 
   const summary = summarizeStudentTree(studentTree);
 
+  const toolbar = (
+    <>
+      <div className="flex items-center gap-3 min-w-0">
+        <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
+          <ArrowLeft className="h-3.5 w-3.5"/>
+          {t("proofBuilder.exit")}
+        </Button>
+        <Separator orientation="vertical" className="h-5"/>
+        <p className="text-sm text-muted-foreground">
+          {t("proofBuilder.nodesFilled", {filled: summary.filled, total: summary.total})}
+          {summary.filled > 0 && (
+            <>
+              {" — "}
+              <span className={cn(summary.invalid === 0 && "text-emerald-600 dark:text-emerald-400")}>
+                {t("proofBuilder.valid", {count: summary.valid})}
+              </span>
+              {summary.invalid > 0 && <span className="text-destructive">, {t("proofBuilder.invalid", {count: summary.invalid})}</span>}
+            </>
+          )}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={() => { session.update((entry) => ({...entry, checks: entry.checks + 1})); dispatch(checkProof()); }}>{t("proofBuilder.checkProof")}</Button>
+        {hasChecks(studentTree) && (
+          <Button size="sm" variant="outline" onClick={() => dispatch(clearProofChecks())}>{t("manualBuilder.clearMarks")}</Button>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="w-full h-full flex flex-col space-y-4" {...session.activityProps}>
-      <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
-        <div className="flex items-center gap-3 min-w-0">
-          <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
-            <ArrowLeft className="h-3.5 w-3.5"/>
-            {t("proofBuilder.exit")}
-          </Button>
-          <Separator orientation="vertical" className="h-5"/>
-          <p className="text-sm text-muted-foreground">
-            {t("proofBuilder.nodesFilled", {filled: summary.filled, total: summary.total})}
-            {summary.filled > 0 && (
-              <>
-                {" — "}
-                <span className={cn(summary.invalid === 0 && "text-emerald-600 dark:text-emerald-400")}>
-                  {t("proofBuilder.valid", {count: summary.valid})}
-                </span>
-                {summary.invalid > 0 && <span className="text-destructive">, {t("proofBuilder.invalid", {count: summary.invalid})}</span>}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => { session.update((entry) => ({...entry, checks: entry.checks + 1})); dispatch(checkProof()); }}>{t("proofBuilder.checkProof")}</Button>
-          {hasChecks(studentTree) && (
-            <Button size="sm" variant="outline" onClick={() => dispatch(clearProofChecks())}>{t("manualBuilder.clearMarks")}</Button>
-          )}
-        </div>
-      </div>
+      {toolbarTarget
+        ? createPortal(<div className="flex flex-wrap items-center gap-2">{toolbar}</div>, toolbarTarget)
+        : <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">{toolbar}</div>}
 
       <div className="flex-1 w-full relative rounded-xl bg-muted/30 border overflow-hidden">
         <TransformWrapper

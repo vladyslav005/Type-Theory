@@ -1,6 +1,8 @@
-import {useEffect, useMemo, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState, type ReactNode} from "react";
 import {useTranslation} from "react-i18next";
-import {ArrowRight, CheckCircle2, ChevronLeft, ChevronRight, CircleX, Info, RotateCcw, Undo2} from "lucide-react";
+import {ArrowDown, ArrowRight, CheckCircle2, CircleX, Eye, EyeOff, Flag, Lightbulb, RotateCcw, Undo2} from "lucide-react";
+import {AnimatePresence, motion} from "framer-motion";
+import {createPortal} from "react-dom";
 import type {EvaluationResult, ReductionStep, Term, Type} from "@vladyslav005/tt-core";
 import {accumulateBindings, EvaluationStrategy, Evaluator} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
@@ -11,12 +13,12 @@ import {ManualParseError, parseTermProgram, termKey} from "@/shared/lib/manualPa
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {BracketInput} from "@/shared/components/BracketInput.tsx";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
-import {TermPickProvider, TermView, TypeAliasesContext, ViewToggle} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
+import {TermPickProvider, TermView, TypeAliasesContext} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {findTermById, firstDifference, markSubterm, termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import type {FeedbackMessage} from "@/features/proof-tree/feedback/feedback.ts";
 import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
-import {trackPractice} from "@/shared/activity/taskTracking.ts";
+import {trackPractice, trackReveal} from "@/shared/activity/taskTracking.ts";
 import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 
@@ -24,13 +26,12 @@ interface EvaluationPracticeProps {
   evaluation: EvaluationResult;
   typeAliases: Record<string, Type>;
   taskId?: string;
-  // Controlled by the panel header when it has one (as in automatic mode); otherwise the toggle sits in the practice bar.
-  viewMode?: "single" | "all";
-  onViewModeChange?: (mode: "single" | "all") => void;
   // "follow": steps must follow the evaluation's strategy; "any": any single reduction step counts (full normalization).
   strategyMode?: "follow" | "any";
   // How the student's text is read — e.g. NBL syntax in the NBL lab.
   parseInput?: (text: string) => Term | undefined;
+  // Where the step count, guide and restart go when a surrounding panel header has room for them.
+  toolbarTarget?: HTMLElement | null;
 }
 
 interface Row {
@@ -78,7 +79,7 @@ function replaceNode(root: Term, id: string, replacement: Term): Term {
   return walk(root) as Term;
 }
 
-export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: controlledViewMode, onViewModeChange, strategyMode = "follow", parseInput = defaultParse}: EvaluationPracticeProps) {
+export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMode = "follow", parseInput = defaultParse, toolbarTarget}: EvaluationPracticeProps) {
   const anyOrder = strategyMode === "any";
   const {t} = useTranslation();
   const {strategy} = evaluation;
@@ -89,11 +90,14 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
   // Unsaved text per step, so moving around never loses what was typed.
   const [drafts, setDrafts] = useSavedState<Record<number, string>>(taskId && `${taskId}#drafts`, {});
   const [ending, setEnding] = useSavedState<Ending | undefined>(taskId && `${taskId}#ending`, undefined);
-  const [ownViewMode, setOwnViewMode] = useState<"single" | "all">("all");
-  const viewMode = controlledViewMode ?? ownViewMode;
   const [feedback, setFeedback] = useState<FeedbackMessage[]>([]);
   const [hintOk, setHintOk] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const scrollToEditor = () => {
+    editorRef.current?.scrollIntoView({block: "nearest", behavior: "smooth"});
+  };
   // cursor is tracked from input events and applied in an effect; refs can't be read during render
   const [selection, setSelection] = useState({start: 0, end: 0});
   const [caretRequest, setCaretRequest] = useState<{position: number; id: number} | undefined>();
@@ -172,6 +176,31 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     : (traceFrom(finalPosition.before, finalPosition.bindings, 1).errors?.length ?? 0) > 0 ? "stuck" : "value";
   const finished = ending !== undefined;
   const isCorrect = (i: number) => accepts(positions[i], rows[i].term);
+
+  // What each step should have been, continuing from the corrected term after a wrong step rather than from the student's.
+  const corrections = useMemo(() => {
+    const list: {expected?: ReductionStep; afterMistake: boolean}[] = [];
+    if (!finished) return {list, remaining: [] as ReductionStep[]};
+    let before = startTerm;
+    let bindings: Position["bindings"] = [];
+    let afterMistake = false;
+    for (let i = 0; i < rows.length; i += 1) {
+      const expected = afterMistake ? traceFrom(before, bindings, 1).steps[0] : positions[i].expected;
+      list.push({expected, afterMistake});
+      if (!afterMistake && accepts(positions[i], rows[i].term)) {
+        before = rows[i].term;
+        bindings = positions[i + 1].bindings;
+      } else if (expected) {
+        bindings = [...bindings, ...accumulateBindings([expected], 1)];
+        before = expected.after;
+        afterMistake = true;
+      } else {
+        afterMistake = true;
+      }
+    }
+    if (!afterMistake) bindings = positions[rows.length].bindings;
+    return {list, remaining: traceFrom(before, bindings, Math.max(evaluation.steps.length, 1)).steps};
+  }, [finished, rows, positions, startTerm, traceFrom, evaluation.steps.length]);
   const globals = Object.entries(evaluation.globals ?? {});
 
   useEffect(() => {
@@ -188,6 +217,10 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     });
   }, [strategy, rows, positions, cursor, input, ending]);
   useEffect(() => () => setEvaluationPracticeSnapshot(undefined), []);
+
+  useEffect(() => {
+    scrollToEditor();
+  }, [cursor]);
 
   useEffect(() => {
     if (!caretRequest) return;
@@ -268,6 +301,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     trackPractice(taskId, {type: "completed", allCorrect});
     if (!taskId) session.update((entry) => ({...entry, finished: true, allCorrect}));
     setEnding(claim);
+    setShowSolution(false);
     setFeedback([]);
     setHintOk(false);
   };
@@ -276,6 +310,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     setRows([]);
     setDrafts({});
     setEnding(undefined);
+    setShowSolution(false);
     moveTo(0, 0);
   };
 
@@ -307,23 +342,29 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       : <CircleX className="h-3.5 w-3.5 shrink-0 text-destructive" aria-label={t("evalPractice.statusWrong")}/>;
   };
 
-  const correction = (i: number) => finished && i < rows.length && !isCorrect(i) && (
-    <span className="flex gap-2 font-mono text-[11px]">
-      <span className="w-14 shrink-0 font-sans text-destructive">{t(anyOrder ? "evalPractice.correctStepExample" : "evalPractice.correctStep")}</span>
-      <span className="min-w-0 flex-1 overflow-x-auto">
-        {positions[i].expected
-          ? <TermView term={positions[i].expected!.after} resultId={positions[i].expected!.resultId}/>
-          : <span className="font-sans text-muted-foreground">{t("evalPractice.noStepWasPossible")}</span>}
-      </span>
-    </span>
-  );
+  const correction = (i: number) => {
+    if (!finished || i >= rows.length || isCorrect(i)) return null;
+    const {expected, afterMistake} = corrections.list[i] ?? {expected: positions[i].expected, afterMistake: false};
+    return (
+      <div className="mt-1.5 w-full rounded-xl border border-dashed border-emerald-500/50 bg-emerald-500/5 px-4 py-2.5">
+        <div className="mb-1 text-[11px] font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+          {t(afterMistake ? "evalPractice.correctStepAfterMistake" : anyOrder ? "evalPractice.correctStepExample" : "evalPractice.correctStep")}
+        </div>
+        <div className="font-mono text-sm leading-relaxed overflow-x-auto">
+          {expected
+            ? <TermView term={expected.after} resultId={expected.resultId}/>
+            : <span className="font-sans text-xs text-muted-foreground">{t("evalPractice.noStepWasPossible")}</span>}
+        </div>
+      </div>
+    );
+  };
 
   const contextPanel = (position.bindings.length > 0 || globals.length > 0) && (
     <details className="rounded-lg border bg-muted/20 p-2.5 text-xs">
       <summary className="cursor-pointer font-medium uppercase tracking-wide text-muted-foreground">
         {t("evalPractice.context")}
       </summary>
-      <div className="mt-2 flex flex-col gap-1.5">
+      <div className="mt-2 flex max-h-56 flex-col gap-1.5 overflow-y-auto overscroll-contain pr-1">
         {[...position.bindings.map((b) => ({name: b.name, value: b.value, local: true})), ...globals.map(([name, value]) => ({name, value, local: false}))].map((entry) => (
           <div
             key={`${entry.local ? "b" : "g"}:${entry.name}`}
@@ -364,30 +405,10 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
   );
 
   const editor = (
-    <div className="rounded-xl border p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t(atEnd ? "evalPractice.stepNumber" : "evalPractice.editingStep", {current: cursor + 1})}
-        </span>
-        {cursor > 0 && (
-          <Tip label={t("evalPractice.tip.back")}>
-            <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => moveTo(cursor - 1)}>
-              <Undo2 className="h-3.5 w-3.5"/>
-              {t("evalPractice.stepBack")}
-            </Button>
-          </Tip>
-        )}
-      </div>
-
+    <div ref={editorRef} className="rounded-xl border border-orange-500/40 p-3 flex flex-col gap-3 scroll-mb-4">
       <p className="text-sm text-muted-foreground">
         {anyOrder ? t("evalPractice.instructionAny") : t("evalPractice.instruction", {strategy: t(`evalStrategy.${strategy}.label`)})}
       </p>
-
-      <div className="p-3 rounded-lg border font-mono text-sm leading-relaxed overflow-x-auto bg-muted/30">
-        <TermPickProvider value={insertFrom(position.before)}>
-          <TermView term={position.before}/>
-        </TermPickProvider>
-      </div>
 
       <div className="flex flex-col gap-2">
         {contextPanel}
@@ -418,22 +439,38 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
       {correction(cursor)}
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {atEnd ? (
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <span>{t("evalPractice.noMoreSteps")}</span>
-            <Tip label={t(anyOrder ? "evalPractice.tip.normalForm" : "evalPractice.tip.value")}>
-              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("value")}>{t(anyOrder ? "evalPractice.itIsNormalForm" : "evalPractice.itIsValue")}</Button>
-            </Tip>
-            {!anyOrder && (
-              <Tip label={t("evalPractice.tip.stuck")}>
-                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => decide("stuck")}>{t("evalPractice.itIsStuck")}</Button>
-              </Tip>
-            )}
-          </div>
+        {cursor > 0 ? (
+          <Tip label={t("evalPractice.tip.back")}>
+            <Button size="sm" variant="ghost" className="gap-1 px-2" onClick={() => moveTo(cursor - 1)}>
+              <Undo2 className="h-3.5 w-3.5"/>
+              {t("evalPractice.stepBack")}
+            </Button>
+          </Tip>
         ) : <span/>}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {atEnd && (
+            <>
+              <Tip label={t(anyOrder ? "evalPractice.tip.normalForm" : "evalPractice.tip.value")}>
+                <Button size="sm" variant="outline" className="gap-1" onClick={() => decide("value")}>
+                  <Flag className="h-3.5 w-3.5"/>
+                  {t(anyOrder ? "evalPractice.itIsNormalForm" : "evalPractice.itIsValue")}
+                </Button>
+              </Tip>
+              {!anyOrder && (
+                <Tip label={t("evalPractice.tip.stuck")}>
+                  <Button size="sm" variant="outline" className="gap-1" onClick={() => decide("stuck")}>
+                    <Flag className="h-3.5 w-3.5"/>
+                    {t("evalPractice.itIsStuck")}
+                  </Button>
+                </Tip>
+              )}
+            </>
+          )}
           <Tip label={t("evalPractice.tip.check")}>
-            <Button size="sm" variant="outline" disabled={!input.trim()} onClick={check}>{t("evalPractice.check")}</Button>
+            <Button size="sm" variant="outline" className="gap-1" disabled={!input.trim()} onClick={check}>
+              <Lightbulb className="h-3.5 w-3.5"/>
+              {t("evalPractice.check")}
+            </Button>
           </Tip>
           <Tip label={t(atEnd ? "evalPractice.tip.next" : "evalPractice.tip.save")}>
             <Button size="sm" className="gap-1" disabled={!input.trim()} onClick={next}>
@@ -446,24 +483,78 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
     </div>
   );
 
+  const allStepsCorrect = correctCount === rows.length;
+  const solution = evaluation.steps;
+  const remaining = corrections.remaining;
+  const toggleSolution = () => {
+    if (!showSolution) trackReveal(taskId);
+    setShowSolution(!showSolution);
+  };
+
+  const remainingChain = (
+    <AnimatePresence initial={false}>
+      {showSolution && remaining.map((step, k) => (
+        <motion.div
+          key={k}
+          initial={{opacity: 0, height: 0}}
+          animate={{opacity: 1, height: "auto"}}
+          exit={{opacity: 0, height: 0}}
+          transition={{duration: 0.25, ease: "easeOut", delay: Math.min(k, 10) * 0.04}}
+          className="overflow-hidden"
+        >
+          <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
+            <ArrowDown className="h-3.5 w-3.5 shrink-0"/>
+            <span className="font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">{rows.length + k + 1}</span>
+            <span>{step.rule === "β" ? t("evalSteps.betaReduction") : step.rule === "definition" ? t("evalSteps.definitionReplaced") : step.rule}</span>
+          </div>
+          <div className="w-full rounded-xl border border-dashed border-emerald-500/50 bg-emerald-500/5 px-4 py-3 font-mono text-sm leading-relaxed overflow-x-auto">
+            <TermView term={step.after} resultId={step.resultId}/>
+          </div>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  );
+
+  const resultLine = (ok: boolean, children: ReactNode) => (
+    <p className="flex items-start gap-2 text-sm">
+      {ok
+        ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400"/>
+        : <CircleX className="h-4 w-4 shrink-0 mt-0.5 text-destructive"/>}
+      <span>{children}</span>
+    </p>
+  );
+
   const summary = (
-    <div className="flex flex-col gap-2 rounded-xl border bg-muted/30 p-3 text-sm">
-      <p className={cn("flex items-center gap-2 font-medium", endingCorrect && correctCount === rows.length ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
-        <Info className="h-4 w-4 shrink-0"/>
-        {endingCorrect && correctCount === rows.length ? t("evalPractice.verdictCorrect") : t("evalPractice.verdictWrong")}
+    <div className={cn(
+      "flex flex-col gap-3 rounded-xl border p-4",
+      endingCorrect && allStepsCorrect ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/30 bg-destructive/5",
+    )}>
+      <p className={cn("font-medium", endingCorrect && allStepsCorrect ? "text-emerald-700 dark:text-emerald-400" : "text-destructive")}>
+        {endingCorrect && allStepsCorrect ? t("evalPractice.verdictCorrect") : t("evalPractice.verdictWrong")}
       </p>
-      <p className="text-xs text-muted-foreground">{t("evalPractice.summary", {correct: correctCount, total: rows.length})}</p>
-      <p className="text-xs">
-        {t(ending === "value" ? (anyOrder ? "evalPractice.youSaidNormalForm" : "evalPractice.youSaidValue") : "evalPractice.youSaidStuck")}{" "}
-        <span className={endingCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
-          {endingCorrect ? t("evalPractice.endingCorrect") : t(`evalPractice.ending.${actualEnding}`)}
-        </span>
-      </p>
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-1.5">
+        {anyOrder ? (
+          <>
+            {resultLine(allStepsCorrect, t("evalPractice.summary", {correct: correctCount, total: rows.length}))}
+            <p className="pl-6 text-xs text-muted-foreground">{t("evalPractice.fullLengthAny", {count: solution.length})}</p>
+          </>
+        ) : resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summaryOfSolution", {correct: correctCount, total: solution.length, made: rows.length}))}
+        {!endingCorrect && resultLine(false, <>
+          {t(ending === "value" ? (anyOrder ? "evalPractice.youSaidNormalForm" : "evalPractice.youSaidValue") : "evalPractice.youSaidStuck")}{" "}
+          {t(`evalPractice.ending.${actualEnding}`)}
+        </>)}
+      </div>
+      <div className="flex flex-wrap justify-between gap-2">
+        {remaining.length > 0 ? (
+          <Button size="sm" variant="ghost" className="gap-1" onClick={toggleSolution}>
+            {showSolution ? <EyeOff className="h-3.5 w-3.5"/> : <Eye className="h-3.5 w-3.5"/>}
+            {showSolution ? t("evalPractice.hideSolution") : t(anyOrder ? "evalPractice.showSolutionAny" : "evalPractice.showSolution", {count: remaining.length})}
+          </Button>
+        ) : <span/>}
         <Tip label={t("evalPractice.tip.reopen")}>
-          <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs" onClick={() => setEnding(undefined)}>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => { setEnding(undefined); setShowSolution(false); }}>
             <Undo2 className="h-3.5 w-3.5"/>
-            {t("evalPractice.stepBack")}
+            {t("evalPractice.reopen")}
           </Button>
         </Tip>
       </div>
@@ -472,77 +563,112 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, viewMode: c
 
   const showSummary = finished && atEnd;
 
+  const toolbar = (
+    <>
+      <span className="text-xs text-muted-foreground whitespace-nowrap">
+        {finished ? t("evalPractice.finishedSteps", {count: rows.length}) : t("evalPractice.stepsMade", {count: rows.length})}
+      </span>
+      <div className="flex items-center">
+        <GuideDialog i18nPrefix="evalPractice.guide" steps={GUIDE_STEPS}/>
+        <Button size="sm" variant="ghost" className="h-8 gap-1 px-2 text-xs" onClick={restart}>
+          <RotateCcw className="h-3.5 w-3.5"/>
+          {t("evalPractice.restart")}
+        </Button>
+      </div>
+    </>
+  );
+
+  // index -1 is the start term; the term right above the editor is the one being reduced, so it is clickable.
+  const termBox = (term: Term, index: number) => {
+    const reduced = index === cursor - 1;
+    const verdict = finished && index >= 0 ? (isCorrect(index) ? "ok" : "wrong") : undefined;
+    return (
+      <Tip label={!reduced && index >= 0 ? t("evalPractice.tip.goTo") : undefined} block>
+        <div
+          onClick={!reduced && index >= 0 ? () => moveTo(index) : undefined}
+          className={cn(
+            "w-full min-w-0 px-4 py-3 rounded-xl border font-mono text-sm leading-relaxed overflow-x-auto transition-colors duration-300",
+            verdict === "ok" && "border-emerald-500/30 bg-emerald-500/5",
+            verdict === "wrong" && "border-destructive/30 bg-destructive/5",
+            !verdict && (reduced ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70"),
+            !reduced && index >= 0 && "cursor-pointer hover:bg-muted/30",
+          )}
+        >
+          {reduced
+            ? <TermPickProvider value={insertFrom(position.before)}><TermView term={term}/></TermPickProvider>
+            : <TermView term={term}/>}
+        </div>
+      </Tip>
+    );
+  };
+
+  const arrow = (i: number) => (
+    <button
+      type="button"
+      onClick={() => moveTo(i)}
+      className={cn(
+        "flex items-center gap-2 px-2 py-1.5 text-xs rounded-md hover:bg-muted/50 transition-colors",
+        i === cursor ? "text-foreground" : "text-muted-foreground",
+      )}
+    >
+      <ArrowDown className="h-3.5 w-3.5 shrink-0"/>
+      <span className="font-semibold px-1.5 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">{i + 1}</span>
+      {i < rows.length && verdictMarker(i)}
+      {i === cursor && i < rows.length && <span>{t("evalPractice.editingStep", {current: i + 1})}</span>}
+    </button>
+  );
+
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
-      <div className="w-full h-full flex flex-col gap-4 px-4 pb-4" {...practiceProps}>
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/30 p-3">
-          <p className="text-sm text-muted-foreground">
-            {finished ? t("evalPractice.finishedSteps", {count: rows.length}) : t("evalPractice.stepsMade", {count: rows.length})}
-          </p>
-          <div className="flex items-center gap-1">
-            {!onViewModeChange && <ViewToggle mode={viewMode} onChange={setOwnViewMode}/>}
-            <GuideDialog i18nPrefix="evalPractice.guide" steps={GUIDE_STEPS}/>
-            <Button size="sm" variant="ghost" className="gap-1" onClick={restart}>
-              <RotateCcw className="h-3.5 w-3.5"/>
-              {t("evalPractice.restart")}
-            </Button>
-          </div>
-        </div>
+      <div className="w-full h-full flex flex-col gap-1 px-4 pb-4" {...practiceProps}>
+        {toolbarTarget
+          ? createPortal(toolbar, toolbarTarget)
+          : <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">{toolbar}</div>}
 
-        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2">
-          {viewMode === "all" ? (
-            <>
-              <ol className="space-y-1.5 font-mono text-xs">
-                <li className="flex gap-2 rounded-lg border bg-muted/20 px-3 py-2">
-                  <span className="w-14 shrink-0 text-muted-foreground">{t("evalPractice.startTerm")}</span>
-                  <span className="min-w-0 flex-1 overflow-x-auto"><TermView term={startTerm}/></span>
-                </li>
-                {rows.map((row, i) => (
-                  <li key={i}>
-                    <Tip label={t("evalPractice.tip.goTo")} block>
-                    <button
-                      type="button"
-                      onClick={() => moveTo(i)}
-                      className={cn(
-                        "flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted/40",
-                        finished ? (isCorrect(i) ? "border-emerald-500/30 bg-emerald-500/5" : "border-destructive/30 bg-destructive/5") : "bg-muted/20",
-                        cursor === i && "ring-2 ring-primary/40",
-                      )}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="w-14 shrink-0 text-muted-foreground">{i + 1}.</span>
-                        <span className="min-w-0 flex-1 overflow-x-auto"><TermView term={row.term}/></span>
-                        {verdictMarker(i)}
-                      </span>
-                      {correction(i)}
-                    </button>
-                    </Tip>
-                  </li>
-                ))}
-              </ol>
-              {editor}
-              {showSummary && summary}
-            </>
-          ) : (
-            <>
-              <div className="flex items-center justify-between gap-2">
-                <Tip label={t("evalPractice.tip.back")}>
-                  <Button size="sm" variant="outline" className="h-7 px-2" disabled={cursor === 0} onClick={() => moveTo(cursor - 1)}>
-                    <ChevronLeft className="h-4 w-4"/>
-                  </Button>
-                </Tip>
-                <span className="text-xs text-muted-foreground">
-                  {atEnd ? t("evalPractice.viewingCurrent") : t("evalPractice.viewingStep", {current: cursor + 1, total: rows.length})}
-                </span>
-                <Tip label={t("evalPractice.tip.forward")}>
-                  <Button size="sm" variant="outline" className="h-7 px-2" disabled={atEnd} onClick={() => moveTo(cursor + 1)}>
-                    <ChevronRight className="h-4 w-4"/>
-                  </Button>
-                </Tip>
+        <div className="flex-1 min-h-0 overflow-y-auto flex flex-col pb-2 [&>*]:shrink-0">
+          {termBox(startTerm, -1)}
+          <AnimatePresence initial={false}>
+            {Array.from({length: atEnd && !finished ? rows.length + 1 : rows.length}, (_, i) => (
+              <motion.div
+                key={i}
+                initial={i === rows.length ? {opacity: 0, height: 0} : false}
+                animate={{opacity: 1, height: "auto"}}
+                exit={{opacity: 0, height: 0}}
+                transition={{duration: 0.25, ease: "easeOut"}}
+                onAnimationComplete={i === cursor ? scrollToEditor : undefined}
+                className="overflow-hidden"
+              >
+                {arrow(i)}
+                {i === cursor ? editor : (
+                  <>
+                    {termBox(rows[i].term, i)}
+                    {correction(i)}
+                  </>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          {!atEnd && (
+            <Tip label={t("evalPractice.tip.forward")}>
+              <button
+                type="button"
+                onClick={() => moveTo(rows.length)}
+                className="mt-1 flex items-center gap-2 self-start rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/50"
+              >
+                <ArrowDown className="h-3.5 w-3.5"/>
+                {t("evalPractice.viewingCurrent")}
+              </button>
+            </Tip>
+          )}
+          {showSummary && remainingChain}
+          {showSummary && (
+            <motion.div ref={editorRef} initial={{opacity: 0, y: 8}} animate={{opacity: 1, y: 0}} transition={{duration: 0.25, ease: "easeOut"}} className="scroll-mb-4">
+              <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
+                <ArrowDown className="h-3.5 w-3.5 shrink-0"/>
+                <Flag className="h-3.5 w-3.5 shrink-0"/>
               </div>
-              {editor}
-              {showSummary && summary}
-            </>
+              {summary}
+            </motion.div>
           )}
         </div>
       </div>

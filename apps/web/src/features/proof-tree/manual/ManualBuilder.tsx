@@ -1,4 +1,5 @@
 import {useTranslation} from "react-i18next";
+import {createPortal} from "react-dom";
 import {TransformComponent, TransformWrapper} from "react-zoom-pan-pinch";
 import {ArrowLeft, Crosshair, Download, Upload, ZoomIn, ZoomOut} from "lucide-react";
 import {Separator} from "@/shared/components/ui/separator.tsx";
@@ -28,7 +29,7 @@ import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 
 const GUIDE_STEPS = ["root", "premises", "sideConditions", "notation", "definitions", "constraints", "check", "save"];
 
-export function ManualBuilder() {
+export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | null}) {
   const {t} = useTranslation();
   const dispatch = useAppDispatch();
   const {manualTree, manualResults, manualDefinitions, answerKey} = useAppSelector((state) => state.term.buildMode);
@@ -90,56 +91,62 @@ export function ManualBuilder() {
     dispatch(setManualResults(checkManualTree(manualTree, answerKey, usesConstraints, parsedDefinitions.definitions)));
   };
 
+  const toolbar = (
+    <>
+      <div className="flex items-center gap-3 min-w-0">
+        <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
+          <ArrowLeft className="h-3.5 w-3.5"/>
+          {t("proofBuilder.exit")}
+        </Button>
+        <Separator orientation="vertical" className="h-5"/>
+        <p className="text-sm text-muted-foreground">
+          {t("manualBuilder.summary", {count: countManualNodes(manualTree)})}
+          {checked && (
+            <>
+              {" — "}
+              <span className={invalid === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+                {invalid === 0 ? t("manualBuilder.allValid") : t("manualBuilder.nodesWithMistakes", {count: invalid})}
+              </span>
+            </>
+          )}
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={download}>
+                <Download className="h-3.5 w-3.5"/>
+                {t("manualBuilder.btnDownloadJson")}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{t("manualBuilder.downloadJson")}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-3.5 w-3.5"/>
+                {t("manualBuilder.btnUploadJson")}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{t("manualBuilder.uploadJson")}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={upload}/>
+        <GuideDialog i18nPrefix="manualBuilder.guide" steps={usesConstraints ? GUIDE_STEPS : GUIDE_STEPS.filter((step) => step !== "constraints")}/>
+        <Button size="sm" onClick={check}>{t("proofBuilder.checkProof")}</Button>
+        {checked && (
+          <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <div className="w-full h-full flex flex-col space-y-4" {...session.activityProps}>
-      <div className="flex items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">
-        <div className="flex items-center gap-3 min-w-0">
-          <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
-            <ArrowLeft className="h-3.5 w-3.5"/>
-            {t("proofBuilder.exit")}
-          </Button>
-          <Separator orientation="vertical" className="h-5"/>
-          <p className="text-sm text-muted-foreground">
-            {t("manualBuilder.summary", {count: countManualNodes(manualTree)})}
-            {checked && (
-              <>
-                {" — "}
-                <span className={invalid === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
-                  {invalid === 0 ? t("manualBuilder.allValid") : t("manualBuilder.nodesWithMistakes", {count: invalid})}
-                </span>
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5" onClick={download}>
-                  <Download className="h-3.5 w-3.5"/>
-                  {t("manualBuilder.btnDownloadJson")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">{t("manualBuilder.downloadJson")}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-3.5 w-3.5"/>
-                  {t("manualBuilder.btnUploadJson")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">{t("manualBuilder.uploadJson")}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <input ref={fileInputRef} type="file" accept="application/json,.json" className="hidden" onChange={upload}/>
-          <GuideDialog i18nPrefix="manualBuilder.guide" steps={usesConstraints ? GUIDE_STEPS : GUIDE_STEPS.filter((step) => step !== "constraints")}/>
-          <Button size="sm" onClick={check}>{t("proofBuilder.checkProof")}</Button>
-          {checked && (
-            <Button size="sm" variant="outline" onClick={() => dispatch(setManualResults({}))}>{t("manualBuilder.clearMarks")}</Button>
-          )}
-        </div>
-      </div>
+      {toolbarTarget
+        ? createPortal(<div className="flex flex-wrap items-center gap-2">{toolbar}</div>, toolbarTarget)
+        : <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-b-xl bg-muted/30 border">{toolbar}</div>}
 
       <details open className="rounded-xl border bg-muted/30 px-3 py-2 text-sm">
         <summary className="cursor-pointer text-muted-foreground">

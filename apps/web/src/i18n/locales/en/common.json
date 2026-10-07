@@ -808,8 +808,6 @@
     "empty": "Evaluate an expression to see its reduction steps."
   },
   "evalSteps": {
-    "viewStep": "Step",
-    "viewAll": "All",
     "prev": "Prev",
     "next": "Next",
     "first": "First step",
@@ -826,8 +824,6 @@
     "normalForm": "Normal form",
     "finalResult": "Final result",
     "stoppedResult": "Stopped here (not a final result)",
-    "steps_one": "{{count}} step",
-    "steps_other": "{{count}} steps",
     "stepLimit": "Step limit reached — evaluation may not be complete.",
     "sizeLimit": "The term grew too large, so evaluation stopped — it likely does not terminate under this strategy.",
     "timeLimit": "Evaluation took too long and was stopped — it may not be complete.",
@@ -1077,7 +1073,8 @@
     "startTerm": "Start",
     "restart": "Restart",
     "instruction": "Work out the next {{strategy}} step: write the whole term you get after one reduction step. Click a part of the term to insert it into your answer.",
-    "check": "Check",
+    "check": "Check step",
+    "reopen": "Keep working",
     "guide": {
       "open": "How does this work?",
       "title": "Practising evaluation",
@@ -1085,7 +1082,7 @@
       "steps": {
         "read": {
           "title": "Read your steps",
-          "body": "The top row is the starting term; each row below is a step you made. Switch between all steps and one step at a time with the view toggle."
+          "body": "The top term is where you start; below it, each arrow is one of your steps, numbered, followed by the term you wrote."
         },
         "write": {
           "title": "Write the next term",
@@ -1093,40 +1090,45 @@
         },
         "insert": {
           "title": "Insert instead of retyping",
-          "body": "Click any part of the term in the step box to insert it into your answer. In Context Γ, click a name to insert it, or “Insert” to insert its definition. `\\lambda` and `->` become λ and →."
+          "body": "Click any part of the highlighted term right above your input to insert it into your answer. In Context Γ, click a name to insert it, or “Insert” to insert its definition. `\\lambda` and `->` become λ and →."
         },
         "check": {
           "title": "Next, check, move around",
-          "body": "“Next step” (Enter) adds what you wrote, right or wrong. “Check” is an optional hint that says where a step is off, without the answer. “Step back” or clicking a step in the list takes you there; change it and press “Save step” — the steps after it stay."
+          "body": "“Add step” (Enter) saves what you wrote, right or wrong, and opens the next step. “Check step” is an optional hint that says where a step is off, without the answer. “Step back” or clicking an earlier step takes you there; change it and press “Save step” — the steps after it stay."
         },
         "finish": {
           "title": "Finish and compare",
-          "body": "When you think no rule applies any more, say whether the term is a value or stuck. Every step is then marked correct or not — judged from your own previous step — with the correct step shown under each mistake. You can still click through the steps, or reopen the evaluation and fix them."
+          "body": "When no rule applies to the last term any more, press “Finish: it's a value” or “Finish: it's stuck”. Every step is then marked correct or not — judged from your own previous step — with the correct step shown under each mistake. “Keep working” reopens the evaluation so you can fix it."
         }
       }
     },
-    "noMoreSteps": "Can't reduce any further?",
-    "itIsValue": "It's a value",
-    "itIsStuck": "It's stuck",
-    "summary": "{{correct}} of {{total}} steps correct.",
-    "nextStep": "Next step",
+    "itIsValue": "Finish: it's a value",
+    "itIsStuck": "Finish: it's stuck",
+    "summary": "{{correct}} of your {{total}} steps are correct.",
+    "showSolution_one": "Show the remaining correct step ({{count}})",
+    "showSolution_other": "Show the remaining correct steps ({{count}})",
+    "showSolutionAny_one": "Show the remaining step in normal order ({{count}})",
+    "showSolutionAny_other": "Show the remaining steps in normal order ({{count}})",
+    "hideSolution": "Hide the remaining steps",
+    "summaryOfSolution": "{{correct}} of {{total}} steps correct — you made {{made}}.",
+    "fullLengthAny_one": "A full evaluation in normal order takes {{count}} step.",
+    "fullLengthAny_other": "A full evaluation in normal order takes {{count}} steps.",
+    "nextStep": "Add step",
     "stepBack": "Step back",
-    "stepNumber": "Step {{current}}",
     "statusCorrect": "Correct step",
     "statusWrong": "Not a correct step",
     "correctStep": "Correct:",
-    "noStepWasPossible": "no rule applied here — the term couldn't reduce any further",
+    "correctStepAfterMistake": "Correct (continuing from the correct previous step):",
+    "noStepWasPossible": "no step here — the evaluation was already finished, so this step is extra",
     "stepsMade_one": "{{count}} step made",
     "stepsMade_other": "{{count}} steps made",
     "finishedSteps_one": "Finished after {{count}} step",
     "finishedSteps_other": "Finished after {{count}} steps",
-    "viewingStep": "Your step {{current}} of {{total}}",
     "viewingCurrent": "Next step",
     "verdictCorrect": "Your evaluation is correct.",
     "verdictWrong": "Your evaluation has mistakes — see the marked steps.",
     "youSaidValue": "You said the final term is a value —",
     "youSaidStuck": "You said the final term is stuck —",
-    "endingCorrect": "correct.",
     "ending": {
       "reducible": "but it can still be reduced.",
       "stuck": "but it's stuck, not a value.",
@@ -1140,14 +1142,14 @@
       "check": "Optional hint: says whether this step is right and where it's off, without the answer",
       "back": "Go to the previous step — nothing is deleted and what you typed here stays",
       "forward": "Go to the next step",
-      "value": "Finish: the last term is a value (normal form)",
-      "stuck": "Finish: no rule applies to the last term, but it isn't a value",
+      "value": "Finish here: the last term is a value and can't be reduced any further. Only then are your steps compared with the solution.",
+      "stuck": "Finish here: no rule applies to the last term, but it isn't a value. Only then are your steps compared with the solution.",
       "goTo": "Go to this step to look at it or change it — later steps stay",
       "reopen": "Reopen the evaluation to keep working on it",
-      "normalForm": "Finish: no redex is left anywhere in the last term"
+      "normalForm": "Finish here: no redex is left anywhere in the last term. Only then are your steps compared with the solution."
     },
     "instructionAny": "Do one reduction step: write the whole term you get after reducing one redex — you choose which, the order is up to you. Click a part of the term to insert it into your answer.",
-    "itIsNormalForm": "It's in normal form",
+    "itIsNormalForm": "Finish: it's in normal form",
     "correctStepExample": "e.g.:",
     "youSaidNormalForm": "You said the final term is in normal form —"
   },
@@ -1205,8 +1207,6 @@
     "check": "Check",
     "tryAgain": "Not quite — try again.",
     "correct": "Correct.",
-    "showSolution": "Show solution",
-    "hideSolution": "Hide solution",
     "notInTerm": "This term is not in Term ({{detail}}), so this task has no answer for it.",
     "unknownConstant": "“{{name}}” is not a constant of NBL (0, true, false).",
     "treeIncomplete": "Fill in every node of the tree first.",

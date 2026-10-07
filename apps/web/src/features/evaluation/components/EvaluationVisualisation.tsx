@@ -14,7 +14,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {Separator} from "@/shared/components/ui/separator.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
-import {EvaluationStepsViewer, ViewToggle} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
+import {EvaluationStepsViewer} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 
@@ -33,8 +33,8 @@ export function EvaluationVisualisation({
   const hasSteps = hasEvaluation && evaluation.steps.length > 0;
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
-  const [practiceViewMode, setPracticeViewMode] = useState<"single" | "all">("all");
   const [showGamma, setShowGamma] = useState(false);
+  const [practiceToolbar, setPracticeToolbar] = useState<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<"automatic" | "practice">("automatic");
   useViewTime(`evaluation:${activeTab}`);
 
@@ -76,13 +76,9 @@ export function EvaluationVisualisation({
                   </div>
                 </>
               )}
-              {hasEvaluation && activeTab === "practice" && (
-                <>
-                  <Separator orientation="vertical" className="hidden sm:block shrink-0 data-[orientation=vertical]:h-6" />
-                  <ViewToggle mode={practiceViewMode} onChange={setPracticeViewMode}/>
-                </>
-              )}
             </div>
+
+            <div ref={setPracticeToolbar} className={cn("flex items-center gap-2 shrink-0", activeTab !== "practice" && "hidden")}/>
 
             <Button
               size="icon"
@@ -108,8 +104,7 @@ export function EvaluationVisualisation({
                 key={evaluation.result.id}
                 evaluation={evaluation}
                 typeAliases={typeAliases}
-                viewMode={practiceViewMode}
-                onViewModeChange={setPracticeViewMode}
+                toolbarTarget={practiceToolbar}
               />
             ) : (
               <div className="h-full p-6">

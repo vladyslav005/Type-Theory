@@ -655,38 +655,6 @@ function GammaPanel({
   );
 }
 
-export function ViewToggle({
-  mode,
-  onChange,
-}: {
-  mode: "single" | "all";
-  onChange: (m: "single" | "all") => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex rounded-md border overflow-hidden text-xs shrink-0">
-      <button
-        className={cn(
-          "px-2.5 py-1 transition-colors",
-          mode === "single" ? "bg-muted font-medium" : "hover:bg-muted/50",
-        )}
-        onClick={() => onChange("single")}
-      >
-        {t("evalSteps.viewStep")}
-      </button>
-      <button
-        className={cn(
-          "px-2.5 py-1 border-l transition-colors",
-          mode === "all" ? "bg-muted font-medium" : "hover:bg-muted/50",
-        )}
-        onClick={() => onChange("all")}
-      >
-        {t("evalSteps.viewAll")}
-      </button>
-    </div>
-  );
-}
-
 // β and definition lookup get a readable name; every other rule is shown by its name (E-IfTrue, E-Let, …).
 function stepRuleLabel(t: TFunction, rule: string | undefined): string {
   if (rule === "β") return t("evalSteps.betaReduction");
@@ -893,7 +861,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
   const isErrorStep = isLastStep && hasErrors;
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto">
+    <div className="flex flex-col gap-4 h-full overflow-y-auto [&>*]:shrink-0">
       {/* Navigation */}
       <div className="flex items-center justify-between gap-3 sticky top-0 backdrop-blur-sm py-1 z-10">
         <div className="flex items-center gap-1.5 shrink-0">
