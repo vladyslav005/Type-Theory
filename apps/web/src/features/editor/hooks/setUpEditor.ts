@@ -125,8 +125,9 @@ export function useSetUpEditor() {
         "editor.lineHighlightBackground": "#f8fafc", // slate-50
         "editorLineNumber.foreground": "#94a3b8", // slate-400
         "editorLineNumber.activeForeground": "#475569", // slate-600
-        "editor.selectionBackground": "#e0e7ff", // indigo-100
-        "editor.selectionHighlightBackground": "#e0e7ff80",
+        "editor.selectionBackground": "#ffedd5", // orange-100, same as the app's ::selection
+        "editor.inactiveSelectionBackground": "#fff7ed",
+        "editor.selectionHighlightBackground": "#ffedd580",
         "editor.wordHighlightBackground": "#f1f5f9", // slate-100
         "editor.wordHighlightStrongBackground": "#e2e8f0", // slate-200
         "editorWidget.background": "#ffffff",
@@ -193,8 +194,9 @@ export function useSetUpEditor() {
         "editor.lineHighlightBackground": "#262626", // matches --secondary/--muted/--accent
         "editorLineNumber.foreground": "#525252", // neutral-600
         "editorLineNumber.activeForeground": "#a1a1a1", // matches --muted-foreground
-        "editor.selectionBackground": "#4c1d95", // purple-900, ties to the app's purple accent
-        "editor.selectionHighlightBackground": "#4c1d9580",
+        "editor.selectionBackground": "#fb923c40", // orange-400 at 25%, same as the app's ::selection
+        "editor.inactiveSelectionBackground": "#fb923c26",
+        "editor.selectionHighlightBackground": "#fb923c26",
         "editor.wordHighlightBackground": "#262626",
         "editor.wordHighlightStrongBackground": "#404040", // neutral-700
         "editorWidget.background": "#262626",

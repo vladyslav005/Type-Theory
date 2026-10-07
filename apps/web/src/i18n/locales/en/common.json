@@ -598,6 +598,10 @@
     "exit": "Exit Fullscreen"
   },
   "proofTree": {
+    "tabBuildCheckTip": "Build the derivation yourself and check it",
+    "tabAutomaticTip": "The complete typing derivation, built automatically",
+    "tabSyntaxTip": "The derivation showing the term belongs to the language, built automatically",
+    "tabLogicTip": "The same proof read as a proof in logic (Curry–Howard)",
     "tabAutomatic": "Automatic",
     "tabBuildCheck": "Practice",
     "tabLogic": "Curry–Howard correspondence",
@@ -1055,6 +1059,8 @@
     }
   },
   "evalPractice": {
+    "tabPracticeTip": "Do the reduction steps yourself — they're checked against the evaluator when you finish",
+    "tabAutomaticTip": "Watch the evaluator reduce the term step by step",
     "writePlaceholder": "e.g. λ y . y",
     "msg": {
       "writeParse": "Couldn't read that as a term: {{detail}}",

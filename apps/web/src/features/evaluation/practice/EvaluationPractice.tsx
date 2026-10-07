@@ -1,6 +1,6 @@
 import {useEffect, useMemo, useRef, useState, type ReactNode} from "react";
 import {useTranslation} from "react-i18next";
-import {ArrowDown, ArrowRight, CheckCircle2, CircleX, Eye, EyeOff, Flag, Lightbulb, RotateCcw, Undo2} from "lucide-react";
+import {ArrowDown, ArrowRight, Equal, CheckCircle2, CircleX, Eye, EyeOff, Flag, Lightbulb, RotateCcw, Undo2} from "lucide-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {createPortal} from "react-dom";
 import type {EvaluationResult, ReductionStep, Term, Type} from "@vladyslav005/tt-core";
@@ -46,6 +46,8 @@ interface Position {
   accepted: Term[];
   // Only name→definition replacements are left before a value, so the term already counts as one.
   onlyDefinitionsLeft: boolean;
+  // Terms reachable from `before` by name→definition replacements alone.
+  unfoldings: Term[];
 }
 
 // Replacing a name with its definition isn't a computation step, so a student may skip it.
@@ -151,7 +153,12 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       }
       const onlyDefinitionsLeft = !anyOrder && ahead.length > 0 && ahead.every(isDefinitionStep)
         && !trace.reachedStepLimit && (trace.errors?.length ?? 0) === 0;
-      list.push({before, bindings, expected: ahead[0], accepted, onlyDefinitionsLeft});
+      const unfoldings: Term[] = [];
+      for (const step of ahead) {
+        if (!isDefinitionStep(step)) break;
+        unfoldings.push(step.after);
+      }
+      list.push({before, bindings, expected: ahead[0], accepted, onlyDefinitionsLeft, unfoldings});
       if (i < rows.length) {
         const matched = accepted.findIndex((option) => termsAlphaEqual(rows[i].term, option));
         const taken = ahead.slice(0, Math.max(matched, 0) + 1);
@@ -473,7 +480,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
           className="overflow-hidden"
         >
           <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
-            <ArrowDown className="h-3.5 w-3.5 shrink-0"/>
+            {step.rule === "definition" ? <Equal className="h-3.5 w-3.5 shrink-0"/> : <ArrowDown className="h-3.5 w-3.5 shrink-0"/>}
             <span className="font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">{rows.length + k + 1}</span>
             <span>{step.rule === "β" ? t("evalSteps.betaReduction") : step.rule === "definition" ? t("evalSteps.definitionReplaced") : step.rule}</span>
           </div>
@@ -572,6 +579,8 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     );
   };
 
+  const isUnfolding = (i: number) => i < rows.length && positions[i].unfoldings.some((term) => termsAlphaEqual(rows[i].term, term));
+
   const arrow = (i: number) => (
     <button
       type="button"
@@ -581,7 +590,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
         i === cursor ? "text-foreground" : "text-muted-foreground",
       )}
     >
-      <ArrowDown className="h-3.5 w-3.5 shrink-0"/>
+      {isUnfolding(i) ? <Equal className="h-3.5 w-3.5 shrink-0"/> : <ArrowDown className="h-3.5 w-3.5 shrink-0"/>}
       <span className="font-semibold px-1.5 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">{i + 1}</span>
       {i < rows.length && verdictMarker(i)}
       {i === cursor && i < rows.length && <span>{t("evalPractice.editingStep", {current: i + 1})}</span>}

@@ -598,6 +598,10 @@
     "exit": "Ukončiť celú obrazovku"
   },
   "proofTree": {
+    "tabBuildCheckTip": "Zostavte odvodenie sami a skontrolujte ho",
+    "tabAutomaticTip": "Úplné typovacie odvodenie, zostavené automaticky",
+    "tabSyntaxTip": "Odvodenie, že term patrí do jazyka, zostavené automaticky",
+    "tabLogicTip": "Ten istý dôkaz čítaný ako dôkaz v logike (Curry–Howard)",
     "tabAutomatic": "Automaticky",
     "tabBuildCheck": "Precvičovanie",
     "tabLogic": "Curry–Howardova korešpondencia",
@@ -1065,6 +1069,8 @@
     }
   },
   "evalPractice": {
+    "tabPracticeTip": "Redukčné kroky robíte sami — po dokončení sa porovnajú s vyhodnocovačom",
+    "tabAutomaticTip": "Sledujte, ako vyhodnocovač krok za krokom redukuje term",
     "writePlaceholder": "napr. λ y . y",
     "msg": {
       "writeParse": "Nepodarilo sa to prečítať ako term: {{detail}}",

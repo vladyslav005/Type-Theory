@@ -15,6 +15,7 @@ import {useEffect, useRef, useState} from "react";
 import type {RefObject} from "react";
 import {useFullscreen} from "@/shared/hooks/useFullscreen";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
+import {Tip} from "@/shared/components/Tip.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
 import {countProofErrors} from "@/shared/ui-state/studentProof.ts";
 import {ProofTreeBuilder} from "@/features/proof-tree/components/proof-tree-builder/ProofTreeBuilder.tsx";
@@ -50,7 +51,7 @@ export function ProofTreeVisualisation({
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   // Not Radix's <TabsContent> — mounting TransformWrapper inside it hung the tab.
-  const [activeTab, setActiveTab] = useState<ProofTreeTab>("automatic");
+  const [activeTab, setActiveTab] = useState<ProofTreeTab>("build-check");
   const [builderToolbar, setBuilderToolbar] = useState<HTMLDivElement | null>(null);
   useViewTime(`proofTree:${activeTab}`);
   const [stepByStep, setStepByStep] = useState(false);
@@ -159,10 +160,10 @@ export function ProofTreeVisualisation({
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
               <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
-                  <TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger>
-                  <TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger>
+                  <Tip label={t("proofTree.tabBuildCheckTip")}><TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger></Tip>
+                  <Tip label={t(noTypes ? "proofTree.tabSyntaxTip" : "proofTree.tabAutomaticTip")}><TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger></Tip>
                   {curryHoward && (logicAvailable ? (
-                    <TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger>
+                    <Tip label={t("proofTree.tabLogicTip")}><TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger></Tip>
                   ) : (
                     <TooltipProvider>
                       <Tooltip>

@@ -5,7 +5,7 @@ import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowDown, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowDown, Equal, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { churchNumeralValue } from "@/features/evaluation/churchNumeral.ts";
@@ -153,7 +153,8 @@ const EXTENDS_RIGHT = new Set<Term["kind"]>(["Abs", "DummyAbstraction", "TypeAbs
 export interface TermPick {
   pickedId?: string;
   verdict?: "valid" | "invalid";
-  onPick: (id: string, shiftKey: boolean) => void;
+  // Without it the term is only explorable: hovering outlines each part.
+  onPick?: (id: string, shiftKey: boolean) => void;
   hoveredId?: string;
   onHover?: (id: string | undefined) => void;
 }
@@ -185,18 +186,21 @@ export function TermView(props: TermViewProps) {
   const isHovered = !isPicked && pick.hoveredId === props.term.id;
   return (
     <span
-      onClick={(e) => {
+      onClick={pick.onPick ? (e) => {
         e.stopPropagation();
-        pick.onPick(props.term.id, e.shiftKey);
-      }}
+        pick.onPick?.(props.term.id, e.shiftKey);
+      } : undefined}
       onMouseOver={(e) => {
         e.stopPropagation();
         pick.onHover?.(props.term.id);
       }}
       // solid fills: the token colors inside a term would wash out against a tint
       className={cn(
-        "cursor-pointer rounded-sm px-px",
-        isHovered && "bg-sky-200 ring-2 ring-sky-500 [&_*]:!text-sky-950 text-sky-950 dark:bg-sky-900 dark:text-sky-50 dark:[&_*]:!text-sky-50",
+        "rounded-sm px-px",
+        pick.onPick && "cursor-pointer",
+        isHovered && (pick.onPick
+          ? "bg-sky-200 ring-2 ring-sky-500 [&_*]:!text-sky-950 text-sky-950 dark:bg-sky-900 dark:text-sky-50 dark:[&_*]:!text-sky-50"
+          : "ring-1 ring-sky-500/70"),
         isPicked && (pick.verdict === "valid"
           ? "bg-emerald-600 ring-2 ring-emerald-300 text-white [&_*]:!text-white"
           : pick.verdict === "invalid"
@@ -668,6 +672,40 @@ function limitMessageKey(limit: EvaluationResult["limit"]): string {
   return "evalSteps.stepLimit";
 }
 
+const EXPLORE_ONLY: TermPick = {};
+
+// "Step n of N" with n editable: type a number and press Enter (or leave the field) to jump there.
+function StepCounter({current, total, onJump}: {current: number; total: number; onJump: (index: number) => void}) {
+  const { t } = useTranslation();
+  const [draft, setDraft] = useState<string | undefined>();
+  const [before, after] = t("evalSteps.stepOf", {current: "\u0000", total}).split("\u0000");
+  const commit = () => {
+    const n = Number(draft);
+    if (draft !== undefined && Number.isFinite(n) && draft.trim() !== "") onJump(Math.min(total, Math.max(1, Math.round(n))) - 1);
+    setDraft(undefined);
+  };
+  return (
+    <span className="flex items-center text-sm font-medium whitespace-pre">
+      {before}
+      <input
+        value={draft ?? String(current + 1)}
+        onChange={(e) => setDraft(e.target.value.replace(/[^\d]/g, ""))}
+        onFocus={(e) => e.target.select()}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") { setDraft(undefined); e.currentTarget.blur(); }
+        }}
+        inputMode="numeric"
+        aria-label={t("evalSteps.goToStep", {n: current + 1})}
+        style={{width: `${Math.max(String(total).length, 1) + 1.5}ch`}}
+        className="rounded border border-transparent bg-transparent px-0.5 text-center font-medium tabular-nums outline-none hover:border-input focus:border-input focus:ring-1 focus:ring-ring"
+      />
+      {after}
+    </span>
+  );
+}
+
 // M₀ → M₁ → … up to the current step; each Next appends one arrow and one term, so nothing above it moves.
 function ReductionChain({
   steps,
@@ -702,7 +740,9 @@ function ReductionChain({
           : active ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70",
       )}
     >
-      <TermView term={term} selectedId={extra.selectedId} resultId={extra.resultId} errorId={extra.errorId} />
+      <TermPickProvider value={EXPLORE_ONLY}>
+        <TermView term={term} selectedId={extra.selectedId} resultId={extra.resultId} errorId={extra.errorId} />
+      </TermPickProvider>
     </div>
   );
 
@@ -733,7 +773,9 @@ function ReductionChain({
                 )}
                 title={t("evalSteps.clickToInspect")}
               >
-                <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isStuck && "text-destructive")} />
+                {step.rule === "definition" && !isStuck
+                  ? <Equal className="h-3.5 w-3.5 shrink-0" />
+                  : <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isStuck && "text-destructive")} />}
                 <span
                   className={cn(
                     "font-semibold px-1.5 py-0.5 rounded-md",
@@ -894,9 +936,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
         </div>
 
         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
-          <span className="text-sm font-medium">
-            {t("evalSteps.stepOf", {current: stepIndex + 1, total: steps.length})}
-          </span>
+          <StepCounter current={stepIndex} total={steps.length} onJump={setStepIndex}/>
           <div className="flex items-center gap-1">
             {visibleDotIndexes(steps.length, stepIndex).map((i, slot) => {
               if (i === null) {

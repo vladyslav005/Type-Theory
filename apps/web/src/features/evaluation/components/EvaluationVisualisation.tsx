@@ -9,6 +9,7 @@ import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Hammer, Loader2, Maximize2, Minimize2, Play} from "lucide-react";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
+import {Tip} from "@/shared/components/Tip.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Separator} from "@/shared/components/ui/separator.tsx";
@@ -35,7 +36,7 @@ export function EvaluationVisualisation({
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   const [showGamma, setShowGamma] = useState(false);
   const [practiceToolbar, setPracticeToolbar] = useState<HTMLDivElement | null>(null);
-  const [activeTab, setActiveTab] = useState<"automatic" | "practice">("automatic");
+  const [activeTab, setActiveTab] = useState<"automatic" | "practice">("practice");
   useViewTime(`evaluation:${activeTab}`);
 
   return (
@@ -56,8 +57,8 @@ export function EvaluationVisualisation({
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0 flex-1">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "automatic" | "practice")} className="shrink-0">
                 <TabsList className="h-auto justify-start gap-1 p-1">
-                  <TabsTrigger value="automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger>
-                  <TabsTrigger value="practice">{t("evalPractice.tabPractice")}</TabsTrigger>
+                  <Tip label={t("evalPractice.tabPracticeTip")}><TabsTrigger value="practice">{t("evalPractice.tabPractice")}</TabsTrigger></Tip>
+                  <Tip label={t("evalPractice.tabAutomaticTip")}><TabsTrigger value="automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger></Tip>
                 </TabsList>
               </Tabs>
               {hasEvaluation && (

@@ -222,3 +222,11 @@
 .lab-editor-line-error {
   background: color-mix(in oklab, #ef4444 12%, transparent);
 }
+
+::selection {
+  background: #ffedd5; /* orange-100 */
+}
+
+.dark ::selection {
+  background: rgb(251 146 60 / 0.25); /* orange-400 */
+}
