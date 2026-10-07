@@ -606,9 +606,9 @@
       "title_other": "Tento strom má {{count}} uzlov",
       "body": "Stromy s viac ako {{limit}} uzlami sa nevykresľujú automaticky — vykreslenie veľmi veľkého stromu môže stránku spomaliť alebo zamraziť. Limit zmeníte ozubeným kolieskom.",
       "renderAnyway": "Aj tak vykresliť",
-      "settingsTitle": "Vykresľovanie stromu",
+      "settingsTitle": "Vykresľovanie stromov (dôkaz a AST)",
       "limit": "Automaticky vykresliť do (uzlov)",
-      "limitHint": "Predvolené {{default}} · {{min}}–{{max}}. Väčšie stromy čakajú na „Aj tak vykresliť“.",
+      "limitHint": "Predvolené {{default}} · {{min}}–{{max}}. Spoločné pre dôkazový strom aj AST; väčšie stromy čakajú na „Aj tak vykresliť“.",
       "warning": "Vyšší limit vykreslí väčšie stromy hneď, no veľmi veľké stromy môžu stránku spomaliť alebo zamraziť."
     },
     "tabBuildCheckTip": "Zostavte odvodenie sami a skontrolujte ho",
@@ -1476,5 +1476,8 @@
     "resetOne": "Obnoviť predvolené ({{value}})",
     "apply": "Použiť",
     "reset": "Obnoviť predvolené"
+  },
+  "busy": {
+    "loading": "Načítava sa…"
   }
 }

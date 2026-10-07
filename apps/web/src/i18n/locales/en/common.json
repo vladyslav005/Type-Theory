@@ -604,9 +604,9 @@
       "title_other": "This tree has {{count}} nodes",
       "body": "Trees with more than {{limit}} nodes aren't drawn automatically — drawing a very large tree can make the page slow or freeze. You can change the limit with the gear.",
       "renderAnyway": "Render anyway",
-      "settingsTitle": "Proof tree drawing",
+      "settingsTitle": "Tree drawing (proof tree & AST)",
       "limit": "Draw automatically up to (nodes)",
-      "limitHint": "Default {{default}} · {{min}}–{{max}}. Larger trees wait for “Render anyway”.",
+      "limitHint": "Default {{default}} · {{min}}–{{max}}. Shared by the proof tree and AST panels; larger trees wait for “Render anyway”.",
       "warning": "A higher limit draws bigger trees straight away, but very large trees can make the page slow or freeze."
     },
     "tabBuildCheckTip": "Build the derivation yourself and check it",
@@ -1428,5 +1428,8 @@
     "resetOne": "Reset to default ({{value}})",
     "apply": "Apply",
     "reset": "Reset to defaults"
+  },
+  "busy": {
+    "loading": "Loading…"
   }
 }

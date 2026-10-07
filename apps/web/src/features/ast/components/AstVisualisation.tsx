@@ -32,6 +32,10 @@ import {ReactFlowProvider} from "@xyflow/react";
 import {env} from "@/shared/lib/env.ts";
 import {downloadTextFile} from "@/shared/lib/downloadTextFile.ts";
 import {toast} from "sonner";
+import {runBusy, useBusy} from "@/shared/lib/busy.ts";
+import {BusyOverlay} from "@/shared/components/BusyOverlay.tsx";
+import {RenderGuard} from "@/shared/components/RenderGuard.tsx";
+import {ProofTreeLimitSettings} from "@/features/proof-tree/components/ProofTreeLimitSettings.tsx";
 
 export interface AstVisualisationProps {
   className?: string;
@@ -39,6 +43,13 @@ export interface AstVisualisationProps {
 }
 
 type AstTab = "viewer" | "editor";
+
+function countAstNodes(node: unknown): number {
+  if (typeof node !== "object" || node === null) return 0;
+  if (Array.isArray(node)) return node.reduce((sum: number, item) => sum + countAstNodes(item), 0);
+  const own = typeof (node as {kind?: unknown}).kind === "string" && typeof (node as {id?: unknown}).id === "string" ? 1 : 0;
+  return own + Object.entries(node).reduce((sum, [key, value]) => (key === "pos" ? sum : sum + countAstNodes(value)), 0);
+}
 
 export function AstVisualisation({
                                    className,
@@ -52,6 +63,8 @@ export function AstVisualisation({
   const allowedNodeTypes = useMemo(() => languageNodeTypes(enabledTheories, stlcFeatures), [enabledTheories, stlcFeatures]);
   const hasViewerAst = viewerAst !== null && viewerAst !== undefined;
   const lectureView = useAstViewStyle() === "lecture";
+  const busy = useBusy("ast");
+  const viewerSize = useMemo(() => (viewerAst ? countAstNodes(viewerAst) : 0), [viewerAst]);
   const containerRef = useRef<HTMLDivElement>(null);
   const astEditorRef = useRef<AstEditorHandle>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
@@ -153,7 +166,7 @@ export function AstVisualisation({
         <CardHeader>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 flex-nowrap overflow-x-auto min-w-0 flex-1">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AstTab)}>
+              <Tabs value={activeTab} onValueChange={(v) => runBusy("ast", () => setActiveTab(v as AstTab))}>
                 <TabsList className="shrink-0">
                   <TabsTrigger value="viewer">{t("astPanel.tabViewer")}</TabsTrigger>
                   <TabsTrigger value="editor">{t("astPanel.tabEditor")}</TabsTrigger>
@@ -259,6 +272,7 @@ export function AstVisualisation({
 
             {activeTab === "viewer" && hasViewerAst && lectureView && <HelpHint text={t("astPanel.lectureHint")}/>}
             {editorPreview && <HelpHint text={t("astPanel.lecturePreviewHint")}/>}
+            <ProofTreeLimitSettings/>
             <Button
               size="icon"
               variant="ghost"
@@ -270,12 +284,15 @@ export function AstVisualisation({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-hidden p-0">
+        <CardContent className="relative flex-1 overflow-hidden p-0">
+          {busy && <BusyOverlay label={t("busy.loading")}/>}
           {activeTab === "viewer" ? (
             hasViewerAst ? (
               <div className="h-full flex flex-col">
                 <div className="flex-1 rounded-b-xl border overflow-hidden bg-muted/30">
-                  <Ast AST={viewerAst} editorRef={editorRef} highlightOnHover={highlightOnHover}/>
+                  <RenderGuard size={viewerSize} guardKey={viewerAst.id} className="h-full flex items-center justify-center p-6">
+                    <Ast AST={viewerAst} editorRef={editorRef} highlightOnHover={highlightOnHover}/>
+                  </RenderGuard>
                 </div>
                 {env.VITE_SHOW_DEBUG_DATA && (
                   <details className="group mx-6 mb-6 mt-4">

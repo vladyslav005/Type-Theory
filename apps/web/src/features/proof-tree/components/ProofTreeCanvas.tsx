@@ -1,8 +1,8 @@
 import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
 import {useTranslation} from "react-i18next";
-import {useMemo, useState} from "react";
-import {ZoomIn, ZoomOut, Crosshair, ChevronLeft, ChevronRight, RotateCcw, AlertTriangle} from "lucide-react";
-import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
+import {useMemo} from "react";
+import {ZoomIn, ZoomOut, Crosshair, ChevronLeft, ChevronRight, RotateCcw} from "lucide-react";
+import {RenderGuard} from "@/shared/components/RenderGuard.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {ProofTreeComponentUsingCss} from "@/features/proof-tree/components/proof-tree-using-css/ProofTreeTex.tsx";
 import {TexRefExpansionProvider} from "@/features/proof-tree/components/proof-tree-using-css/TexRefExpansionContext.tsx";
@@ -38,22 +38,12 @@ function countNodes(tree: TexTree): number {
   return 1 + (tree.children ?? []).reduce((sum, child) => sum + countNodes(child), 0);
 }
 
-// Drawing a huge tree can freeze the page, so trees over the configured size wait for a click.
 export function ProofTreeCanvas(props: ProofTreeCanvasProps) {
-  const {t} = useTranslation();
-  const limit = useAppSelector((state) => state.term.proofTreeRenderLimit);
   const size = useMemo(() => countNodes(props.texTree), [props.texTree]);
-  const [allowedKey, setAllowedKey] = useState<string>();
-  if (size <= limit || allowedKey === props.treeKey) return <ProofTreeCanvasView {...props}/>;
   return (
-    <div className="flex-1 w-full rounded-b-xl bg-muted/30 border flex items-center justify-center p-6">
-      <div className="flex max-w-sm flex-col items-center gap-3 text-center">
-        <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400"/>
-        <p className="text-sm font-medium">{t("proofTree.renderGuard.title", {count: size})}</p>
-        <p className="text-xs text-muted-foreground">{t("proofTree.renderGuard.body", {limit})}</p>
-        <Button size="sm" variant="outline" onClick={() => setAllowedKey(props.treeKey)}>{t("proofTree.renderGuard.renderAnyway")}</Button>
-      </div>
-    </div>
+    <RenderGuard size={size} guardKey={props.treeKey}>
+      <ProofTreeCanvasView {...props}/>
+    </RenderGuard>
   );
 }
 

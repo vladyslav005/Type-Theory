@@ -6,7 +6,7 @@ import {useProofHooks} from "@/shared/hooks/processProofHooks.ts";
 import {motion} from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
-import {Maximize2, Minimize2, ListTree, Info, Loader2} from "lucide-react";
+import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {astToText, isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
@@ -28,6 +28,8 @@ import {Label} from "@/shared/components/ui/label.tsx";
 import {env} from "@/shared/lib/env.ts";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 import type {SourcePosition} from "@vladyslav005/tt-core";
+import {runBusy, useBusy} from "@/shared/lib/busy.ts";
+import {BusyOverlay} from "@/shared/components/BusyOverlay.tsx";
 
 
 interface ProofTreeVisualisationProps {
@@ -55,6 +57,7 @@ export function ProofTreeVisualisation({
   const [activeTab, setActiveTab] = useState<ProofTreeTab>("build-check");
   const [builderToolbar, setBuilderToolbar] = useState<HTMLDivElement | null>(null);
   const building = useAppSelector((state) => state.term.building);
+  const busy = useBusy("proofTree");
   useViewTime(`proofTree:${activeTab}`);
   const [stepByStep, setStepByStep] = useState(false);
   const [highlightOnHover, setHighlightOnHover] = useState(true);
@@ -160,7 +163,7 @@ export function ProofTreeVisualisation({
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
-              <Tabs value={effectiveTab} onValueChange={(v) => setActiveTab(v as ProofTreeTab)}>
+              <Tabs value={effectiveTab} onValueChange={(v) => runBusy("proofTree", () => setActiveTab(v as ProofTreeTab))}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
                   <Tip label={t("proofTree.tabBuildCheckTip")}><TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger></Tip>
                   <Tip label={t(noTypes ? "proofTree.tabSyntaxTip" : "proofTree.tabAutomaticTip")}><TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger></Tip>
@@ -259,12 +262,7 @@ export function ProofTreeVisualisation({
           </div>
         </CardHeader>
         <CardContent className="relative flex-1 overflow-hidden flex flex-col p-0">
-          {building && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/70 backdrop-blur-sm text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin"/>
-              <span className="text-sm">{t("proofTree.building")}</span>
-            </div>
-          )}
+          {(building || busy) && <BusyOverlay label={t(building ? "proofTree.building" : "busy.loading")}/>}
           <div className="flex-1 min-h-0 overflow-hidden">
           {effectiveTab === "build-check" && noTypes ? (
             syntaxTree ? (

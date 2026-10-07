@@ -21,6 +21,7 @@ import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Tip} from "@/shared/components/Tip.tsx";
 import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 import {termKey} from "@/shared/lib/manualParse.ts";
+import {runBusy} from "@/shared/lib/busy.ts";
 
 export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | null}) {
   const {t} = useTranslation();
@@ -62,7 +63,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
               <Button
                 size="sm"
                 disabled={hasErrors}
-                onClick={() => dispatch(enterBuildMode("semi"))}
+                onClick={() => runBusy("proofTree", () => dispatch(enterBuildMode("semi")))}
               >
                 {t("proofBuilder.modeSemi")}
               </Button>
@@ -72,7 +73,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
                 size="sm"
                 variant="outline"
                 disabled={hasErrors}
-                onClick={() => dispatch(enterBuildMode("manual"))}
+                onClick={() => runBusy("proofTree", () => dispatch(enterBuildMode("manual")))}
               >
                 {t("proofBuilder.modeManual")}
               </Button>

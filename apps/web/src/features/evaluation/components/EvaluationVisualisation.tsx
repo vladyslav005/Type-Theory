@@ -7,7 +7,7 @@ import {motion} from "framer-motion";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
-import {Hammer, Loader2, Maximize2, Minimize2, Play} from "lucide-react";
+import {Hammer, Maximize2, Minimize2, Play} from "lucide-react";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {Tip} from "@/shared/components/Tip.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
@@ -19,6 +19,8 @@ import {EvaluationStepsViewer} from "@/features/evaluation/components/Evaluation
 import {EvaluationLimitsSettings} from "@/features/evaluation/components/EvaluationLimitsSettings.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
+import {runBusy, useBusy} from "@/shared/lib/busy.ts";
+import {BusyOverlay} from "@/shared/components/BusyOverlay.tsx";
 
 interface EvaluationVisualisationProps {
   className?: string;
@@ -30,6 +32,7 @@ export function EvaluationVisualisation({
   const {t} = useTranslation();
   const evaluation = useAppSelector((state) => state.term.evaluation);
   const evaluating = useAppSelector((state) => state.term.evaluating);
+  const busy = useBusy("evaluation");
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
   const hasEvaluation = evaluation !== null && evaluation !== undefined;
   const hasSteps = hasEvaluation && evaluation.steps.length > 0;
@@ -56,7 +59,7 @@ export function EvaluationVisualisation({
         <CardHeader>
           <div className="flex items-start gap-3">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0 flex-1">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "automatic" | "practice")} className="shrink-0">
+              <Tabs value={activeTab} onValueChange={(v) => runBusy("evaluation", () => setActiveTab(v as "automatic" | "practice"))} className="shrink-0">
                 <TabsList className="h-auto justify-start gap-1 p-1">
                   <Tip label={t("evalPractice.tabPracticeTip")}><TabsTrigger value="practice">{t("evalPractice.tabPractice")}</TabsTrigger></Tip>
                   <Tip label={t("evalPractice.tabAutomaticTip")}><TabsTrigger value="automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger></Tip>
@@ -96,12 +99,7 @@ export function EvaluationVisualisation({
           </div>
         </CardHeader>
         <CardContent className="relative flex-1 overflow-hidden p-0">
-          {evaluating && (
-            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/70 backdrop-blur-sm text-muted-foreground">
-              <Loader2 className="h-6 w-6 animate-spin"/>
-              <span className="text-sm">{t("evaluationPanel.evaluating")}</span>
-            </div>
-          )}
+          {(evaluating || busy) && <BusyOverlay label={t(evaluating ? "evaluationPanel.evaluating" : "busy.loading")}/>}
           <div className={cn("h-full", activeTab !== "practice" && "hidden")}>
             {hasEvaluation ? (
               <EvaluationPractice

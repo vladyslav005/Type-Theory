@@ -7,21 +7,9 @@ import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {elaborateNbl, Evaluator, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
+import {afterPaint} from "@/shared/lib/afterPaint.ts";
 
 let latestEvaluation = 0;
-
-// Runs after the loading indicator has had a chance to paint. Hidden tabs never fire
-// requestAnimationFrame, so a timer is the fallback — otherwise the work would never start.
-function afterPaint(work: () => void) {
-  let done = false;
-  const run = () => {
-    if (done) return;
-    done = true;
-    work();
-  };
-  requestAnimationFrame(() => setTimeout(run, 0));
-  setTimeout(run, 50);
-}
 
 export function useTermHooks() {
   const {
