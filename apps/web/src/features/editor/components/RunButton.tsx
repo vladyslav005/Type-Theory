@@ -2,7 +2,7 @@ import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {Check, ChevronDown, Play} from "lucide-react";
+import {Check, ChevronDown, Play, Loader2} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ export function RunButton({onClick, className}: RunButtonProps) {
   const dispatch = useAppDispatch();
 
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
+  const evaluating = useAppSelector((state) => state.term.evaluating);
   const strategy = useAppSelector((state) => state.term.evaluationStrategy);
   const setStrategy = (value: EvaluationStrategy) => dispatch(setEvaluationStrategy(value));
 
@@ -66,7 +67,7 @@ export function RunButton({onClick, className}: RunButtonProps) {
               className={cn("gap-2 shadow-none", autoBuild && "opacity-50 cursor-not-allowed")}
               size="default"
             >
-              <Play className="h-4 w-4" />
+              {evaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
 
               {t("actions.run")}
 

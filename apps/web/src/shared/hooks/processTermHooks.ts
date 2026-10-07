@@ -2,11 +2,13 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {elaborateNbl, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
+
+let latestEvaluation = 0;
 
 export function useTermHooks() {
   const {
@@ -106,6 +108,15 @@ export function useTermHooks() {
     const targetAst = astOverride ?? ast;
     if (!targetAst) return;
 
+    const run = ++latestEvaluation;
+    dispatch(setEvaluating(true));
+    // Lets the loading indicator paint before the synchronous evaluation blocks the thread.
+    requestAnimationFrame(() => setTimeout(() => {
+      if (run === latestEvaluation) runEvaluation(targetAst, strategy);
+    }, 0));
+  }
+
+  function runEvaluation(targetAst: Program, strategy: EvaluationStrategy) {
     // Only the previous run's messages — type-check errors from the same build must survive.
     dispatch(clearEvaluationErrors());
 
@@ -123,13 +134,19 @@ export function useTermHooks() {
       if (evaluationResult.reachedStepLimit) {
         dispatch(
           pushProcessingError(
-            new EvaluationRunError("Evaluation reached the step limit — expression may not be fully reduced"),
+            new EvaluationRunError(evaluationResult.limit === "size"
+              ? "Evaluation stopped: the term grew too large — it likely does not terminate under this strategy"
+              : evaluationResult.limit === "time"
+                ? "Evaluation stopped: it took too long — expression may not be fully reduced"
+                : "Evaluation reached the step limit — expression may not be fully reduced"),
           ),
         );
       }
     } catch (error) {
       console.error("Error evaluating term:", error);
       dispatch(pushProcessingError(new EvaluationRunError(`${(error as Error).message}`)));
+    } finally {
+      dispatch(setEvaluating(false));
     }
   }
 

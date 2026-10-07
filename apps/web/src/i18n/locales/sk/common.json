@@ -616,12 +616,12 @@
     "justSolvedConstraint": "Práve vyriešené",
     "noNewBindings": "Žiadne nové väzby — už v súlade s tým, čo je známe",
     "empty": "Napíšte platný výraz na vygenerovanie stromu dôkazu.",
-    "emptyUntyped": "Netypovaný lambda kalkul nemá typovú deriváciu na zobrazenie.",
+    "emptyUntyped": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do netypovaného lambda kalkulu.",
     "logicEmpty": "Tento dôkaz používa pravidlá mimo čistého STLC, preto nemá jednoznačné Curry–Howardovo čítanie.",
     "emptyNbl": "Zostavte term, aby ste videli jeho syntaktické odvodenie — dôkaz, že patrí do NBL.",
     "tabSyntax": "Syntaktické odvodenie",
     "syntaxNoteNbl": "NBL nemá typy — tento strom dokazuje, že term patrí do jazyka (t ∈ Term).",
-    "syntaxNoteUntyped": "Netypovaný λ-kalkul nemá typy — tento strom dokazuje, že term patrí do jazyka (t ∈ Term)."
+    "syntaxNoteUntyped": "Netypovaný λ-kalkul nemá typy — tento strom dokazuje, že term patrí do jazyka (M ∈ Λ)."
   },
   "proofTreeCanvas": {
     "zoomIn": "Priblížiť",
@@ -803,6 +803,7 @@
     "hideMinimap": "Skryť minimapu"
   },
   "evaluationPanel": {
+    "evaluating": "Vyhodnocuje sa…",
     "gammaContext": "Kontext Γ",
     "empty": "Vyhodnoťte výraz na zobrazenie jeho redukčných krokov."
   },
@@ -830,6 +831,8 @@
     "steps_many": "{{count}} krokov",
     "steps_other": "{{count}} kroku",
     "stepLimit": "Dosiahnutý limit krokov — vyhodnotenie nemusí byť úplné.",
+    "sizeLimit": "Term príliš narástol, preto sa vyhodnocovanie zastavilo — pri tejto stratégii pravdepodobne neskončí.",
+    "timeLimit": "Vyhodnocovanie trvalo príliš dlho a bolo zastavené — nemusí byť úplné.",
     "clickToInspect": "Kliknutím zobrazíte tento krok",
     "typeLevelReduction": "Redukcia na úrovni typov — vypočítaná raz počas typovej kontroly, nie je to krok vyhodnocovania výrazu",
     "gammaHeader": "Γ — doterajší kontext",

@@ -4,6 +4,11 @@ import {TexMapper} from "@/presentation/tex/TexMapper.ts";
 
 export type SyntaxLanguage = "nbl" | "untyped";
 
+const LANGUAGE_SETS: Record<SyntaxLanguage, string> = {
+  nbl: "\\mathit{Term}",
+  untyped: "\\Lambda",
+};
+
 const LANGUAGE_NAMES: Record<SyntaxLanguage, string> = {
   nbl: "NBL",
   untyped: "untyped lambda calculus",
@@ -15,10 +20,10 @@ const LITERAL_RULES: Record<string, string> = {true: "(true)", false: "(false)",
 
 const NBL_OPERATOR_RULES = {Succ: "(succ)", Pred: "(pred)", IsZero: "(iszero)"} as const;
 
-// A derivation of `t ∈ Term` from the language's syntax rules — the untyped counterpart of a typing proof.
+// A derivation of `t ∈ Term` (`t ∈ Λ` for untyped) from the language's syntax rules — the untyped counterpart of a typing proof.
 export function syntaxDerivation(term: Term, language: SyntaxLanguage): TexTree {
   const node = (rule: string, children: Term[] = []): TexTree => ({
-    judgement: `${TexMapper.termToTex(term)} \\in \\mathit{Term}`,
+    judgement: `${TexMapper.termToTex(term)} \\in ${LANGUAGE_SETS[language]}`,
     rule,
     children: children.map((child) => syntaxDerivation(child, language)),
     id: term.id,

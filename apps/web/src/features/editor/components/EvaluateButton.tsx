@@ -2,7 +2,7 @@ import {useTranslation} from "react-i18next";
 import {cn} from "@/shared/lib/utils.ts";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
-import {Calculator, Check, ChevronDown} from "lucide-react";
+import {Calculator, Check, ChevronDown, Loader2} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +40,7 @@ export function EvaluateButton({
   const disabled = proofTree === undefined;
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
 
+  const evaluating = useAppSelector((state) => state.term.evaluating);
   const strategy = useAppSelector((state) => state.term.evaluationStrategy)
   const setStrategy = (value: EvaluationStrategy) => dispatch(setEvaluationStrategy(value));
 
@@ -67,7 +68,7 @@ export function EvaluateButton({
               className={cn("gap-2 shadow-none", (autoBuild || disabled) && "opacity-50 cursor-not-allowed")}
               size="default"
             >
-              <Calculator className="h-4 w-4" />
+              {evaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calculator className="h-4 w-4" />}
 
               {t("actions.evaluate")}
 

@@ -10,7 +10,7 @@ export function makeDependencies() {
   return {
     parser: new AntlrParserAdapter(),
     typeCheckerSLTC: new SLTLCTypeChecker(),
-    evaluator: new Evaluator(),
+    evaluator: new Evaluator(3000, {maximumTermSize: 1000}),
     texMapper: new TexMapper(),
     logicMapper: new LogicMapper(),
     flowMapper: new AstFlowMapper()

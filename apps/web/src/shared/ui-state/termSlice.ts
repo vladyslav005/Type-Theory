@@ -52,6 +52,7 @@ export interface TermState {
   // step's substitution was applied, so the tree view can show metavariables resolving live.
   inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
+  evaluating: boolean;
   enabledTheories: TypeTheoryConfig;
   curryHoward: boolean;
   stlcFeatures: StlcFeatureConfig;
@@ -87,6 +88,7 @@ export const initialTermState: TermState = {
   inferenceSteps: [],
   inferenceProofSnapshots: [],
   evaluation: undefined,
+  evaluating: false,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
   stlcFeatures: APP_DEFAULT_STLC_FEATURES,
@@ -180,6 +182,10 @@ const counterSlice = createSlice({
 
     setEvaluation: (state, action: { payload: EvaluationResult | undefined }) => {
       state.evaluation = action.payload;
+    },
+
+    setEvaluating: (state, action: { payload: boolean }) => {
+      state.evaluating = action.payload;
     },
 
     setTheoryEnabled: (state, action: { payload: { id: TypeTheoryId; enabled: boolean } }) => {
@@ -415,6 +421,7 @@ const counterSlice = createSlice({
 
 export const {
   setEvaluation,
+  setEvaluating,
   setTermText,
   setEvaluationStrategy,
   setAutoBuild,

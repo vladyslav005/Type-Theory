@@ -29,6 +29,8 @@ export interface EvaluationError {
   stuckTermId?: string;
 }
 
+export type EvaluationLimitKind = "steps" | "size" | "time";
+
 export interface EvaluationLimits {
   // Stops once the term has more AST nodes than this.
   maximumTermSize?: number;
@@ -39,6 +41,8 @@ export interface EvaluationResult {
   result: Term;
   steps: ReductionStep[];
   reachedStepLimit: boolean;
+  // Which limit stopped evaluation; set only when reachedStepLimit is true.
+  limit?: EvaluationLimitKind;
   strategy: EvaluationStrategy;
   errors?: EvaluationError[];
   // Top-level let/fun declarations available for free-variable lookup during

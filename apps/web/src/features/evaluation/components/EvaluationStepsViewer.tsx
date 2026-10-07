@@ -1,4 +1,5 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { Term, Type } from "@vladyslav005/tt-core";
 import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
@@ -686,15 +687,6 @@ export function ViewToggle({
   );
 }
 
-interface StepRowProps {
-  step: ReductionStep;
-  index: number;
-  isLast: boolean;
-  isError: boolean;
-  stuckTermId?: string;
-  onClick?: () => void;
-}
-
 // β and definition lookup get a readable name; every other rule is shown by its name (E-IfTrue, E-Let, …).
 function stepRuleLabel(t: TFunction, rule: string | undefined): string {
   if (rule === "β") return t("evalSteps.betaReduction");
@@ -702,50 +694,97 @@ function stepRuleLabel(t: TFunction, rule: string | undefined): string {
   return rule ?? "";
 }
 
-function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: StepRowProps) {
+function limitMessageKey(limit: EvaluationResult["limit"]): string {
+  if (limit === "size") return "evalSteps.sizeLimit";
+  if (limit === "time") return "evalSteps.timeLimit";
+  return "evalSteps.stepLimit";
+}
+
+// M₀ → M₁ → … up to the current step; each Next appends one arrow and one term, so nothing above it moves.
+function ReductionChain({
+  steps,
+  stepIndex,
+  isErrorStep,
+  stuckTermId,
+  onSelect,
+}: {
+  steps: ReductionStep[];
+  stepIndex: number;
+  isErrorStep: boolean;
+  stuckTermId?: string;
+  onSelect: (index: number) => void;
+}) {
   const { t } = useTranslation();
-  return (
+  const lastRef = useRef<HTMLDivElement>(null);
+  const scrollToLast = () => {
+    lastRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToLast();
+  }, [stepIndex]);
+
+  const current = steps[stepIndex];
+  const termBox = (term: Term, active: boolean, extra: { selectedId?: string; resultId?: string; errorId?: string; hasError?: boolean } = {}) => (
     <div
       className={cn(
-        "rounded-xl border p-3 flex flex-col gap-2 transition-colors",
-        isErrorStep
-          ? "bg-destructive/5 border-destructive/20"
-          : "bg-muted/20 hover:bg-muted/40 cursor-pointer",
+        "px-4 py-3 rounded-xl border font-mono text-sm leading-relaxed overflow-x-auto transition-colors duration-300",
+        extra.hasError
+          ? "bg-destructive/5 border-destructive/30"
+          : active ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70",
       )}
-      onClick={!isErrorStep ? onClick : undefined}
-      title={!isErrorStep ? t("evalSteps.clickToInspect") : undefined}
     >
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-            isErrorStep
-              ? "bg-destructive/10 text-destructive"
-              : "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-          )}
-        >
-          {index + 1}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {isErrorStep ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule)}
-        </span>
-      </div>
+      <TermView term={term} selectedId={extra.selectedId} resultId={extra.resultId} errorId={extra.errorId} />
+    </div>
+  );
 
-      <div className="font-mono text-sm overflow-x-auto">
-        <TermView term={step.before} selectedId={step.selectedId} />
-      </div>
-
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isErrorStep && "text-destructive")} />
-      </div>
-
-      <div className="font-mono text-sm overflow-x-auto">
-        <TermView
-          term={step.after}
-          resultId={!isErrorStep ? step.resultId : undefined}
-          errorId={isErrorStep ? stuckTermId : undefined}
-        />
-      </div>
+  return (
+    <div className="flex flex-col">
+      {termBox(steps[0].before, stepIndex === 0, stepIndex === 0 ? { selectedId: current.selectedId } : {})}
+      <AnimatePresence initial={false}>
+        {steps.slice(0, stepIndex + 1).map((step, i) => {
+          const isCurrent = i === stepIndex;
+          const isStuck = isCurrent && isErrorStep;
+          const isNextRedexHolder = i === stepIndex - 1;
+          return (
+            <motion.div
+              key={i}
+              initial={isCurrent ? { opacity: 0, height: 0 } : false}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              onAnimationComplete={isCurrent ? scrollToLast : undefined}
+              className="overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => onSelect(i)}
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5 text-xs rounded-md hover:bg-muted/50 transition-colors",
+                  isCurrent ? "text-foreground" : "text-muted-foreground",
+                )}
+                title={t("evalSteps.clickToInspect")}
+              >
+                <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isStuck && "text-destructive")} />
+                <span
+                  className={cn(
+                    "font-semibold px-1.5 py-0.5 rounded-md",
+                    isStuck ? "bg-destructive/10 text-destructive" : "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+                  )}
+                >
+                  {i + 1}
+                </span>
+                <span>{isStuck ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule)}</span>
+              </button>
+              <div ref={isCurrent ? lastRef : undefined} className="scroll-mb-4">
+                {isCurrent
+                  ? termBox(step.after, true, isStuck ? { errorId: stuckTermId, hasError: true } : { resultId: step.resultId })
+                  : termBox(step.after, isNextRedexHolder, isNextRedexHolder ? { selectedId: current.selectedId } : {})}
+              </div>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 }
@@ -753,8 +792,6 @@ function StepRow({ step, index, isError: isErrorStep, stuckTermId, onClick }: St
 interface EvaluationStepsViewerProps {
   evaluation: EvaluationResult;
   typeAliases?: Record<string, Type>;
-  viewMode: "single" | "all";
-  onViewModeChange: (m: "single" | "all") => void;
   showGamma: boolean;
 }
 
@@ -796,13 +833,11 @@ function visibleDotIndexes(total: number, current: number): (number | null)[] {
   return result;
 }
 
-export function EvaluationStepsViewer({ evaluation, typeAliases = {}, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerProps) {
+export function EvaluationStepsViewer({ evaluation, typeAliases = {}, showGamma }: EvaluationStepsViewerProps) {
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
       <EvaluationStepsViewerInner
         evaluation={evaluation}
-        viewMode={viewMode}
-        onViewModeChange={onViewModeChange}
         showGamma={showGamma}
       />
     </TypeAliasesContext.Provider>
@@ -811,14 +846,13 @@ export function EvaluationStepsViewer({ evaluation, typeAliases = {}, viewMode, 
 
 interface EvaluationStepsViewerInnerProps {
   evaluation: EvaluationResult;
-  viewMode: "single" | "all";
-  onViewModeChange: (m: "single" | "all") => void;
   showGamma: boolean;
 }
 
-function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, showGamma }: EvaluationStepsViewerInnerProps) {
+function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
+
   const { steps, result, reachedStepLimit, errors, globals } = evaluation;
 
   const hasErrors = errors && errors.length > 0;
@@ -854,75 +888,9 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
     );
   }
 
-  const currentStep = steps[stepIndex];
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === steps.length - 1;
   const isErrorStep = isLastStep && hasErrors;
-
-  if (viewMode === "all") {
-    return (
-      <div className="flex flex-col gap-4 h-full overflow-y-auto">
-        <div className="flex items-center justify-between sticky top-0 backdrop-blur-sm py-1 z-10">
-          <span className="text-sm font-medium">{t("evalSteps.steps", {count: steps.length})}</span>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          {steps.map((step, i) => {
-            const isLast = i === steps.length - 1;
-            const isStepError = isLast && !!hasErrors;
-            return (
-              <StepRow
-                key={i}
-                step={step}
-                index={i}
-                isLast={isLast}
-                isError={isStepError}
-                stuckTermId={stuckTermId}
-                onClick={() => { setStepIndex(i); onViewModeChange("single"); }}
-              />
-            );
-          })}
-        </div>
-
-        {!hasErrors && (
-          <div className={cn(
-            "p-4 rounded-xl border",
-            isFullyReduced ? "bg-orange-500/5 border-orange-500/20" : "bg-yellow-500/5 border-yellow-500/20",
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              {isFullyReduced
-                ? <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
-                : <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />}
-              <span className={cn(
-                "text-xs font-medium uppercase tracking-wide",
-                isFullyReduced ? "text-orange-600 dark:text-orange-500" : "text-yellow-700 dark:text-yellow-500",
-              )}>
-                {t(isFullyReduced ? "evalSteps.finalResult" : "evalSteps.stoppedResult")}
-              </span>
-            </div>
-            <div className="font-mono text-sm overflow-x-auto">
-              <TermView term={result} />
-            </div>
-            <ChurchNumeralHint term={result} />
-          </div>
-        )}
-
-        {hasErrors && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
-            <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{errors![0].message}</span>
-          </div>
-        )}
-
-        {reachedStepLimit && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-sm">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{t("evalSteps.stepLimit")}</span>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto">
@@ -1010,23 +978,12 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
       {/* Step display */}
       <div className="flex gap-4 items-start">
         <div className="flex-1 min-w-0 flex flex-col gap-4">
-          <TermBox
-            term={currentStep.before}
-            selectedId={currentStep.selectedId}
-            label={t("evalSteps.before")}
-          />
-
-          <div className="flex items-center gap-2 text-muted-foreground px-2">
-            <ArrowDown className={cn("h-4 w-4 shrink-0", isErrorStep && "text-destructive")} />
-            <span className="text-xs">{isErrorStep ? t("evalSteps.stuck") : stepRuleLabel(t, currentStep.rule)}</span>
-          </div>
-
-          <TermBox
-            term={currentStep.after}
-            label={t("evalSteps.after")}
-            resultId={!isErrorStep ? currentStep.resultId : undefined}
-            errorId={isErrorStep ? stuckTermId : undefined}
-            hasError={isErrorStep}
+          <ReductionChain
+            steps={steps}
+            stepIndex={stepIndex}
+            isErrorStep={!!isErrorStep}
+            stuckTermId={stuckTermId}
+            onSelect={setStepIndex}
           />
 
           {isErrorStep && (
@@ -1066,7 +1023,7 @@ function EvaluationStepsViewerInner({ evaluation, viewMode, onViewModeChange, sh
       {reachedStepLimit && (
         <div className="flex items-start gap-2 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-yellow-700 dark:text-yellow-500 text-sm">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>{t("evalSteps.stepLimit")}</span>
+          <span>{t(limitMessageKey(evaluation.limit))}</span>
         </div>
       )}
     </div>

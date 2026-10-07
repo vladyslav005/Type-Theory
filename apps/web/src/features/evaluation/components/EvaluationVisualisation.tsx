@@ -7,7 +7,7 @@ import {motion} from "framer-motion";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
-import {Hammer, Maximize2, Minimize2, Play} from "lucide-react";
+import {Hammer, Loader2, Maximize2, Minimize2, Play} from "lucide-react";
 import {Tabs, TabsList, TabsTrigger} from "@/shared/components/ui/tabs.tsx";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
@@ -27,12 +27,12 @@ export function EvaluationVisualisation({
 }: EvaluationVisualisationProps) {
   const {t} = useTranslation();
   const evaluation = useAppSelector((state) => state.term.evaluation);
+  const evaluating = useAppSelector((state) => state.term.evaluating);
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
   const hasEvaluation = evaluation !== null && evaluation !== undefined;
   const hasSteps = hasEvaluation && evaluation.steps.length > 0;
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
-  const [viewMode, setViewMode] = useState<"single" | "all">("single");
   const [practiceViewMode, setPracticeViewMode] = useState<"single" | "all">("all");
   const [showGamma, setShowGamma] = useState(false);
   const [activeTab, setActiveTab] = useState<"automatic" | "practice">("automatic");
@@ -74,7 +74,6 @@ export function EvaluationVisualisation({
                       {t("evaluationPanel.gammaContext")}
                     </Label>
                   </div>
-                  <ViewToggle mode={viewMode} onChange={setViewMode}/>
                 </>
               )}
               {hasEvaluation && activeTab === "practice" && (
@@ -96,7 +95,13 @@ export function EvaluationVisualisation({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-hidden p-0">
+        <CardContent className="relative flex-1 overflow-hidden p-0">
+          {evaluating && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/70 backdrop-blur-sm text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin"/>
+              <span className="text-sm">{t("evaluationPanel.evaluating")}</span>
+            </div>
+          )}
           <div className={cn("h-full", activeTab !== "practice" && "hidden")}>
             {hasEvaluation ? (
               <EvaluationPractice
@@ -120,8 +125,6 @@ export function EvaluationVisualisation({
                   key={evaluation.result.id}
                   evaluation={evaluation}
                   typeAliases={typeAliases}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
                   showGamma={showGamma}
                 />
               </div>

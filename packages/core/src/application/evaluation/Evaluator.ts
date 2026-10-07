@@ -7,6 +7,7 @@ import type {
 import {
   EvaluationStrategy,
   type EvaluationError,
+  type EvaluationLimitKind,
   type EvaluationLimits,
   type EvaluationResult,
   type ReductionStep,
@@ -43,6 +44,7 @@ export class Evaluator {
 
     let currentTerm = initialTerm;
     const deadline = this.limits.timeLimitMs === undefined ? Infinity : Date.now() + this.limits.timeLimitMs;
+    let limit: EvaluationLimitKind = "steps";
 
     for (
       let index = 0;
@@ -67,13 +69,21 @@ export class Evaluator {
       currentTerm = step.after;
 
       // A step can double the term (e.g. Y on numerals), exhausting memory long before the step limit.
-      if (Date.now() > deadline || this.exceedsSize(currentTerm)) break;
+      if (Date.now() > deadline) {
+        limit = "time";
+        break;
+      }
+      if (this.exceedsSize(currentTerm)) {
+        limit = "size";
+        break;
+      }
     }
 
     return {
       result: currentTerm,
       steps: [...this.evaluationSteps],
       reachedStepLimit: true,
+      limit,
       strategy,
       globals: Object.fromEntries(globals),
     };

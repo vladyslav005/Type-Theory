@@ -616,12 +616,12 @@
     "justSolvedConstraint": "Just solved",
     "noNewBindings": "No new bindings — already consistent with what's known",
     "empty": "Type a valid expression to generate a proof tree.",
-    "emptyUntyped": "Untyped lambda calculus has no type derivation to show.",
+    "emptyUntyped": "Build the term to see its syntax derivation — a proof that it belongs to untyped lambda calculus.",
     "logicEmpty": "This proof uses rules outside plain STLC, so it has no clean Curry-Howard reading.",
     "emptyNbl": "Build the term to see its syntax derivation — a proof that it belongs to NBL.",
     "tabSyntax": "Syntax derivation",
     "syntaxNoteNbl": "NBL has no types — this tree proves the term belongs to the language (t ∈ Term).",
-    "syntaxNoteUntyped": "Untyped λ-calculus has no types — this tree proves the term belongs to the language (t ∈ Term)."
+    "syntaxNoteUntyped": "Untyped λ-calculus has no types — this tree proves the term belongs to the language (M ∈ Λ)."
   },
   "proofTreeCanvas": {
     "zoomIn": "Zoom In",
@@ -803,6 +803,7 @@
     "hideMinimap": "Hide minimap"
   },
   "evaluationPanel": {
+    "evaluating": "Evaluating…",
     "gammaContext": "Γ context",
     "empty": "Evaluate an expression to see its reduction steps."
   },
@@ -828,6 +829,8 @@
     "steps_one": "{{count}} step",
     "steps_other": "{{count}} steps",
     "stepLimit": "Step limit reached — evaluation may not be complete.",
+    "sizeLimit": "The term grew too large, so evaluation stopped — it likely does not terminate under this strategy.",
+    "timeLimit": "Evaluation took too long and was stopped — it may not be complete.",
     "clickToInspect": "Click to inspect this step",
     "typeLevelReduction": "Type-level reduction — computed once during type-checking, not a term evaluation step",
     "gammaHeader": "Γ — context so far",
