@@ -10,9 +10,7 @@ import {Tip} from "@/shared/components/Tip.tsx";
 import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {ManualParseError, parseTermProgram, termKey} from "@/shared/lib/manualParse.ts";
-import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
-import {BracketInput} from "@/shared/components/BracketInput.tsx";
-import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
+import {LabEditor, type LabEditorHandle} from "@/features/docs/labs/components/LabEditor.tsx";
 import {TermPickProvider, TermView, TypeAliasesContext} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {findTermById, firstDifference, markSubterm, termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
@@ -93,14 +91,11 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
   const [feedback, setFeedback] = useState<FeedbackMessage[]>([]);
   const [hintOk, setHintOk] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<LabEditorHandle>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const scrollToEditor = () => {
     editorRef.current?.scrollIntoView({block: "nearest", behavior: "smooth"});
   };
-  // cursor is tracked from input events and applied in an effect; refs can't be read during render
-  const [selection, setSelection] = useState({start: 0, end: 0});
-  const [caretRequest, setCaretRequest] = useState<{position: number; id: number} | undefined>();
 
   const startTerm: Term = evaluation.steps[0]?.before ?? evaluation.result;
   // Lab tasks are tracked per task; practice in the editor is recorded as its own session with the term.
@@ -108,7 +103,6 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
   const practiceProps = taskId ? {} : session.activityProps;
   const input = drafts[cursor] ?? rows[cursor]?.text ?? "";
   const setInput = (text: string) => setDrafts((d) => ({...d, [cursor]: text}));
-  const history = useUndoableText(input, setInput);
 
   const traceFrom = useMemo(() => (term: Term, bindings: {name: string; value: Term}[], steps: number, under: EvaluationStrategy = strategy) => {
     const scope = {...evaluation.globals, ...Object.fromEntries(bindings.map((b) => [b.name, b.value]))};
@@ -222,18 +216,10 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     scrollToEditor();
   }, [cursor]);
 
-  useEffect(() => {
-    if (!caretRequest) return;
-    const el = inputRef.current;
-    el?.focus();
-    el?.setSelectionRange(caretRequest.position, caretRequest.position);
-  }, [caretRequest]);
-
   const moveTo = (index: number, rowCount = rows.length) => {
     setCursor(Math.max(0, Math.min(index, rowCount)));
     setFeedback([]);
     setHintOk(false);
-    setSelection({start: 0, end: 0});
   };
 
   const read = (text: string): Term | undefined => {
@@ -314,21 +300,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     moveTo(0, 0);
   };
 
-  const insertText = (raw: string) => {
-    const start = Math.min(selection.start, input.length);
-    const end = Math.min(selection.end, input.length);
-    const before = input[start - 1];
-    const after = input[end];
-    const text = (before !== undefined && !/[\s([{<]/.test(before) ? " " : "")
-      + raw
-      + (after !== undefined && !/[\s)\]}>,;]/.test(after) ? " " : "");
-    const caret = start + text.length;
-    history.change(input.slice(0, start) + text + input.slice(end), true);
-    setSelection({start: caret, end: caret});
-    setCaretRequest((r) => ({position: caret, id: (r?.id ?? 0) + 1}));
-    setFeedback([]);
-    setHintOk(false);
-  };
+  const insertText = (raw: string) => inputRef.current?.insert(raw);
 
   const insertFrom = (root: Term) => ({onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }});
 
@@ -412,22 +384,20 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
 
       <div className="flex flex-col gap-2">
         {contextPanel}
-        <BracketInput
-          ref={inputRef}
+        <LabEditor
+          handleRef={inputRef}
+          compact
           value={input}
-          onChange={(e) => {
-            history.change(applyShortcuts(e.target.value));
-            setSelection({start: e.target.selectionStart ?? 0, end: e.target.selectionEnd ?? 0});
+          onChange={(text) => {
+            if (text === input) return;
+            setInput(text);
             setFeedback([]);
             setHintOk(false);
           }}
-          onSelect={(e) => setSelection({start: e.currentTarget.selectionStart ?? 0, end: e.currentTarget.selectionEnd ?? 0})}
-          onKeyDown={(e) => { if (history.onKeyDown(e)) return; if (e.key === "Enter") next(); }}
+          onSubmit={next}
           placeholder={t("evalPractice.writePlaceholder")}
-          spellCheck={false}
-          textClassName="px-2 font-mono text-sm"
           className={cn(
-            "h-9 rounded border outline-none focus:ring-1 focus:ring-ring",
+            "w-full",
             hintOk ? "border-emerald-500/70" : feedback.length > 0 ? "border-destructive/70" : "border-input",
           )}
         />

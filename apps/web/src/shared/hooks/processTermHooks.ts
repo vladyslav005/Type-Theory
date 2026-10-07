@@ -2,7 +2,7 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearEvaluationErrors, EvaluationRunError, pushProcessingError, setAst, setErrorMarkers, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearEvaluationErrors, EvaluationRunError, EvaluationWarning, pushProcessingError, setAst, setErrorMarkers, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {elaborateNbl, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
@@ -19,6 +19,8 @@ export function useTermHooks() {
 
   const dispatch = useAppDispatch()
   const termText = useAppSelector((state) => state.term.termText);
+  const builtText = useAppSelector((state) => state.term.builtText);
+  const autoBuild = useAppSelector((state) => state.term.autoBuild);
   const ast = useAppSelector((state) => state.term.ast);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
@@ -47,6 +49,7 @@ export function useTermHooks() {
     let proof: ProofTree | undefined = undefined
 
     dispatch(clean())
+    dispatch(setBuiltText(term))
 
     try {
       ast = parseTerm(term);
@@ -107,6 +110,13 @@ export function useTermHooks() {
   function evaluateTerm(strategy: EvaluationStrategy, astOverride?: Program) {
     const targetAst = astOverride ?? ast;
     if (!targetAst) return;
+    if (!astOverride && !autoBuild && builtText !== undefined && termText !== builtText) {
+      dispatch(clearEvaluationErrors());
+      dispatch(pushProcessingError(new EvaluationWarning(
+        "The text editor content has changed since the last Parse & Type Check — evaluating now would use the previous version. Run Parse & Type Check first.",
+      )));
+      return;
+    }
 
     const run = ++latestEvaluation;
     dispatch(setEvaluating(true));
@@ -134,7 +144,7 @@ export function useTermHooks() {
       if (evaluationResult.reachedStepLimit) {
         dispatch(
           pushProcessingError(
-            new EvaluationRunError(evaluationResult.limit === "size"
+            new EvaluationWarning(evaluationResult.limit === "size"
               ? "Evaluation stopped: the term grew too large — it likely does not terminate under this strategy"
               : evaluationResult.limit === "time"
                 ? "Evaluation stopped: it took too long — expression may not be fully reduced"

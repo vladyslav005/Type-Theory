@@ -214,3 +214,11 @@
   outline-offset: 3px;
   border-radius: 14px;
 }
+
+.lab-editor-line-warning {
+  background: color-mix(in oklab, #f59e0b 14%, transparent);
+}
+
+.lab-editor-line-error {
+  background: color-mix(in oklab, #ef4444 12%, transparent);
+}

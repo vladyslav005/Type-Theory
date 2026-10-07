@@ -859,6 +859,12 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
   const isFirstStep = stepIndex === 0;
   const isLastStep = stepIndex === steps.length - 1;
   const isErrorStep = isLastStep && hasErrors;
+  // Waits for the last step's own fade-in so the two don't arrive at once.
+  const afterLastStep = {
+    initial: {opacity: 0, y: 6},
+    animate: {opacity: 1, y: 0},
+    transition: {duration: 0.25, ease: "easeOut" as const, delay: 0.25},
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto [&>*]:shrink-0">
@@ -955,14 +961,14 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
           />
 
           {isErrorStep && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
+            <motion.div key={`end-${stepIndex}`} {...afterLastStep} className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
               <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{errors![0].message}</span>
-            </div>
+            </motion.div>
           )}
 
           {isLastStep && !hasErrors && (
-            <div className={cn(
+            <motion.div key={`end-${stepIndex}`} {...afterLastStep} className={cn(
               "p-4 rounded-xl border",
               isFullyReduced ? "bg-orange-500/5 border-orange-500/20" : "bg-yellow-500/5 border-yellow-500/20",
             )}>
@@ -981,7 +987,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
                 <TermView term={result} />
               </div>
               <ChurchNumeralHint term={result} />
-            </div>
+            </motion.div>
           )}
         </div>
 

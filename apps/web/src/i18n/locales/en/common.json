@@ -640,8 +640,10 @@
     "emptyInstructions": "Construct the typing derivation for the current term yourself, then check it against the real one.",
     "startBuilding": "Start Building",
     "nodesFilled": "{{filled}}/{{total}} nodes filled",
-    "valid": "{{count}} valid",
-    "invalid": "{{count}} invalid",
+    "valid_one": "{{count}} valid",
+    "valid_other": "{{count}} valid",
+    "invalid_one": "{{count}} invalid",
+    "invalid_other": "{{count}} invalid",
     "checkProof": "Check Proof",
     "exit": "Exit",
     "resetNode": "Reset this node",
@@ -954,13 +956,16 @@
     "main": "tt — Interactive Typed Lambda Calculus Playground"
   },
   "manualBuilder": {
-    "summary": "{{count}} nodes",
+    "summary_one": "{{count}} node",
+    "summary_other": "{{count}} nodes",
     "allValid": "everything matches",
-    "nodesWithMistakes": "{{count}} nodes with mistakes",
+    "nodesWithMistakes_one": "{{count}} node with mistakes",
+    "nodesWithMistakes_other": "{{count}} nodes with mistakes",
     "removePremise": "Remove this premise",
     "addPremise": "premise",
     "addSideCondition": "side condition",
-    "premiseCount": "{{count}} premises",
+    "premiseCount_one": "{{count}} premise",
+    "premiseCount_other": "{{count}} premises",
     "termPlaceholder": "term",
     "typePlaceholder": "type",
     "rulePlaceholder": "rule",
@@ -998,8 +1003,9 @@
     "addConstraints": "Add a constraint set C to this judgement",
     "constraintsPlaceholder": "Write C₁, C₂ … for a premise's set, or define C_n in the Definitions box (a definition wins).",
     "definitions": "Definitions",
-    "definitionsHint": "Name a set once and reuse it: one definition per line, like Γ_1 = {x : 'A} or C_1 = {…}. Then write Γ_1 or C_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error.",
-    "definitionsHintNoConstraints": "Name a context once and reuse it: one definition per line, like Γ_1 = {x : A}. Then write Γ_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error.",
+    "definitionsHint": "Name a set once and reuse it: one definition per line, like Γ_1 = {x : 'A} or C_1 = {…}. Then write Γ_1 or C_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error. Combine sets: Γ_1 ∪ {y : 'B}, Γ_1, y : 'B (adds a binding), Γ_1 − {x} (removes one), ∅ is the empty set.",
+    "definitionsHintNoConstraints": "Name a context once and reuse it: one definition per line, like Γ_1 = {x : A}. Then write Γ_1 in any field. A plain Γ works too, but only once you define it (Γ = {…}); an undefined Γ is an error. Combine contexts: Γ_1 ∪ {y : B}, Γ_1, y : B (adds a binding), Γ_1 − {x} (removes one), ∅ is the empty context.",
+    "definitionAllUsesWrong": "Line {{line}}: every field that uses {{name}} is marked wrong — the definition itself is probably wrong.",
     "definitionError": "Line {{line}}: {{message}}",
     "btnDownloadJson": "Download JSON",
     "btnUploadJson": "Upload JSON",
@@ -1027,7 +1033,7 @@
         },
         "notation": {
           "title": "Type symbols quickly",
-          "body": "`\\lambda` `\\forall` `\\Gamma` `\\in` `->` turn into λ ∀ Γ ∈ →."
+          "body": "`\\lambda` `\\forall` `\\Gamma` `\\in` `\\cup` `\\setminus` `\\emptyset` `->` turn into λ ∀ Γ ∈ ∪ ∖ ∅ →."
         },
         "definitions": {
           "title": "Name contexts once",
@@ -1256,7 +1262,8 @@
     "notWellTypedCorrect": "Correct — the term is not well typed, so there is nothing to evaluate.",
     "applyHint": "Apply the term to arguments of the right types, then evaluate it step by step (call-by-value). For a type like A, declare a variable first, e.g. a : A; — the last line is the application.",
     "apply": "Apply",
-    "notApplied": "The last line must apply the given term to {{count}} arguments: ({{term}}) …",
+    "notApplied_one": "The last line must apply the given term to {{count}} argument: ({{term}}) …",
+    "notApplied_other": "The last line must apply the given term to {{count}} arguments: ({{term}}) …",
     "illTyped": "This application is not well typed: {{detail}}",
     "cannotApplyNotTerm": "This is not a term, so it can't be applied.",
     "problem": {

@@ -1,3 +1,5 @@
+import {setUpJudgementLanguage} from "@/features/editor/hooks/judgementLanguage.ts";
+
 export const NBL_LANGUAGE_ID = "lambda-nbl";
 
 export function useSetUpEditor() {
@@ -15,6 +17,7 @@ export function useSetUpEditor() {
     monaco.languages.setMonarchTokensProvider("lambda", tokensProvider(keywords));
     // succ/pred/iszero are keywords only in NBL mode — elsewhere they're ordinary (Church numeral) names.
     monaco.languages.setMonarchTokensProvider(NBL_LANGUAGE_ID, tokensProvider([...keywords, "succ", "pred", "iszero"]));
+    setUpJudgementLanguage(monaco, tokensProvider(keywords));
 
     function tokensProvider(keywords: string[]) {
       return {
@@ -76,6 +79,9 @@ export function useSetUpEditor() {
       rules: [
         {token: 'keyword', foreground: '#7c3aed', fontStyle: 'bold'}, // purple-600
         {token: 'lambda', foreground: '#dc2626', fontStyle: 'bold'}, // red-600
+        {token: 'contextName', foreground: '#0d9488', fontStyle: 'bold'}, // teal-600
+        {token: 'typeVar', foreground: '#2563eb', fontStyle: 'italic'}, // blue-600
+        {token: 'setOp', foreground: '#7c3aed', fontStyle: 'bold'}, // purple-600
         {token: 'mu', foreground: '#dc2626', fontStyle: 'bold'}, // red-600
         {token: 'constant', foreground: '#ea580c', fontStyle: 'regular'}, // orange-600
         {token: 'builtInFunction', foreground: '#0891b2', fontStyle: 'regular'}, // cyan-600
@@ -137,6 +143,9 @@ export function useSetUpEditor() {
       rules: [
         {token: 'keyword', foreground: '#a78bfa', fontStyle: 'bold'}, // purple-400
         {token: 'lambda', foreground: '#f87171', fontStyle: 'bold'}, // red-400
+        {token: 'contextName', foreground: '#2dd4bf', fontStyle: 'bold'}, // teal-400
+        {token: 'typeVar', foreground: '#60a5fa', fontStyle: 'italic'}, // blue-400
+        {token: 'setOp', foreground: '#a78bfa', fontStyle: 'bold'}, // purple-400
         {token: 'mu', foreground: '#f87171', fontStyle: 'bold'}, // red-400
         {token: 'constant', foreground: '#fb923c', fontStyle: 'regular'}, // orange-400
         {token: 'builtInFunction', foreground: '#22d3ee', fontStyle: 'regular'}, // cyan-400

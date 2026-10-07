@@ -231,9 +231,9 @@ produkuje? Táto otázka má názov — **typovacia relácia**:
 
 <ConceptSection id="how-to-read-a-rule" title="Ako čítať typovacie pravidlo">
 
-Pravidlo je recept: krátky zoznam vecí, ktoré už musia platiť — **premisy**,
+Pravidlo je recept: krátky zoznam vecí, ktoré už musia platiť — **predpoklady**,
 nad čiarou — a to, čo z nich vyplýva — **záver**, pod ňou. Presne ako skutočný recept: „ak máte tieto suroviny
-pripravené (premisy), môžete uvariť toto jedlo (záver)." Žiadne premisy znamenajú
+pripravené (predpoklady), môžete uvariť toto jedlo (záver)." Žiadne predpoklady znamenajú
 jednoducho „platí vždy" — recept, ktorý nepotrebuje nič.
 
 </ConceptSection>
@@ -266,7 +266,7 @@ zatiaľ nechajte všetko vypnuté. Táto prednáška potrebuje len čisté STLC.
     <>Otvorte <strong>Editor</strong>, vymažte ho a napíšte <code>(λ x : Bool . x) true;</code>.</>,
     <>Pozrite sa na panel <strong>AST</strong> — ten istý tvar aplikácia/abstrakcia/literál, ktorý ste práve zostavili ručne.</>,
     <>Prepnite na panel <strong>Strom dôkazu</strong> — je to dôkaz sekventu Γ ⊢ t : T zostavený naživo, jedno pravidlo na uzol, zodpovedajúce kartám T-App/T-Abs/T-Var/T-Const vyššie.</>,
-    <>Zámerne to pokazte: zmeňte <code>true</code> na <code>5</code>. Premisa T-App, že typ argumentu sa zhoduje s typom parametra, teraz zlyhá a chyba presne ukáže kde.</>,
+    <>Zámerne to pokazte: zmeňte <code>true</code> na <code>5</code>. Predpoklad T-App, že typ argumentu sa zhoduje s typom parametra, teraz zlyhá a chyba presne ukáže kde.</>,
   ]}
 />
 
@@ -278,7 +278,7 @@ Tá istá myšlienka, bez opustenia tejto stránky — upravte term a skontroluj
 
 <MiniWorkspace
   initialTerm={"(λ x : Bool . x) true;"}
-  hint="Skúste nahradiť `true` číslom alebo úplne vynechať argument a pozrite sa, ktorej premisy pravidla sa to dotkne."
+  hint="Skúste nahradiť `true` číslom alebo úplne vynechať argument a pozrite sa, ktorého predpokladu pravidla sa to dotkne."
 />
 
 <PredictThenVerify

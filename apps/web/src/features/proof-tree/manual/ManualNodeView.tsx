@@ -1,11 +1,11 @@
-import {memo} from "react";
+import {memo, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {Plus, X} from "lucide-react";
 import type {ManualField, ManualNode, ManualNodeResult, ManualVerdict} from "@/shared/ui-state/manualProof.ts";
 import {useManualActions} from "@/features/proof-tree/manual/manualActions.ts";
 import {cn} from "@/shared/lib/utils.ts";
-import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
-import {BracketInput} from "@/shared/components/BracketInput.tsx";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
+import {JUDGEMENT_LANGUAGE_ID} from "@/features/editor/hooks/judgementLanguage.ts";
 import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
@@ -28,25 +28,61 @@ interface FieldProps {
   onChange: (value: string) => void;
 }
 
+// A plain button until clicked: one Monaco editor at a time stays cheap however big the tree gets.
 function Field({value, placeholder, hint: title, width, verdict, readOnly, onChange}: FieldProps) {
-  const history = useUndoableText(value, onChange);
+  const [editing, setEditing] = useState(false);
+  if (editing && !readOnly) {
+    return (
+      <div className="shrink-0">
+        <LabEditor
+          minWidth={width}
+          compact
+          dense
+          autoFocus
+          suggestWhileTyping
+          detachWidgets
+          language={JUDGEMENT_LANGUAGE_ID}
+          value={value}
+          onChange={onChange}
+          onSubmit={() => setEditing(false)}
+          onBlur={() => setEditing(false)}
+          placeholder={placeholder}
+          className={cn("bg-background", verdictClass(verdict))}
+        />
+      </div>
+    );
+  }
+  if (readOnly) {
+    return (
+      <Tip label={title}>
+        <span
+          style={{minWidth: width}}
+          className={cn(
+            "manual-readonly flex h-7 shrink-0 items-center whitespace-nowrap rounded border bg-background px-1.5 font-mono text-xs select-text cursor-text opacity-80",
+            verdictClass(verdict),
+          )}
+        >
+          {value || placeholder}
+        </span>
+      </Tip>
+    );
+  }
   return (
     <Tip label={title}>
-      <BracketInput
-        value={value}
-        readOnly={readOnly}
-        placeholder={placeholder}
-        spellCheck={false}
-        onChange={(e) => history.change(applyShortcuts(e.target.value))}
-        onKeyDown={history.onKeyDown}
-        wrapperStyle={{width}}
-        textClassName="px-1.5 font-mono text-xs"
+      <button
+        type="button"
+        style={{minWidth: width}}
+        onClick={() => setEditing(true)}
+        onFocus={() => setEditing(true)}
         className={cn(
-          "h-7 rounded border outline-none focus:ring-1 focus:ring-ring",
+          "h-7 shrink-0 whitespace-nowrap rounded border bg-background px-1.5 text-left font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
           verdictClass(verdict),
-          readOnly && "opacity-80",
+          !value && "text-muted-foreground",
+          "cursor-text",
         )}
-      />
+      >
+        {value || placeholder}
+      </button>
     </Tip>
   );
 }

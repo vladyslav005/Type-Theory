@@ -53,6 +53,8 @@ export interface TermState {
   inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
   evaluating: boolean;
+  // The editor text the current ast/proof were built from, to spot a stale build.
+  builtText: string | undefined;
   enabledTheories: TypeTheoryConfig;
   curryHoward: boolean;
   stlcFeatures: StlcFeatureConfig;
@@ -89,6 +91,7 @@ export const initialTermState: TermState = {
   inferenceProofSnapshots: [],
   evaluation: undefined,
   evaluating: false,
+  builtText: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
   stlcFeatures: APP_DEFAULT_STLC_FEATURES,
@@ -106,6 +109,11 @@ export class EvaluationRunError extends Error {
     super(message);
   }
 }
+
+// Something worth knowing about a run that isn't a failure (stale build, a limit was hit).
+export class EvaluationWarning extends EvaluationRunError {}
+
+export const isWarning = (error: Error) => error instanceof EvaluationWarning;
 
 // Replace STLC instead of extending it, so enabling one clears every other theory.
 const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
@@ -182,6 +190,10 @@ const counterSlice = createSlice({
 
     setEvaluation: (state, action: { payload: EvaluationResult | undefined }) => {
       state.evaluation = action.payload;
+    },
+
+    setBuiltText: (state, action: { payload: string | undefined }) => {
+      state.builtText = action.payload;
     },
 
     setEvaluating: (state, action: { payload: boolean }) => {
@@ -422,6 +434,7 @@ const counterSlice = createSlice({
 export const {
   setEvaluation,
   setEvaluating,
+  setBuiltText,
   setTermText,
   setEvaluationStrategy,
   setAutoBuild,

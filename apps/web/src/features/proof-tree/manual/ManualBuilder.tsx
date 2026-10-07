@@ -19,11 +19,11 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared
 import {Button} from "@/shared/components/ui/button.tsx";
 import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
-import {parseDefinitions, setRequireTypeVariableTick} from "@/shared/lib/manualParse.ts";
-import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
-import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
-import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
+import {definitionName, parseDefinitions, setRequireTypeVariableTick} from "@/shared/lib/manualParse.ts";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
+import {JUDGEMENT_LANGUAGE_ID, setJudgementNames} from "@/features/editor/hooks/judgementLanguage.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
+import {failingDefinitions} from "@/features/proof-tree/manual/definitionUses.ts";
 import {Tip} from "@/shared/components/Tip.tsx";
 import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
 
@@ -37,11 +37,20 @@ export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | nu
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const definitionsHistory = useUndoableText(manualDefinitions ?? "", (next) => dispatch(setManualDefinitions(next)));
   const parsedDefinitions = useMemo(() => {
     setRequireTypeVariableTick(usesConstraints);
     return parseDefinitions(manualDefinitions ?? "");
   }, [manualDefinitions, usesConstraints]);
+
+  useEffect(() => {
+    const {contexts, constraints} = parsedDefinitions.definitions;
+    const termNames = answerKey ? termKey(answerKey.term).match(/[A-Za-z_]\w*/g) ?? [] : [];
+    setJudgementNames([
+      ...[...contexts.keys()].map((k) => definitionName("Γ", k)),
+      ...[...constraints.keys()].map((k) => definitionName("C", k)),
+      ...termNames,
+    ]);
+  }, [parsedDefinitions, answerKey]);
 
   const session = usePracticeSession("proofManual", answerKey ? termKey(answerKey.term) : "");
   const manualResultsList = Object.values(manualResults ?? {});
@@ -52,6 +61,12 @@ export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | nu
     recordedComplete.current = true;
     session.update((entry) => ({...entry, finished: true, allCorrect: true}));
   }, [manualComplete, session]);
+
+  const failing = manualTree && manualResults ? failingDefinitions(manualDefinitions ?? "", manualTree, manualResults) : [];
+  const definitionMarkers = [
+    ...parsedDefinitions.errors.map((e) => ({line: e.line, severity: "error" as const, message: e.message})),
+    ...failing.map((f) => ({line: f.line, severity: "warning" as const, message: t("manualBuilder.definitionAllUsesWrong", {line: f.line, name: f.name})})),
+  ];
 
   if (!manualTree || !answerKey) return null;
 
@@ -155,21 +170,27 @@ export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | nu
         </summary>
         <p className="mt-2 text-xs text-muted-foreground">{t(usesConstraints ? "manualBuilder.definitionsHint" : "manualBuilder.definitionsHintNoConstraints")}</p>
         <div className="mt-2">
-          <BracketTextarea
+          <LabEditor
+            language={JUDGEMENT_LANGUAGE_ID}
+            suggestWhileTyping
             value={manualDefinitions ?? ""}
-            onChange={(e) => definitionsHistory.change(applyShortcuts(e.target.value))}
-            onKeyDown={definitionsHistory.onKeyDown}
-            minRows={3}
-            spellCheck={false}
-            placeholder={usesConstraints ? "Γ_1 = {x : 'A}\nC_1 = {'A → 'A = Nat → 'B}" : "Γ_1 = {x : A}"}
-            textClassName="p-2 font-mono text-xs leading-normal"
-            className="rounded border outline-none focus:ring-1 focus:ring-ring"
+            onChange={(next) => dispatch(setManualDefinitions(next))}
+            markers={definitionMarkers}
+            placeholder={usesConstraints ? "Γ_1 = {x : 'A}   C_1 = {'A → 'A = Nat → 'B}" : "Γ_1 = {x : A}"}
+            className="w-full"
           />
         </div>
         {parsedDefinitions.errors.length > 0 && (
           <ul className="mt-1 space-y-0.5 text-[11px] text-destructive">
             {parsedDefinitions.errors.map((e, i) => (
               <li key={i}>{t("manualBuilder.definitionError", {line: e.line, message: e.message})}</li>
+            ))}
+          </ul>
+        )}
+        {failing.length > 0 && (
+          <ul className="mt-1 space-y-0.5 text-[11px] text-amber-700 dark:text-amber-400">
+            {failing.map((f) => (
+              <li key={f.line}>{t("manualBuilder.definitionAllUsesWrong", {line: f.line, name: f.name})}</li>
             ))}
           </ul>
         )}
@@ -181,9 +202,9 @@ export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | nu
           minScale={0.1}
           maxScale={3}
           centerOnInit={true}
-          wheel={{step: 0.1, excluded: ["input"]}}
-          doubleClick={{mode: "zoomIn", excluded: ["input", "button"]}}
-          panning={{velocityDisabled: true, excluded: ["input", "button"]}}
+          wheel={{step: 0.1, excluded: ["input", "monaco-editor"]}}
+          doubleClick={{mode: "zoomIn", excluded: ["input", "button", "manual-readonly", "monaco-editor"]}}
+          panning={{velocityDisabled: true, excluded: ["input", "button", "manual-readonly", "monaco-editor"]}}
           limitToBounds={false}
         >
           {({zoomIn, zoomOut, centerView}) => (

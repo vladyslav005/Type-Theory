@@ -6,6 +6,8 @@ import {motion} from "framer-motion";
 import {useEffect, type RefObject} from "react";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 import {errorPosition} from "@/shared/lib/errorPosition.ts";
+import {isWarning} from "@/shared/ui-state/termSlice.ts";
+import {AlertTriangle} from "lucide-react";
 
 export interface ErrorOutputProps {
   className?: string;
@@ -47,20 +49,32 @@ export function ErrorOutput({
             <div className="space-y-3">
               {errors.map((error, index) => {
                 const pos = editorRef ? errorPosition(error) : undefined;
+                const warning = isWarning(error);
                 return (
                 <motion.div
                   key={index}
                   initial={{opacity: 0, x: -10}}
                   animate={{opacity: 1, x: 0}}
                   transition={{delay: index * 0.05, duration: 0.3}}
-                  className="flex gap-3 p-4 rounded-xl bg-destructive/5 border border-destructive/20 hover:bg-destructive/10 transition-colors duration-200"
+                  className={cn(
+                    "flex gap-3 p-4 rounded-xl border transition-colors duration-200",
+                    warning
+                      ? "bg-amber-500/5 border-amber-500/30 hover:bg-amber-500/10"
+                      : "bg-destructive/5 border-destructive/20 hover:bg-destructive/10",
+                  )}
                   onMouseEnter={pos ? () => editorRef?.current?.highlightRange?.(pos, "error") : undefined}
                   onMouseLeave={pos ? () => editorRef?.current?.highlightRange?.(null) : undefined}
                 >
                   <div className="shrink-0 mt-0.5">
-                    <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center text-destructive text-xs font-semibold">
-                      {index + 1}
-                    </div>
+                    {warning ? (
+                      <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <AlertTriangle className="h-3.5 w-3.5"/>
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center text-destructive text-xs font-semibold">
+                        {index + 1}
+                      </div>
+                    )}
                   </div>
                   <p className="text-sm text-foreground leading-relaxed flex-1">
                     {error.message}
