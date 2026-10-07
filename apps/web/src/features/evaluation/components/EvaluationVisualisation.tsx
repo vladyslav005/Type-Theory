@@ -16,6 +16,7 @@ import {Separator} from "@/shared/components/ui/separator.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {EvaluationStepsViewer} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
+import {EvaluationLimitsSettings} from "@/features/evaluation/components/EvaluationLimitsSettings.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 
@@ -80,6 +81,8 @@ export function EvaluationVisualisation({
             </div>
 
             <div ref={setPracticeToolbar} className={cn("flex items-center gap-2 shrink-0", activeTab !== "practice" && "hidden")}/>
+
+            <EvaluationLimitsSettings/>
 
             <Button
               size="icon"

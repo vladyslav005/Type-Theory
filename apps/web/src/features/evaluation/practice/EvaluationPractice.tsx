@@ -11,7 +11,7 @@ import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {ManualParseError, parseTermProgram, termKey} from "@/shared/lib/manualParse.ts";
 import {LabEditor, type LabEditorHandle} from "@/features/docs/labs/components/LabEditor.tsx";
-import {TermPickProvider, TermView, TypeAliasesContext} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
+import {foldUnfoldings, TermPickProvider, TermView, TypeAliasesContext, UnfoldProvider} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {findTermById, firstDifference, markSubterm, termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import type {FeedbackMessage} from "@/features/proof-tree/feedback/feedback.ts";
@@ -57,6 +57,7 @@ const accepts = (position: Position | undefined, term: Term) => !!position && po
 type Ending = "value" | "stuck";
 
 const STRATEGIES = [EvaluationStrategy.CALL_BY_VALUE, EvaluationStrategy.CALL_BY_NAME, EvaluationStrategy.NORMAL];
+const REMAINING_PAGE = 50;
 // How far ahead a "you did several steps at once" answer is recognised.
 const LOOKAHEAD = 4;
 // Enough room for a chain of name→definition replacements before the next real step.
@@ -93,6 +94,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
   const [feedback, setFeedback] = useState<FeedbackMessage[]>([]);
   const [hintOk, setHintOk] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
+  const [solutionShown, setSolutionShown] = useState(REMAINING_PAGE);
   const inputRef = useRef<LabEditorHandle>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const scrollToEditor = () => {
@@ -311,7 +313,11 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
 
   const insertFrom = (root: Term) => ({onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }});
 
+  const isUnfolding = (i: number) => i < rows.length && positions[i].unfoldings.some((term) => termsAlphaEqual(rows[i].term, term));
   const correctCount = rows.filter((_, i) => isCorrect(i)).length;
+  // Name→definition replacements aren't reduction steps, so neither side of the comparison counts them.
+  const correctReductions = rows.filter((_, i) => isCorrect(i) && !isUnfolding(i)).length;
+  const solutionReductions = evaluation.steps.filter((step) => step.rule !== "definition").length;
   const endingCorrect = ending === actualEnding;
 
   const verdictMarker = (i: number) => {
@@ -462,15 +468,16 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
 
   const allStepsCorrect = correctCount === rows.length;
   const solution = evaluation.steps;
-  const remaining = corrections.remaining;
+  const remaining = foldUnfoldings(corrections.remaining);
   const toggleSolution = () => {
     if (!showSolution) trackReveal(taskId);
     setShowSolution(!showSolution);
+    setSolutionShown(REMAINING_PAGE);
   };
 
   const remainingChain = (
     <AnimatePresence initial={false}>
-      {showSolution && remaining.map((step, k) => (
+      {showSolution && remaining.slice(0, solutionShown).map((step, k) => (
         <motion.div
           key={k}
           initial={{opacity: 0, height: 0}}
@@ -483,13 +490,23 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
             {step.rule === "definition" ? <Equal className="h-3.5 w-3.5 shrink-0"/> : <ArrowDown className="h-3.5 w-3.5 shrink-0"/>}
             <span className="font-semibold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">{rows.length + k + 1}</span>
             <span>{step.rule === "β" ? t("evalSteps.betaReduction") : step.rule === "definition" ? t("evalSteps.definitionReplaced") : step.rule}</span>
+            {step.unfolded.length > 0 && <span className="text-muted-foreground/80">· {t("evalSteps.unfolded")} <span className="font-mono">{step.unfolded.join(", ")}</span></span>}
           </div>
           <div className="w-full rounded-xl border border-dashed border-emerald-500/50 bg-emerald-500/5 px-4 py-3 font-mono text-sm leading-relaxed overflow-x-auto">
-            <TermView term={step.after} resultId={step.resultId}/>
+            <UnfoldProvider globals={evaluation.globals}><TermView term={step.after} resultId={step.resultId}/></UnfoldProvider>
           </div>
         </motion.div>
       ))}
     </AnimatePresence>
+  );
+  const remainingMore = showSolution && remaining.length > solutionShown && (
+    <button
+      type="button"
+      onClick={() => setSolutionShown((n) => n + REMAINING_PAGE)}
+      className="mt-1.5 self-start rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+    >
+      {t("evalPractice.showMoreRemaining", {count: Math.min(REMAINING_PAGE, remaining.length - solutionShown), hidden: remaining.length - solutionShown})}
+    </button>
   );
 
   const resultLine = (ok: boolean, children: ReactNode) => (
@@ -515,7 +532,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
             {resultLine(allStepsCorrect, t("evalPractice.summary", {correct: correctCount, total: rows.length}))}
             <p className="pl-6 text-xs text-muted-foreground">{t("evalPractice.fullLengthAny", {count: solution.length})}</p>
           </>
-        ) : resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summaryOfSolution", {correct: correctCount, total: solution.length, made: rows.length}))}
+        ) : resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summaryOfSolution", {correct: correctReductions, total: solutionReductions, made: rows.length}))}
         {!endingCorrect && resultLine(false, <>
           {t(ending === "value" ? (anyOrder ? "evalPractice.youSaidNormalForm" : "evalPractice.youSaidValue") : "evalPractice.youSaidStuck")}{" "}
           {t(`evalPractice.ending.${actualEnding}`)}
@@ -579,7 +596,6 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     );
   };
 
-  const isUnfolding = (i: number) => i < rows.length && positions[i].unfoldings.some((term) => termsAlphaEqual(rows[i].term, term));
 
   const arrow = (i: number) => (
     <button
@@ -640,6 +656,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
             </Tip>
           )}
           {showSummary && remainingChain}
+          {showSummary && remainingMore}
           {showSummary && (
             <motion.div ref={editorRef} initial={{opacity: 0, y: 8}} animate={{opacity: 1, y: 0}} transition={{duration: 0.25, ease: "easeOut"}} className="scroll-mb-4">
               <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">

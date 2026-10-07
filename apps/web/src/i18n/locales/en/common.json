@@ -598,6 +598,17 @@
     "exit": "Exit Fullscreen"
   },
   "proofTree": {
+    "building": "Building the proof tree…",
+    "renderGuard": {
+      "title_one": "This tree has {{count}} node",
+      "title_other": "This tree has {{count}} nodes",
+      "body": "Trees with more than {{limit}} nodes aren't drawn automatically — drawing a very large tree can make the page slow or freeze. You can change the limit with the gear.",
+      "renderAnyway": "Render anyway",
+      "settingsTitle": "Proof tree drawing",
+      "limit": "Draw automatically up to (nodes)",
+      "limitHint": "Default {{default}} · {{min}}–{{max}}. Larger trees wait for “Render anyway”.",
+      "warning": "A higher limit draws bigger trees straight away, but very large trees can make the page slow or freeze."
+    },
     "tabBuildCheckTip": "Build the derivation yourself and check it",
     "tabAutomaticTip": "The complete typing derivation, built automatically",
     "tabSyntaxTip": "The derivation showing the term belongs to the language, built automatically",
@@ -809,11 +820,26 @@
     "hideMinimap": "Hide minimap"
   },
   "evaluationPanel": {
+    "limits": {
+      "open": "Evaluation limits",
+      "title": "Evaluation limits",
+      "maxSteps": "Maximum reduction steps",
+      "maxStepsHint": "Default {{default}} · {{min}}–{{max}}. Replacing a name by its definition isn't counted.",
+      "maxTermSize": "Stop if the term grows beyond (AST nodes)",
+      "maxTermSizeHint": "Default {{default}} · {{min}}–{{max}}. Stops a term that keeps growing.",
+      "warning": "Higher limits let longer evaluations finish, but large values can make the page slow or freeze for a while.",
+      "appliesNext": "Applies to the next evaluation."
+    },
     "evaluating": "Evaluating…",
     "gammaContext": "Γ context",
     "empty": "Evaluate an expression to see its reduction steps."
   },
   "evalSteps": {
+    "showEarlier_one": "Show {{count}} earlier step ({{hidden}} hidden)",
+    "showEarlier_other": "Show {{count}} earlier steps ({{hidden}} hidden)",
+    "unfolded": "unfolded",
+    "unfoldName": "Click to replace {{name}} with its definition",
+    "foldName": "Click to fold back to {{name}}",
     "prev": "Prev",
     "next": "Next",
     "first": "First step",
@@ -1059,6 +1085,8 @@
     }
   },
   "evalPractice": {
+    "showMoreRemaining_one": "Show {{count}} more step ({{hidden}} left)",
+    "showMoreRemaining_other": "Show {{count}} more steps ({{hidden}} left)",
     "tabPracticeTip": "Do the reduction steps yourself — they're checked against the evaluator when you finish",
     "tabAutomaticTip": "Watch the evaluator reduce the term step by step",
     "writePlaceholder": "e.g. λ y . y",
@@ -1394,5 +1422,11 @@
       "sent": "Thanks! Your suggestion was sent.",
       "failed": "Couldn't send the suggestion. Please try again later."
     }
+  },
+  "limitSettings": {
+    "resetAll": "Reset all",
+    "resetOne": "Reset to default ({{value}})",
+    "apply": "Apply",
+    "reset": "Reset to defaults"
   }
 }

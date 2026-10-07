@@ -46,11 +46,11 @@ export class Evaluator {
     const deadline = this.limits.timeLimitMs === undefined ? Infinity : Date.now() + this.limits.timeLimitMs;
     let limit: EvaluationLimitKind = "steps";
 
-    for (
-      let index = 0;
-      index < this.maximumSteps;
-      index += 1
-    ) {
+    // Replacing a name by its definition isn't a reduction, so it doesn't use up the step budget;
+    // it gets its own cap so a definition like `x = x` can't unfold forever.
+    let reductions = 0;
+    let unfoldings = 0;
+    while (reductions < this.maximumSteps && unfoldings < this.maximumSteps) {
       const step = reductionVisitor.reduce(currentTerm);
 
       if (!step) {
@@ -67,6 +67,8 @@ export class Evaluator {
 
       this.evaluationSteps.push(step);
       currentTerm = step.after;
+      if (step.rule === "definition") unfoldings += 1;
+      else reductions += 1;
 
       // A step can double the term (e.g. Y on numerals), exhausting memory long before the step limit.
       if (Date.now() > deadline) {

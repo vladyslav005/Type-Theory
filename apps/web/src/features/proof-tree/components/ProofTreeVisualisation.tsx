@@ -6,10 +6,11 @@ import {useProofHooks} from "@/shared/hooks/processProofHooks.ts";
 import {motion} from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
-import {Maximize2, Minimize2, ListTree, Info} from "lucide-react";
+import {Maximize2, Minimize2, ListTree, Info, Loader2} from "lucide-react";
 import {EmptyState} from "@/shared/components/EmptyState.tsx";
 import {astToText, isPlainStlcProof, NBL_SYNTAX_RULES, syntaxDerivation, typeToString, UNTYPED_SYNTAX_RULES} from "@vladyslav005/tt-core";
 import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.tsx";
+import {ProofTreeLimitSettings} from "@/features/proof-tree/components/ProofTreeLimitSettings.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useEffect, useRef, useState} from "react";
 import type {RefObject} from "react";
@@ -53,6 +54,7 @@ export function ProofTreeVisualisation({
   // Not Radix's <TabsContent> — mounting TransformWrapper inside it hung the tab.
   const [activeTab, setActiveTab] = useState<ProofTreeTab>("build-check");
   const [builderToolbar, setBuilderToolbar] = useState<HTMLDivElement | null>(null);
+  const building = useAppSelector((state) => state.term.building);
   useViewTime(`proofTree:${activeTab}`);
   const [stepByStep, setStepByStep] = useState(false);
   const [highlightOnHover, setHighlightOnHover] = useState(true);
@@ -243,6 +245,8 @@ export function ProofTreeVisualisation({
 
             <div ref={setBuilderToolbar} className={cn("flex items-center shrink-0", effectiveTab !== "build-check" && "hidden")}/>
 
+            <ProofTreeLimitSettings/>
+
             <Button
               size="icon"
               variant="ghost"
@@ -254,7 +258,13 @@ export function ProofTreeVisualisation({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="flex-1 overflow-hidden flex flex-col p-0">
+        <CardContent className="relative flex-1 overflow-hidden flex flex-col p-0">
+          {building && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/70 backdrop-blur-sm text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin"/>
+              <span className="text-sm">{t("proofTree.building")}</span>
+            </div>
+          )}
           <div className="flex-1 min-h-0 overflow-hidden">
           {effectiveTab === "build-check" && noTypes ? (
             syntaxTree ? (

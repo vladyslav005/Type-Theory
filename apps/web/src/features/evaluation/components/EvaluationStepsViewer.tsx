@@ -147,6 +147,79 @@ interface TermViewProps {
 
 const TermNestedContext = createContext(false);
 
+interface Unfold {
+  globals: Record<string, Term>;
+  expanded: ReadonlySet<string>;
+  toggle: (key: string) => void;
+}
+
+const UnfoldContext = createContext<Unfold | undefined>(undefined);
+// Names bound by an enclosing λ/let/case shadow the global of the same name; the path keeps
+// expansions inside one copy of a definition independent of the other copies.
+const UnfoldScopeContext = createContext<{bound: ReadonlySet<string>; path: string}>({bound: new Set(), path: ""});
+
+// Defined names inside become clickable: a click shows the definition in place, another click folds it back.
+export function UnfoldProvider({ globals, children }: { globals: Record<string, Term> | undefined; children: ReactNode }) {
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  if (!globals || Object.keys(globals).length === 0) return <>{children}</>;
+  const toggle = (key: string) => setExpanded((current) => {
+    const next = new Set(current);
+    if (!next.delete(key)) next.add(key);
+    return next;
+  });
+  return <UnfoldContext.Provider value={{ globals, expanded, toggle }}>{children}</UnfoldContext.Provider>;
+}
+
+function Binding({ names, children }: { names: string[]; children: ReactNode }) {
+  const unfold = useContext(UnfoldContext);
+  const scope = useContext(UnfoldScopeContext);
+  if (!unfold) return <>{children}</>;
+  return (
+    <UnfoldScopeContext.Provider value={{ ...scope, bound: new Set([...scope.bound, ...names]) }}>
+      {children}
+    </UnfoldScopeContext.Provider>
+  );
+}
+
+function VarView({ term }: { term: Extract<Term, { kind: "Var" }> }) {
+  const { t } = useTranslation();
+  const unfold = useContext(UnfoldContext);
+  const scope = useContext(UnfoldScopeContext);
+  const definition = unfold && !scope.bound.has(term.name) ? unfold.globals[term.name] : undefined;
+  if (!unfold || !definition) return <span>{term.name}</span>;
+  const key = `${scope.path}/${term.id}`;
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    unfold.toggle(key);
+  };
+  if (!unfold.expanded.has(key)) {
+    return (
+      <span
+        role="button"
+        onClick={toggle}
+        title={t("evalSteps.unfoldName", { name: term.name })}
+        className="cursor-pointer underline decoration-dotted decoration-muted-foreground/70 underline-offset-[3px] hover:decoration-solid hover:decoration-foreground"
+      >
+        {term.name}
+      </span>
+    );
+  }
+  return (
+    <span
+      role="button"
+      onClick={toggle}
+      title={t("evalSteps.foldName", { name: term.name })}
+      className="cursor-pointer rounded bg-amber-500/10 ring-1 ring-amber-500/30 hover:bg-amber-500/20"
+    >
+      <span className="text-muted-foreground">(</span>
+      <UnfoldScopeContext.Provider value={{ bound: new Set(), path: key }}>
+        <TermView term={definition} bare />
+      </UnfoldScopeContext.Provider>
+      <span className="text-muted-foreground">)</span>
+    </span>
+  );
+}
+
 // Their body runs to the end, so `λx. t s` would read as `λx. (t s)` without the parens.
 const EXTENDS_RIGHT = new Set<Term["kind"]>(["Abs", "DummyAbstraction", "TypeAbs", "Let", "IfCondition"]);
 
@@ -229,7 +302,7 @@ function TermNodeView({
   const inner = (() => {
     switch (term.kind) {
       case "Var":
-        return <span>{term.name}</span>;
+        return <VarView term={term} />;
       case "Lit":
         return <span className="text-amber-600 dark:text-amber-400">{term.value}</span>;
       case "Abs":
@@ -244,7 +317,9 @@ function TermNodeView({
               </>
             )}
             <span className="text-muted-foreground"> . </span>
-            <TermView term={term.body} {...ids} bare trailing={trailing} />
+            <Binding names={[term.param]}>
+              <TermView term={term.body} {...ids} bare trailing={trailing} />
+            </Binding>
           </>
         );
       case "App": {
@@ -277,7 +352,9 @@ function TermNodeView({
             <span className="text-muted-foreground"> = </span>
             <TermView term={term.value} selectedId={selectedId} resultId={resultId} errorId={errorId} />
             <span className="text-emerald-600 dark:text-emerald-400"> in </span>
-            <TermView term={term.body} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            <Binding names={[term.name]}>
+              <TermView term={term.body} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            </Binding>
           </>
         );
       case "Inl":
@@ -327,9 +404,13 @@ function TermNodeView({
             <span className="text-indigo-600 dark:text-indigo-400">case </span>
             <TermView term={term.variable} selectedId={selectedId} resultId={resultId} errorId={errorId} />
             <span className="text-indigo-600 dark:text-indigo-400"> of inl {term.inl.variable} ⇒ </span>
-            <TermView term={term.inl.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            <Binding names={[term.inl.variable]}>
+              <TermView term={term.inl.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            </Binding>
             <span className="text-indigo-600 dark:text-indigo-400"> | inr {term.inr.variable} ⇒ </span>
-            <TermView term={term.inr.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            <Binding names={[term.inr.variable]}>
+              <TermView term={term.inr.term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            </Binding>
           </>
         );
       case "VariantCase":
@@ -673,6 +754,46 @@ function limitMessageKey(limit: EvaluationResult["limit"]): string {
 }
 
 const EXPLORE_ONLY: TermPick = {};
+const CHAIN_WINDOW = 30;
+
+// A real reduction step plus the name→definition replacements that led up to it.
+export type DisplayStep = ReductionStep & {unfolded: string[]; rawIndex: number};
+
+function unfoldedName(step: ReductionStep): string | undefined {
+  const find = (node: unknown): string | undefined => {
+    if (typeof node !== "object" || node === null) return undefined;
+    const term = node as {id?: string; kind?: string; name?: string};
+    if (term.id === step.selectedId && term.kind === "Var") return term.name;
+    for (const [key, value] of Object.entries(node)) {
+      if (key === "pos") continue;
+      const found = find(value);
+      if (found) return found;
+    }
+    return undefined;
+  };
+  return find(step.before);
+}
+
+// eslint-disable-next-line react-refresh/only-export-components -- shared with the practice mode
+export function foldUnfoldings(steps: ReductionStep[]): DisplayStep[] {
+  const display: DisplayStep[] = [];
+  let pending: ReductionStep[] = [];
+  const names = (list: ReductionStep[]) => [...new Set(list.map(unfoldedName).filter((n): n is string => !!n))];
+  steps.forEach((step, rawIndex) => {
+    if (step.rule === "definition") {
+      pending.push(step);
+      return;
+    }
+    display.push({...step, before: pending[0]?.before ?? step.before, unfolded: names(pending), rawIndex});
+    pending = [];
+  });
+  // Trailing replacements with no real step after them (a name that is already a value) stay one "=" row.
+  if (pending.length > 0) {
+    const last = pending[pending.length - 1];
+    display.push({...last, before: pending[0].before, unfolded: names(pending.slice(0, -1)), rawIndex: steps.length - 1});
+  }
+  return display;
+}
 
 // "Step n of N" with n editable: type a number and press Enter (or leave the field) to jump there.
 function StepCounter({current, total, onJump}: {current: number; total: number; onJump: (index: number) => void}) {
@@ -713,8 +834,10 @@ function ReductionChain({
   isErrorStep,
   stuckTermId,
   onSelect,
+  globals,
 }: {
-  steps: ReductionStep[];
+  globals?: Record<string, Term>;
+  steps: DisplayStep[];
   stepIndex: number;
   isErrorStep: boolean;
   stuckTermId?: string;
@@ -722,6 +845,9 @@ function ReductionChain({
 }) {
   const { t } = useTranslation();
   const lastRef = useRef<HTMLDivElement>(null);
+  // Only the latest rows are rendered: a full chain of thousands of terms freezes the page on a jump.
+  const [earlier, setEarlier] = useState(0);
+  const from = Math.max(0, stepIndex - CHAIN_WINDOW - earlier);
   const scrollToLast = () => {
     lastRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   };
@@ -740,17 +866,29 @@ function ReductionChain({
           : active ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70",
       )}
     >
-      <TermPickProvider value={EXPLORE_ONLY}>
-        <TermView term={term} selectedId={extra.selectedId} resultId={extra.resultId} errorId={extra.errorId} />
-      </TermPickProvider>
+      <UnfoldProvider globals={globals}>
+        <TermPickProvider value={EXPLORE_ONLY}>
+          <TermView term={term} selectedId={extra.selectedId} resultId={extra.resultId} errorId={extra.errorId} />
+        </TermPickProvider>
+      </UnfoldProvider>
     </div>
   );
 
   return (
     <div className="flex flex-col">
-      {termBox(steps[0].before, stepIndex === 0, stepIndex === 0 ? { selectedId: current.selectedId } : {})}
+      {from > 0 && (
+        <button
+          type="button"
+          onClick={() => setEarlier((n) => n + CHAIN_WINDOW)}
+          className="mb-1.5 self-start rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+        >
+          {t("evalSteps.showEarlier", { count: Math.min(CHAIN_WINDOW, from), hidden: from })}
+        </button>
+      )}
+      {termBox(steps[from].before, stepIndex === from, stepIndex === from ? { selectedId: current.selectedId } : {})}
       <AnimatePresence initial={false}>
-        {steps.slice(0, stepIndex + 1).map((step, i) => {
+        {steps.slice(from, stepIndex + 1).map((step, offset) => {
+          const i = from + offset;
           const isCurrent = i === stepIndex;
           const isStuck = isCurrent && isErrorStep;
           const isNextRedexHolder = i === stepIndex - 1;
@@ -785,6 +923,11 @@ function ReductionChain({
                   {i + 1}
                 </span>
                 <span>{isStuck ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule)}</span>
+                {step.unfolded.length > 0 && (
+                  <span className="text-muted-foreground/80">
+                    · {t("evalSteps.unfolded")} <span className="font-mono">{step.unfolded.join(", ")}</span>
+                  </span>
+                )}
               </button>
               <div ref={isCurrent ? lastRef : undefined} className="scroll-mb-4">
                 {isCurrent
@@ -863,7 +1006,8 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
 
-  const { steps, result, reachedStepLimit, errors, globals } = evaluation;
+  const { steps: rawSteps, result, reachedStepLimit, errors, globals } = evaluation;
+  const steps = useMemo(() => foldUnfoldings(rawSteps), [rawSteps]);
 
   const hasErrors = errors && errors.length > 0;
   const stuckTermId = errors?.[0]?.stuckTermId;
@@ -872,8 +1016,8 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
   const isFullyReduced = !reachedStepLimit;
 
   const bindingsAtCurrentStep = useMemo(
-    () => accumulateBindings(steps, stepIndex),
-    [steps, stepIndex],
+    () => accumulateBindings(rawSteps, (steps[stepIndex]?.rawIndex ?? 0)),
+    [rawSteps, steps, stepIndex],
   );
 
   if (steps.length === 0) {
@@ -998,6 +1142,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
             isErrorStep={!!isErrorStep}
             stuckTermId={stuckTermId}
             onSelect={setStepIndex}
+            globals={globals}
           />
 
           {isErrorStep && (
@@ -1024,7 +1169,9 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
                 </span>
               </div>
               <div className="font-mono text-sm overflow-x-auto">
-                <TermView term={result} />
+                <UnfoldProvider globals={globals}>
+                  <TermView term={result} />
+                </UnfoldProvider>
               </div>
               <ChurchNumeralHint term={result} />
             </motion.div>

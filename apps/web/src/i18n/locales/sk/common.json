@@ -598,6 +598,19 @@
     "exit": "Ukončiť celú obrazovku"
   },
   "proofTree": {
+    "building": "Zostavuje sa dôkazový strom…",
+    "renderGuard": {
+      "title_one": "Tento strom má {{count}} uzol",
+      "title_few": "Tento strom má {{count}} uzly",
+      "title_many": "Tento strom má {{count}} uzla",
+      "title_other": "Tento strom má {{count}} uzlov",
+      "body": "Stromy s viac ako {{limit}} uzlami sa nevykresľujú automaticky — vykreslenie veľmi veľkého stromu môže stránku spomaliť alebo zamraziť. Limit zmeníte ozubeným kolieskom.",
+      "renderAnyway": "Aj tak vykresliť",
+      "settingsTitle": "Vykresľovanie stromu",
+      "limit": "Automaticky vykresliť do (uzlov)",
+      "limitHint": "Predvolené {{default}} · {{min}}–{{max}}. Väčšie stromy čakajú na „Aj tak vykresliť“.",
+      "warning": "Vyšší limit vykreslí väčšie stromy hneď, no veľmi veľké stromy môžu stránku spomaliť alebo zamraziť."
+    },
     "tabBuildCheckTip": "Zostavte odvodenie sami a skontrolujte ho",
     "tabAutomaticTip": "Úplné typovacie odvodenie, zostavené automaticky",
     "tabSyntaxTip": "Odvodenie, že term patrí do jazyka, zostavené automaticky",
@@ -813,11 +826,28 @@
     "hideMinimap": "Skryť minimapu"
   },
   "evaluationPanel": {
+    "limits": {
+      "open": "Limity vyhodnocovania",
+      "title": "Limity vyhodnocovania",
+      "maxSteps": "Maximálny počet redukčných krokov",
+      "maxStepsHint": "Predvolené {{default}} · {{min}}–{{max}}. Nahradenie mena definíciou sa nepočíta.",
+      "maxTermSize": "Zastaviť, ak term prerastie (uzlov AST)",
+      "maxTermSizeHint": "Predvolené {{default}} · {{min}}–{{max}}. Zastaví term, ktorý stále rastie.",
+      "warning": "Vyššie limity umožnia dokončiť dlhšie vyhodnotenia, no veľké hodnoty môžu stránku spomaliť alebo na chvíľu zamraziť.",
+      "appliesNext": "Platí pre ďalšie vyhodnotenie."
+    },
     "evaluating": "Vyhodnocuje sa…",
     "gammaContext": "Kontext Γ",
     "empty": "Vyhodnoťte výraz na zobrazenie jeho redukčných krokov."
   },
   "evalSteps": {
+    "showEarlier_one": "Zobraziť {{count}} skorší krok (skrytých: {{hidden}})",
+    "showEarlier_few": "Zobraziť {{count}} skoršie kroky (skrytých: {{hidden}})",
+    "showEarlier_many": "Zobraziť {{count}} skoršieho kroku (skrytých: {{hidden}})",
+    "showEarlier_other": "Zobraziť {{count}} skorších krokov (skrytých: {{hidden}})",
+    "unfolded": "rozbalené",
+    "unfoldName": "Kliknutím nahradíte {{name}} jeho definíciou",
+    "foldName": "Kliknutím sa vrátite k {{name}}",
     "prev": "Späť",
     "next": "Ďalej",
     "first": "Prvý krok",
@@ -1069,6 +1099,10 @@
     }
   },
   "evalPractice": {
+    "showMoreRemaining_one": "Zobraziť ďalší {{count}} krok (zostáva: {{hidden}})",
+    "showMoreRemaining_few": "Zobraziť ďalšie {{count}} kroky (zostáva: {{hidden}})",
+    "showMoreRemaining_many": "Zobraziť ďalšieho {{count}} kroku (zostáva: {{hidden}})",
+    "showMoreRemaining_other": "Zobraziť ďalších {{count}} krokov (zostáva: {{hidden}})",
     "tabPracticeTip": "Redukčné kroky robíte sami — po dokončení sa porovnajú s vyhodnocovačom",
     "tabAutomaticTip": "Sledujte, ako vyhodnocovač krok za krokom redukuje term",
     "writePlaceholder": "napr. λ y . y",
@@ -1436,5 +1470,11 @@
       "sent": "Ďakujeme! Váš návrh bol odoslaný.",
       "failed": "Návrh sa nepodarilo odoslať. Skúste to neskôr."
     }
+  },
+  "limitSettings": {
+    "resetAll": "Obnoviť všetko",
+    "resetOne": "Obnoviť predvolené ({{value}})",
+    "apply": "Použiť",
+    "reset": "Obnoviť predvolené"
   }
 }

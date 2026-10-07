@@ -1,6 +1,6 @@
 import {EvaluationStrategy} from "@vladyslav005/tt-core";
 import {DEFAULT_TYPE_THEORY_CONFIG, isPlainStlc, type StlcFeatureConfig, type TypeTheoryConfig} from "@vladyslav005/tt-core";
-import {APP_DEFAULT_STLC_FEATURES, type TermState} from "@/shared/ui-state/termSlice.ts";
+import {APP_DEFAULT_STLC_FEATURES, DEFAULT_EVALUATION_LIMITS, DEFAULT_PROOF_TREE_RENDER_LIMIT, EVALUATION_LIMIT_BOUNDS, PROOF_TREE_RENDER_LIMIT_BOUNDS, type EvaluationLimitsSetting, type TermState} from "@/shared/ui-state/termSlice.ts";
 
 const STORAGE_KEY = "tt.settings.v1";
 
@@ -13,10 +13,22 @@ export interface PersistedTermState {
   stlcFeatures: StlcFeatureConfig;
   requireTermType: boolean;
   evaluationStrategy: EvaluationStrategy;
+  evaluationLimits: EvaluationLimitsSetting;
+  proofTreeRenderLimit: number;
   fontSize: number;
   showMinimap: boolean;
   autoBuild: boolean;
   examplesTopic: string;
+}
+
+function readLimits(value: unknown): EvaluationLimitsSetting {
+  const stored = (typeof value === "object" && value !== null ? value : {}) as Partial<EvaluationLimitsSetting>;
+  const pick = (key: keyof EvaluationLimitsSetting) => {
+    const n = stored[key];
+    const [min, max] = EVALUATION_LIMIT_BOUNDS[key];
+    return typeof n === "number" && Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : DEFAULT_EVALUATION_LIMITS[key];
+  };
+  return {maxSteps: pick("maxSteps"), maxTermSize: pick("maxTermSize")};
 }
 
 export function loadPersistedTermState(): PersistedTermState | undefined {
@@ -43,6 +55,10 @@ export function loadPersistedTermState(): PersistedTermState | undefined {
       stlcFeatures: {...APP_DEFAULT_STLC_FEATURES, ...parsed.stlcFeatures},
       requireTermType: parsed.requireTermType === true,
       evaluationStrategy,
+      evaluationLimits: readLimits(parsed.evaluationLimits),
+      proofTreeRenderLimit: typeof parsed.proofTreeRenderLimit === "number" && Number.isFinite(parsed.proofTreeRenderLimit)
+        ? Math.min(PROOF_TREE_RENDER_LIMIT_BOUNDS[1], Math.max(PROOF_TREE_RENDER_LIMIT_BOUNDS[0], Math.round(parsed.proofTreeRenderLimit)))
+        : DEFAULT_PROOF_TREE_RENDER_LIMIT,
       fontSize: typeof parsed.fontSize === "number" && Number.isFinite(parsed.fontSize)
         ? parsed.fontSize
         : 14,
@@ -64,6 +80,8 @@ export function persistTermState(state: TermState): void {
     stlcFeatures: state.stlcFeatures,
     requireTermType: state.requireTermType,
     evaluationStrategy: state.evaluationStrategy,
+    evaluationLimits: state.evaluationLimits,
+    proofTreeRenderLimit: state.proofTreeRenderLimit,
     fontSize: state.fontSize,
     showMinimap: state.showMinimap,
     autoBuild: state.autoBuild,

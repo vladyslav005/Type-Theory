@@ -32,7 +32,8 @@ const evaluationStrategies = [
 // STLCTypeChecker's untyped path) — Parse & Type Check and Evaluate collapse into one action.
 export function RunButton({onClick, className}: RunButtonProps) {
   const {t} = useTranslation();
-  const {parseAndTypeCheck, evaluateTerm} = useTermHooks();
+  const {parseAndTypeCheckDeferred, evaluateTerm} = useTermHooks();
+  const building = useAppSelector((state) => state.term.building);
   const dispatch = useAppDispatch();
 
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
@@ -45,10 +46,9 @@ export function RunButton({onClick, className}: RunButtonProps) {
       onClick();
     }
 
-    const ast = parseAndTypeCheck();
-    if (ast) {
-      evaluateTerm(strategy, ast);
-    }
+    parseAndTypeCheckDeferred((ast) => {
+      if (ast) evaluateTerm(strategy, ast);
+    });
   };
 
   return (
@@ -67,7 +67,7 @@ export function RunButton({onClick, className}: RunButtonProps) {
               className={cn("gap-2 shadow-none", autoBuild && "opacity-50 cursor-not-allowed")}
               size="default"
             >
-              {evaluating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+              {evaluating || building ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
 
               {t("actions.run")}
 

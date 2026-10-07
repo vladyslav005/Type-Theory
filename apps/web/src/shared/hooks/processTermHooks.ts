@@ -2,25 +2,38 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearEvaluationErrors, EvaluationRunError, EvaluationWarning, pushProcessingError, setAst, setErrorMarkers, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import {clean, clearEvaluationErrors, EvaluationRunError, EvaluationWarning, pushProcessingError, setAst, setErrorMarkers, setBuilding, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {elaborateNbl, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
+import {elaborateNbl, Evaluator, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 
 let latestEvaluation = 0;
 
+// Runs after the loading indicator has had a chance to paint. Hidden tabs never fire
+// requestAnimationFrame, so a timer is the fallback — otherwise the work would never start.
+function afterPaint(work: () => void) {
+  let done = false;
+  const run = () => {
+    if (done) return;
+    done = true;
+    work();
+  };
+  requestAnimationFrame(() => setTimeout(run, 0));
+  setTimeout(run, 50);
+}
+
 export function useTermHooks() {
   const {
     parser,
     typeCheckerSLTC,
-    evaluator,
   } = useDependencies();
 
   const dispatch = useAppDispatch()
   const termText = useAppSelector((state) => state.term.termText);
   const builtText = useAppSelector((state) => state.term.builtText);
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
+  const evaluationLimits = useAppSelector((state) => state.term.evaluationLimits);
   const ast = useAppSelector((state) => state.term.ast);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
@@ -120,10 +133,9 @@ export function useTermHooks() {
 
     const run = ++latestEvaluation;
     dispatch(setEvaluating(true));
-    // Lets the loading indicator paint before the synchronous evaluation blocks the thread.
-    requestAnimationFrame(() => setTimeout(() => {
+    afterPaint(() => {
       if (run === latestEvaluation) runEvaluation(targetAst, strategy);
-    }, 0));
+    });
   }
 
   function runEvaluation(targetAst: Program, strategy: EvaluationStrategy) {
@@ -131,7 +143,7 @@ export function useTermHooks() {
     dispatch(clearEvaluationErrors());
 
     try {
-      const evaluationResult = evaluator.evaluate(targetAst, strategy);
+      const evaluationResult = new Evaluator(evaluationLimits.maxSteps, {maximumTermSize: evaluationLimits.maxTermSize}).evaluate(targetAst, strategy);
       dispatch(setEvaluation(evaluationResult));
 
       evaluationResult.errors?.forEach((e) =>
@@ -160,10 +172,24 @@ export function useTermHooks() {
     }
   }
 
+  // Same as parseAndTypeCheck, but lets the building indicator paint first; `then` gets the result.
+  function parseAndTypeCheckDeferred(then?: (ast: Program | undefined) => void) {
+    dispatch(setBuilding(true));
+    afterPaint(() => {
+      try {
+        const ast = parseAndTypeCheck();
+        then?.(ast);
+      } finally {
+        dispatch(setBuilding(false));
+      }
+    });
+  }
+
   return {
     parseTerm,
     typecheckTerm,
     evaluateTerm,
-    parseAndTypeCheck
+    parseAndTypeCheck,
+    parseAndTypeCheckDeferred,
   }
 }

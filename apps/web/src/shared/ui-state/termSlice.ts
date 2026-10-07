@@ -40,6 +40,17 @@ export interface ErrorMarker extends SourcePosition {
   message: string;
 }
 
+export interface EvaluationLimitsSetting {
+  maxSteps: number;
+  maxTermSize: number;
+}
+
+export const DEFAULT_EVALUATION_LIMITS: EvaluationLimitsSetting = {maxSteps: 3000, maxTermSize: 1000};
+export const EVALUATION_LIMIT_BOUNDS = {maxSteps: [10, 100000], maxTermSize: [50, 100000]} as const;
+
+export const DEFAULT_PROOF_TREE_RENDER_LIMIT = 500;
+export const PROOF_TREE_RENDER_LIMIT_BOUNDS = [20, 20000] as const;
+
 export interface TermState {
   termText: string | undefined;
   processingErrors?: Error[];
@@ -53,6 +64,7 @@ export interface TermState {
   inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
   evaluating: boolean;
+  building: boolean;
   // The editor text the current ast/proof were built from, to spot a stale build.
   builtText: string | undefined;
   enabledTheories: TypeTheoryConfig;
@@ -61,6 +73,9 @@ export interface TermState {
   // Main expression must be written `term : T;` (never enforced under inference or let-polymorphism).
   requireTermType: boolean;
   evaluationStrategy: EvaluationStrategy;
+  evaluationLimits: EvaluationLimitsSetting;
+  // Proof trees with more nodes wait for an explicit "render anyway".
+  proofTreeRenderLimit: number;
   buildMode: BuildModeState;
   // When on, editor changes auto-trigger parse/type-check/evaluate — see TextEditor's
   // "Auto-build" switch, which also disables the manual Parse & Evaluate buttons.
@@ -91,12 +106,15 @@ export const initialTermState: TermState = {
   inferenceProofSnapshots: [],
   evaluation: undefined,
   evaluating: false,
+  building: false,
   builtText: undefined,
   enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
   curryHoward: false,
   stlcFeatures: APP_DEFAULT_STLC_FEATURES,
   requireTermType: false,
   evaluationStrategy: EvaluationStrategy.CALL_BY_VALUE,
+  evaluationLimits: DEFAULT_EVALUATION_LIMITS,
+  proofTreeRenderLimit: DEFAULT_PROOF_TREE_RENDER_LIMIT,
   buildMode: {active: false},
   autoBuild: false,
   fontSize: 14,
@@ -156,6 +174,14 @@ const counterSlice = createSlice({
       state.evaluationStrategy = action.payload;
     },
 
+    setEvaluationLimits: (state, action: { payload: EvaluationLimitsSetting }) => {
+      state.evaluationLimits = action.payload;
+    },
+
+    setProofTreeRenderLimit: (state, action: { payload: number }) => {
+      state.proofTreeRenderLimit = action.payload;
+    },
+
     setAutoBuild: (state, action: { payload: boolean }) => {
       state.autoBuild = action.payload;
     },
@@ -194,6 +220,10 @@ const counterSlice = createSlice({
 
     setBuiltText: (state, action: { payload: string | undefined }) => {
       state.builtText = action.payload;
+    },
+
+    setBuilding: (state, action: { payload: boolean }) => {
+      state.building = action.payload;
     },
 
     setEvaluating: (state, action: { payload: boolean }) => {
@@ -433,7 +463,10 @@ const counterSlice = createSlice({
 
 export const {
   setEvaluation,
+  setEvaluationLimits,
+  setProofTreeRenderLimit,
   setEvaluating,
+  setBuilding,
   setBuiltText,
   setTermText,
   setEvaluationStrategy,
