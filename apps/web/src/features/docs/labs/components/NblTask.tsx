@@ -26,6 +26,7 @@ import {PanZoomCanvas} from "@/features/proof-tree/components/PanZoomCanvas.tsx"
 import {goalFromNbl, syntaxProgress, withChoice, type SyntaxChoices, type SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
+import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
 
 export type NblTaskType = "derivation" | "tree" | "size" | "depth" | "constants" | "evaluate";
 
@@ -224,7 +225,7 @@ function EvaluateRow({id, index, source}: {id?: string; index: number; source: s
   const evaluation = useMemo(() => {
     if (!parsed.ok) return undefined;
     const program = elaborateNbl(nblParser.parseExpression(`${source};`));
-    return new Evaluator().evaluate(program, EvaluationStrategy.CALL_BY_VALUE);
+    return new Evaluator(DEFAULT_EVALUATION_LIMITS.maxSteps, {maximumTermSize: DEFAULT_EVALUATION_LIMITS.maxTermSize}).evaluate(program, EvaluationStrategy.CALL_BY_VALUE);
   }, [parsed, source]);
   const full = parsed.ok ? nblEvaluate(parsed.term) : undefined;
   const {t} = useTranslation();

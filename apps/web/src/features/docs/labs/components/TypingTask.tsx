@@ -9,10 +9,10 @@ import {ProofTreeCanvas} from "@/features/proof-tree/components/ProofTreeCanvas.
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
 import {ManualActionsContext, type ManualActions} from "@/features/proof-tree/manual/manualActions.ts";
 import {checkManualTree, manualNodeRules, type ManualResults} from "@/features/proof-tree/manual/manualCheck.ts";
-import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {contextToText, countManualNodes, createManualNode, findManualNode, removeManualNode, type ManualNode} from "@/shared/ui-state/manualProof.ts";
-import {parseDefinitions, termKey} from "@/shared/lib/manualParse.ts";
-import {BracketTextarea} from "@/shared/components/BracketTextarea.tsx";
+import {definitionName, parseDefinitions, termKey} from "@/shared/lib/manualParse.ts";
+import {JUDGEMENT_LANGUAGE_ID, setJudgementNames} from "@/features/editor/hooks/judgementLanguage.ts";
+import {failingDefinitions} from "@/features/proof-tree/manual/definitionUses.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
@@ -34,11 +34,12 @@ import {
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
+import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
 
 export type TypingTaskType = "derivation" | "evaluate";
 type Calculus = "nbl" | "stlc";
 
-const evaluator = new Evaluator(500, {maximumTermSize: 5000, timeLimitMs: 1000});
+const evaluator = new Evaluator(DEFAULT_EVALUATION_LIMITS.maxSteps, {maximumTermSize: DEFAULT_EVALUATION_LIMITS.maxTermSize});
 const solutionMapper = new TexMapper();
 
 // `term : Type` — the stated type follows the last " : ", since types never contain one.
@@ -106,6 +107,16 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
   const [results, setResults] = useState<ManualResults>({});
   const [verdict, setVerdict] = useTrackedVerdict<Verdict>(taskId);
   const definitions = useMemo(() => parseDefinitions(work.definitions), [work.definitions]);
+  const failing = failingDefinitions(work.definitions, work.tree, results);
+  const definitionMarkers = [
+    ...definitions.errors.map((e) => ({line: e.line, severity: "error" as const, message: e.message})),
+    ...failing.map((f) => ({line: f.line, severity: "warning" as const, message: t("manualBuilder.definitionAllUsesWrong", {line: f.line, name: f.name})})),
+  ];
+  // Completions are shared by every judgement editor, so a focused lab task offers its own names.
+  const offerNames = () => setJudgementNames([
+    ...[...definitions.definitions.contexts.keys()].map((k) => definitionName("Γ", k)),
+    ...(answer ? termKey(answer.term).match(/[A-Za-z_]\w*/g) ?? [] : []),
+  ]);
 
   const changed = useCallback((nodeId?: string) => {
     setVerdict(undefined);
@@ -204,23 +215,28 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
             {context && (
               <div className="shrink-0 space-y-1">
                 <p className="text-xs text-muted-foreground">{t("manualBuilder.definitions")}</p>
-                <BracketTextarea
+                <LabEditor
+                  language={JUDGEMENT_LANGUAGE_ID}
+                  suggestWhileTyping
                   value={work.definitions}
-                  onChange={(e) => { setWork((current) => ({...current, definitions: applyShortcuts(e.target.value)})); changed(); }}
-                  minRows={2}
-                  spellCheck={false}
-                  textClassName="p-2 font-mono text-xs leading-normal"
-                  className="rounded border bg-background outline-none focus:ring-1 focus:ring-ring"
+                  onChange={(next) => { setWork((current) => ({...current, definitions: next})); changed(); }}
+                  markers={definitionMarkers}
+                  className="w-full bg-background"
                 />
                 {definitions.errors.map((error, i) => (
                   <p key={i} className="text-[11px] text-destructive">{t("manualBuilder.definitionError", {line: error.line, message: error.message})}</p>
                 ))}
+                {failing.map((f) => (
+                  <p key={`fail-${f.line}`} className="text-[11px] text-amber-700 dark:text-amber-400">{t("manualBuilder.definitionAllUsesWrong", {line: f.line, name: f.name})}</p>
+                ))}
               </div>
             )}
             <ManualActionsContext.Provider value={actions}>
+              <div className="contents" onFocusCapture={offerNames}>
               <PanZoomCanvas className={full ? "min-h-0 flex-1" : "h-96"} compact>
                 <ManualNodeView node={work.tree} results={results} usesConstraints={false}/>
               </PanZoomCanvas>
+              </div>
             </ManualActionsContext.Provider>
             <div className="flex shrink-0 items-center gap-2">
               <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>

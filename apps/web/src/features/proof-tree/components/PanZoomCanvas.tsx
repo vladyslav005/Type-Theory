@@ -17,9 +17,9 @@ export function PanZoomCanvas({children, className, compact = false}: {children:
         minScale={0.1}
         maxScale={3}
         centerOnInit={true}
-        wheel={{step: 0.1, excluded: ["input"]}}
-        doubleClick={{mode: "zoomIn", excluded: ["input", "button", "rule-name"]}}
-        panning={{velocityDisabled: true, excluded: ["input", "button", "rule-name"]}}
+        wheel={{step: 0.1, excluded: ["input", "monaco-editor"]}}
+        doubleClick={{mode: "zoomIn", excluded: ["input", "button", "rule-name", "manual-readonly", "monaco-editor"]}}
+        panning={{velocityDisabled: true, excluded: ["input", "button", "rule-name", "manual-readonly", "monaco-editor"]}}
         limitToBounds={false}
       >
         {({zoomIn, zoomOut, centerView}) => (
