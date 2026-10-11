@@ -1013,7 +1013,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const constraints: Constraint[] = [
       ...funcProof.constraints,
       ...argProof.constraints,
-      {left: funcProof.type, right: expectedFuncType},
+      {left: funcProof.type, right: expectedFuncType, reason: {kind: "apply", func: node.func, arg: node.arg}},
     ];
 
     return {
@@ -1056,7 +1056,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const constraints: Constraint[] = [
       ...conditionProof.constraints,
       ...thenProof.constraints,
-      {left: conditionProof.type, right: boolType},
+      {left: conditionProof.type, right: boolType, reason: {kind: "expect", subject: node.condition, why: "the condition of an if must be a Bool"}},
     ];
 
     let resultType: Type = thenProof.type;
@@ -1069,8 +1069,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       constraints.push(
         ...branchConditionProof.constraints,
         ...branchThenProof.constraints,
-        {left: branchConditionProof.type, right: boolType},
-        {left: branchThenProof.type, right: resultType},
+        {left: branchConditionProof.type, right: boolType, reason: {kind: "expect", subject: branch.condition, why: "the condition of an if must be a Bool"}},
+        {left: branchThenProof.type, right: resultType, reason: {kind: "expect", subject: branch.then, why: "all branches of an if must have the same type"}},
       );
     }
 
@@ -1080,7 +1080,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       premises.push(elseProof);
       constraints.push(
         ...elseProof.constraints,
-        {left: elseProof.type, right: resultType},
+        {left: elseProof.type, right: resultType, reason: {kind: "expect", subject: node.else, why: "both branches of an if must have the same type"}},
       );
     } else {
       constraints.push({left: resultType, right: unitType});
@@ -1500,8 +1500,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       constraints: [
         ...leftProof.constraints,
         ...rightProof.constraints,
-        {left: leftProof.type, right: natType},
-        {left: rightProof.type, right: natType},
+        {left: leftProof.type, right: natType, reason: {kind: "expect", subject: node.left, why: `"${node.operator}" works on numbers`}},
+        {left: rightProof.type, right: natType, reason: {kind: "expect", subject: node.right, why: `"${node.operator}" works on numbers`}},
       ],
     };
   }
@@ -1733,7 +1733,11 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       type: {kind: "TyIdentifier", id: crypto.randomUUID(), name: result},
       gamma: this.schemeContext.serializeGamma(),
       premises: [argProof],
-      constraints: [...argProof.constraints, {left: argProof.type, right: {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"}}],
+      constraints: [...argProof.constraints, {
+        left: argProof.type,
+        right: {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"},
+        reason: {kind: "expect", subject: node.term, why: `${node.kind.toLowerCase()} needs a number`},
+      }],
     };
   }
 

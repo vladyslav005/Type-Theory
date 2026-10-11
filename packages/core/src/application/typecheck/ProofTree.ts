@@ -35,11 +35,18 @@ export interface KindProofTree {
   error?: string
 }
 
+// left is the type a subterm has, right the type its rule needs.
 export interface Constraint {
   left: Type;
   right: Type;
   pos?: SourcePosition;
+  reason?: ConstraintReason;
 }
+
+// Why a constraint exists, so a failed one can be explained in terms of the program.
+export type ConstraintReason =
+  | {kind: "expect"; subject: Term; why: string}
+  | {kind: "apply"; func: Term; arg: Term};
 
 export type Substitution = Map<string, Type>;
 

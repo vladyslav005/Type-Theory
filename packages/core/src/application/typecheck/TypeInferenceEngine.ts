@@ -4,7 +4,8 @@ import {
   type Substitution,
   type TypeScheme,
 } from "@/application/typecheck/ProofTree.ts";
-import type {Type, TyMetaVar} from "@/domain/ast";
+import type {Term, Type, TyMetaVar} from "@/domain/ast";
+import {AstPrettyPrinter} from "@/presentation/AstPrettyPrinter.ts";
 import {Gamma} from "@/application/typecheck/Gamma.ts";
 import {kindEquals, metaVarName, normalizeType, termIndexEquals, typeToString} from "@/application/typecheck/utils.ts";
 import {TypeCheckError} from "@/application/typecheck/TypeCheckError.ts";
@@ -157,6 +158,27 @@ export class TypeInferenceEngine {
     }
   }
 
+  // A plain type clash, reworded as "expected X, but … has type Y", with the rule's reason when the constraint has one.
+  private explainFailure(constraint: Constraint, substitution: Substitution, detail: string): string {
+    if (!detail.startsWith("Cannot unify")) return detail;
+    const actual = normalizeType(this.applySubstitution(constraint.left, substitution));
+    const expected = normalizeType(this.applySubstitution(constraint.right, substitution));
+    const quote = (term: Term) => `"${new AstPrettyPrinter().printTerm(term)}"`;
+    const reason = constraint.reason;
+    if (reason?.kind === "apply") {
+      if (actual.kind !== "TyArrow") {
+        return `${quote(reason.func)} has type ${typeToString(actual)}, which is not a function, so it can't be applied to ${quote(reason.arg)}.`;
+      }
+      if (expected.kind === "TyArrow") {
+        return `${quote(reason.func)} expects an argument of type ${typeToString(actual.from)}, but ${quote(reason.arg)} has type ${typeToString(expected.from)}.`;
+      }
+    }
+    if (reason?.kind === "expect") {
+      return `Expected ${typeToString(expected)}, but ${quote(reason.subject)} has type ${typeToString(actual)} — ${reason.why}.`;
+    }
+    return `Expected ${typeToString(expected)}, but got ${typeToString(actual)}.`;
+  }
+
   solve(constraints: Constraint[]): {substitution: Substitution; steps: InferenceStep[]} {
     let substitution: Substitution = new Map();
     const steps: InferenceStep[] = [];
@@ -172,7 +194,7 @@ export class TypeInferenceEngine {
           substitution,
         );
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
+        const message = this.explainFailure(constraint, substitution, error instanceof Error ? error.message : String(error));
         steps.push({constraint, substitutionBefore, substitutionAfter: substitutionBefore, newBindings: [], affectedNodeIds: [], error: message});
         throw new TypeCheckError(message, constraint.pos);
       }
