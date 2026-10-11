@@ -8,7 +8,6 @@ import "@xyflow/react/dist/style.css";
 import type {Program, Term} from "@vladyslav005/tt-core";
 import type {AstFlowGraph} from "@/shared/presentation/flow/types.ts";
 import {AstEditor, type AstEditorHandle} from "@/features/ast/components/ast-editor/AstEditor.tsx";
-import {Ast} from "@/features/ast/components/ast/Ast.tsx";
 import {HelpHint} from "@/shared/components/HelpHint.tsx";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {AstNodePaletteDropdowns} from "@/features/ast/components/ast-editor/AstNodePaletteDropdowns.tsx";
@@ -84,7 +83,7 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
     };
   }, [saved, termOnly]);
   const [check, setCheck] = useState<{result: AstCheck; key: string} | undefined>();
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview] = useState(true);
 
   // Marks belong to the tree that was checked — any structural change clears them.
   const setAst = useCallback((next: Program) => {
@@ -137,9 +136,7 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           </div>
         )}
         <div className="flex items-center gap-2">
-        {preview ? (
-          <HelpHint text={t("astPanel.lecturePreviewHint")}/>
-        ) : (
+        {preview && <HelpHint text={t("astPanel.lectureEditHint")}/>}
           <div className="flex items-center gap-2">
             {/* How-to hints live in a tooltip so the task stays uncluttered. */}
             <Tip label={[compact ? instructions : undefined, t("lectureWidgets.astTip")].filter(Boolean).join(" ")}>
@@ -157,13 +154,12 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
             {check && <Button size="sm" variant="outline" onClick={() => setCheck(undefined)}>{t("manualBuilder.clearMarks")}</Button>}
             <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
           </div>
-        )}
         {button}
         </div>
       </div>
 
       <div className={cn("relative rounded-md border overflow-hidden bg-background", full ? "min-h-0 flex-1" : compact ? "h-72" : "h-80")}>
-        {!preview && graph.nodes.length === 0 && (
+        {graph.nodes.length === 0 && (
           <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/30 bg-background/90 px-5 py-4 text-center">
               <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
@@ -180,12 +176,8 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           </div>
         )}
         <ReactFlowProvider>
-          {preview ? (
-            <Ast AST={ast} viewStyle="lecture" onViewStyleChange={(style) => setPreview(style === "lecture")} hideControls/>
-          ) : (
-            <AstEditor ref={astEditorRef} graph={markedGraph} setGraph={setGraph} AST={ast} setAST={setAst} allowedTypes={allowedTypes}
-              compactToolbar onPreviewLecture={() => setPreview(true)}/>
-          )}
+          <AstEditor ref={astEditorRef} graph={markedGraph} setGraph={setGraph} AST={ast} setAST={setAst} allowedTypes={allowedTypes}
+            compactToolbar viewStyle={preview ? "lecture" : "cards"} onViewStyleChange={(style) => setPreview(style === "lecture")}/>
         </ReactFlowProvider>
       </div>
 

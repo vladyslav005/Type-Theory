@@ -1,5 +1,5 @@
 import type {Program} from "@vladyslav005/tt-core";
-import {useCallback, useState, useEffect, useRef, forwardRef, useImperativeHandle} from "react";
+import {useCallback, useMemo, useState, useEffect, useRef, forwardRef, useImperativeHandle} from "react";
 import {useTranslation} from "react-i18next";
 import {
   applyEdgeChanges,
@@ -80,6 +80,9 @@ import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlo
 import {Undo2, Redo2, LayoutGrid, Crosshair, Trash2, Eraser, Map as MapIcon, BoxSelect} from "lucide-react";
 import {Tip} from "@/shared/components/Tip.tsx";
 import {AstStyleToggle} from "@/features/ast/components/ast/lecture/AstStyleToggle.tsx";
+import {LectureEditableNode} from "@/features/ast/components/ast/lecture/LectureEditableNode.tsx";
+import {toEditableLectureView} from "@/features/ast/components/ast/lecture/lectureTree.ts";
+import type {AstViewStyle} from "@/features/ast/hooks/useAstViewStyle.ts";
 import {TERM_NODE_TYPES} from "@/features/ast/components/ast-editor/astNodePalette.ts";
 
 const HANDLE_LABELS: Record<string, string> = {
@@ -116,7 +119,11 @@ export interface AstProps {
   allowedTypes?: string[],
   // Builders keep only the essential tools: no box select, clear-all (they have Reset) or minimap.
   compactToolbar?: boolean,
+  // Switches to a separate, read-only lecture preview (the Editor tab).
   onPreviewLecture?: () => void,
+  // "lecture" shows the same graph as a textbook tree, still editable (lab builders); omitted means cards.
+  viewStyle?: AstViewStyle,
+  onViewStyleChange?: (style: AstViewStyle) => void,
 }
 
 export interface AstEditorHandle {
@@ -204,6 +211,8 @@ const nodeTypes: NodeTypes = {
   fold: FoldFlowNode,
   unfold: UnfoldFlowNode,
 } as NodeTypes;
+
+const lectureNodeTypes: NodeTypes = Object.fromEntries(Object.keys(nodeTypes).map((key) => [key, LectureEditableNode]));
 
 type AddOnDropKind = "decl" | "term" | "type" | "kind" | "kindOrType";
 
@@ -602,7 +611,10 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   allowedTypes,
   compactToolbar = false,
   onPreviewLecture,
+  viewStyle = "cards",
+  onViewStyleChange,
 }, ref) {
+  const lecture = viewStyle === "lecture";
   const {t} = useTranslation();
   const rf = useReactFlow();
   const {resolvedTheme} = useTheme();
@@ -611,6 +623,9 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
   const [fitToken, setFitToken] = useState(0);
   const requestFitView = useCallback(() => setFitToken((t) => t + 1), []);
   useFitViewOnChange(fitToken);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => requestFitView(), [viewStyle, requestFitView]);
+  const displayGraph = useMemo(() => (lecture ? toEditableLectureView(graph) : graph), [graph, lecture]);
 
   // When on, a left-drag on empty canvas draws a marquee that selects the nodes it covers;
   // panning moves to the middle/right mouse button. Shift-drag still marquees in either mode.
@@ -672,12 +687,14 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
 
   const onNodesChange = useCallback(
     (changes: any) => {
+      // Lecture positions come from the tree layout; the card positions stay untouched underneath.
+      const applied = lecture ? changes.filter((change: any) => change.type !== "position") : changes;
       setGraph((prevGraph) => ({
         ...prevGraph,
-        nodes: applyNodeChanges(changes, prevGraph.nodes),
+        nodes: applyNodeChanges(applied, prevGraph.nodes),
       }));
     },
-    [],
+    [lecture],
   );
 
   const onEdgesChange = useCallback(
@@ -1501,15 +1518,16 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
       )}
 
       <ReactFlow
-        nodes={graph.nodes}
-        edges={graph.edges}
+        nodes={displayGraph.nodes}
+        edges={displayGraph.edges}
         minZoom={0.1}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
         onSelectionChange={onSelectionChange as any}
-        nodeTypes={nodeTypes}
+        nodeTypes={lecture ? lectureNodeTypes : nodeTypes}
+        nodesDraggable={!lecture}
         onConnectStart={onConnectStart}
         onConnectEnd={onConnectEnd}
         onConnect={onConnect}
@@ -1534,6 +1552,7 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
         <Panel position="top-right">
           <div className="flex gap-2">
             {onPreviewLecture && <AstStyleToggle style="cards" onChange={onPreviewLecture}/>}
+            {onViewStyleChange && <AstStyleToggle style={viewStyle} onChange={onViewStyleChange}/>}
             <Tip label={t("astEditor.undo")}>
               <Button size="icon" variant="secondary" onClick={undo} className="shadow-lg hover:shadow-xl transition-shadow">
                 <Undo2 className="h-4 w-4" />
@@ -1544,11 +1563,13 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
                 <Redo2 className="h-4 w-4" />
               </Button>
             </Tip>
-            <Tip label={t("astEditor.autoLayout")}>
-              <Button size="icon" variant="secondary" onClick={autoLayout} className="shadow-lg hover:shadow-xl transition-shadow">
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-            </Tip>
+            {!lecture && (
+              <Tip label={t("astEditor.autoLayout")}>
+                <Button size="icon" variant="secondary" onClick={autoLayout} className="shadow-lg hover:shadow-xl transition-shadow">
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </Tip>
+            )}
             {!compactToolbar && (
               <Tip label={marqueeSelect ? t("astEditor.marqueeOn") : t("astEditor.marqueeOff")}>
                 <Button size="icon" variant={marqueeSelect ? "secondary" : "outline"} onClick={() => setMarqueeSelect((prev) => !prev)}
@@ -1586,8 +1607,8 @@ export const AstEditor = forwardRef<AstEditorHandle, AstProps>(function AstEdito
             )}
           </div>
         </Panel>
-        <Background />
-        {showMiniMap && <MiniMap
+        {!lecture && <Background />}
+        {showMiniMap && !lecture && <MiniMap
           className="bg-background! border-border!"
           nodeColor={(node) => {
             if (node.type === 'program') return 'hsl(var(--primary))';

@@ -1,4 +1,5 @@
-import {memo, useState} from "react";
+import {memo, useEffect, useMemo, useRef, useState} from "react";
+import type {KeyboardEvent} from "react";
 import {useTranslation} from "react-i18next";
 import {Plus, X} from "lucide-react";
 import type {ManualField, ManualNode, ManualNodeResult, ManualVerdict} from "@/shared/ui-state/manualProof.ts";
@@ -10,6 +11,8 @@ import {useUndoableText} from "@/shared/hooks/useUndoableText.ts";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import "@/features/proof-tree/components/proof-tree-using-css/ProofTree.css";
 import {Tip} from "@/shared/components/Tip.tsx";
+import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
+import {filterRuleSuggestions, ruleSuggestions} from "@/features/proof-tree/manual/ruleSuggestions.ts";
 
 const verdictClass = (verdict: ManualVerdict | undefined) =>
   verdict === "valid"
@@ -89,6 +92,50 @@ function Field({value, placeholder, hint: title, width, verdict, readOnly, onCha
 
 function RuleInput({value, placeholder, verdict, onChange}: {value: string; placeholder: string; verdict?: ManualVerdict; onChange: (value: string) => void}) {
   const history = useUndoableText(value, onChange);
+  const theories = useAppSelector((state) => state.term.enabledTheories);
+  const features = useAppSelector((state) => state.term.stlcFeatures);
+  const all = useMemo(() => ruleSuggestions(theories, features), [theories, features]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  const matches = useMemo(() => filterRuleSuggestions(all, value), [all, value]);
+  const shown = open && matches.length > 0 && !(matches.length === 1 && matches[0] === value);
+
+  useEffect(() => {
+    listRef.current?.children[active]?.scrollIntoView({block: "nearest"});
+  }, [active]);
+
+  const pick = (name: string) => {
+    history.change(name, true);
+    setOpen(false);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (shown) {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const step = e.key === "ArrowDown" ? 1 : -1;
+        setActive((i) => (i + step + matches.length) % matches.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        pick(matches[Math.min(active, matches.length - 1)]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        return;
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+      return;
+    }
+    history.onKeyDown(e);
+  };
+
   // Zero-size anchor like the automatic tree's .rule-name: the input sits right of the inference line, centred on it.
   return (
     <div className="relative h-0 w-0 self-start">
@@ -96,13 +143,48 @@ function RuleInput({value, placeholder, verdict, onChange}: {value: string; plac
         value={value}
         placeholder={placeholder}
         spellCheck={false}
-        onChange={(e) => history.change(e.target.value)}
-        onKeyDown={history.onKeyDown}
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={shown}
+        onChange={(e) => {
+          history.change(e.target.value);
+          setOpen(true);
+          setActive(0);
+        }}
+        onFocus={() => {
+          setOpen(true);
+          setActive(0);
+        }}
+        onBlur={() => setOpen(false)}
+        onKeyDown={onKeyDown}
         className={cn(
           "absolute left-1.5 top-0 h-7 w-28 -translate-y-1/2 rounded border bg-background px-1.5 font-mono text-xs outline-none focus:ring-1 focus:ring-ring",
           verdictClass(verdict),
         )}
       />
+      {shown && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          className="rule-suggestions absolute left-1.5 top-4 z-50 max-h-48 w-36 overflow-y-auto rounded border bg-popover py-0.5 font-mono text-xs text-popover-foreground shadow-md"
+        >
+          {matches.map((name, i) => (
+            <li
+              key={name}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                pick(name);
+              }}
+              onMouseEnter={() => setActive(i)}
+              className={cn("cursor-pointer px-1.5 py-0.5 whitespace-nowrap", i === active && "bg-accent text-accent-foreground")}
+            >
+              {name}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

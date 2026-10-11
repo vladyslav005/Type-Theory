@@ -8,6 +8,7 @@ const TYPE_FLOW_TYPES = new Set(["type", "kind"]);
 const KEEP_EDGE_LABEL = /^(inl-term|inr-term|case-|field-|elif-)/;
 
 const STATIC_SLOTS: Record<string, string[]> = {
+  Program: ["term"],
   App: ["left", "right"],
   Ascribe: ["term", "type"],
   BinOp: ["leftOperand", "rightOperand"],
@@ -113,7 +114,7 @@ export function lectureLabel(term: any): string {
   }
 }
 
-function lectureEdge(edge: Edge): Edge {
+export function lectureEdge(edge: Edge): Edge {
   const keepLabel = !!edge.sourceHandle && KEEP_EDGE_LABEL.test(edge.sourceHandle);
   return {
     ...edge,
@@ -198,6 +199,51 @@ export function toLectureGraph(graph: AstFlowGraph, expanded: ReadonlySet<string
 
   walk(rootId, "", new Set(), new Set());
   return {nodes, edges};
+}
+
+const NON_TERM_FLOW_TYPES = new Set(["program", "funDecl", "varDecl", "typeAliasDecl", "typeConstructorDecl", "type", "kind"]);
+// Type annotations stay hidden in the lecture view, so their slots aren't offered for editing either.
+export const TYPE_SLOTS = new Set(["type", "paramType", "typeArg", "paramKind"]);
+
+// The editor's graph shown lecture-style: the main expression and any loose term trees, laid out as a
+// textbook tree. Declarations and types stay in the graph, only hidden; the Program node shows as a
+// placeholder until a main expression is attached to it.
+export function toEditableLectureView(graph: AstFlowGraph): AstFlowGraph {
+  const isTerm = (id: string) => {
+    const node = graph.nodes.find((n) => n.id === id);
+    return !!node && !NON_TERM_FLOW_TYPES.has(node.type as string);
+  };
+  const program = graph.nodes.find((node) => node.type === "program");
+  const mainEdge = program && graph.edges.find((edge) => edge.source === program.id && edge.sourceHandle === "term");
+  const hasParent = new Set(graph.edges.map((edge) => edge.target));
+  const roots = [
+    ...(mainEdge ? [mainEdge.target] : []),
+    ...graph.nodes.filter((node) => isTerm(node.id) && !hasParent.has(node.id)).map((node) => node.id),
+  ];
+  const visible = new Set<string>();
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    if (visible.has(id)) continue;
+    visible.add(id);
+    for (const edge of graph.edges) {
+      if (edge.source === id && !TYPE_SLOTS.has(edge.sourceHandle ?? "") && isTerm(edge.target)) queue.push(edge.target);
+    }
+  }
+  if (program && !mainEdge) visible.add(program.id);
+
+  const shownEdges = graph.edges.filter((edge) => visible.has(edge.source) && visible.has(edge.target) && !TYPE_SLOTS.has(edge.sourceHandle ?? ""));
+  const shownEdgeIds = new Set(shownEdges.map((edge) => edge.id));
+  const laidOut = layoutLectureTree(graph.nodes.filter((node) => visible.has(node.id)), shownEdges.map(lectureEdge));
+  const positions = new Map(laidOut.nodes.map((node) => [node.id, node.position]));
+  return {
+    nodes: graph.nodes.map((node) => ({...node, hidden: !visible.has(node.id), draggable: false, position: positions.get(node.id) ?? node.position})),
+    edges: graph.edges.map((edge) => {
+      if (!shownEdgeIds.has(edge.id)) return {...edge, hidden: true};
+      const shown = lectureEdge(edge);
+      return edge.selected ? {...shown, style: {...shown.style, stroke: "var(--color-sky-500)", strokeWidth: 2.5}} : shown;
+    }),
+  };
 }
 
 const H_GAP = 28;

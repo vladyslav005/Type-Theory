@@ -708,7 +708,6 @@
     "variable": "variable"
   },
   "astPanel": {
-    "lecturePreviewHint": "Preview of the edited AST as a lecture-style tree: only the main expression, without declarations or types. Nodes can't be moved or edited here — to keep editing, switch back to the card view with the button in the top-right corner of the tree.",
     "viewLecture": "Switch to the lecture tree — the main expression drawn as on the lecture slides, without declarations or types",
     "viewCards": "Switch to the card view — the whole program with declarations and types, the same view the AST editor uses",
     "lectureHint": "Lecture-style tree: only the main expression, without declarations or type annotations. To see the whole program, switch to the card view with the button in the top-right corner of the tree. It's the same view the AST editor (the Editor tab) uses for editing, but works for viewing too.",
@@ -728,7 +727,9 @@
     "btnCopyFromViewer": "Copy from viewer",
     "btnDownloadJson": "Download JSON",
     "btnUploadJson": "Upload JSON",
-    "btnPasteToEditor": "Paste to text editor"
+    "btnPasteToEditor": "Paste to text editor",
+    "lectureEditHint": "Lecture-style tree, editable: drag from a blue dot under a node to add a child there, double-click a label to rename it, and select a node or edge to delete it. Declarations and types are hidden here — switch to the card view (top-right button) to edit them.",
+    "lecturePreviewHint": "Preview of the edited AST as a lecture-style tree: only the main expression, without declarations or types. Nodes can't be moved or edited here — to keep editing, switch back to the card view with the button in the top-right corner of the tree."
   },
   "astNodes": {
     "categories": {
@@ -823,7 +824,9 @@
     "marqueeOff": "Box select: off — drag to pan, Shift+drag to select",
     "deleteSelection": "Delete selection (Del)",
     "showMinimap": "Show minimap",
-    "hideMinimap": "Hide minimap"
+    "hideMinimap": "Hide minimap",
+    "lectureRename": "Double-click to rename",
+    "lectureProgram": "program"
   },
   "evaluationPanel": {
     "limits": {
