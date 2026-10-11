@@ -9,11 +9,13 @@ import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {typeToString, type AntlrParserAdapter} from "@vladyslav005/tt-core";
 import {TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
+import type {TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 interface PredictThenVerifyProps {
   id?: string;
   term: string;
   prompt?: string;
+  theories?: Partial<TypeTheoryConfig>;
 }
 
 // Parsed as a lambda's parameter type, so redundant parens and spacing don't matter but structure does.
@@ -26,11 +28,11 @@ function readType(parser: AntlrParserAdapter, text: string): string | undefined 
   }
 }
 
-export function PredictThenVerify({id, term, prompt}: PredictThenVerifyProps) {
+export function PredictThenVerify({id, term, prompt, theories}: PredictThenVerifyProps) {
   const {t} = useTranslation();
   const {parser} = useDependencies();
   const taskId = useTaskId(id);
-  const {check, result, error, checked} = useMiniWorkspace(term);
+  const {check, result, error, checked} = useMiniWorkspace(term, theories);
   const [guess, setGuess] = useSavedState(taskId && `${taskId}#guess`, "");
   const [revealed, setRevealed] = useState(false);
 

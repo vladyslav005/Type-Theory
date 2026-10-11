@@ -1,0 +1,591 @@
+import {
+  Callout,
+  ConceptSection,
+  GrammarBox,
+  Math,
+  MathBlock,
+  ReductionTrace,
+  ReferenceList,
+  RuleCardStrip,
+  ScreenOnly,
+  SectionHeading,
+  SummaryBox,
+} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {MiniWorkspace} from "@/features/docs/workspace/MiniWorkspace.tsx";
+import {PredictThenVerify} from "@/features/docs/workspace/PredictThenVerify.tsx";
+import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
+import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
+
+V predchádzajúcej prednáške ste postavili jednoducho typovaný λ-kalkul <Math>{"\\lambda_\\to"}</Math>:
+premenné, abstrakcie, aplikácie, typy `Bool` a `Nat` a typovaciu reláciu <Math>{"\\Gamma \\vdash t : T"}</Math>.
+Je to presný, ale chudobný jazyk — nedá sa v ňom pohodlne zapísať „urob najprv toto, potom tamto",
+ani vrátiť z funkcie dve hodnoty naraz. Táto prednáška ho rozšíri v troch krokoch: zavedie
+najjednoduchší možný typ **Unit**, potom **odvodené tvary termov** — skratky, ktoré jazyk nezväčšujú,
+len ho robia čitateľnejším — a nakoniec **súčinové typy**: dvojice, n-tice a záznamy, teda prvé
+skutočné údajové štruktúry.
+
+Pri každom rozšírení postupujeme rovnako ako doteraz: doplníme **syntax** (nové tvary termov, hodnôt
+a typov), **typovacie pravidlá** a **vyhodnocovacie pravidlá**.
+
+<SectionHeading id="types" index="1" title="Základné a neinterpretované typy" blurb="Odkiaľ sa berú typy ako A, B, C a prečo ich potrebujeme." />
+
+<ConceptSection id="base-types" title="Základné typy">
+
+Skutočné typované jazyky ponúkajú celý rad **základných typov** — množín jednoduchých,
+neštruktúrovaných hodnôt spolu s operáciami nad nimi: celé čísla `Int` (`+`, `-`, `*`, `/`), reálne
+čísla `Float`, znaky `Char` (`ord`, `chr`), reťazce `String` (`concat`, …). V našom kalkule sme zatiaľ
+mali dva: `Bool` a `Nat`.
+
+Pre formálne uvažovanie je však šikovnejšie od konkrétnych typov **abstrahovať**. Zavedieme preto
+množinu **neinterpretovaných (abstraktných) typov** <Math>{"\\mathcal{A}"}</Math>, ktoré označujeme
+veľkými písmenami <Math>{"A, B, C, \\ldots"}</Math> (prípadne s indexmi). O takom type nevieme nič —
+ani aké hodnoty obsahuje, ani aké operácie nad ním existujú. Gramatika jednoduchých typov potom
+vyzerá takto:
+
+<MathBlock>{"T ::= A \\;\\mid\\; T \\to T \\;\\mid\\; \\mathtt{Bool} \\;\\mid\\; \\mathtt{Nat}"}</MathBlock>
+
+Neinterpretované typy nie sú len teoretická pomôcka: sú prvým krokom k **polymorfizmu** (koniec
+semestra). Funkcia <Math>{"id = \\lambda x{:}A.\\, x : A \\to A"}</Math> sa správa rovnako pre
+akýkoľvek typ dosadený za <Math>{"A"}</Math>.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"λ x : A . x;"}
+  label="Vyskúšajte"
+  hint="Aplikácia berie každé meno typu s veľkým začiatočným písmenom, ktoré nepozná, ako neinterpretovaný typ. Skúste λ f : A -> B . λ x : A . f x; — typová kontrola nepotrebuje vedieť, čo A a B sú."
+/>
+
+<SectionHeading id="unit" index="2" title="Jednotkový typ" blurb="Typ s jedinou hodnotou — a prečo je užitočný." />
+
+<ConceptSection id="unit-type" title="Unit a unit">
+
+Jazyk rozšírime o základný typ **`Unit`** (jednotkový typ, *singleton*). Na rozdiel od
+neinterpretovaných typov je interpretovaný úplne konkrétne a čo najjednoduchšie: má **jediný prvok**,
+konštantu **`unit`**. Tá je zároveň jedinou hodnotou, ktorú môže term typu `Unit` nadobudnúť — výsledkom
+vyhodnotenia akéhokoľvek termu typu `Unit` je vždy `unit`.
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\mathtt{unit} \\\\ v ::= & \\ldots & \\mid\\ \\mathtt{unit} \\\\ T ::= & \\ldots & \\mid\\ \\mathtt{Unit} \\end{array}"}</MathBlock>
+
+Zdá sa to zbytočné — načo typ, ktorý nenesie žiadnu informáciu? Odpoveď prinesie hneď ďalšia časť:
+`Unit` je typ výsledku výpočtov, ktoré robíme **kvôli vedľajšiemu účinku** (výpis na obrazovku, zápis
+do súboru), nie kvôli hodnote. Neskôr ho využijeme aj pri enumeračných a referenčných typoch.
+
+</ConceptSection>
+
+<RuleCardStrip
+  rules={[
+    {id: "T-Unit", conclusion: "\\Gamma \\vdash \\mathtt{unit} : \\mathtt{Unit}", description: "Konštanta unit má v každom kontexte typ Unit — axióm bez predpokladov."},
+  ]}
+/>
+
+<SectionHeading id="derived-forms" index="3" title="Odvodené tvary termov" blurb="Skratky, ktoré jazyk nezväčšia, ale spríjemnia." />
+
+<ConceptSection id="derived-why" title="Čo je odvodený tvar">
+
+**Odvodený tvar** je nový zápis, ktorý sa dá vždy vyjadriť pomocou základných tvarov λ-kalkulu.
+Jazyk nezväčšuje — všetko, čo ním napíšete, ste mohli napísať aj predtým — ale:
+
+- zavádza do termov **skratky**,
+- naznačuje **postup vyhodnocovania**,
+- uľahčuje písanie a **zvyšuje čitateľnosť** programov.
+
+Zavedieme štyri: **zoradenie** (*sequencing*), **zastúpenie** (*wildcard*), **pripísanie**
+(*ascription*) a **väzbu let**. Funkcionálne jazyky si podľa potreby definujú aj ďalšie.
+
+</ConceptSection>
+
+<ConceptSection id="sequencing" title="Zoradenie t₁; t₂">
+
+V jazykoch s vedľajšími účinkami potrebujeme vyhodnotiť niekoľko výrazov za sebou. Zápis
+<Math>{"t_1; t_2"}</Math> znamená: **vyhodnoť <Math>{"t_1"}</Math>, jeho triviálny výsledok `unit`
+zahoď a pokračuj vyhodnotením <Math>{"t_2"}</Math>**. Má to zmysel práve vtedy, keď na hodnote prvého
+termu nezáleží — preto musí byť typu `Unit`.
+
+Zoradenie sa dá formalizovať dvoma spôsobmi. **Prvý spôsob** — ako každý iný nový tvar: rozšírime
+syntax o <Math>{"t ::= \\ldots \\mid t_1; t_2"}</Math> a pridáme vyhodnocovacie a typovacie pravidlá:
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["E-Seq", "E-SeqNext", "T-Seq"]}
+  descriptions={{
+    "E-Seq": "Kým sa dá, redukuje sa prvý term.",
+    "E-SeqNext": "Keď je prvý term hotový (unit), zahodí sa a pokračuje sa druhým.",
+    "T-Seq": "Prvý term musí byť typu Unit; typ celku je typ druhého termu.",
+  }}
+/>
+
+<ConceptSection id="sequencing-sugar" title="Zoradenie ako skratka">
+
+**Druhý spôsob** nič nové do jazyka nepridáva — zápis <Math>{"t_1; t_2"}</Math> je len skratkou za
+
+<MathBlock>{"(\\lambda x{:}\\mathtt{Unit}.\\, t_2)\\ t_1 \\qquad \\text{kde } x \\text{ sa v } t_2 \\text{ nevyskytuje}"}</MathBlock>
+
+Všimnite si typ parametra: `Unit`. Pri volaní hodnotou sa najprv vyhodnotí argument
+<Math>{"t_1"}</Math> (to je náš „vedľajší účinok"), potom β-krok jeho hodnotu dosadí za
+<Math>{"x"}</Math> — kam sa nevyskytuje, takže sa stratí — a ostane <Math>{"t_2"}</Math>. Presne to,
+čo sme od zoradenia chceli.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"unit; 5;"}
+  hint="Typ je Nat — typ druhého termu. Skúste za prvý term dať niečo iné než unit, napríklad 3; 5; — T-Seq trvá na tom, aby bol prvý term typu Unit."
+/>
+
+<PredictThenVerify
+  id="seq-as-application"
+  term={"(λ x : Unit . true) unit;"}
+  prompt="Kontrolný bod: toto je rozpísané zoradenie unit; true. Aký má typ? Rozmyslite si najprv typ abstrakcie (T-Abs) a potom aplikácie (T-App)."
+/>
+
+<ConceptSection id="sequencing-ocaml" title="Príklad: zoradenie v OCaml">
+
+OCaml je funkcionálny jazyk, no nie čistý — vedľajšie účinky sú v ňom funkcie, ktoré účinok vykonajú
+a vrátia hodnotu typu `unit` (zapisovanú `()`):
+
+```ocaml
+utop # print_string;;
+- : string -> unit = <fun>
+utop # print_string "Hello, "; print_string "world!"; print_newline (); succ 4;;
+Hello, world!
+- : int = 5
+```
+
+Haskell je naopak čistý funkcionálny jazyk a vedľajšie účinky priamo nepodporuje — rovnaký efekt
+dosahuje pomocou monád.
+
+</ConceptSection>
+
+<ConceptSection id="internal-external" title="Interný a externý jazyk">
+
+Ktorý z dvoch spôsobov je „ten správny"? Oba — a dá sa to dokázať. Označme:
+
+- **externý jazyk** <Math>{"\\lambda^E"}</Math> — jednoducho typovaný λ-kalkul s typom `Unit` *a*
+  zoradením `;` (to, čo píše programátor),
+- **interný jazyk** <Math>{"\\lambda^I"}</Math> — ten istý kalkul len s typom `Unit`, bez zoradenia
+  (to, s čím pracuje typová kontrola a vyhodnocovač).
+
+Nech <Math>{"e : \\lambda^E \\to \\lambda^I"}</Math> je **spracujúca funkcia** (*elaborating
+function*), ktorá každý výskyt <Math>{"t_1; t_2"}</Math> nahradí termom
+<Math>{"(\\lambda x{:}\\mathtt{Unit}.\\, t_2)\\ t_1"}</Math>. Potom pre každý term
+<Math>{"t"}</Math> externého jazyka platí:
+
+<MathBlock>{"\\begin{array}{lcl} t \\to_E t' & \\text{vtt.} & e(t) \\to_I e(t') \\\\ \\Gamma \\vdash_E t : T & \\text{vtt.} & \\Gamma \\vdash_I e(t) : T \\end{array}"}</MathBlock>
+
+Veta hovorí, že vyhodnocovanie aj typovanie zoradenia sa dá úplne odvodiť zo základných operácií
+abstrakcie a aplikácie — práve preto ho smieme nazývať *odvodeným* tvarom.
+
+</ConceptSection>
+
+<Callout title="Syntaktický cukor">
+
+Odvodeným tvarom sa hovorí aj **syntaktický cukor** (*syntactic sugar*): zavádzajú nové tvary termov
+bez zmeny interného jazyka, uľahčujú písanie a čítanie a typová bezpečnosť jazyka zostane zachovaná.
+Spätné rozvinutie skratky do interného tvaru sa nazýva **desugaring** a robí ho parser počas
+syntaktickej analýzy.
+
+</Callout>
+
+<ConceptSection id="wildcard" title="Zastúpenie λ_ : S. t">
+
+Niekedy potrebujeme abstrakciu, ktorej parameter sa v tele vôbec nepoužije — **konštantnú funkciu**.
+Vymýšľať preň meno je zbytočné, a tak ho nahradíme podčiarkovníkom:
+
+<MathBlock>{"\\lambda \\_ : S.\\, t \\qquad \\text{je skratka za} \\qquad \\lambda x : S.\\, t \\quad (x \\text{ sa v } t \\text{ nevyskytuje})"}</MathBlock>
+
+Typ parametra treba uviesť aj tu — typová kontrola ho potrebuje, aby vedela, akého typu je celá funkcia.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["T-Wildcard", "E-wildcard"]}
+  descriptions={{
+    "T-Wildcard": "Telo sa kontroluje bez rozšírenia kontextu — parameter nemá meno, nedá sa naň odvolať.",
+    "E-wildcard": "Aplikácia na hodnotu argument jednoducho zahodí.",
+  }}
+/>
+
+<MiniWorkspace
+  initialTerm={"(λ _ : Nat . true) 5;"}
+  hint="V OCaml to isté zapíšete ako let kons _ = 4. Skúste odstrániť typ parametra — bez neho term nie je syntakticky správny."
+/>
+
+<ConceptSection id="ascription" title="Pripísanie t as T">
+
+**Pripísanie** (*ascription*) umožňuje termu explicitne pripísať typ:
+<Math>{"t ::= \\ldots \\mid t\\ \\mathtt{as}\\ T"}</Math>, čítané „term <Math>{"t"}</Math> má pripísaný
+typ <Math>{"T"}</Math>". Typová kontrola overí, že <Math>{"t"}</Math> naozaj má typ <Math>{"T"}</Math>;
+pri vyhodnotení sa pripísanie po dosiahnutí hodnoty jednoducho zahodí.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["E-Ascribe1", "E-Ascribe", "T-Ascribe"]}
+  descriptions={{
+    "E-Ascribe1": "Kým term nie je hodnotou, redukuje sa pod pripísaním.",
+    "E-Ascribe": "Hodnota s pripísaním sa redukuje na samotnú hodnotu.",
+    "T-Ascribe": "Pripísaný typ musí byť skutočným typom termu.",
+  }}
+/>
+
+<ConceptSection id="ascription-use" title="Načo je pripísanie dobré">
+
+- **Dokumentácia**: explicitný typ podtermu zvyšuje čitateľnosť — nie vždy je na prvý pohľad jasné,
+  akého typu je zložitejší výraz.
+- **Jednoznačnosť typov**: pri súčtových typoch (ďalšia prednáška) pripísanie umožní, aby mal každý
+  term jediný typ (`inl 5 as Nat + Bool`).
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"(λ x : Nat . x) as Nat -> Nat;"}
+  hint="Zmeňte pripísaný typ na Nat -> Bool alebo napíšte 5 as Bool; — chybová hláška presne povie, čo sa očakávalo a čo term v skutočnosti má."
+/>
+
+<ConceptSection id="let" title="Väzba let x = t₁ in t₂">
+
+**Väzba let** odstraňuje opakované písanie termov a zvyšuje čitateľnosť. Zápis
+<Math>{"\\mathtt{let}\\ x = t_1\\ \\mathtt{in}\\ t_2"}</Math> čítame: hodnotu termu <Math>{"t_1"}</Math>
+pomenuj <Math>{"x"}</Math> a s týmto menom vyhodnoť <Math>{"t_2"}</Math>. Let používa **volanie
+hodnotou**: viazaný term <Math>{"t_1"}</Math> sa vyhodnotí ešte predtým, než sa začne vyhodnocovať telo
+<Math>{"t_2"}</Math>, a až jeho hodnota sa dosadí za každý výskyt <Math>{"x"}</Math>.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["E-Let", "E-LetV", "T-Let"]}
+  descriptions={{
+    "E-Let": "Najprv sa vyhodnocuje viazaný term.",
+    "E-LetV": "Keď je hodnotou, dosadí sa do tela za x.",
+    "T-Let": "Telo sa kontroluje v kontexte rozšírenom o x s typom viazaného termu.",
+  }}
+/>
+
+<ConceptSection id="let-derived" title="Je let odvodený tvar?">
+
+Ak má byť let odvodeným tvarom, musí sa dať preložiť do interného jazyka:
+
+<MathBlock>{"\\mathtt{let}\\ x = t_1\\ \\mathtt{in}\\ t_2 \\;\\;=_{\\mathit{def}}\\;\\; (\\lambda x{:}T_1.\\, t_2)\\ t_1"}</MathBlock>
+
+Háčik je v type <Math>{"T_1"}</Math>: v zápise let nikde nie je. Parser, ktorý robí desugaring, ho
+nemá odkiaľ zobrať — zistí sa až **pri kontrole typov**, odvodením typu termu <Math>{"t_1"}</Math>. Let
+je preto iný druh odvodeného tvaru: nerozvinie ho parser, ale typová kontrola, ktorá
+**transformuje odvodzovací strom** — strom pre let
+
+<MathBlock>{"\\dfrac{\\dfrac{\\vdots}{\\Gamma \\vdash t_1 : T_1} \\qquad \\dfrac{\\vdots}{\\Gamma, x{:}T_1 \\vdash t_2 : T_2}}{\\Gamma \\vdash \\mathtt{let}\\ x = t_1\\ \\mathtt{in}\\ t_2 : T_2}\\ (\\text{T-let})"}</MathBlock>
+
+nahradí stromom v internom jazyku, kde už <Math>{"T_1"}</Math> pozná:
+
+<MathBlock>{"\\dfrac{\\dfrac{\\dfrac{\\vdots}{\\Gamma, x{:}T_1 \\vdash t_2 : T_2}}{\\Gamma \\vdash \\lambda x{:}T_1.\\, t_2 : T_1 \\to T_2}\\ (\\text{T-abs}) \\qquad \\dfrac{\\vdots}{\\Gamma \\vdash t_1 : T_1}}{\\Gamma \\vdash (\\lambda x{:}T_1.\\, t_2)\\ t_1 : T_2}\\ (\\text{T-app})"}</MathBlock>
+
+Let zohráva kľúčovú úlohu v jazyku OCaml a v typovom systéme **let polymorfizmu**, ku ktorému sa
+dostaneme na konci semestra.
+
+</ConceptSection>
+
+<Callout title="Let v aplikácii" screenOnly>
+
+V hlavnom editore aplikácie sa `let` typuje až so zapnutým rozšírením **Let polymorfizmus** (ponuka
+**Rozšírenia**) — práve kvôli tomu, že let je v aplikácii rovno jeho polymorfnou verziou. Pre
+jednoduché príklady z tejto prednášky dáva rovnaký typ ako pravidlo T-let vyššie; okno nižšie ho má
+zapnuté.
+
+</Callout>
+
+<MiniWorkspace
+  initialTerm={"let x = 3 + 1 in x * x;"}
+  theories={{letPolymorphism: true}}
+  hint="Viazaný term 3 + 1 sa vyhodnotí raz a jeho hodnota 4 sa dosadí na obe miesta. Skúste let x = true in x + 1; — telo sa kontroluje s x : Bool, a to so sčítaním nesedí."
+/>
+
+<SectionHeading id="products" index="4" title="Súčinové typy" blurb="Dvojice, n-tice a záznamy — prvé údajové štruktúry." />
+
+<ConceptSection id="products-intro" title="Typový konštruktor ×">
+
+Väčšina jazykov umožňuje skladať zložené údajové štruktúry. Náš jazyk rozšírime o **súčinový typový
+konštruktor** <Math>{"\\times"}</Math>, pomocou ktorého definujeme tri štruktúry:
+
+- **dvojicu** (*pair*) — súčin dvoch hodnôt,
+- **n-ticu** (*tuple*) — zovšeobecnenie dvojice na <Math>{"n"}</Math> hodnôt,
+- **záznam** (*record*) — n-ticu s pomenovanými položkami.
+
+</ConceptSection>
+
+<ConceptSection id="pairs" title="Dvojica">
+
+Binárny súčin typov <Math>{"T_1"}</Math> a <Math>{"T_2"}</Math> je nový typ
+<Math>{"T_1 \\times T_2"}</Math>. Jeho prvky sú usporiadané dvojice
+<Math>{"\\langle t_1, t_2 \\rangle"}</Math>, kde <Math>{"t_1 : T_1"}</Math> a <Math>{"t_2 : T_2"}</Math>, napríklad
+
+<MathBlock>{"\\begin{array}{l} \\langle 1, 4 \\rangle : \\mathtt{Nat} \\times \\mathtt{Nat} \\\\ \\langle \\mathtt{true}, 0 \\rangle : \\mathtt{Bool} \\times \\mathtt{Nat} \\\\ \\langle \\langle 1, 2 \\rangle, \\mathtt{true} \\rangle : (\\mathtt{Nat} \\times \\mathtt{Nat}) \\times \\mathtt{Bool} \\end{array}"}</MathBlock>
+
+Nad dvojicou sú definované **jediné dve operácie**: prvá projekcia <Math>{"t.1"}</Math> a druhá
+projekcia <Math>{"t.2"}</Math>, ktoré vrátia prvý resp. druhý prvok. Syntax rozšírime o nové tvary
+termov, hodnôt a typov:
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\langle t, t \\rangle \\ \\mid\\ t.1 \\ \\mid\\ t.2 \\\\ v ::= & \\ldots & \\mid\\ \\langle v, v \\rangle \\\\ T ::= & \\ldots & \\mid\\ T \\times T \\end{array}"}</MathBlock>
+
+</ConceptSection>
+
+<RuleCardStrip
+  rules={[
+    {id: "T-pair", premises: ["\\Gamma \\vdash t_1 : T_1", "\\Gamma \\vdash t_2 : T_2"], conclusion: "\\Gamma \\vdash \\langle t_1, t_2 \\rangle : T_1 \\times T_2", description: "Typ dvojice je súčin typov jej prvkov."},
+    {id: "T-proj₁", premises: ["\\Gamma \\vdash t_1 : T_{11} \\times T_{12}"], conclusion: "\\Gamma \\vdash t_1.1 : T_{11}", description: "Prvá projekcia má typ prvej zložky."},
+    {id: "T-proj₂", premises: ["\\Gamma \\vdash t_1 : T_{11} \\times T_{12}"], conclusion: "\\Gamma \\vdash t_1.2 : T_{12}", description: "Druhá projekcia má typ druhej zložky."},
+    {id: "E-pair1", premises: ["t_1 \\to t_1'"], conclusion: "\\langle t_1, t_2 \\rangle \\to \\langle t_1', t_2 \\rangle", description: "Najprv sa vyhodnocuje prvá zložka."},
+    {id: "E-pair2", premises: ["t_2 \\to t_2'"], conclusion: "\\langle v_1, t_2 \\rangle \\to \\langle v_1, t_2' \\rangle", description: "Druhá až keď je prvá hodnotou."},
+    {id: "E-proj1 / E-proj2", premises: ["t_1 \\to t_1'"], conclusion: "t_1.i \\to t_1'.i", description: "Kým term nie je dvojicou hodnôt, redukuje sa pod projekciou."},
+    {id: "E-betapair1", conclusion: "\\langle v_1, v_2 \\rangle.1 \\to v_1", description: "Projekcia hotovej dvojice."},
+    {id: "E-betapair2", conclusion: "\\langle v_1, v_2 \\rangle.2 \\to v_2", description: "Projekcia hotovej dvojice."},
+  ]}
+/>
+
+<ConceptSection id="pairs-cbv" title="Dvojice a volanie hodnotou">
+
+Všimnite si, ako sú vyhodnocovacie pravidlá postavené: používame **volanie hodnotou**, takže obe
+zložky dvojice sa musia vyhodnotiť na hodnoty — zľava doprava — a až potom sa smie vykonať projekcia.
+Term <Math>{"\\langle \\mathtt{pred}\\ 4,\\ \\mathtt{if\\ true\\ then\\ false\\ else\\ false} \\rangle.1"}</Math>
+sa preto vyhodnotí jediným možným spôsobom:
+
+</ConceptSection>
+
+<ReductionTrace
+  title="⟨pred 4, if true then false else false⟩.1"
+  steps={[
+    {term: "⟨[[pred 4]], if true then false else false⟩.1"},
+    {term: "⟨3, [[if true then false else false]]⟩.1", rule: "E-pair1"},
+    {term: "[[⟨3, false⟩.1]]", rule: "E-pair2"},
+    {term: "3", rule: "E-betapair1"},
+  ]}
+/>
+
+<ConceptSection id="pairs-application" title="Funkcia na dvojici">
+
+Ak funkciu aplikujeme na dvojicu, volanie hodnotou si vyžiada najprv vyhodnotiť dvojicu na dvojicu
+hodnôt a až potom urobiť β-krok:
+
+</ConceptSection>
+
+<ReductionTrace
+  title="(λx : Nat × Nat. x.2) ⟨pred 4, pred 5⟩"
+  steps={[
+    {term: "(λx : Nat × Nat. x.2) ⟨[[pred 4]], pred 5⟩"},
+    {term: "(λx : Nat × Nat. x.2) ⟨3, [[pred 5]]⟩", rule: "E-pair1"},
+    {term: "[[(λx : Nat × Nat. x.2) ⟨3, 4⟩]]", rule: "E-pair2"},
+    {term: "[[⟨3, 4⟩.2]]", rule: "E-appabs"},
+    {term: "4", rule: "E-betapair2"},
+  ]}
+/>
+
+<Callout title="Súčiny v aplikácii" screenOnly>
+
+V aplikácii sa dvojica píše `<t1, t2>`, projekcia `t.1` a súčinový typ `<T1 * T2>` (namiesto
+<Math>{"T_1 \\times T_2"}</Math>). `pred` je súčasťou typovaného NBL, preto príklady nižšie používajú
+`4 - 1`. Vyhodnocovač pomenúva projekciu hotovej n-tice spoločným pravidlom **E-ProjTuple** (zovšeobecnenie
+E-betapair1/2, pozri n-tice nižšie) a β-krok značí **β**.
+
+</Callout>
+
+<ReductionStrategyExplorer
+  term={"(λ x : <Nat * Nat> . x.2) <4 - 1, 5 - 1>;"}
+  hint="Porovnajte poradie krokov: volanie hodnotou najprv vyhodnotí obe zložky dvojice a až potom urobí β-krok, volanie menom aj normálne poradie dosadia nevyhodnotenú dvojicu hneď a jej zložky vyhodnotia až pred projekciou."
+/>
+
+<PredictThenVerify
+  id="pair-projection-type"
+  term={"λ p : <Nat * Bool> . if p.2 then p.1 else 0;"}
+  prompt="Kontrolný bod: aký typ má táto funkcia? Pri p.1 a p.2 použite T-proj₁ a T-proj₂."
+/>
+
+<ConceptSection id="pairs-ocaml" title="Príklad: dvojice v OCaml">
+
+V OCaml sa dvojica píše v zátvorkách so zložkami oddelenými čiarkou a súčinový typ hviezdičkou;
+projekcie sú funkcie `fst` a `snd`:
+
+```ocaml
+utop # (1, true);;
+- : int * bool = (1, true)
+utop # fst (1, true);;
+- : int = 1
+utop # snd;;
+- : 'a * 'b -> 'b = <fun>
+```
+
+</ConceptSection>
+
+<ConceptSection id="tuples" title="N-tica">
+
+Binárny súčin sa prirodzene zovšeobecní na súčin <Math>{"n"}</Math> typov
+<Math>{"T_1 \\times T_2 \\times \\ldots \\times T_n"}</Math> s termami
+<Math>{"\\langle t_1, \\ldots, t_n \\rangle"}</Math>, napríklad
+<Math>{"\\langle \\mathtt{false}, 365, \\mathtt{true}, \\mathtt{unit} \\rangle : \\mathtt{Bool} \\times \\mathtt{Nat} \\times \\mathtt{Bool} \\times \\mathtt{Unit}"}</Math>.
+Pre stručnosť zavedieme označenie <Math>{"\\langle T_i{}^{\\,i \\in 1..n} \\rangle"}</Math> pre typ a
+<Math>{"\\langle t_i{}^{\\,i \\in 1..n} \\rangle"}</Math> pre term; operácia <Math>{"t.i"}</Math> vráti
+<Math>{"i"}</Math>-ty prvok.
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\langle t_i{}^{\\,i \\in 1..n} \\rangle \\ \\mid\\ t.i \\\\ v ::= & \\ldots & \\mid\\ \\langle v_i{}^{\\,i \\in 1..n} \\rangle \\\\ T ::= & \\ldots & \\mid\\ \\langle T_i{}^{\\,i \\in 1..n} \\rangle \\end{array}"}</MathBlock>
+
+Každé pravidlo pre dvojice sa zovšeobecní na <Math>{"n"}</Math>-árny prípad a dvojica pravidiel pre
+obe projekcie sa zlúči do jedného pravidla pre ľubovoľnú projekciu. **E-Tuple** spája E-pair1 a
+E-pair2: <Math>{"j"}</Math>-ta zložka sa smie vyhodnocovať až vtedy, keď sú všetky predchádzajúce už
+hodnotami.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["T-Tuple", "T-Proj", "E-Tuple", "E-ProjTuple", "E-Proj"]}
+  descriptions={{
+    "T-Tuple": "Každá zložka má svoj typ; typ n-tice je n-tica týchto typov.",
+    "T-Proj": "Projekcia t.j má typ j-tej zložky.",
+    "E-Tuple": "Vyhodnocuje sa prvá zložka, ktorá ešte nie je hodnotou.",
+    "E-ProjTuple": "Projekcia n-tice hodnôt vráti j-tu hodnotu.",
+    "E-Proj": "Kým term nie je n-ticou hodnôt, redukuje sa pod projekciou.",
+  }}
+/>
+
+<ConceptSection id="tuple-edge-cases" title="Prázdna a jednoprvková n-tica">
+
+Hodnota <Math>{"n"}</Math> môže byť aj <Math>{"0"}</Math>: <Math>{"\\langle\\,\\rangle"}</Math> je
+**prázdna n-tica** nulárneho súčinového typu. Nemá žiadnu projekciu a je skôr teoretickou nutnosťou
+než nástrojom praxe (aplikácia ju nepodporuje).
+
+Pozor na rozdiel medzi číslom <Math>{"5 : \\mathtt{Nat}"}</Math> a **jednoprvkovou n-ticou**
+<Math>{"\\langle 5 \\rangle : \\langle \\mathtt{Nat} \\rangle"}</Math>. Na prvú hodnotu môžete použiť
+všetky operácie typu `Nat` (`succ`, `pred`, `+`, …); na druhú jedinú — projekciu `.1`.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"<5>.1 + 1;"}
+  hint="Funguje, lebo projekcia vráti Nat. Teraz skúste <5> + 1; alebo <1, true>.3; — n-tica nie je číslo a index projekcie musí byť v rozsahu."
+/>
+
+<ScreenOnly>
+
+Zostavte strom termu, v ktorom si projekcia vyberá z dvojice:
+
+</ScreenOnly>
+
+<AstBuilder
+  id="ast-pair-projection"
+  allowedTypes={["tuple", "tupleProjection", "literal"]}
+  expectedSource="<1, true>.2"
+  instructions="Zostavte <1, true>.2: projekcia .2, ktorej potomkom je dvojica s literálmi 1 a true."
+/>
+
+<ConceptSection id="tuples-ocaml" title="Príklad: n-tice v OCaml">
+
+V OCaml je n-tica zovšeobecnením dvojice `(t1, t2, ..., tn)`, ale <Math>{"i"}</Math>-te projekcie
+nie sú vstavané funkcie — používa sa prehľadávanie podľa vzorov:
+
+```ocaml
+utop # let third x = match x with (_, _, z) -> z;;
+val third : 'a * 'b * 'c -> 'c = <fun>
+utop # third (1, true, 4.2);;
+- : float = 4.2
+```
+
+V reálnych jazykoch sa zovšeobecnený súčin najčastejšie objavuje ako **polia** a **záznamy**.
+
+</ConceptSection>
+
+<ConceptSection id="records" title="Záznam">
+
+**Záznam** (*record*) poznáte z jazykov C, Java, Python, Rust či OCaml. Získame ho z n-tice tak, že
+každú zložku označíme **návestím**: položka má tvar `návestie = t`, jej typ `návestie : T` a k položke
+pristupujeme projekciou **cez návestie** <Math>{"t.\\mathit{lab}"}</Math> namiesto poradového čísla.
+Implicitne predpokladáme spočítateľnú množinu návestí <Math>{"\\mathcal{L}"}</Math>.
+
+<MathBlock>{"\\begin{array}{l} \\langle x = 5 \\rangle.x \\to 5 \\\\ \\langle \\mathit{meno} = \\text{\"Tichomír\"},\\ \\mathit{vek} = 25 \\rangle.\\mathit{vek} \\to 25 \\end{array}"}</MathBlock>
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\langle \\mathit{lab}_i = t_i{}^{\\,i \\in 1..n} \\rangle \\ \\mid\\ t.\\mathit{lab} \\\\ v ::= & \\ldots & \\mid\\ \\langle \\mathit{lab}_i = v_i{}^{\\,i \\in 1..n} \\rangle \\\\ T ::= & \\ldots & \\mid\\ \\langle \\mathit{lab}_i : T_i{}^{\\,i \\in 1..n} \\rangle \\end{array}"}</MathBlock>
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["T-Record", "T-RecordProj", "E-Record", "E-ProjRecord"]}
+  descriptions={{
+    "T-Record": "Každá položka má svoj typ; typ záznamu ich pomenuje rovnakými návestiami.",
+    "T-RecordProj": "Projekcia t.lab_j má typ položky s návestím lab_j.",
+    "E-Record": "Položky sa vyhodnocujú zľava doprava.",
+    "E-ProjRecord": "Projekcia záznamu hodnôt vráti hodnotu položky s daným návestím.",
+  }}
+/>
+
+<ConceptSection id="record-order" title="Záleží na poradí položiek?">
+
+Jazyky sa líšia v tom, ako sa k poradiu položiek stavajú. Podľa jedného prístupu sú
+`⟨meno = "Boleslav", vek = 28⟩` a `⟨vek = 28, meno = "Boleslav"⟩` ten istý term s tým istým typom;
+podľa druhého sú to **rozdielne termy s rozdielnymi typmi**. V našej definícii (aj v aplikácii)
+používame **druhý prístup — poradie položiek je dôležité**.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"<meno = \"Tichomír\", vek = 25>.vek;"}
+  hint="Typ záznamu sa píše <meno : String, vek : Nat>. Skúste projekciu .meno, potom neexistujúce návestie .vyska."
+/>
+
+<PredictThenVerify
+  id="record-projection-type"
+  term={"λ s : <meno : String, vek : Nat> . s.vek + 1;"}
+  prompt="Kontrolný bod: aký typ má táto funkcia? Typ záznamu v aplikácii zapíšete ako <meno : String, vek : Nat>."
+/>
+
+<ConceptSection id="records-ocaml" title="Príklad: záznamy v OCaml">
+
+V OCaml treba typ záznamu najprv deklarovať; projekcia cez návestie potom funguje rovnako ako v našom
+kalkule:
+
+```ocaml
+utop # type student = {meno : string; vek : int};;
+utop # let ab123bc = {meno = "Budislav"; vek = 19};;
+val ab123bc : student = {meno = "Budislav"; vek = 19}
+utop # ab123bc.vek;;
+- : int = 19
+```
+
+</ConceptSection>
+
+<GrammarBox
+  title="Čo táto prednáška pridala do gramatiky aplikácie"
+  grammar={`term ::= ...
+       | 'unit'
+       | term ';' term                              (* zoradenie *)
+       | 'λ' '_' ':' type '.' term                  (* zastúpenie *)
+       | term 'as' type                             (* pripísanie *)
+       | 'let' ID '=' term 'in' term                (* väzba let *)
+       | '<' term (',' term)* '>'                   (* n-tica *)
+       | '<' ID '=' term (',' ID '=' term)* '>'     (* záznam *)
+       | term '.' NAT  |  term '.' ID              (* projekcie *)
+
+type ::= ... | 'Unit'
+       | '<' type ('*' type)* '>'                   (* súčin T1 × ... × Tn *)
+       | '<' ID ':' type (',' ID ':' type)* '>'     (* typ záznamu *)`}
+/>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "Typy", detail: "neinterpretované typy A, B, C abstrahujú od konkrétnych základných typov a pripravujú pôdu pre polymorfizmus."},
+    {label: "Unit", detail: "typ s jedinou hodnotou unit (T-Unit) — typ výpočtov robených kvôli vedľajšiemu účinku."},
+    {label: "Odvodené tvary", detail: "zoradenie, zastúpenie, pripísanie a let sa dajú vyjadriť základným kalkulom; veta o zoradení to dokazuje pre t₁; t₂, let rozvinie až typová kontrola."},
+    {label: "Súčinové typy", detail: "dvojice, n-tice a záznamy s projekciami; pri volaní hodnotou sa zložky vyhodnocujú zľava doprava a projekcia prebehne až nad hodnotou."},
+  ]}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "Kurz Teória typov na TUKE — Prednáška 4 (Jednotkový typ, odvodené tvary termov, súčinové typy)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/04.html",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages (MIT Press, 2002)",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+  ]}
+/>

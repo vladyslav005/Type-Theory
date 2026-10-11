@@ -3,16 +3,18 @@ import {trackWidgetUse} from "@/shared/activity/taskTracking.ts";
 import {MathJax} from "better-react-mathjax";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
+import type {TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 interface MiniWorkspaceProps {
   initialTerm: string;
   label?: string;
   hint?: string;
+  theories?: Partial<TypeTheoryConfig>;
 }
 
-export function MiniWorkspace({initialTerm, label, hint}: MiniWorkspaceProps) {
+export function MiniWorkspace({initialTerm, label, hint, theories}: MiniWorkspaceProps) {
   const {t} = useTranslation();
-  const {termText, setTermText, check, reset, result, error, checked} = useMiniWorkspace(initialTerm);
+  const {termText, setTermText, check, reset, result, error, checked} = useMiniWorkspace(initialTerm, theories);
   const dirty = termText !== initialTerm;
 
   return (

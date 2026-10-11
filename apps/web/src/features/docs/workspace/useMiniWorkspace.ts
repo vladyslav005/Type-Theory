@@ -3,7 +3,7 @@ import type {Type} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {TexMapper} from "@vladyslav005/tt-core";
 import {typeToString} from "@vladyslav005/tt-core";
-import {DEFAULT_TYPE_THEORY_CONFIG} from "@vladyslav005/tt-core";
+import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 export interface MiniWorkspaceResult {
   type: Type;
@@ -12,7 +12,8 @@ export interface MiniWorkspaceResult {
 }
 
 // Redux-free alternative to useTermHooks(), for docs widgets with local rather than global state.
-export function useMiniWorkspace(initialTerm: string) {
+// Lecture widgets accept every STLC feature; `theories` turns on extensions a lecture needs (e.g. let).
+export function useMiniWorkspace(initialTerm: string, theories?: Partial<TypeTheoryConfig>) {
   const {parser, typeCheckerSLTC} = useDependencies();
   const [termText, setTermText] = useState(initialTerm);
   const [result, setResult] = useState<MiniWorkspaceResult | undefined>();
@@ -29,7 +30,8 @@ export function useMiniWorkspace(initialTerm: string) {
         return;
       }
 
-      typeCheckerSLTC.setTheories(DEFAULT_TYPE_THEORY_CONFIG);
+      typeCheckerSLTC.setTheories({...DEFAULT_TYPE_THEORY_CONFIG, ...theories});
+      typeCheckerSLTC.setStlcFeatures(DEFAULT_STLC_FEATURES);
       const proof = typeCheckerSLTC.check(ast);
       const typeErrors = typeCheckerSLTC.getErrors();
 
@@ -49,7 +51,7 @@ export function useMiniWorkspace(initialTerm: string) {
       setResult(undefined);
       setError(e instanceof Error ? e.message : String(e));
     }
-  }, [termText, parser, typeCheckerSLTC]);
+  }, [termText, parser, typeCheckerSLTC, theories]);
 
   const reset = useCallback(() => {
     setTermText(initialTerm);

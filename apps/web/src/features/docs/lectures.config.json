@@ -36,11 +36,11 @@
     {
       "slug": "typed-unit-products",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Jednotkový typ, odvodené tvary termov, súčinové typy",
-          "summary": "Jednotkový typ, odvodené tvary termov a súčinové typy."
+          "summary": "Jednotkový typ, odvodené tvary termov (zoradenie, zastúpenie, pripísanie, let) a súčinové typy: dvojice, n-tice a záznamy."
         }
       }
     },
