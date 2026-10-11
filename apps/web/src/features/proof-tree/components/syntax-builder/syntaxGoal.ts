@@ -16,13 +16,14 @@ export interface SyntaxGoal {
 
 export type SyntaxChoices = Record<string, string>;
 
+// A collapsible definition node is built in its collapsed form, e.g. a global reference as plain (var).
 export function goalFromTexTree(tree: TexTree, key = "r"): SyntaxGoal {
   return {
     key,
     tex: tree.judgement,
-    rule: tree.error ? undefined : tree.rule,
+    rule: tree.error ? undefined : tree.collapsedRule ?? tree.rule,
     pos: tree.pos,
-    children: (tree.children ?? []).map((child, i) => goalFromTexTree(child, `${key}.${i}`)),
+    children: (tree.collapsedChildren ?? tree.children ?? []).map((child, i) => goalFromTexTree(child, `${key}.${i}`)),
   };
 }
 

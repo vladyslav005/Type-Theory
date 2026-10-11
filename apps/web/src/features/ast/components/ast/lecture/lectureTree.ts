@@ -37,6 +37,8 @@ const STATIC_SLOTS: Record<string, string[]> = {
 export function lectureSlots(term: any): string[] {
   if (!term) return [];
   switch (term.kind) {
+    case "Var":
+      return [DEF_SLOT];
     case "Abs":
       return term.type ? ["paramType", "body", "type"] : ["paramType", "body"];
     case "IfCondition":
@@ -122,29 +124,80 @@ function lectureEdge(edge: Edge): Edge {
   };
 }
 
+const DEF_SLOT = "def";
+
+function boundBy(term: any, handle: string | null | undefined): string | undefined {
+  switch (term?.kind) {
+    case "Abs": return term.param;
+    case "Let": return handle === "body" ? term.name : undefined;
+    case "Case": return handle === "inl-term" ? term.inl?.variable : handle === "inr-term" ? term.inr?.variable : undefined;
+    case "VariantCase": {
+      const match = handle?.match(/^case-(\d+)$/);
+      return match ? term.cases?.[Number(match[1])]?.variable : undefined;
+    }
+    default: return undefined;
+  }
+}
+
+export function isGlobalRef(node: AstFlowNode): boolean {
+  return !!(node.data as any)?.globalRef;
+}
+
 // Only the main expression's term tree: no program node, declarations or type annotations.
-export function toLectureGraph(graph: AstFlowGraph): AstFlowGraph {
+// A free variable naming a global declaration unfolds into that declaration's term when its id is in `expanded`.
+export function toLectureGraph(graph: AstFlowGraph, expanded: ReadonlySet<string> = new Set()): AstFlowGraph {
   const program = graph.nodes.find((node) => node.type === "program");
   const rootId = program
     ? graph.edges.find((edge) => edge.source === program.id && edge.sourceHandle === "term")?.target
     : graph.nodes.find((node) => !graph.edges.some((edge) => edge.target === node.id))?.id;
   if (!rootId) return {nodes: [], edges: []};
 
-  const kept = new Set([rootId]);
-  const edges: Edge[] = [];
-  const queue = [rootId];
-  while (queue.length > 0) {
-    const id = queue.shift()!;
-    for (const edge of graph.edges) {
-      if (edge.source !== id || kept.has(edge.target)) continue;
-      const target = graph.nodes.find((node) => node.id === edge.target);
-      if (!target || TYPE_FLOW_TYPES.has(target.type as string)) continue;
-      kept.add(edge.target);
-      edges.push(lectureEdge(edge));
-      queue.push(edge.target);
-    }
+  const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+  const globals = new Map<string, string>();
+  for (const decl of ((program?.data as any)?.term?.globals ?? []) as any[]) {
+    if (decl.kind !== "FunDecl" && decl.kind !== "VarDecl") continue;
+    const valueId = graph.edges.find((edge) => edge.source === decl.id && edge.sourceHandle === "value")?.target;
+    if (valueId) globals.set(decl.name, valueId);
   }
-  return {nodes: graph.nodes.filter((node) => kept.has(node.id)), edges};
+
+  const nodes: AstFlowNode[] = [];
+  const edges: Edge[] = [];
+  const seen = new Set<string>();
+
+  const walk = (id: string, prefix: string, bound: ReadonlySet<string>, unfolding: ReadonlySet<string>) => {
+    const source = byId.get(id)!;
+    const newId = prefix + id;
+    seen.add(newId);
+    const term = (source.data as any)?.term;
+    const globalValue = term?.kind === "Var" && !bound.has(term.name) && !unfolding.has(term.name) ? globals.get(term.name) : undefined;
+    const isExpanded = !!globalValue && expanded.has(newId);
+    nodes.push({...source, id: newId, data: globalValue ? {...source.data, globalRef: true, expanded: isExpanded} : source.data} as AstFlowNode);
+
+    for (const edge of graph.edges) {
+      if (edge.source !== id || seen.has(prefix + edge.target)) continue;
+      const target = byId.get(edge.target);
+      if (!target || TYPE_FLOW_TYPES.has(target.type as string)) continue;
+      const name = boundBy(term, edge.sourceHandle);
+      edges.push(lectureEdge({...edge, id: prefix + edge.id, source: newId, target: prefix + edge.target}));
+      walk(edge.target, prefix, name ? new Set([...bound, name]) : bound, unfolding);
+    }
+
+    if (isExpanded) {
+      const childPrefix = `${newId}/`;
+      edges.push({
+        id: `${childPrefix}def`,
+        source: newId,
+        sourceHandle: DEF_SLOT,
+        target: childPrefix + globalValue,
+        type: "straight",
+        style: {stroke: "var(--primary)", strokeWidth: 1.25, strokeDasharray: "4 3"},
+      });
+      walk(globalValue, childPrefix, new Set(), new Set([...unfolding, term.name]));
+    }
+  };
+
+  walk(rootId, "", new Set(), new Set());
+  return {nodes, edges};
 }
 
 const H_GAP = 28;

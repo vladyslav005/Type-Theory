@@ -1,5 +1,5 @@
 import {Fragment} from "react";
-import type {TexTree} from "@vladyslav005/tt-core";
+import {SYNTAX_DEF_RULE, type TexTree} from "@vladyslav005/tt-core";
 import type {SourcePosition} from "@vladyslav005/tt-core";
 import {Conclusion} from "@/features/proof-tree/components/proof-tree-using-css/Conclusion.tsx";
 import {useStepBuild} from "@/features/proof-tree/components/proof-tree-using-css/StepBuildContext.tsx";
@@ -23,7 +23,7 @@ export function ProofTreeComponentUsingCss(
     onNodeHover,
     highlightedNodeIds,
   }: ProofTreeUsingCssProps,) {
-  const isDef = node.rule === "T-Def" || node.rule === "CT-Def" || node.rule === "Lemma";
+  const isDef = node.rule === "T-Def" || node.rule === "CT-Def" || node.rule === "Lemma" || node.rule === SYNTAX_DEF_RULE;
   // Shared (not local) so the LaTeX export can snapshot which T-Def/CT-Def/Lemma
   // nodes are currently expanded — see TexRefExpansionContext.
   const {isExpanded, toggle} = useTexRefExpansion();

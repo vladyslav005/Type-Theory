@@ -1,5 +1,5 @@
 import type {Program, SourcePosition} from "@vladyslav005/tt-core";
-import {useCallback, useState, useEffect} from "react";
+import {useCallback, useState, useEffect, useRef} from "react";
 import type {RefObject} from "react";
 import {applyEdgeChanges, applyNodeChanges, ReactFlow, Background, MiniMap, Panel, useReactFlow, type NodeTypes} from "@xyflow/react";
 import '@xyflow/react/dist/style.css';
@@ -64,7 +64,7 @@ import {KindArrowFlowNode} from "@/features/ast/components/ast/flow/KindArrowFlo
 import {useTranslation} from "react-i18next";
 import {LectureFlowNode} from "@/features/ast/components/ast/lecture/LectureFlowNode.tsx";
 import {AstStyleToggle} from "@/features/ast/components/ast/lecture/AstStyleToggle.tsx";
-import {layoutLectureTree, toLectureGraph} from "@/features/ast/components/ast/lecture/lectureTree.ts";
+import {isGlobalRef, layoutLectureTree, toLectureGraph} from "@/features/ast/components/ast/lecture/lectureTree.ts";
 import {type AstViewStyle, useAstViewStyle} from "@/features/ast/hooks/useAstViewStyle.ts";
 
 
@@ -218,7 +218,18 @@ export function Ast({
   const [showMiniMap, setShowMiniMap] = useState(false);
   const rememberedStyle = useAstViewStyle();
   const lecture = (viewStyle ?? rememberedStyle) === "lecture";
+  const [expandedRefs, setExpandedRefs] = useState<ReadonlySet<string>>(new Set());
+  const fittedFor = useRef<{AST?: Program; lecture?: boolean}>({});
   const {t} = useTranslation();
+
+  const handleNodeClick = useCallback((_event: unknown, node: AstFlowNode) => {
+    if (!lecture || !isGlobalRef(node)) return;
+    setExpandedRefs((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(node.id)) next.add(node.id);
+      return next;
+    });
+  }, [lecture]);
 
   const handleNodeMouseEnter = useCallback(
     (_event: unknown, node: AstFlowNode) => {
@@ -245,7 +256,7 @@ export function Ast({
     if (!newGraph.nodes) return;
     let layoutGraph: AstFlowGraph;
     if (lecture) {
-      const lectureGraph = toLectureGraph(newGraph);
+      const lectureGraph = toLectureGraph(newGraph, expandedRefs);
       layoutGraph = layoutLectureTree(lectureGraph.nodes, lectureGraph.edges);
     } else {
       const programIds = new Set(termOnly ? newGraph.nodes.filter((node) => node.type === "program").map((node) => node.id) : []);
@@ -256,8 +267,11 @@ export function Ast({
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setGraph(layoutGraph);
-    setFitToken((t) => t + 1);
-  }, [AST, lecture]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (fittedFor.current.AST !== AST || fittedFor.current.lecture !== lecture) {
+      fittedFor.current = {AST, lecture};
+      setFitToken((t) => t + 1);
+    }
+  }, [AST, lecture, expandedRefs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onNodesChange = useCallback(
     (changes: any) => {
@@ -289,6 +303,7 @@ export function Ast({
         onEdgesChange={onEdgesChange}
         onNodeMouseEnter={handleNodeMouseEnter}
         onNodeMouseLeave={handleNodeMouseLeave}
+        onNodeClick={handleNodeClick}
         nodeTypes={lecture ? lectureNodeTypes : nodeTypes}
         nodesConnectable={false}
         nodesDraggable={!lecture}

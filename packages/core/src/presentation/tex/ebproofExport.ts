@@ -1,4 +1,5 @@
 import type {TexTree} from "@/presentation/tex/texTree.ts";
+import {SYNTAX_DEF_RULE} from "@/presentation/tex/syntaxDerivation.ts";
 
 // A TexTree plus one export-only concern: Build & Check's correctness
 // highlighting (green/red), which has no equivalent in the automatic/logic
@@ -14,7 +15,7 @@ export interface ExportOptions {
   expandedKeys: ReadonlySet<string>;
 }
 
-const DEF_RULES = new Set(["T-Def", "CT-Def", "Lemma"]);
+const DEF_RULES = new Set(["T-Def", "CT-Def", "Lemma", SYNTAX_DEF_RULE]);
 
 const RULE_SYMBOL_MAP: Record<string, string> = {
   "⇒": "\\Rightarrow ",

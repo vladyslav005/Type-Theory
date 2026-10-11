@@ -1,4 +1,4 @@
-import type {Term} from "@/domain/ast";
+import type {GlobalDecl, Term} from "@/domain/ast";
 import type {TexTree} from "@/presentation/tex/texTree.ts";
 import {TexMapper} from "@/presentation/tex/TexMapper.ts";
 
@@ -14,6 +14,8 @@ const LANGUAGE_NAMES: Record<SyntaxLanguage, string> = {
   untyped: "untyped lambda calculus",
 };
 
+export const SYNTAX_DEF_RULE = "(def)";
+
 export const UNTYPED_SYNTAX_RULES = ["(var)", "(abs)", "(app)"] as const;
 
 const LITERAL_RULES: Record<string, string> = {true: "(true)", false: "(false)", 0: "(0)"};
@@ -21,11 +23,20 @@ const LITERAL_RULES: Record<string, string> = {true: "(true)", false: "(false)",
 const NBL_OPERATOR_RULES = {Succ: "(succ)", Pred: "(pred)", IsZero: "(iszero)"} as const;
 
 // A derivation of `t ∈ Term` (`t ∈ Λ` for untyped) from the language's syntax rules — the untyped counterpart of a typing proof.
-export function syntaxDerivation(term: Term, language: SyntaxLanguage): TexTree {
-  const node = (rule: string, children: Term[] = []): TexTree => ({
+// A free variable naming a global declaration becomes a collapsible (def) node unfolding into the declaration's derivation.
+export function syntaxDerivation(term: Term, language: SyntaxLanguage, globals: GlobalDecl[] = []): TexTree {
+  const values = new Map<string, Term>();
+  for (const decl of globals) {
+    if (decl.kind === "FunDecl" || decl.kind === "VarDecl") values.set(decl.name, decl.value);
+  }
+  return derive(term, language, values, new Set());
+}
+
+function derive(term: Term, language: SyntaxLanguage, globals: ReadonlyMap<string, Term>, bound: ReadonlySet<string>): TexTree {
+  const node = (rule: string, children: Term[] = [], scope = bound): TexTree => ({
     judgement: `${TexMapper.termToTex(term)} \\in ${LANGUAGE_SETS[language]}`,
     rule,
-    children: children.map((child) => syntaxDerivation(child, language)),
+    children: children.map((child) => derive(child, language, globals, scope)),
     id: term.id,
     pos: term.pos,
   });
@@ -52,10 +63,22 @@ export function syntaxDerivation(term: Term, language: SyntaxLanguage): TexTree 
   }
 
   switch (term.kind) {
-    case "Var":
-      return node("(var)");
+    case "Var": {
+      const value = bound.has(term.name) ? undefined : globals.get(term.name);
+      if (!value) return node("(var)");
+      const inner = new Map(globals);
+      inner.delete(term.name);
+      return {
+        ...node("(var)"),
+        rule: SYNTAX_DEF_RULE,
+        meta: term.name,
+        children: [derive(value, language, inner, new Set())],
+        collapsedRule: "(var)",
+        collapsedChildren: [],
+      };
+    }
     case "Abs":
-      return term.paramType ? noRule() : node("(abs)", [term.body]);
+      return term.paramType ? noRule() : node("(abs)", [term.body], new Set([...bound, term.param]));
     case "App":
       return node("(app)", [term.func, term.arg]);
     default:

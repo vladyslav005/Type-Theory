@@ -108,7 +108,7 @@ export function ProofTreeVisualisation({
   // placeholder here, even if `check()` produced a (typeless) proof or an error.
   const noTypes = enabledTheories.untyped || enabledTheories.nbl;
   const hasProof = !noTypes && proof !== null && proof !== undefined;
-  const syntaxTree = noTypes && ast?.term ? syntaxDerivation(ast.term, enabledTheories.nbl ? "nbl" : "untyped") : null;
+  const syntaxTree = noTypes && ast?.term ? syntaxDerivation(ast.term, enabledTheories.nbl ? "nbl" : "untyped", ast.globals) : null;
   const logicAvailable = !hasProof || isPlainStlcProof(proof);
   const showLogicTab = curryHoward && logicAvailable;
   const effectiveTab: ProofTreeTab =
