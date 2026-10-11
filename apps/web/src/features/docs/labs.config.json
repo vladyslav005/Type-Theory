@@ -36,7 +36,7 @@
     {
       "slug": "typed-nbl-stlc",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Typovaný NBL a jednoducho typovaný λ-kalkul",

@@ -3,11 +3,20 @@ export const JUDGEMENT_LANGUAGE_ID = "tt-judgement";
 
 const BASE_TYPES = ["Nat", "Bool", "Unit", "String"];
 
+// What the completions offer beyond known names; a lab narrows it to the types and forms it needs.
+export interface JudgementVocabulary {
+  baseTypes?: string[];
+  // The let-polymorphism forms: instantiate, generalize, ∀ schemes.
+  schemes?: boolean;
+}
+
 // Set by the manual builder: Γ_n / C_n it has definitions for and the term's variable names.
 let knownNames: string[] = [];
+let vocabulary: Required<JudgementVocabulary> = {baseTypes: BASE_TYPES, schemes: true};
 
-export function setJudgementNames(names: string[]): void {
+export function setJudgementNames(names: string[], options: JudgementVocabulary = {}): void {
   knownNames = names;
+  vocabulary = {baseTypes: options.baseTypes ?? BASE_TYPES, schemes: options.schemes ?? true};
 }
 
 const SYMBOLS: [string, string, string][] = [
@@ -68,13 +77,13 @@ export function setUpJudgementLanguage(monaco: any, lambda: {keywords: string[];
         sortText: "0",
       });
       const snippets = [
-        snippet("instantiate", `instantiate(\${1:x} : \${2:S} ∈ \${3:${gamma}})`, "instantiate(x : S ∈ Γ)"),
-        snippet("generalize", `generalize(\${1:T}, \${2:${gamma}}) = \${3:S}`, "generalize(T, Γ) = S"),
+        ...(vocabulary.schemes ? [snippet("instantiate", `instantiate(\${1:x} : \${2:S} ∈ \${3:${gamma}})`, "instantiate(x : S ∈ Γ)")] : []),
+        ...(vocabulary.schemes ? [snippet("generalize", `generalize(\${1:T}, \${2:${gamma}}) = \${3:S}`, "generalize(T, Γ) = S")] : []),
         snippet("in", `\${1:x} : \${2:T} ∈ \${3:${gamma}}`, "x : T ∈ Γ"),
-        snippet("forall", "∀'${1:A}. ${2:T}", "∀'A. T — a type scheme"),
+        ...(vocabulary.schemes ? [snippet("forall", "∀'${1:A}. ${2:T}", "∀'A. T — a type scheme")] : []),
       ];
       const inBuffer = model.getValue().match(/[A-Za-zΓ][\w']*/g) ?? [];
-      const names = [...new Set([...knownNames, ...BASE_TYPES, ...inBuffer])].filter((name) => name !== word.word);
+      const names = [...new Set([...knownNames, ...vocabulary.baseTypes, ...inBuffer])].filter((name) => name !== word.word);
       return {
         suggestions: [...snippets, ...names.map((name) => ({
           label: name,
@@ -82,7 +91,7 @@ export function setUpJudgementLanguage(monaco: any, lambda: {keywords: string[];
           range,
           kind: /^(Γ|C)(_|$)/.test(name)
             ? monaco.languages.CompletionItemKind.Constant
-            : BASE_TYPES.includes(name) ? monaco.languages.CompletionItemKind.Class : monaco.languages.CompletionItemKind.Variable,
+            : vocabulary.baseTypes.includes(name) ? monaco.languages.CompletionItemKind.Class : monaco.languages.CompletionItemKind.Variable,
         }))],
       };
     },

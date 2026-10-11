@@ -10,6 +10,11 @@ import {setWorkTarget} from "@/shared/activity/activityClock.ts";
 import {getSavedWork, useSavedState} from "@/shared/activity/savedWork.ts";
 import {Button} from "@/shared/components/ui/button.tsx";
 
+// Every lab task's buttons: one right-aligned row, secondary actions first and the main one (Check) last.
+export function TaskActions({children}: {children: ReactNode}) {
+  return <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 py-1.5">{children}</div>;
+}
+
 export function Feedback({verdict}: {verdict: Verdict}) {
   if (!verdict) return null;
   return (

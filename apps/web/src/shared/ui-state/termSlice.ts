@@ -15,6 +15,7 @@ import {
 import {
   contextToText,
   createManualNode,
+  createManualPremise,
   findManualNode,
   type ManualField,
   type ManualNode,
@@ -380,7 +381,7 @@ const counterSlice = createSlice({
       const parent = state.buildMode.manualTree && findManualNode(state.buildMode.manualTree, action.payload.parentId);
       if (!parent) return;
 
-      parent.premises.push(createManualNode(action.payload.kind));
+      parent.premises.push(createManualPremise(parent, action.payload.kind));
       if (state.buildMode.manualResults) delete state.buildMode.manualResults[parent.id];
     },
 

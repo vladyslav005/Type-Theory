@@ -94,7 +94,8 @@ function RuleInput({value, placeholder, verdict, onChange}: {value: string; plac
   const history = useUndoableText(value, onChange);
   const theories = useAppSelector((state) => state.term.enabledTheories);
   const features = useAppSelector((state) => state.term.stlcFeatures);
-  const all = useMemo(() => ruleSuggestions(theories, features), [theories, features]);
+  const own = useManualActions().ruleSuggestions;
+  const all = useMemo(() => own ?? ruleSuggestions(theories, features), [own, theories, features]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);

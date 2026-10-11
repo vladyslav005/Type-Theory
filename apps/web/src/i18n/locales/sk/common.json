@@ -1326,7 +1326,9 @@
     "notATerm": "Nie je to term",
     "notATermCorrect": "Správne — toto nie je term jazyka NBL, takže úloha preň nemá odpoveď.",
     "startSolving": "Začať riešiť",
-    "hideEditor": "Skryť editor"
+    "hideEditor": "Skryť editor",
+    "showSolution": "Zobraziť riešenie",
+    "hideSolution": "Skryť riešenie"
   },
   "typingLab": {
     "manualHint": "Odvodzovací strom zostavte sami: pre každý sekvent vyplňte Γ, typ a názov pravidla a pridajte toľko predpokladov, koľko má pravidlo (T-Var potrebuje aj bočnú podmienku x : T ∈ Γ). Ak sa niekde nedá použiť žiadne pravidlo, term nie je správne typovaný.",

@@ -16,7 +16,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import {NBL_LANGUAGE_ID} from "@/features/editor/hooks/setUpEditor.ts";
-import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
+import {Feedback, Row, SolveArea, TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
 import {inputClass, type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
 import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
@@ -81,14 +81,14 @@ function DerivationRow({id, index, source}: {id?: string; index: number; source:
         <FullscreenArea title={source}>
           {({full, button}) => (
             <>
+              <div className="flex shrink-0 justify-end">{button}</div>
               <PanZoomCanvas className={full ? "min-h-0 flex-1" : "h-64"} compact>
                 <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
               </PanZoomCanvas>
-              <div className="flex shrink-0 items-center gap-2">
-                <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+              <TaskActions>
                 <Button size="sm" variant="ghost" onClick={() => { setChoices({}); setVerdict(undefined); }}>{t("lectureWidgets.reset")}</Button>
-                <span className="ml-auto">{button}</span>
-              </div>
+                <Button size="sm" onClick={check}>{t("labWidgets.check")}</Button>
+              </TaskActions>
               {full && <Feedback verdict={verdict}/>}
             </>
           )}
@@ -116,11 +116,11 @@ function NumberRow({id, index, source, metric}: {id?: string; index: number; sou
   return (
     <Row taskId={taskId} index={index} source={source} solution={invalid ?? String(expected)}>
       <SolveArea taskId={taskId}>
-        <div className="flex flex-wrap items-center gap-2">
-          <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} inputMode="numeric" placeholder="0" spellCheck={false}/>
-          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        <input value={value} onChange={(e) => { setValue(e.target.value); setVerdict(undefined); }} onKeyDown={(e) => e.key === "Enter" && check()} className={inputClass} inputMode="numeric" placeholder="0" spellCheck={false}/>
+        <TaskActions>
           <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
-        </div>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        </TaskActions>
       </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
@@ -152,11 +152,11 @@ function ConstantsRow({id, index, source}: {id?: string; index: number; source: 
   return (
     <Row taskId={taskId} index={index} source={source} solution={invalid ?? formatSet(expected!)}>
       <SolveArea taskId={taskId}>
-        <div className="flex flex-wrap items-center gap-2">
-          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" language={NBL_LANGUAGE_ID} compact className="w-48"/>
-          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder="{0, true}" language={NBL_LANGUAGE_ID} compact className="w-48"/>
+        <TaskActions>
           <NotATermButton invalid={!!invalid} onVerdict={setVerdict}/>
-        </div>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        </TaskActions>
       </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>

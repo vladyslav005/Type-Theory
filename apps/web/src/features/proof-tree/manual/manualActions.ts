@@ -8,6 +8,8 @@ export interface ManualActions {
   setConstraintsShown: (nodeId: string, shown: boolean) => void;
   addPremise: (parentId: string, kind: ManualNode["kind"]) => void;
   removePremise: (nodeId: string) => void;
+  // A lab's own rule names for the rule field; otherwise they follow the editor's enabled theories.
+  ruleSuggestions?: string[];
 }
 
 // Lets a lab task keep its own tree; without a provider the editor workspace's build mode is edited.

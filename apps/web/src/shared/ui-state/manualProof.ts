@@ -59,6 +59,13 @@ export function createManualNode(kind: ManualNode["kind"] = "judgement", term = 
   };
 }
 
+// Most typing rules pass Γ to their premises unchanged, so a new premise starts with its parent's.
+export function createManualPremise(parent: ManualNode, kind: ManualNode["kind"]): ManualNode {
+  const premise = createManualNode(kind);
+  if (kind === "judgement") premise.gamma = parent.gamma;
+  return premise;
+}
+
 export function findManualNode(root: ManualNode, id: string): ManualNode | undefined {
   if (root.id === id) return root;
   for (const premise of root.premises) {

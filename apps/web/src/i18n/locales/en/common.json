@@ -1291,7 +1291,9 @@
     "notATerm": "It's not a term",
     "notATermCorrect": "Correct — this isn't a term of NBL, so the task has no answer for it.",
     "startSolving": "Start solving",
-    "hideEditor": "Hide editor"
+    "hideEditor": "Hide editor",
+    "showSolution": "Show solution",
+    "hideSolution": "Hide solution"
   },
   "typingLab": {
     "manualHint": "Build the derivation tree yourself: for each sequent fill in Γ, the type and the rule name, and add as many premises as the rule has (a T-Var also needs its side condition x : T ∈ Γ). If no rule applies somewhere, the term is not well typed.",

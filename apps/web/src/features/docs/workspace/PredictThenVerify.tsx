@@ -8,6 +8,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {typeToString, type AntlrParserAdapter} from "@vladyslav005/tt-core";
+import {TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
 
 interface PredictThenVerifyProps {
   id?: string;
@@ -61,7 +62,7 @@ export function PredictThenVerify({id, term, prompt}: PredictThenVerifyProps) {
 
       <p className="text-sm text-muted-foreground">{prompt ?? t("lectureWidgets.predictPrompt")}</p>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div>
         <textarea
           value={guess}
           onChange={(e) => setGuess(e.target.value)}
@@ -71,12 +72,14 @@ export function PredictThenVerify({id, term, prompt}: PredictThenVerifyProps) {
           spellCheck={false}
           className="w-full max-w-xs min-h-9 resize-y font-mono text-sm rounded-md border bg-transparent px-3 py-1.5 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:cursor-not-allowed"
         />
+      </div>
+      <TaskActions>
         {revealed ? (
           <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.tryAgain")}</Button>
         ) : (
           <Button size="sm" onClick={reveal}>{t("lectureWidgets.reveal")}</Button>
         )}
-      </div>
+      </TaskActions>
 
       {revealed && checked && (
         result ? (

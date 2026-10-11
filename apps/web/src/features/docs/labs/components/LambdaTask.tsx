@@ -4,7 +4,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
-import {Feedback, Row, SolveArea} from "@/features/docs/labs/components/taskUi.tsx";
+import {Feedback, Row, SolveArea, TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
 import {appendName, LabContext} from "@/features/docs/labs/components/LabContext.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
@@ -56,10 +56,10 @@ function ParensRow({id, index, source}: {id?: string; index: number; source: str
   return (
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
       <SolveArea taskId={taskId}>
-        <div className="flex flex-wrap items-center gap-2">
-          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source} compact className="w-full max-w-md"/>
+        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source} compact className="w-full max-w-md"/>
+        <TaskActions>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-        </div>
+        </TaskActions>
       </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
@@ -140,10 +140,10 @@ function ScopeRow({id, index, source}: {id?: string; index: number; source: stri
             </span>
           </div>
           <p className="text-xs text-muted-foreground">{t("labWidgets.scopeLegend")}</p>
-          <div className="flex gap-2">
-            <Button size="sm" disabled={marks.filter(Boolean).length === 0} onClick={() => { setChecked(true); trackTask(taskId, {ok: allCorrect, kind: allCorrect ? undefined : "scopeWrong"}); }}>{t("labWidgets.check")}</Button>
+          <TaskActions>
             <Button size="sm" variant="ghost" onClick={() => { setMarks([]); setChecked(false); }}>{t("lectureWidgets.reset")}</Button>
-          </div>
+            <Button size="sm" disabled={marks.filter(Boolean).length === 0} onClick={() => { setChecked(true); trackTask(taskId, {ok: allCorrect, kind: allCorrect ? undefined : "scopeWrong"}); }}>{t("labWidgets.check")}</Button>
+          </TaskActions>
           <Feedback verdict={verdict}/>
         </>
       )}
@@ -215,11 +215,11 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
       )}
     >
       <SolveArea taskId={taskId}>
-        <div className="flex flex-wrap items-center gap-2">
-          <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} compact className="w-72"/>
-          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
-        </div>
+        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} compact className="w-72"/>
         <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
+        <TaskActions>
+          <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
+        </TaskActions>
       </SolveArea>
       <Feedback verdict={verdict}/>
     </Row>
@@ -261,12 +261,12 @@ export function DefineTask({id, tests, solution, forbid = []}: {id?: string; tes
     <ul className="list-none print:hidden">
       <Row taskId={taskId} index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
         <SolveArea taskId={taskId}>
-          <div className="flex flex-wrap items-center gap-2">
-            <LabEditor value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")}/>
-            <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
-          </div>
+          <LabEditor value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")}/>
           <p className="text-[11px] text-muted-foreground">{t("labWidgets.defineHint")}</p>
           <LabContext hide={forbid} onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
+          <TaskActions>
+            <Button size="sm" disabled={!value.trim()} onClick={run}>{t("labWidgets.runTests")}</Button>
+          </TaskActions>
         </SolveArea>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {results && (

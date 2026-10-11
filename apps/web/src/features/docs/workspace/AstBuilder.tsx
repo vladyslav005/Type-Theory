@@ -18,6 +18,7 @@ import {ButtonGroup} from "@/shared/components/ui/button-group.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {checkAst, type AstCheck} from "@/features/docs/workspace/astCheck.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
+import {TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
 
 const DECLARATION_TYPES = ["funDecl", "varDecl", "typeAliasDecl", "typeConstructorDecl"];
 
@@ -136,25 +137,20 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
           </div>
         )}
         <div className="flex items-center gap-2">
-        {preview && <HelpHint text={t("astPanel.lectureEditHint")}/>}
-          <div className="flex items-center gap-2">
-            {/* How-to hints live in a tooltip so the task stays uncluttered. */}
-            <Tip label={[compact ? instructions : undefined, t("lectureWidgets.astTip")].filter(Boolean).join(" ")}>
-              <span className="text-muted-foreground hover:text-foreground" aria-label={t("lectureWidgets.astHelp")}>
-                <Info className="h-4 w-4"/>
-              </span>
-            </Tip>
-            <ButtonGroup>
-              <AstNodePaletteDropdowns
-                onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
-                allowedTypes={allowedTypes}
-              />
-            </ButtonGroup>
-            {expected && <Button size="sm" onClick={runCheck}>{t("labWidgets.check")}</Button>}
-            {check && <Button size="sm" variant="outline" onClick={() => setCheck(undefined)}>{t("manualBuilder.clearMarks")}</Button>}
-            <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
-          </div>
-        {button}
+          {preview && <HelpHint text={t("astPanel.lectureEditHint")}/>}
+          {/* How-to hints live in a tooltip so the task stays uncluttered. */}
+          <Tip label={[compact ? instructions : undefined, t("lectureWidgets.astTip")].filter(Boolean).join(" ")}>
+            <span className="text-muted-foreground hover:text-foreground" aria-label={t("lectureWidgets.astHelp")}>
+              <Info className="h-4 w-4"/>
+            </span>
+          </Tip>
+          <ButtonGroup>
+            <AstNodePaletteDropdowns
+              onInsert={(type) => { trackWidgetUse("astBuilder"); astEditorRef.current?.addStandaloneNode(type); }}
+              allowedTypes={allowedTypes}
+            />
+          </ButtonGroup>
+          {button}
         </div>
       </div>
 
@@ -180,6 +176,12 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
             compactToolbar viewStyle={preview ? "lecture" : "cards"} onViewStyleChange={(style) => setPreview(style === "lecture")}/>
         </ReactFlowProvider>
       </div>
+
+      <TaskActions>
+        <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
+        {check && <Button size="sm" variant="outline" onClick={() => setCheck(undefined)}>{t("manualBuilder.clearMarks")}</Button>}
+        {expected && <Button size="sm" onClick={runCheck}>{t("labWidgets.check")}</Button>}
+      </TaskActions>
 
       {result && (
         <p className={cn("text-xs", result.correct ? "text-emerald-600 dark:text-emerald-400" : "text-destructive")}>
