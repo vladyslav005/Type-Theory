@@ -13,8 +13,17 @@ import {
   type ReductionStep,
 } from "@/application/evaluation/type.ts";
 import {ReductionVisitor} from "@/application/evaluation/ReductionVisitor.ts";
+import {HelperCollapse} from "@/application/evaluation/helperCollapse.ts";
 import {isNumericValue} from "@/application/nbl/nblValues.ts";
 import {AstPrettyPrinter} from "@/presentation/AstPrettyPrinter.ts";
+
+// Reductions a black-boxed call may take on the side before it's stepped normally instead.
+const BLACK_BOX_BUDGET = 5000;
+
+export interface EvaluateOptions {
+  // Definitions whose fully applied calls run as one "collapse" step.
+  blackBoxes?: Iterable<string>;
+}
 
 export class Evaluator {
   private evaluationSteps: ReductionStep[] = [];
@@ -27,6 +36,7 @@ export class Evaluator {
   public evaluate(
     ast: Program,
     strategy: EvaluationStrategy,
+    options: EvaluateOptions = {},
   ): EvaluationResult {
 
     const globals = new Map<string, Term>();
@@ -40,10 +50,14 @@ export class Evaluator {
     this.evaluationSteps = [];
 
     const initialTerm = this.extractTerm(ast);
-    const reductionVisitor = new ReductionVisitor(strategy, globals);
+    const deadline = this.limits.timeLimitMs === undefined ? Infinity : Date.now() + this.limits.timeLimitMs;
+    const blackBoxes = new Set(options.blackBoxes ?? []);
+    const collapse = blackBoxes.size > 0
+      ? new HelperCollapse(globals, blackBoxes, (term, bound) => this.normalize(term, globals, bound, deadline))
+      : undefined;
+    const reductionVisitor = new ReductionVisitor(strategy, globals, collapse);
 
     let currentTerm = initialTerm;
-    const deadline = this.limits.timeLimitMs === undefined ? Infinity : Date.now() + this.limits.timeLimitMs;
     let limit: EvaluationLimitKind = "steps";
 
     // Replacing a name by its definition isn't a reduction, so it doesn't use up the step budget;
@@ -66,6 +80,7 @@ export class Evaluator {
           reachedStepLimit: false,
           strategy,
           globals: Object.fromEntries(globals),
+          ...(collapse && {blackBoxes: [...blackBoxes]}),
           ...(errors.length > 0 && { errors }),
         };
       }
@@ -93,7 +108,22 @@ export class Evaluator {
       limit,
       strategy,
       globals: Object.fromEntries(globals),
+      ...(collapse && {blackBoxes: [...blackBoxes]}),
     };
+  }
+
+  private normalize(term: Term, globals: ReadonlyMap<string, Term>, bound: ReadonlySet<string>, deadline: number) {
+    const visitor = new ReductionVisitor(EvaluationStrategy.NORMAL, globals, undefined, bound);
+    let current = term;
+    let steps = 0;
+    for (let total = 0; total < 2 * BLACK_BOX_BUDGET; total += 1) {
+      const step = visitor.reduce(current);
+      if (!step) return steps <= BLACK_BOX_BUDGET ? {term: current, steps} : undefined;
+      current = step.after;
+      if (step.rule !== "definition" && ++steps > BLACK_BOX_BUDGET) return undefined;
+      if (Date.now() > deadline || this.exceedsSize(current)) return undefined;
+    }
+    return undefined;
   }
 
   private exceedsSize(term: Term): boolean {

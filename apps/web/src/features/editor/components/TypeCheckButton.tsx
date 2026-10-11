@@ -9,11 +9,14 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared
 export interface TypeCheckButtonProps {
   onClick?: () => void;
   className?: string;
+  // Untyped/NBL have nothing to type-check, so the button only parses.
+  parseOnly?: boolean;
 }
 
 export function TypeCheckButton({
                                   onClick,
-                                  className
+                                  className,
+                                  parseOnly = false,
                                 }: TypeCheckButtonProps) {
   const { t } = useTranslation();
   const { parseAndTypeCheckDeferred } = useTermHooks()
@@ -45,13 +48,13 @@ export function TypeCheckButton({
             size="default"
           >
             {building ? <Loader2 className="h-4 w-4 animate-spin" /> : <Network className="h-4 w-4" />}
-            {t("actions.typeCheck")}
+            {t(parseOnly ? "actions.parse" : "actions.typeCheck")}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">
           {autoBuild
             ? t("actions.autoBuildTooltip")
-            : t("actions.typeCheckTooltip")}
+            : t(parseOnly ? "actions.parseTooltip" : "actions.typeCheckTooltip")}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

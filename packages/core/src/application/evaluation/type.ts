@@ -22,6 +22,8 @@ export interface ReductionStep {
   binding?: {name: string; value: Term};
   // The rule of the redex that fired: "β", "definition" (a name replaced by its definition), "E-IfTrue", …
   rule?: string;
+  // Set on a "collapse" step: the black-boxed helper that ran and how many reductions it hid.
+  collapsed?: {name: string; steps: number};
 }
 
 export interface EvaluationError {
@@ -48,5 +50,7 @@ export interface EvaluationResult {
   // Top-level let/fun declarations available for free-variable lookup during
   // reduction — the global half of a step's Γ (see scopeAt.ts for the local half).
   globals: Record<string, Term>;
+  // The black boxes this run collapsed calls of, when any were given.
+  blackBoxes?: string[];
 }
 

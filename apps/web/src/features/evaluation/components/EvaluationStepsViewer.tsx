@@ -1,11 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, memo, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Term, Type } from "@vladyslav005/tt-core";
 import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
 import { accumulateBindings, type BoundEntry } from "@vladyslav005/tt-core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/shared/components/ui/button";
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowDown, Equal, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronsDown, ArrowDown, Equal, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { churchNumeralValue } from "@/features/evaluation/churchNumeral.ts";
@@ -688,9 +688,11 @@ function TermBox({
 function GammaPanel({
   bindings,
   globals,
+  blackBoxes = [],
 }: {
   bindings: BoundEntry[];
   globals: Record<string, Term>;
+  blackBoxes?: string[];
 }) {
   const { t } = useTranslation();
   const globalEntries = Object.entries(globals);
@@ -732,6 +734,9 @@ function GammaPanel({
                 key={name}
                 className="rounded-lg border bg-background/50 px-2.5 py-1.5 font-mono text-xs overflow-x-auto"
               >
+                {blackBoxes.includes(name) && (
+                  <span className="mr-1.5 rounded border border-sky-500/30 bg-sky-500/10 px-1 font-sans text-[10px] text-sky-700 dark:text-sky-300">{t("blackBoxes.tag")}</span>
+                )}
                 <span className="text-blue-600 dark:text-blue-400 font-semibold">{name}</span>
                 <span className="text-muted-foreground"> = </span>
                 <TermView term={def} />
@@ -745,7 +750,8 @@ function GammaPanel({
 }
 
 // β and definition lookup get a readable name; every other rule is shown by its name (E-IfTrue, E-Let, …).
-function stepRuleLabel(t: TFunction, rule: string | undefined): string {
+function stepRuleLabel(t: TFunction, rule: string | undefined, collapsed?: ReductionStep["collapsed"]): string {
+  if (collapsed) return t("evalSteps.collapsedCall", {name: collapsed.name, count: collapsed.steps});
   if (rule === "β") return t("evalSteps.betaReduction");
   if (rule === "definition") return t("evalSteps.definitionReplaced");
   return rule ?? "";
@@ -917,7 +923,9 @@ function ReductionChain({
               >
                 {step.rule === "definition" && !isStuck
                   ? <Equal className="h-3.5 w-3.5 shrink-0" />
-                  : <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isStuck && "text-destructive")} />}
+                  : step.collapsed && !isStuck
+                    ? <ChevronsDown className="h-3.5 w-3.5 shrink-0 text-sky-600 dark:text-sky-400" />
+                    : <ArrowDown className={cn("h-3.5 w-3.5 shrink-0", isStuck && "text-destructive")} />}
                 <span
                   className={cn(
                     "font-semibold px-1.5 py-0.5 rounded-md",
@@ -926,7 +934,7 @@ function ReductionChain({
                 >
                   {i + 1}
                 </span>
-                <span>{isStuck ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule)}</span>
+                <span>{isStuck ? t("evalSteps.stuck") : stepRuleLabel(t, step.rule, step.collapsed)}</span>
                 {step.unfolded.length > 0 && (
                   <span className="text-muted-foreground/80">
                     · {t("evalSteps.unfolded")} <span className="font-mono">{step.unfolded.join(", ")}</span>
@@ -950,6 +958,7 @@ interface EvaluationStepsViewerProps {
   evaluation: EvaluationResult;
   typeAliases?: Record<string, Type>;
   showGamma: boolean;
+  blackBoxes?: string[];
 }
 
 function nblNumeralValue(term: Term): number | null {
@@ -990,23 +999,27 @@ function visibleDotIndexes(total: number, current: number): (number | null)[] {
   return result;
 }
 
-export function EvaluationStepsViewer({ evaluation, typeAliases = {}, showGamma }: EvaluationStepsViewerProps) {
+const EMPTY_ALIASES: Record<string, Type> = {};
+
+export const EvaluationStepsViewer = memo(function EvaluationStepsViewer({ evaluation, typeAliases = EMPTY_ALIASES, showGamma, blackBoxes }: EvaluationStepsViewerProps) {
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
       <EvaluationStepsViewerInner
         evaluation={evaluation}
         showGamma={showGamma}
+        blackBoxes={blackBoxes}
       />
     </TypeAliasesContext.Provider>
   );
-}
+});
 
 interface EvaluationStepsViewerInnerProps {
   evaluation: EvaluationResult;
   showGamma: boolean;
+  blackBoxes?: string[];
 }
 
-function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsViewerInnerProps) {
+function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -1182,7 +1195,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
           )}
         </div>
 
-        {showGamma && <GammaPanel bindings={bindingsAtCurrentStep} globals={globals} />}
+        {showGamma && <GammaPanel bindings={bindingsAtCurrentStep} globals={globals} blackBoxes={blackBoxes} />}
       </div>
 
       {reachedStepLimit && (

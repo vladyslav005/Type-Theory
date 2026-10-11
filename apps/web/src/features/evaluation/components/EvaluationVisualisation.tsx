@@ -1,7 +1,8 @@
 import {useTranslation} from "react-i18next";
 import {useViewTime} from "@/shared/activity/activityClock.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {useRef, useState} from "react";
+import {useMemo, useRef, useState} from "react";
+import type {EvaluationResult} from "@vladyslav005/tt-core";
 import {useFullscreen} from "@/shared/hooks/useFullscreen.ts";
 import {motion} from "framer-motion";
 import {cn, safeJsonStringify} from "@/shared/lib/utils.ts";
@@ -15,12 +16,16 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {Separator} from "@/shared/components/ui/separator.tsx";
 import {Switch} from "@/shared/components/ui/switch.tsx";
 import {Label} from "@/shared/components/ui/label.tsx";
-import {EvaluationStepsViewer} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
+import {EvaluationStepsViewer, foldUnfoldings} from "@/features/evaluation/components/EvaluationStepsViewer.tsx";
 import {EvaluationLimitsSettings} from "@/features/evaluation/components/EvaluationLimitsSettings.tsx";
+import {BlackBoxesSettings} from "@/features/evaluation/components/BlackBoxesSettings.tsx";
+import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {env} from "@/shared/lib/env.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {runBusy, useBusy} from "@/shared/lib/busy.ts";
 import {BusyOverlay} from "@/shared/components/BusyOverlay.tsx";
+
+const NO_BLACK_BOXES: string[] = [];
 
 interface EvaluationVisualisationProps {
   className?: string;
@@ -32,6 +37,7 @@ export function EvaluationVisualisation({
   const {t} = useTranslation();
   const evaluation = useAppSelector((state) => state.term.evaluation);
   const evaluating = useAppSelector((state) => state.term.evaluating);
+  const {fullEvaluation} = useTermHooks();
   const busy = useBusy("evaluation");
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
   const hasEvaluation = evaluation !== null && evaluation !== undefined;
@@ -39,8 +45,15 @@ export function EvaluationVisualisation({
   const containerRef = useRef<HTMLDivElement>(null);
   const {isFullscreen, isPseudoFullscreen, toggle} = useFullscreen(containerRef);
   const [showGamma, setShowGamma] = useState(false);
+  const [allowSkipping, setAllowSkipping] = useState(true);
   const [practiceToolbar, setPracticeToolbar] = useState<HTMLDivElement | null>(null);
   const [activeTab, setActiveTab] = useState<"automatic" | "practice">("practice");
+  // The full (black-box-free) run practice needs is only computed once practice is shown for this evaluation.
+  const [practiceShownFor, setPracticeShownFor] = useState<EvaluationResult | undefined>();
+  const practiceWanted = activeTab === "practice" || practiceShownFor === evaluation;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const practiceEvaluation = useMemo(() => (evaluation && practiceWanted ? fullEvaluation(evaluation) : undefined), [evaluation, practiceWanted]);
+  const usedBlackBoxes = evaluation?.blackBoxes ?? NO_BLACK_BOXES;
   useViewTime(`evaluation:${activeTab}`);
 
   return (
@@ -59,7 +72,10 @@ export function EvaluationVisualisation({
         <CardHeader>
           <div className="flex items-start gap-3">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0 flex-1">
-              <Tabs value={activeTab} onValueChange={(v) => runBusy("evaluation", () => setActiveTab(v as "automatic" | "practice"))} className="shrink-0">
+              <Tabs value={activeTab} onValueChange={(v) => runBusy("evaluation", () => {
+                if (activeTab === "practice") setPracticeShownFor(evaluation);
+                setActiveTab(v as "automatic" | "practice");
+              })} className="shrink-0">
                 <TabsList className="h-auto justify-start gap-1 p-1">
                   <Tip label={t("evalPractice.tabPracticeTip")}><TabsTrigger value="practice">{t("evalPractice.tabPractice")}</TabsTrigger></Tip>
                   <Tip label={t("evalPractice.tabAutomaticTip")}><TabsTrigger value="automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger></Tip>
@@ -69,6 +85,19 @@ export function EvaluationVisualisation({
                 <span className="rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none border-border bg-muted text-muted-foreground whitespace-nowrap shrink-0">
                   {t(`evalStrategy.${evaluation.strategy}.label`)}
                 </span>
+              )}
+              {hasEvaluation && activeTab === "practice" && (
+                <>
+                  <Separator orientation="vertical" className="hidden sm:block shrink-0 data-[orientation=vertical]:h-6" />
+                  <Tip label={t("evalPractice.allowSkippingTip")}>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Switch id="allow-skipping" checked={allowSkipping} onCheckedChange={setAllowSkipping}/>
+                      <Label htmlFor="allow-skipping" className="text-sm text-muted-foreground whitespace-nowrap">
+                        {t("evalPractice.allowSkipping")}
+                      </Label>
+                    </div>
+                  </Tip>
+                </>
               )}
               {hasSteps && activeTab === "automatic" && (
                 <>
@@ -84,6 +113,8 @@ export function EvaluationVisualisation({
             </div>
 
             <div ref={setPracticeToolbar} className={cn("flex items-center gap-2 shrink-0", activeTab !== "practice" && "hidden")}/>
+
+            {activeTab === "automatic" && <BlackBoxesSettings/>}
 
             <EvaluationLimitsSettings/>
 
@@ -101,10 +132,11 @@ export function EvaluationVisualisation({
         <CardContent className="relative flex-1 overflow-hidden p-0">
           {(evaluating || busy) && <BusyOverlay label={t(evaluating ? "evaluationPanel.evaluating" : "busy.loading")}/>}
           <div className={cn("h-full", activeTab !== "practice" && "hidden")}>
-            {hasEvaluation ? (
+            {practiceEvaluation ? (
               <EvaluationPractice
-                key={evaluation.result.id}
-                evaluation={evaluation}
+                key={practiceEvaluation.result.id}
+                evaluation={practiceEvaluation}
+                allowSkipping={allowSkipping}
                 typeAliases={typeAliases}
                 toolbarTarget={practiceToolbar}
               />
@@ -117,12 +149,21 @@ export function EvaluationVisualisation({
           <div className={cn("h-full", activeTab !== "automatic" && "hidden")}>
           {hasEvaluation ? (
             <div className="h-full flex flex-col">
+              {usedBlackBoxes.length > 0 && (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-x border-t bg-sky-500/5 px-4 py-1.5 text-xs text-muted-foreground">
+                  <span>
+                    {t("blackBoxes.active", {count: foldUnfoldings(evaluation.steps).length})}
+                    {" "}<span className="font-mono text-foreground">{usedBlackBoxes.join(", ")}</span>
+                  </span>
+                </div>
+              )}
               <div className="flex-1 rounded-b-xl border overflow-hidden bg-muted/30 p-4">
                 <EvaluationStepsViewer
                   key={evaluation.result.id}
                   evaluation={evaluation}
                   typeAliases={typeAliases}
                   showGamma={showGamma}
+                  blackBoxes={usedBlackBoxes}
                 />
               </div>
               {env.VITE_SHOW_DEBUG_DATA && (

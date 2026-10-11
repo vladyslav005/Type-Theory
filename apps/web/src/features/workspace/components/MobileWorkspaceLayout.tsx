@@ -139,8 +139,9 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
               animate={{opacity: 1, width: "auto"}}
               exit={{opacity: 0, width: 0}}
               transition={{duration: 0.25, ease: "easeOut"}}
-              className="flex flex-1 min-w-0 overflow-hidden"
+              className="flex flex-1 min-w-0 items-stretch gap-2 overflow-hidden"
             >
+              <TypeCheckButton parseOnly className="flex-1 min-w-0 justify-center whitespace-normal text-center leading-tight py-2 h-auto min-h-9"/>
               <RunButton className="flex-1 min-w-0 [&>button:first-child]:flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:justify-center [&>button:first-child]:whitespace-normal [&>button:first-child]:text-center [&>button:first-child]:leading-tight [&>button:first-child]:py-2 [&>button:first-child]:h-auto [&>button:first-child]:min-h-9"/>
             </motion.div>
           ) : (

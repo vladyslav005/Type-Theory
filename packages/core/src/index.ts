@@ -7,7 +7,8 @@ export type {Parser} from "@/application/Parser";
 export {AntlrParserAdapter} from "@/adapter/AntlrParserAdapter";
 export {ParseSyntaxError} from "@/adapter/SyntaxErrorListener";
 
-export {Evaluator} from "@/application/evaluation/Evaluator";
+export {Evaluator, type EvaluateOptions} from "@/application/evaluation/Evaluator";
+export {helperCandidates, type HelperCandidate} from "@/application/evaluation/helperCollapse";
 export * from "@/application/evaluation/type";
 export {
   accumulateBindings,

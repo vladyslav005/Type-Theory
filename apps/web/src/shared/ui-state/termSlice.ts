@@ -63,6 +63,8 @@ export interface TermState {
   // step's substitution was applied, so the tree view can show metavariables resolving live.
   inferenceProofSnapshots: ProofTree[];
   evaluation: EvaluationResult | undefined;
+  // Definitions the user picked to run as one step in the automatic stepper (session only).
+  blackBoxes: string[];
   evaluating: boolean;
   building: boolean;
   // The editor text the current ast/proof were built from, to spot a stale build.
@@ -105,6 +107,7 @@ export const initialTermState: TermState = {
   inferenceSteps: [],
   inferenceProofSnapshots: [],
   evaluation: undefined,
+  blackBoxes: [],
   evaluating: false,
   building: false,
   builtText: undefined,
@@ -216,6 +219,10 @@ const counterSlice = createSlice({
 
     setEvaluation: (state, action: { payload: EvaluationResult | undefined }) => {
       state.evaluation = action.payload;
+    },
+
+    setBlackBoxes: (state, action: { payload: string[] }) => {
+      state.blackBoxes = action.payload;
     },
 
     setBuiltText: (state, action: { payload: string | undefined }) => {
@@ -463,6 +470,7 @@ const counterSlice = createSlice({
 
 export const {
   setEvaluation,
+  setBlackBoxes,
   setEvaluationLimits,
   setProofTreeRenderLimit,
   setEvaluating,

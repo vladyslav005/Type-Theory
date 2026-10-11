@@ -38,6 +38,8 @@ export type Term =
 export interface Var extends Node {
   kind: "Var"
   name: string
+  // A collapsed helper call's result shown by name: unfolded only where it's applied.
+  folded?: boolean
 }
 
 export interface Abs extends Node {

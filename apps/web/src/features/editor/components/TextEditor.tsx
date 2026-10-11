@@ -304,6 +304,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
                       transition={{duration: 0.25, ease: "easeOut"}}
                       className="flex items-center gap-2 shrink-0 overflow-hidden"
                     >
+                      <TypeCheckButton parseOnly />
                       <RunButton />
                     </motion.div>
                   ) : (

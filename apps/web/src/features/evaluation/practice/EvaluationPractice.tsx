@@ -1,9 +1,9 @@
-import {useEffect, useMemo, useRef, useState, type ReactNode} from "react";
+import {memo, useEffect, useMemo, useRef, useState, type ReactNode} from "react";
 import {useTranslation} from "react-i18next";
 import {ArrowDown, ArrowRight, Equal, CheckCircle2, CircleX, Eye, EyeOff, Flag, Lightbulb, RotateCcw, Undo2} from "lucide-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {createPortal} from "react-dom";
-import type {EvaluationResult, ReductionStep, Term, Type} from "@vladyslav005/tt-core";
+import type {EvaluationResult, Program, ReductionStep, Term, Type} from "@vladyslav005/tt-core";
 import {accumulateBindings, EvaluationStrategy, Evaluator} from "@vladyslav005/tt-core";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Tip} from "@/shared/components/Tip.tsx";
@@ -30,6 +30,8 @@ interface EvaluationPracticeProps {
   parseInput?: (text: string) => Term | undefined;
   // Where the step count, guide and restart go when a surrounding panel header has room for them.
   toolbarTarget?: HTMLElement | null;
+  // Accept answers several steps ahead, or any β-equivalent term, as one valid step.
+  allowSkipping?: boolean;
 }
 
 interface Row {
@@ -62,6 +64,13 @@ const REMAINING_PAGE = 50;
 const LOOKAHEAD = 4;
 // Enough room for a chain of name→definition replacements before the next real step.
 const DEFINITION_LOOKAHEAD = 12;
+// With skipping allowed: how far along the strategy's own path an answer is recognised,
+// and the budget for comparing normal forms when it's a shortcut off that path.
+const SKIP_LOOKAHEAD = 300;
+const NORMALIZE_STEPS = 3000;
+const NORMALIZE_LIMITS = {maximumTermSize: 2000, timeLimitMs: 2000};
+// Normal forms by term text per evaluation, so re-judging every row on each render stays cheap; null = none within the budget.
+const NORMAL_FORMS = new WeakMap<object, Map<string, Term | null>>();
 
 const message = (code: string, params?: FeedbackMessage["params"]): FeedbackMessage => ({code: `evalPractice.msg.${code}`, params});
 
@@ -80,7 +89,7 @@ function replaceNode(root: Term, id: string, replacement: Term): Term {
   return walk(root) as Term;
 }
 
-export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMode = "follow", parseInput = defaultParse, toolbarTarget}: EvaluationPracticeProps) {
+function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode = "follow", parseInput = defaultParse, toolbarTarget, allowSkipping = false}: EvaluationPracticeProps) {
   const anyOrder = strategyMode === "any";
   const {t} = useTranslation();
   const {strategy} = evaluation;
@@ -118,6 +127,35 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     }, under);
   }, [evaluation.globals, strategy]);
 
+  const programOf = (term: Term, bindings: Position["bindings"]): Program => {
+    const scope = {...evaluation.globals, ...Object.fromEntries(bindings.map((b) => [b.name, b.value]))};
+    return {
+      kind: "Program",
+      id: "practice",
+      globals: Object.entries(scope).map(([name, value]) => ({kind: "FunDecl" as const, id: `global-${name}`, name, value})),
+      term,
+    };
+  };
+
+  const normalForm = (term: Term, bindings: Position["bindings"]): Term | null => {
+    let cache = NORMAL_FORMS.get(evaluation.globals);
+    if (!cache) NORMAL_FORMS.set(evaluation.globals, cache = new Map());
+    const key = `${bindings.map((b) => `${b.name}=${termKey(b.value)}`).join(";")}|${termKey(term)}`;
+    if (!cache.has(key)) {
+      const run = new Evaluator(NORMALIZE_STEPS, NORMALIZE_LIMITS).evaluate(programOf(term, bindings), EvaluationStrategy.NORMAL);
+      cache.set(key, run.reachedStepLimit || run.errors?.length ? null : run.result);
+    }
+    return cache.get(key)!;
+  };
+  // A shortcut: a different term with the same normal form, i.e. reachable by reducing in some order.
+  const isShortcut = (position: Position | undefined, term: Term): boolean => {
+    if (!allowSkipping || !position || termsAlphaEqual(term, position.before)) return false;
+    const target = normalForm(position.before, position.bindings);
+    const written = target && normalForm(term, position.bindings);
+    return !!target && !!written && termsAlphaEqual(target, written);
+  };
+  const valid = (position: Position | undefined, term: Term) => accepts(position, term) || isShortcut(position, term);
+
   // Every term one reduction step away: each sub-term that is itself a redex, contracted in place.
   const allReducts = useMemo(() => (term: Term, bindings: Position["bindings"]): Term[] => {
     const results: Term[] = [];
@@ -142,7 +180,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     let before = startTerm;
     let bindings: {name: string; value: Term}[] = [];
     for (let i = 0; i <= rows.length; i += 1) {
-      const trace = traceFrom(before, bindings, DEFINITION_LOOKAHEAD);
+      const trace = traceFrom(before, bindings, allowSkipping ? SKIP_LOOKAHEAD : DEFINITION_LOOKAHEAD);
       const ahead = trace.steps;
       const accepted: Term[] = [];
       if (anyOrder) {
@@ -150,7 +188,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       } else {
         for (let k = 0; k < ahead.length; k += 1) {
           accepted.push(ahead[k].after);
-          if (!isDefinitionStep(ahead[k])) break;
+          if (!allowSkipping && !isDefinitionStep(ahead[k])) break;
         }
       }
       const onlyDefinitionsLeft = !anyOrder && ahead.length > 0 && ahead.every(isDefinitionStep)
@@ -163,13 +201,15 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       list.push({before, bindings, expected: ahead[0], accepted, onlyDefinitionsLeft, unfoldings});
       if (i < rows.length) {
         const matched = accepted.findIndex((option) => termsAlphaEqual(rows[i].term, option));
-        const taken = ahead.slice(0, Math.max(matched, 0) + 1);
+        // A shortcut off the strategy's path carries no known bindings; a wrong step counts as the expected one.
+        const offPath = matched === -1 && isShortcut(list[i], rows[i].term);
+        const taken = offPath ? [] : ahead.slice(0, Math.max(matched, 0) + 1);
         bindings = [...bindings, ...accumulateBindings(taken, taken.length)];
         before = rows[i].term;
       }
     }
     return list;
-  }, [rows, startTerm, traceFrom, anyOrder, allReducts]);
+  }, [rows, startTerm, traceFrom, anyOrder, allReducts, allowSkipping]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const position = positions[Math.min(cursor, rows.length)];
   const atEnd = cursor >= rows.length;
@@ -178,7 +218,9 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     ? (finalPosition.onlyDefinitionsLeft ? "value" : "reducible")
     : (traceFrom(finalPosition.before, finalPosition.bindings, 1).errors?.length ?? 0) > 0 ? "stuck" : "value";
   const finished = ending !== undefined;
-  const isCorrect = (i: number) => accepts(positions[i], rows[i].term);
+  const isCorrect = (i: number) => valid(positions[i], rows[i].term);
+  // Correct, but more than the next single step.
+  const skippedAhead = (i: number) => allowSkipping && isCorrect(i) && !isUnfolding(i) && !(positions[i].expected && termsAlphaEqual(rows[i].term, positions[i].expected.after));
 
   // What each step should have been, continuing from the corrected term after a wrong step rather than from the student's.
   const corrections = useMemo(() => {
@@ -190,7 +232,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     for (let i = 0; i < rows.length; i += 1) {
       const expected = afterMistake ? traceFrom(before, bindings, 1).steps[0] : positions[i].expected;
       list.push({expected, afterMistake});
-      if (!afterMistake && accepts(positions[i], rows[i].term)) {
+      if (!afterMistake && valid(positions[i], rows[i].term)) {
         before = rows[i].term;
         bindings = positions[i + 1].bindings;
       } else if (expected) {
@@ -203,7 +245,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     }
     if (!afterMistake) bindings = positions[rows.length].bindings;
     return {list, remaining: traceFrom(before, bindings, Math.max(evaluation.steps.length, 1)).steps};
-  }, [finished, rows, positions, startTerm, traceFrom, evaluation.steps.length]);
+  }, [finished, rows, positions, startTerm, traceFrom, evaluation.steps.length, allowSkipping]); // eslint-disable-line react-hooks/exhaustive-deps
   const globals = Object.entries(evaluation.globals ?? {});
 
   useEffect(() => {
@@ -211,14 +253,14 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       strategy,
       rows: rows.map((r, i) => ({
         text: r.text,
-        correct: accepts(positions[i], r.term),
+        correct: valid(positions[i], r.term),
         correctResult: positions[i].expected ? termKey(positions[i].expected!.after) : null,
       })),
       cursor,
       input,
       ending,
     });
-  }, [strategy, rows, positions, cursor, input, ending]);
+  }, [strategy, rows, positions, cursor, input, ending, allowSkipping]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => setEvaluationPracticeSnapshot(undefined), []);
 
   useEffect(() => {
@@ -248,7 +290,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     if (!text) return;
     const written = read(text);
     if (!written) return;
-    trackPractice(taskId, {type: "step", ok: accepts(position, written)});
+    trackPractice(taskId, {type: "step", ok: valid(position, written)});
     if (!taskId) session.update((entry) => ({...entry, steps: (entry.steps ?? 0) + 1}));
     const updated = [...rows];
     updated[cursor] = {text, term: written};
@@ -280,7 +322,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     const written = read(text);
     if (!written) return;
     if (!taskId) session.update((entry) => ({...entry, checks: entry.checks + 1}));
-    if (accepts(position, written)) {
+    if (valid(position, written)) {
       trackPractice(taskId, {type: "check", outcome: "match"});
       setHintOk(true);
       setFeedback([]);
@@ -560,7 +602,9 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
             {resultLine(allStepsCorrect, t("evalPractice.summary", {correct: correctCount, total: rows.length}))}
             <p className="pl-6 text-xs text-muted-foreground">{t("evalPractice.fullLengthAny", {count: solution.length})}</p>
           </>
-        ) : resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summaryOfSolution", {correct: correctReductions, total: solutionReductions, made: rows.length}))}
+        ) : allowSkipping
+          ? resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summary", {correct: correctCount, total: rows.length}))
+          : resultLine(allStepsCorrect && endingCorrect, t("evalPractice.summaryOfSolution", {correct: correctReductions, total: solutionReductions, made: rows.length}))}
         {!endingCorrect && resultLine(false, <>
           {t(ending === "value" ? (anyOrder ? "evalPractice.youSaidNormalForm" : "evalPractice.youSaidValue") : "evalPractice.youSaidStuck")}{" "}
           {t(`evalPractice.ending.${actualEnding}`)}
@@ -637,6 +681,9 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       {isUnfolding(i) ? <Equal className="h-3.5 w-3.5 shrink-0"/> : <ArrowDown className="h-3.5 w-3.5 shrink-0"/>}
       <span className="font-semibold px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400">{i + 1}</span>
       {i < rows.length && verdictMarker(i)}
+      {i < rows.length && skippedAhead(i) && (
+        <span className="rounded border border-sky-500/30 bg-sky-500/10 px-1 text-[10px] text-sky-700 dark:text-sky-300">{t("evalPractice.shortcut")}</span>
+      )}
       {i === cursor && i < rows.length && <span>{t("evalPractice.editingStep", {current: i + 1})}</span>}
     </button>
   );
@@ -699,3 +746,6 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     </TypeAliasesContext.Provider>
   );
 }
+
+// Memoized: the panel re-renders on every tab switch, and a hidden practice with a long trace is costly to redo.
+export const EvaluationPractice = memo(EvaluationPracticeView);

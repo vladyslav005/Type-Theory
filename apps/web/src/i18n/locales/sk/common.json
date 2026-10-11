@@ -142,7 +142,9 @@
     "evaluateTooltip": "Zredukovať výraz do normálnej formy pomocou zvolenej stratégie",
     "chooseStrategy": "Zvoliť stratégiu vyhodnocovania",
     "run": "Spustiť",
-    "runTooltip": "Analyzovať, typovo skontrolovať a vyhodnotiť v jednom kroku pomocou zvolenej stratégie"
+    "runTooltip": "Analyzovať, typovo skontrolovať a vyhodnotiť v jednom kroku pomocou zvolenej stratégie",
+    "parse": "Analyzovať",
+    "parseTooltip": "Zanalyzuje aktuálny výraz — vytvorí AST a syntaktický strom."
   },
   "prelude": {
     "trigger": "Prelúdium",
@@ -303,6 +305,10 @@
       "fixx-real-recursion-iseven": {
         "label": "fixx: skutočná rekurzia (isEven)",
         "description": "Y/fixx v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na fls"
+      },
+      "fixx-factorial": {
+        "label": "fixx: Faktoriál",
+        "description": "fact n = ak je n nula, tak 1, inak n × fact (n - 1), zostavené z Churchových čísel, iszero, Kleeneho pred, times a fixx — v normálnom poradí uvidíte, ako sa fact three zredukuje až na číslo 6 (Call-by-value/Call-by-name skončia skôr, pri λ, ktorej telo ešte nie je zredukované)"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",
@@ -874,7 +880,10 @@
     "globals": "Globálne",
     "alreadyStuck": "Výraz je zaseknutý — žiadne redukcie nie sú možné.",
     "alreadyNormal": "Výraz je už v normálnej forme — nie sú potrebné žiadne redukčné kroky.",
-    "nblNumeral": "Číslo"
+    "nblNumeral": "Číslo",
+    "collapsedCall_one": "{{name}} · {{count}} krok",
+    "collapsedCall_few": "{{name}} · {{count}} kroky",
+    "collapsedCall_other": "{{name}} · {{count}} krokov"
   },
   "latexExport": {
     "trigger": "Exportovať LaTeX",
@@ -1218,7 +1227,10 @@
     "instructionAny": "Urobte jeden krok redukcie: napíšte celý term, ktorý dostanete po zredukovaní jedného redexu — ktorého, to je na vás, poradie nie je predpísané. Kliknutím na podčiarknuté meno v terme zobrazíte jeho definíciu; nastavte myš na časť termu a stlačte Alt+I, aby sa vložila do odpovede.",
     "itIsNormalForm": "Dokončiť: je v normálnej forme",
     "correctStepExample": "napr.:",
-    "youSaidNormalForm": "Povedali ste, že výsledný term je v normálnej forme —"
+    "youSaidNormalForm": "Povedali ste, že výsledný term je v normálnej forme —",
+    "allowSkipping": "Preskakovať kroky",
+    "allowSkippingTip": "Prijímať odpovede, ktoré preskakujú kroky.",
+    "shortcut": "preskočené"
   },
   "lectureWidgets": {
     "tryStrategies": "Vyskúšajte — redukčné stratégie",
@@ -1480,5 +1492,25 @@
   },
   "busy": {
     "loading": "Načítava sa…"
+  },
+  "blackBoxes": {
+    "button": "Skratky",
+    "title": "Skratky",
+    "description": "Volania označených definícií prebehnú ako jeden krok.",
+    "recursive": "rekurzívna",
+    "recursiveTip": "Rekurzívna — zvyčajne nič neskráti.",
+    "clear": "Zrušiť",
+    "tag": "skratka",
+    "active_one": "{{count}} krok — skratky:",
+    "active_few": "{{count}} kroky — skratky:",
+    "active_other": "{{count}} krokov — skratky:",
+    "pending": "Použije sa pri ďalšom spustení.",
+    "help": "Označené pomocné definície (napr. pred alebo times) prebehnú v jednom kroku namiesto mnohých."
+  },
+  "toasts": {
+    "staleBuild": "Text v editore sa zmenil od posledného „{{action}}“. Najprv stlačte „{{action}}“.",
+    "longEvaluation_one": "{{count}} krok. Tip: Skratky (karta Automaticky) môžu vyhodnotenie skrátiť a sprehľadniť.",
+    "longEvaluation_few": "{{count}} kroky. Tip: Skratky (karta Automaticky) môžu vyhodnotenie skrátiť a sprehľadniť.",
+    "longEvaluation_other": "{{count}} krokov. Tip: Skratky (karta Automaticky) môžu vyhodnotenie skrátiť a sprehľadniť."
   }
 }

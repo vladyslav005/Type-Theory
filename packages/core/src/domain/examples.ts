@@ -282,6 +282,38 @@ isEven = fixx isEvenGen;
 
 isEven three;`,
       },
+      {
+        label: "fixx: Factorial",
+        description: "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fixx — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)",
+        code: `tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+
+zero = λ s . λ z . z;
+succ = λ n . λ s . λ z . s (n s z);
+one = succ zero;
+two = succ one;
+three = succ two;
+
+plus = λ m . λ n . λ s . λ z . m s (n s z);
+times = λ m . λ n . m (plus n) zero;
+iszero = λ n . n (λ x . fls) tru;
+
+pair = λ f . λ s . λ b . b f s;
+fst = λ p . p tru;
+snd = λ p . p fls;
+shift = λ p . pair (snd p) (succ (snd p));
+pred = λ n . fst (n shift (pair zero zero));
+
+// Both branches are thunked (λd. …) so only the chosen one runs — otherwise
+// Call-by-value would evaluate fact (pred n) forever.
+factGen = λ f . λ n . ((iszero n) (λ d . one) (λ d . times n (f (pred n)))) (λ x . x);
+
+// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+fact = fixx factGen;
+
+fact three;`,
+      },
     ],
   },
   {

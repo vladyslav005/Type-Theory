@@ -1,15 +1,20 @@
 import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
-import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
+import {useAppDispatch, useAppSelector, useAppStore} from "@/shared/hooks/reduxHooks.ts";
 import {clean, clearEvaluationErrors, EvaluationRunError, EvaluationWarning, pushProcessingError, setAst, setErrorMarkers, setBuilding, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
-import type {EvaluationStrategy} from "@vladyslav005/tt-core";
-import {elaborateNbl, Evaluator, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
+import type {EvaluationResult, EvaluationStrategy} from "@vladyslav005/tt-core";
+import {elaborateNbl, Evaluator, helperCandidates, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 import {afterPaint} from "@/shared/lib/afterPaint.ts";
+import {toast} from "sonner";
+import {useTranslation} from "react-i18next";
 
 let latestEvaluation = 0;
+// Steps (not counting name→definition lookups) past which a run suggests Shortcuts — once per session.
+const LONG_EVALUATION = 100;
+let shortcutsTipShown = false;
 
 export function useTermHooks() {
   const {
@@ -18,10 +23,12 @@ export function useTermHooks() {
   } = useDependencies();
 
   const dispatch = useAppDispatch()
+  const {t} = useTranslation();
   const termText = useAppSelector((state) => state.term.termText);
   const builtText = useAppSelector((state) => state.term.builtText);
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
   const evaluationLimits = useAppSelector((state) => state.term.evaluationLimits);
+  const store = useAppStore();
   const ast = useAppSelector((state) => state.term.ast);
   const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const stlcFeatures = useAppSelector((state) => state.term.stlcFeatures);
@@ -112,27 +119,25 @@ export function useTermHooks() {
     const targetAst = astOverride ?? ast;
     if (!targetAst) return;
     if (!astOverride && !autoBuild && builtText !== undefined && termText !== builtText) {
-      dispatch(clearEvaluationErrors());
-      dispatch(pushProcessingError(new EvaluationWarning(
-        "The text editor content has changed since the last Parse & Type Check — evaluating now would use the previous version. Run Parse & Type Check first.",
-      )));
+      toast.warning(t("toasts.staleBuild", {action: t("actions.typeCheck")}));
       return;
     }
 
     const run = ++latestEvaluation;
     dispatch(setEvaluating(true));
     afterPaint(() => {
-      if (run === latestEvaluation) runEvaluation(targetAst, strategy);
+      if (run === latestEvaluation) runEvaluation(targetAst, strategy, store.getState().term.blackBoxes);
     });
   }
 
-  function runEvaluation(targetAst: Program, strategy: EvaluationStrategy) {
+  function runEvaluation(targetAst: Program, strategy: EvaluationStrategy, boxes: string[]) {
     // Only the previous run's messages — type-check errors from the same build must survive.
     dispatch(clearEvaluationErrors());
 
     try {
-      const evaluationResult = new Evaluator(evaluationLimits.maxSteps, {maximumTermSize: evaluationLimits.maxTermSize}).evaluate(targetAst, strategy);
+      const evaluationResult = newEvaluator().evaluate(targetAst, strategy, {blackBoxes: boxes});
       dispatch(setEvaluation(evaluationResult));
+      suggestShortcuts(targetAst, evaluationResult.steps.filter((step) => step.rule !== "definition").length, boxes);
 
       evaluationResult.errors?.forEach((e) =>
         dispatch(pushProcessingError(new EvaluationRunError(
@@ -160,6 +165,27 @@ export function useTermHooks() {
     }
   }
 
+  // In the error output on every long run; as a toast only once per session.
+  function suggestShortcuts(program: Program, steps: number, boxes: string[]) {
+    if (boxes.length > 0 || steps <= LONG_EVALUATION) return;
+    if (!helperCandidates(program).some((candidate) => !candidate.recursive)) return;
+    const tip = t("toasts.longEvaluation", {count: steps});
+    dispatch(pushProcessingError(new EvaluationWarning(tip)));
+    if (shortcutsTipShown) return;
+    shortcutsTipShown = true;
+    toast.info(tip);
+  }
+
+  function newEvaluator() {
+    return new Evaluator(evaluationLimits.maxSteps, {maximumTermSize: evaluationLimits.maxTermSize});
+  }
+
+  // The run without black boxes, for practice mode — computed only when asked for.
+  function fullEvaluation(of: EvaluationResult): EvaluationResult | undefined {
+    if (!of.blackBoxes?.length) return of;
+    return ast ? newEvaluator().evaluate(ast, of.strategy) : undefined;
+  }
+
   // Same as parseAndTypeCheck, but lets the building indicator paint first; `then` gets the result.
   function parseAndTypeCheckDeferred(then?: (ast: Program | undefined) => void) {
     dispatch(setBuilding(true));
@@ -177,6 +203,7 @@ export function useTermHooks() {
     parseTerm,
     typecheckTerm,
     evaluateTerm,
+    fullEvaluation,
     parseAndTypeCheck,
     parseAndTypeCheckDeferred,
   }

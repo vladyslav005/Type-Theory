@@ -142,7 +142,9 @@
     "evaluateTooltip": "Reduce the expression to a normal form using the selected strategy",
     "chooseStrategy": "Choose evaluation strategy",
     "run": "Run",
-    "runTooltip": "Parse, type-check, and evaluate in one step using the selected strategy"
+    "runTooltip": "Parse, type-check, and evaluate in one step using the selected strategy",
+    "parse": "Parse",
+    "parseTooltip": "Parse the current expression — builds the AST and syntax tree."
   },
   "prelude": {
     "trigger": "Prelude",
@@ -303,6 +305,10 @@
       "fixx-real-recursion-iseven": {
         "label": "fixx: Real Recursion (isEven)",
         "description": "Y/fixx used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls"
+      },
+      "fixx-factorial": {
+        "label": "fixx: Factorial",
+        "description": "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fixx — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",
@@ -866,7 +872,9 @@
     "globals": "Globals",
     "alreadyStuck": "Expression is stuck — no reductions are possible.",
     "alreadyNormal": "Expression is already in normal form — no reduction steps needed.",
-    "nblNumeral": "Number"
+    "nblNumeral": "Number",
+    "collapsedCall_one": "{{name}} · {{count}} step",
+    "collapsedCall_other": "{{name}} · {{count}} steps"
   },
   "latexExport": {
     "trigger": "Export LaTeX",
@@ -1192,7 +1200,10 @@
     "instructionAny": "Do one reduction step: write the whole term you get after reducing one redex — you choose which, the order is up to you. Click an underlined name in the term to see its definition; hover a part and press Alt+I to insert it into your answer.",
     "itIsNormalForm": "Finish: it's in normal form",
     "correctStepExample": "e.g.:",
-    "youSaidNormalForm": "You said the final term is in normal form —"
+    "youSaidNormalForm": "You said the final term is in normal form —",
+    "allowSkipping": "Skip steps",
+    "allowSkippingTip": "Accept answers that skip steps.",
+    "shortcut": "skipped"
   },
   "lectureWidgets": {
     "tryStrategies": "Try it — reduction strategies",
@@ -1432,5 +1443,23 @@
   },
   "busy": {
     "loading": "Loading…"
+  },
+  "blackBoxes": {
+    "button": "Shortcuts",
+    "title": "Shortcuts",
+    "description": "Calls to checked definitions run as one step.",
+    "recursive": "recursive",
+    "recursiveTip": "Recursive — usually won't shorten anything.",
+    "clear": "Clear",
+    "tag": "shortcut",
+    "active_one": "{{count}} step — shortcuts:",
+    "active_other": "{{count}} steps — shortcuts:",
+    "pending": "Applies on the next Run.",
+    "help": "Checked helpers (like pred or times) run in one step instead of many."
+  },
+  "toasts": {
+    "staleBuild": "The editor text changed since the last {{action}}. Press {{action}} first.",
+    "longEvaluation_one": "{{count}} step. Tip: Shortcuts (Automatic tab) can make the evaluation shorter and easier to follow.",
+    "longEvaluation_other": "{{count}} steps. Tip: Shortcuts (Automatic tab) can make the evaluation shorter and easier to follow."
   }
 }

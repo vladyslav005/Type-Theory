@@ -45,6 +45,7 @@ import type {
 import {EvaluationStrategy, type ReductionStep,} from "@/application/evaluation/type.ts";
 import {substituteTypeVariable} from "@/application/typecheck/utils.ts";
 import {isNumericValue} from "@/application/nbl/nblValues.ts";
+import type {HelperCollapse} from "@/application/evaluation/helperCollapse.ts";
 
 const isUnitLiteral = (term: Term): boolean =>
   term.kind === "Lit" && (term.value === "unit" || term.value === "Unit");
@@ -83,9 +84,14 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   constructor(
     private readonly strategy: EvaluationStrategy,
     private readonly globals: ReadonlyMap<string, Term>,
+    private readonly collapse?: HelperCollapse,
+    initiallyBound: Iterable<string> = [],
   ) {
     super();
+    for (const name of initiallyBound) this.addBound(name);
   }
+
+  private headVarId: string | undefined;
 
   // Set by whichever redex fires; one reduce() call fires at most one.
   private firedRule: string | undefined;
@@ -105,7 +111,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
     const definition = this.globals.get(node.name);
 
-    if (!definition || !definition.id) {
+    if (!definition || !definition.id || (node.folded && this.headVarId !== node.id)) {
       return null;
     }
 
@@ -161,6 +167,9 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitApp(
     node: App,
   ): ReductionStep | null {
+    const collapsed = this.collapseHelperCall(node);
+    if (collapsed !== undefined) return collapsed;
+
     const isBetaRedex = node.func.kind === "Abs" || node.func.kind === "DummyAbstraction";
 
     // Normal order and call-by-name reduce an outer beta-redex immediately.
@@ -171,6 +180,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       return this.betaReduce(node);
     }
 
+    this.headVarId = node.func.kind === "Var" ? node.func.id : undefined;
     const functionStep = this.visit(node.func);
 
     if (functionStep) {
@@ -240,6 +250,49 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
     // e.g. applying a literal as a function is stuck.
     return null;
+  }
+
+  // `h a₁ … aₙ` with h a black-boxed helper of arity n runs as one step, like a built-in operation:
+  // pending arguments are evaluated first, then the call is normalized on the side.
+  // undefined means "not collapsible here" — the call is then stepped normally.
+  private collapseHelperCall(node: App): ReductionStep | null | undefined {
+    const collapse = this.collapse;
+    if (!collapse || collapse.failed.has(node.id)) return undefined;
+    const spine: App[] = [];
+    let head: Term = node;
+    while (head.kind === "App") {
+      spine.unshift(head);
+      head = head.func;
+    }
+    const args = spine.map((app) => app.arg);
+    if (head.kind !== "Var" || this.isBound(head.name) || !collapse.names.has(head.name)) return undefined;
+    if (args.length !== collapse.arity(head.name)) return undefined;
+
+    const bound = new Set(this.boundVariables.keys());
+    for (let i = 0; i < args.length; i += 1) {
+      const argStep = args[i].kind === "App" ? this.visit(args[i]) : null;
+      if (argStep) {
+        const rebuilt = spine.reduce<Term>((func, app, j) => ({...app, func, arg: j === i ? argStep.after : app.arg}), head);
+        return {...argStep, before: node, after: rebuilt};
+      }
+      if (!collapse.isPlainArgument(args[i], bound)) return undefined;
+    }
+
+    const normal = collapse.run(node, bound);
+    if (!normal) {
+      collapse.failed.add(node.id);
+      return undefined;
+    }
+    const name = collapse.nameFor(normal.term, head.name, args, bound);
+    const after: Term = name ? {kind: "Var", id: crypto.randomUUID(), name, folded: true} : this.cloneTermWithFreshIds(normal.term);
+    this.firedRule = "collapse";
+    return {
+      before: node,
+      after,
+      selectedId: node.id,
+      resultId: after.id,
+      collapsed: {name: head.name, steps: normal.steps},
+    };
   }
 
   private betaReduce(node: App): ReductionStep {
