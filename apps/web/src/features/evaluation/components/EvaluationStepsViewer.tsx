@@ -239,8 +239,8 @@ export function TermPickProvider({ value, children }: { value: TermPick | undefi
   const [hoveredId, setHoveredId] = useState<string | undefined>();
   if (!value) return <TermPickContext.Provider value={undefined}>{children}</TermPickContext.Provider>;
   return (
-    <TermPickContext.Provider value={{ ...value, hoveredId, onHover: setHoveredId }}>
-      <span onMouseLeave={() => setHoveredId(undefined)}>{children}</span>
+    <TermPickContext.Provider value={{ ...value, hoveredId, onHover: (id) => { setHoveredId(id); value.onHover?.(id); } }}>
+      <span onMouseLeave={() => { setHoveredId(undefined); value.onHover?.(undefined); }}>{children}</span>
     </TermPickContext.Provider>
   );
 }
@@ -642,7 +642,7 @@ function TermNodeView({
 
   if (isSelected) {
     return (
-      <span className="bg-orange-500/15 text-orange-600 dark:text-orange-400 rounded px-0.5 ring-1 ring-orange-500/40 font-semibold">
+      <span className="bg-sky-500/15 rounded px-0.5 ring-1 ring-sky-500/50 font-semibold">
         {inner}
       </span>
     );
@@ -658,6 +658,7 @@ function TermBox({
   errorId,
   label,
   hasError,
+  globals,
 }: {
   term: Term;
   selectedId?: string;
@@ -665,6 +666,7 @@ function TermBox({
   errorId?: string;
   label: string;
   hasError?: boolean;
+  globals?: Record<string, Term>;
 }) {
   return (
     <div>
@@ -675,7 +677,9 @@ function TermBox({
           hasError ? "bg-destructive/5 border-destructive/30" : "bg-muted/30",
         )}
       >
-        <TermView term={term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+        <UnfoldProvider globals={globals}>
+          <TermView term={term} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+        </UnfoldProvider>
       </div>
     </div>
   );
@@ -787,7 +791,7 @@ export function foldUnfoldings(steps: ReductionStep[]): DisplayStep[] {
     display.push({...step, before: pending[0]?.before ?? step.before, unfolded: names(pending), rawIndex});
     pending = [];
   });
-  // Trailing replacements with no real step after them (a name that is already a value) stay one "=" row.
+  // Trailing replacements are only left when evaluation got stuck or hit a limit; they stay one "=" row.
   if (pending.length > 0) {
     const last = pending[pending.length - 1];
     display.push({...last, before: pending[0].before, unfolded: names(pending.slice(0, -1)), rawIndex: steps.length - 1});
@@ -863,7 +867,7 @@ function ReductionChain({
         "px-4 py-3 rounded-xl border font-mono text-sm leading-relaxed overflow-x-auto transition-colors duration-300",
         extra.hasError
           ? "bg-destructive/5 border-destructive/30"
-          : active ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70",
+          : active ? "bg-muted/40 border-sky-500/40" : "bg-muted/10 text-foreground/70",
       )}
     >
       <UnfoldProvider globals={globals}>
@@ -917,7 +921,7 @@ function ReductionChain({
                 <span
                   className={cn(
                     "font-semibold px-1.5 py-0.5 rounded-md",
-                    isStuck ? "bg-destructive/10 text-destructive" : "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+                    isStuck ? "bg-destructive/10 text-destructive" : "bg-sky-500/10 text-sky-600 dark:text-sky-400",
                   )}
                 >
                   {i + 1}
@@ -1030,7 +1034,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
               : t("evalSteps.alreadyNormal")}
           </p>
         </div>
-        <TermBox term={result} label={hasErrors ? t("evalSteps.stuckTerm") : t("evalSteps.normalForm")} errorId={stuckTermId} hasError={hasErrors} />
+        <TermBox term={result} label={hasErrors ? t("evalSteps.stuckTerm") : t("evalSteps.normalForm")} errorId={stuckTermId} hasError={hasErrors} globals={globals} />
         {!hasErrors && <ChurchNumeralHint term={result} />}
         {hasErrors && (
           <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
@@ -1097,7 +1101,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
                     isActive
                       ? isLast && hasErrors
                         ? "w-4 bg-destructive"
-                        : "w-4 bg-orange-500"
+                        : "w-4 bg-sky-500"
                       : isLast && hasErrors
                         ? "w-1.5 bg-destructive/40 hover:bg-destructive/70"
                         : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
@@ -1155,15 +1159,15 @@ function EvaluationStepsViewerInner({ evaluation, showGamma }: EvaluationStepsVi
           {isLastStep && !hasErrors && (
             <motion.div key={`end-${stepIndex}`} {...afterLastStep} className={cn(
               "p-4 rounded-xl border",
-              isFullyReduced ? "bg-orange-500/5 border-orange-500/20" : "bg-yellow-500/5 border-yellow-500/20",
+              isFullyReduced ? "bg-emerald-500/5 border-emerald-500/20" : "bg-yellow-500/5 border-yellow-500/20",
             )}>
               <div className="flex items-center gap-2 mb-2">
                 {isFullyReduced
-                  ? <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-500" />
+                  ? <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
                   : <AlertTriangle className="h-4 w-4 text-yellow-700 dark:text-yellow-500" />}
                 <span className={cn(
                   "text-xs font-medium uppercase tracking-wide",
-                  isFullyReduced ? "text-orange-600 dark:text-orange-500" : "text-yellow-700 dark:text-yellow-500",
+                  isFullyReduced ? "text-emerald-600 dark:text-emerald-500" : "text-yellow-700 dark:text-yellow-500",
                 )}>
                   {t(isFullyReduced ? "evalSteps.finalResult" : "evalSteps.stoppedResult")}
                 </span>

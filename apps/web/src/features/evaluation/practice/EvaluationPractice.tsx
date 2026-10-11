@@ -313,6 +313,34 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
 
   const insertFrom = (root: Term) => ({onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }});
 
+  const unfoldScope = (at: Position) => ({...evaluation.globals, ...Object.fromEntries(at.bindings.map((b) => [b.name, b.value]))});
+  const hoveredRef = useRef<string | undefined>(undefined);
+  const insertHovered = useRef<() => boolean>(() => false);
+  useEffect(() => {
+    insertHovered.current = () => {
+      const id = hoveredRef.current;
+      if (!id) return false;
+      const sub = findTermById(position.before, id)
+        ?? Object.values(unfoldScope(position)).map((value) => findTermById(value, id)).find(Boolean);
+      if (!sub) return false;
+      insertText(termKey(sub));
+      return true;
+    };
+  });
+  useEffect(() => {
+    // Capture phase, so it also works while the answer editor (Monaco) has focus.
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.code !== "KeyI") return;
+      if (insertHovered.current()) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, []);
+  const hoverPick = useMemo(() => ({onHover: (id: string | undefined) => { hoveredRef.current = id; }}), []);
+
   const isUnfolding = (i: number) => i < rows.length && positions[i].unfoldings.some((term) => termsAlphaEqual(rows[i].term, term));
   const correctCount = rows.filter((_, i) => isCorrect(i)).length;
   // Name→definition replacements aren't reduction steps, so neither side of the comparison counts them.
@@ -337,7 +365,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
         </div>
         <div className="font-mono text-sm leading-relaxed overflow-x-auto">
           {expected
-            ? <TermView term={expected.after} resultId={expected.resultId}/>
+            ? <UnfoldProvider globals={unfoldScope(positions[i])}><TermView term={expected.after} resultId={expected.resultId}/></UnfoldProvider>
             : <span className="font-sans text-xs text-muted-foreground">{t("evalPractice.noStepWasPossible")}</span>}
         </div>
       </div>
@@ -390,7 +418,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
   );
 
   const editor = (
-    <div ref={editorRef} className="rounded-xl border border-orange-500/40 p-3 flex flex-col gap-3 scroll-mb-4">
+    <div ref={editorRef} className="rounded-xl border border-sky-500/40 p-3 flex flex-col gap-3 scroll-mb-4">
       <p className="text-sm text-muted-foreground">
         {anyOrder ? t("evalPractice.instructionAny") : t("evalPractice.instruction", {strategy: t(`evalStrategy.${strategy}.label`)})}
       </p>
@@ -577,20 +605,20 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
     const reduced = index === cursor - 1;
     const verdict = finished && index >= 0 ? (isCorrect(index) ? "ok" : "wrong") : undefined;
     return (
-      <Tip label={!reduced && index >= 0 ? t("evalPractice.tip.goTo") : undefined} block>
+      <Tip label={reduced ? t("evalPractice.tip.insertHovered") : index >= 0 ? t("evalPractice.tip.goTo") : undefined} block>
         <div
           onClick={!reduced && index >= 0 ? () => moveTo(index) : undefined}
           className={cn(
             "w-full min-w-0 px-4 py-3 rounded-xl border font-mono text-sm leading-relaxed overflow-x-auto transition-colors duration-300",
             verdict === "ok" && "border-emerald-500/30 bg-emerald-500/5",
             verdict === "wrong" && "border-destructive/30 bg-destructive/5",
-            !verdict && (reduced ? "bg-muted/40 border-orange-500/40" : "bg-muted/10 text-foreground/70"),
+            !verdict && (reduced ? "bg-muted/40 border-sky-500/40" : "bg-muted/10 text-foreground/70"),
             !reduced && index >= 0 && "cursor-pointer hover:bg-muted/30",
           )}
         >
           {reduced
-            ? <TermPickProvider value={insertFrom(position.before)}><TermView term={term}/></TermPickProvider>
-            : <TermView term={term}/>}
+            ? <UnfoldProvider globals={unfoldScope(position)}><TermPickProvider value={hoverPick}><TermView term={term}/></TermPickProvider></UnfoldProvider>
+            : <UnfoldProvider globals={unfoldScope(positions[index + 1] ?? position)}><TermView term={term}/></UnfoldProvider>}
         </div>
       </Tip>
     );
@@ -607,7 +635,7 @@ export function EvaluationPractice({evaluation, typeAliases, taskId, strategyMod
       )}
     >
       {isUnfolding(i) ? <Equal className="h-3.5 w-3.5 shrink-0"/> : <ArrowDown className="h-3.5 w-3.5 shrink-0"/>}
-      <span className="font-semibold px-1.5 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400">{i + 1}</span>
+      <span className="font-semibold px-1.5 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400">{i + 1}</span>
       {i < rows.length && verdictMarker(i)}
       {i === cursor && i < rows.length && <span>{t("evalPractice.editingStep", {current: i + 1})}</span>}
     </button>

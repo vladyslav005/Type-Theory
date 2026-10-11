@@ -55,6 +55,11 @@ export class Evaluator {
 
       if (!step) {
         const errors = this.collectErrors(currentTerm);
+        // Unfoldings that no reduction follows aren't steps: the value is the term with the names still in it.
+        if (errors.length === 0) {
+          while (this.evaluationSteps.at(-1)?.rule === "definition") this.evaluationSteps.pop();
+          currentTerm = this.evaluationSteps.at(-1)?.after ?? initialTerm;
+        }
         return {
           result: currentTerm,
           steps: [...this.evaluationSteps],

@@ -1128,7 +1128,7 @@
     "insertName": "Vložiť meno {{name}}",
     "startTerm": "Štart",
     "restart": "Znova",
-    "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte celý term, ktorý dostanete po jednom kroku redukcie. Kliknutím na časť termu ju vložíte do odpovede.",
+    "instruction": "Vypočítajte ďalší krok pre {{strategy}}: napíšte celý term, ktorý dostanete po jednom kroku redukcie. Kliknutím na podčiarknuté meno v terme zobrazíte jeho definíciu; nastavte myš na časť termu a stlačte Alt+I, aby sa vložila do odpovede.",
     "check": "Skontrolovať krok",
     "reopen": "Pokračovať v práci",
     "guide": {
@@ -1146,7 +1146,7 @@
         },
         "insert": {
           "title": "Vkladajte namiesto prepisovania",
-          "body": "Kliknite na ľubovoľnú časť zvýrazneného termu priamo nad vstupom a vloží sa do odpovede. V kontexte Γ kliknite na meno, aby sa vložilo, alebo na „Vložiť“, aby sa vložila jeho definícia. `\\lambda` a `->` sa zmenia na λ a →."
+          "body": "V kontexte Γ kliknite na meno, aby sa vložilo, alebo na „Vložiť“, aby sa vložila jeho definícia. V zvýraznenom terme nad vstupom nastavte myš na ľubovoľnú časť a stlačte Alt+I (⌥I na Macu) — vloží sa, aj keď práve píšete; kliknutím na podčiarknuté meno uvidíte priamo na mieste jeho definíciu. `\\lambda` a `->` sa zmenia na λ a →."
         },
         "check": {
           "title": "Ďalší krok, kontrola, pohyb",
@@ -1211,10 +1211,11 @@
       "value": "Dokončiť tu: posledný term je hodnota a už sa nedá redukovať. Až potom sa vaše kroky porovnajú s riešením.",
       "stuck": "Dokončiť tu: na posledný term sa nedá použiť žiadne pravidlo, ale nie je to hodnota. Až potom sa vaše kroky porovnajú s riešením.",
       "goTo": "Prejsť na tento krok a pozrieť si ho alebo zmeniť — ďalšie kroky zostanú",
+      "insertHovered": "Kliknutím na podčiarknuté meno zobrazíte jeho definíciu. Nastavte myš na ľubovoľnú časť a stlačte Alt+I (⌥I na Macu) — vloží sa do odpovede, aj počas písania.",
       "reopen": "Znova otvoriť vyhodnotenie a pokračovať",
       "normalForm": "Dokončiť tu: v poslednom terme už nie je žiadny redex. Až potom sa vaše kroky porovnajú s riešením."
     },
-    "instructionAny": "Urobte jeden krok redukcie: napíšte celý term, ktorý dostanete po zredukovaní jedného redexu — ktorého, to je na vás, poradie nie je predpísané. Kliknutím na časť termu ju vložíte do odpovede.",
+    "instructionAny": "Urobte jeden krok redukcie: napíšte celý term, ktorý dostanete po zredukovaní jedného redexu — ktorého, to je na vás, poradie nie je predpísané. Kliknutím na podčiarknuté meno v terme zobrazíte jeho definíciu; nastavte myš na časť termu a stlačte Alt+I, aby sa vložila do odpovede.",
     "itIsNormalForm": "Dokončiť: je v normálnej forme",
     "correctStepExample": "napr.:",
     "youSaidNormalForm": "Povedali ste, že výsledný term je v normálnej forme —"

@@ -166,13 +166,39 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
 
   return (
     <div className="proof-node">
-      <div className="premises" style={isLeaf ? {borderBottomStyle: "dashed", opacity: 0.6} : undefined}>
-        {node.premises.map((premise, i) => (
-          <div key={premise.id} className="inline-flex items-end">
-            <ManualNodeView node={premise} results={results} usesConstraints={usesConstraints} root={false}/>
-            {i !== node.premises.length - 1 && <div className="inter-proof"/>}
+      <div
+        className="premises flex-col !items-center"
+        style={isLeaf ? {borderBottomStyle: "dashed", borderBottomColor: "color-mix(in oklab, var(--sidebar-foreground) 60%, transparent)"} : undefined}
+      >
+        {!isLeaf && (
+          <div className="inline-flex items-end justify-center">
+            {node.premises.map((premise, i) => (
+              <div key={premise.id} className="inline-flex items-end">
+                <ManualNodeView node={premise} results={results} usesConstraints={usesConstraints} root={false}/>
+                {i !== node.premises.length - 1 && <div className="inter-proof"/>}
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+        <div className="flex items-center justify-center gap-1.5 py-1 text-[11px]">
+          <span className={cn("text-muted-foreground", result?.premises === "invalid" && "text-destructive")}>
+            {t("manualBuilder.premiseCount", {count: node.premises.length})}
+          </span>
+          <button
+            type="button"
+            className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
+            onClick={() => actions.addPremise(node.id, "judgement")}
+          >
+            <Plus className="h-3 w-3"/>{t("manualBuilder.addPremise")}
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
+            onClick={() => actions.addPremise(node.id, "fact")}
+          >
+            <Plus className="h-3 w-3"/>{t("manualBuilder.addSideCondition")}
+          </button>
+        </div>
       </div>
 
       <div className={`conclusion ${rootClass} ${leafClass}`}>
@@ -221,26 +247,6 @@ export const ManualNodeView = memo(function ManualNodeView({node, results, usesC
       </div>
 
       {messageList}
-
-      <div className="flex items-center justify-center gap-1.5 pb-1 text-[11px]">
-        <span className={cn("text-muted-foreground", result?.premises === "invalid" && "text-destructive")}>
-          {t("manualBuilder.premiseCount", {count: node.premises.length})}
-        </span>
-        <button
-          type="button"
-          className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
-          onClick={() => actions.addPremise(node.id, "judgement")}
-        >
-          <Plus className="h-3 w-3"/>{t("manualBuilder.addPremise")}
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 hover:bg-accent"
-          onClick={() => actions.addPremise(node.id, "fact")}
-        >
-          <Plus className="h-3 w-3"/>{t("manualBuilder.addSideCondition")}
-        </button>
-      </div>
     </div>
   );
 });
