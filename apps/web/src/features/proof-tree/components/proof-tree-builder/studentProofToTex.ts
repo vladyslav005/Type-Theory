@@ -9,6 +9,7 @@ import {gammaRefTex} from "@/features/proof-tree/components/proof-tree-builder/C
 import {variableMembershipJudgement} from "@/features/proof-tree/components/proof-tree-builder/variableMembership.ts";
 import {isVarRule} from "@/shared/ui-state/ruleFamilies.ts";
 import {RULE_LABELS} from "@/features/proof-tree/components/proof-tree-builder/ruleLabels.ts";
+import {valueConstraintsTex} from "@/features/proof-tree/components/proof-tree-builder/generalizeTex.ts";
 
 export interface StudentExportOptions {
   // Keys currently expanded in the browser, `${studentNode.id}:gamma` per
@@ -107,8 +108,9 @@ export function studentNodeToExportTree(
     if (index === 0 && studentNode.requiresGeneralize) {
       const valueTex = premise.writtenType ? TexMapper.typeToTex(premise.writtenType) : "?";
       const schemeTex = studentNode.writtenScheme ? TexMapper.typeToTex(studentNode.writtenScheme) : "?";
+      const letName = (answerNode.term as {name?: string}).name ?? "x";
       children.push({
-        judgement: `\\mathit{generalize}(${valueTex}, ${Object.keys(answerNode.gamma).length > 0 ? gammaRefTex(answerNode.gamma, registry, gammaExpanded) : "\\Gamma"}) = ${schemeTex}`,
+        judgement: `\\mathit{generalize}(${valueConstraintsTex(answer)}, ${Object.keys(answerNode.gamma).length > 0 ? gammaRefTex(answerNode.gamma, registry, gammaExpanded) : "\\Gamma"}, ${letName} : ${valueTex}) = ${letName} : ${schemeTex}`,
         rule: "",
       });
     }

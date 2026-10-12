@@ -1026,7 +1026,7 @@
     "termPlaceholder": "терм",
     "typePlaceholder": "тип",
     "rulePlaceholder": "правило",
-    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(T, Γ_n) = S",
+    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(C_1, Γ_n, x : T) = x : S",
     "msg": {
       "ruleMissing": "Напишіть назву правила (напр. T-App або CT-Var).",
       "termParse": "Не вдалося прочитати терм: {{detail}}",
@@ -1052,8 +1052,10 @@
       "factContextType": "{{context}} пов'язує {{name}} : {{actual}}, а не {{name}} : {{claimed}}.",
       "factContextDiffers": "generalize має використовувати власний контекст let {{expected}}, а {{context}} = {{contents}}.",
       "generalizeType": "T = {{given}} відрізняється від типу, який ви записали у передумові зі значенням ({{premise}}).",
-      "generalizeScheme": "Схема {{given}} відрізняється від того, з чим Γ тіла пов'язує {{name}} ({{bound}}) — імена змінних теж мають збігатися.",
-      "generalizeBodyMissing": "Γ тіла не пов'язує {{name}} (там {{contents}}), тож цьому generalize нічого передавати."
+      "generalizeScheme": "Схема {{given}} відрізняється від того, з чим Γ тіла пов'язує {{name}} ({{bound}}). Вільні типові змінні мають збігатися й іменем, змінні, зв'язані ∀, можна перейменувати.",
+      "generalizeBodyMissing": "Γ тіла не пов'язує {{name}} (там {{contents}}), тож цьому generalize нічого передавати.",
+      "generalizeName": "generalize отримав {{given}}, але цей let зв'язує {{name}}.",
+      "generalizeConstraints": "C₁ має бути множиною обмежень передумови зі значенням — напишіть C_1 або її рівняння."
     },
     "clearMarks": "Очистити позначки",
     "removeConstraints": "Прибрати множину обмежень із цього судження",
@@ -1086,7 +1088,7 @@
         },
         "sideConditions": {
           "title": "Листя — бічні умови",
-          "body": "Правила на кшталт `T-Var` потребують бічної умови замість передумови («side condition»). Форми: `x : T ∈ Γ`, а з let-поліморфізмом `instantiate(x : S ∈ Γ)` та `generalize(T, Γ) = S`."
+          "body": "Правила на кшталт `T-Var` потребують бічної умови замість передумови («side condition»). Форми: `x : T ∈ Γ`, а з let-поліморфізмом `instantiate(x : S ∈ Γ)` та `generalize(C₁, Γ, x : T₁) = x : S` — C₁ і T₁ беруться з передумови зі значенням (C_1 позначає її обмеження), S — схема, з якою Γ тіла пов'язує x."
         },
         "notation": {
           "title": "Швидке введення символів",

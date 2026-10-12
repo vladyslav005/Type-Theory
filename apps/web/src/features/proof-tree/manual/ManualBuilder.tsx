@@ -19,7 +19,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared
 import {Button} from "@/shared/components/ui/button.tsx";
 import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 import {checkManualTree} from "@/features/proof-tree/manual/manualCheck.ts";
-import {definitionName, parseDefinitions, setRequireTypeVariableTick} from "@/shared/lib/manualParse.ts";
+import {definitionName, parseDefinitions, setBareTypeVariables} from "@/shared/lib/manualParse.ts";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import {JUDGEMENT_LANGUAGE_ID, setJudgementNames} from "@/features/editor/hooks/judgementLanguage.ts";
 import {ManualNodeView} from "@/features/proof-tree/manual/ManualNodeView.tsx";
@@ -38,7 +38,7 @@ export function ManualBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement | nu
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const parsedDefinitions = useMemo(() => {
-    setRequireTypeVariableTick(usesConstraints);
+    setBareTypeVariables(usesConstraints);
     return parseDefinitions(manualDefinitions ?? "");
   }, [manualDefinitions, usesConstraints]);
 

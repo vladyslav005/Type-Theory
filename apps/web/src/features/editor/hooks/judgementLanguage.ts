@@ -78,7 +78,7 @@ export function setUpJudgementLanguage(monaco: any, lambda: {keywords: string[];
       });
       const snippets = [
         ...(vocabulary.schemes ? [snippet("instantiate", `instantiate(\${1:x} : \${2:S} ∈ \${3:${gamma}})`, "instantiate(x : S ∈ Γ)")] : []),
-        ...(vocabulary.schemes ? [snippet("generalize", `generalize(\${1:T}, \${2:${gamma}}) = \${3:S}`, "generalize(T, Γ) = S")] : []),
+        ...(vocabulary.schemes ? [snippet("generalize", `generalize(\${1:C}, \${2:${gamma}}, \${3:x} : \${4:T}) = \${3:x} : \${5:S}`, "generalize(C, Γ, x : T) = x : S")] : []),
         snippet("in", `\${1:x} : \${2:T} ∈ \${3:${gamma}}`, "x : T ∈ Γ"),
         ...(vocabulary.schemes ? [snippet("forall", "∀'${1:A}. ${2:T}", "∀'A. T — a type scheme")] : []),
       ];

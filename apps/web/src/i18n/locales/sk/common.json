@@ -1025,7 +1025,7 @@
     "termPlaceholder": "term",
     "typePlaceholder": "typ",
     "rulePlaceholder": "pravidlo",
-    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(T, Γ_n) = S",
+    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(C_1, Γ_n, x : T) = x : S",
     "msg": {
       "ruleMissing": "Napíšte názov pravidla (napr. T-App alebo CT-Var).",
       "termParse": "Term sa nepodarilo prečítať: {{detail}}",
@@ -1051,8 +1051,10 @@
       "factContextType": "{{context}} viaže {{name}} : {{actual}}, nie {{name}} : {{claimed}}.",
       "factContextDiffers": "generalize musí použiť vlastný kontext letu {{expected}}, ale {{context}} = {{contents}}.",
       "generalizeType": "T = {{given}} sa líši od typu, ktorý ste napísali v predpoklade s hodnotou ({{premise}}).",
-      "generalizeScheme": "Schéma {{given}} sa líši od toho, na čo Γ tela viaže {{name}} ({{bound}}) — musia sa zhodovať aj názvy premenných.",
-      "generalizeBodyMissing": "Γ tela neviaže {{name}} (obsahuje {{contents}}), takže tento generalize nemá čo dodať."
+      "generalizeScheme": "Schéma {{given}} sa líši od toho, na čo Γ tela viaže {{name}} ({{bound}}). Voľné typové premenné sa musia zhodovať aj menom, premenné viazané ∀ možno premenovať.",
+      "generalizeBodyMissing": "Γ tela neviaže {{name}} (obsahuje {{contents}}), takže tento generalize nemá čo dodať.",
+      "generalizeName": "generalize dostal {{given}}, ale tento let viaže {{name}}.",
+      "generalizeConstraints": "C₁ musí byť množina obmedzení predpokladu s hodnotou — napíšte C_1 alebo jej rovnice."
     },
     "clearMarks": "Vymazať označenia",
     "removeConstraints": "Odstrániť množinu obmedzení z tohto súdu",
@@ -1085,7 +1087,7 @@
         },
         "sideConditions": {
           "title": "Listy riešte vedľajšími podmienkami",
-          "body": "Pravidlá ako `T-Var` potrebujú namiesto predpokladu vedľajšiu podmienku („side condition“). Tvary: `x : T ∈ Γ` a pri let-polymorfizme `instantiate(x : S ∈ Γ)` a `generalize(T, Γ) = S`."
+          "body": "Pravidlá ako `T-Var` potrebujú namiesto predpokladu vedľajšiu podmienku („side condition“). Tvary: `x : T ∈ Γ` a pri let-polymorfizme `instantiate(x : S ∈ Γ)` a `generalize(C₁, Γ, x : T₁) = x : S` — C₁ a T₁ pochádzajú z predpokladu s hodnotou (C_1 označuje jeho obmedzenia), S je schéma, na ktorú Γ tela viaže x."
         },
         "notation": {
           "title": "Rýchle písanie symbolov",

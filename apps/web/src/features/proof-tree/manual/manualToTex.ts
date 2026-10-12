@@ -77,6 +77,10 @@ function factTex(text: string): string {
   const context = splitUnion(fact.context).map(contextOperandTex).join(" \\cup ") || "\\emptyset";
   if (fact.form === "membership") return `${fact.name} : ${TexMapper.typeToTex(fact.type)} \\in ${context}`;
   if (fact.form === "instantiate") return `\\mathit{instantiate}(${fact.name} : ${TexMapper.typeToTex(fact.scheme)} \\in ${context})`;
+  if (fact.constraints !== undefined && fact.name !== undefined) {
+    const constraints = splitUnion(fact.constraints).map(constraintOperandTex).join(" \\cup ") || "\\emptyset";
+    return `\\mathit{generalize}(${constraints}, ${context}, ${fact.name} : ${TexMapper.typeToTex(fact.type)}) = ${fact.name} : ${TexMapper.typeToTex(fact.scheme)}`;
+  }
   return `\\mathit{generalize}(${TexMapper.typeToTex(fact.type)}, ${context}) = ${TexMapper.typeToTex(fact.scheme)}`;
 }
 

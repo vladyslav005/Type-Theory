@@ -22,7 +22,7 @@ import {
   parseTypeText,
   splitDefinition,
   programTermKey,
-  setRequireTypeVariableTick,
+  setBareTypeVariables,
   termKey,
 } from "@/shared/lib/manualParse.ts";
 
@@ -56,11 +56,44 @@ function matchAll(written: Type[], expected: Type[], ren: Renaming): boolean {
   return written.length === expected.length && expected.every((e, i) => matchType(written[i], e, ren));
 }
 
+// Replaces a ∀-bound variable's occurrences by `token`, stopping where an inner binder shadows it.
+function substituteBound(type: Type, variable: string, token: string): Type {
+  const walk = (node: unknown): unknown => {
+    if (!node || typeof node !== "object") return node;
+    if (Array.isArray(node)) return node.map(walk);
+    const value = node as {kind?: string; name?: string; typeVariable?: string};
+    if ((value.kind === "TyMetaVar" || value.kind === "TyIdentifier") && value.name === variable) return {...value, kind: "TyIdentifier", name: token};
+    if ((value.kind === "TyForall" || value.kind === "RecursiveType") && value.typeVariable === variable) return node;
+    return Object.fromEntries(Object.entries(value).map(([key, inner]) => [key, walk(inner)]));
+  };
+  return walk(type) as Type;
+}
+
+// Bound variables renamed by nesting depth, so schemes that differ only in bound names print the same.
+function canonicalBound(type: Type, depth = 0): Type {
+  if (type.kind !== "TyForall") return type;
+  const token = `#${depth}`;
+  return {...type, typeVariable: token, type: canonicalBound(substituteBound(type.type, type.typeVariable, token), depth + 1)};
+}
+
+// Equal up to renaming of ∀-bound variables; free variables must match by name.
+function sameType(a: Type, b: Type): boolean {
+  return typeToString(canonicalBound(a)) === typeToString(canonicalBound(b));
+}
+
+let boundCounter = 0;
+
+function withoutForall(type: Type): Type {
+  return type.kind === "TyForall" ? withoutForall(type.type) : type;
+}
+
 // a plain identifier never matches an inference variable
 function matchType(written: Type, expected: Type, ren: Renaming): boolean {
   if (expected.kind === "TyMetaVar") {
     return written.kind === "TyMetaVar" && bindVariable(written.name, expected.name, ren);
   }
+  // A bare A is read as the type variable 'A in inference mode; it still names a declared type A.
+  if (expected.kind === "TyIdentifier" && written.kind === "TyMetaVar") return written.name === `'${expected.name}`;
   if (written.kind !== expected.kind) return false;
 
   switch (expected.kind) {
@@ -79,8 +112,10 @@ function matchType(written: Type, expected: Type, ren: Renaming): boolean {
     case "ListType":
       return matchType((written as typeof expected).elementType, expected.elementType, ren);
     case "TyForall": {
+      // Bound names are local to the scheme: both sides' variables become one private name, outside the renaming.
       const w = written as typeof expected;
-      return bindVariable(w.typeVariable, expected.typeVariable, ren) && matchType(w.type, expected.type, ren);
+      const token = `#bound${++boundCounter}`;
+      return matchType(substituteBound(w.type, w.typeVariable, token), substituteBound(expected.type, expected.typeVariable, token), ren);
     }
     case "RecordType": {
       const w = written as typeof expected;
@@ -137,7 +172,7 @@ function solveConstraints(written: Pair[], expected: Pair[], index: number, used
 type ExpectedFact =
   | {form: "membership"; name: string; type: Type}
   | {form: "instantiate"; name: string; scheme: Type}
-  | {form: "generalize"; name: string; type: Type; scheme: Type};
+  | {form: "generalize"; name: string; type: Type; scheme: Type; constraints: Pair[]};
 
 type ExpectedChild = {kind: "proof"; node: ProofTree} | {kind: "fact"; fact: ExpectedFact};
 
@@ -161,7 +196,10 @@ function expectedChildren(answer: ProofTree): ExpectedChild[] {
     const scheme = body.gamma[name];
     return [
       {kind: "proof", node: value},
-      {kind: "fact", fact: {form: "generalize", name, type: value.type, scheme: scheme ? entryType(scheme) : value.type}},
+      {kind: "fact", fact: {
+        form: "generalize", name, type: value.type, scheme: scheme ? entryType(scheme) : value.type,
+        constraints: ((value as InferProofTree).constraints ?? []).map((c) => ({left: c.left, right: c.right})),
+      }},
       {kind: "proof", node: body},
     ];
   }
@@ -184,6 +222,8 @@ function acceptedRuleNames(answer: ProofTree): string[] {
     if (operator !== undefined) names.add(`${prefix}${TexMapper.binOpRuleName(operator)}`);
   }
   if (isVarRule(answer.rule) && answer.premises.length > 0) names.add(`${prefix}Def`);
+  // Unannotated abstraction was labelled CT-Abs before the lecture's name CT-AbsInf; both count.
+  if (answer.rule === Rule.CtAbsInf) names.add("CT-Abs");
   return [...names];
 }
 
@@ -214,7 +254,7 @@ type GeneralizeFact = Extract<ParsedFact, {form: "generalize"}>;
 
 function generalizeContextProblem(parsed: GeneralizeFact, context: ContextEntries, letContext: ContextEntries): ManualMessage | null {
   const same = context.size === letContext.size
-    && [...letContext].every(([name, type]) => context.has(name) && typeToString(context.get(name)!) === typeToString(type));
+    && [...letContext].every(([name, type]) => context.has(name) && sameType(context.get(name)!, type));
   if (same) return null;
   return {code: "factContextDiffers", params: {context: parsed.context, contents: showContext(context), expected: showContext(letContext)}};
 }
@@ -232,11 +272,13 @@ function checkGeneralizeLinks(
   const value = letNode.premises[at - 1];
   const body = letNode.premises[at + 1];
 
-  if (value?.kind === "judgement" && value.type.trim() !== "") {
+  // The legacy form may also take the solved type U₁ = σ(T₁), which is the scheme without its ∀s.
+  const solved = parsed.constraints === undefined && sameType(parsed.type, withoutForall(parsed.scheme));
+  if (value?.kind === "judgement" && value.type.trim() !== "" && !solved) {
     try {
-      const written = typeToString(parseTypeText(value.type));
-      if (written !== typeToString(parsed.type)) {
-        return {code: "generalizeType", params: {given: typeToString(parsed.type), premise: written}};
+      const writtenType = parseTypeText(value.type);
+      if (!sameType(writtenType, parsed.type)) {
+        return {code: "generalizeType", params: {given: typeToString(parsed.type), premise: typeToString(writtenType)}};
       }
     } catch (error) {
       if (!(error instanceof ManualParseError)) throw error;
@@ -253,7 +295,7 @@ function checkGeneralizeLinks(
     if (bodyContext) {
       const bound = bodyContext.get(expected.name);
       if (!bound) return {code: "generalizeBodyMissing", params: {name: expected.name, contents: showContext(bodyContext)}};
-      if (typeToString(bound) !== typeToString(parsed.scheme)) {
+      if (!sameType(bound, parsed.scheme)) {
         return {code: "generalizeScheme", params: {name: expected.name, given: typeToString(parsed.scheme), bound: typeToString(bound)}};
       }
     }
@@ -292,10 +334,26 @@ function checkFact(
       return {fact: "invalid", messages: [{code: "factContextMissing", params: {name: parsed.name, context: parsed.context, contents: showContext(context)}}]};
     }
     const claimed = parsed.form === "membership" ? parsed.type : parsed.scheme;
-    if (typeToString(bound) !== typeToString(claimed)) {
+    if (!sameType(bound, claimed)) {
       const params = {name: parsed.name, context: parsed.context, actual: typeToString(bound), claimed: typeToString(claimed)};
       return {fact: "invalid", messages: [{code: "factContextType", params}]};
     }
+  }
+
+  if (parsed.form === "generalize" && expected.form === "generalize" && parsed.name !== undefined && parsed.name !== expected.name) {
+    return {fact: "invalid", messages: [{code: "generalizeName", params: {given: parsed.name, name: expected.name}}]};
+  }
+  if (parsed.form === "generalize" && expected.form === "generalize" && parsed.constraints !== undefined) {
+    let pairs: ConstraintPairText[];
+    try {
+      pairs = parseConstraintsText(parsed.constraints, parent.node ? premiseConstraintSets(parent.node, definitions) : [], definitions);
+    } catch (error) {
+      const detail = error instanceof ManualParseError ? error.message : String(error);
+      return {fact: "invalid", messages: [{code: "constraintsParse", params: {detail}}]};
+    }
+    const solvedPairs = pairs.length === expected.constraints.length ? solveConstraints(pairs, expected.constraints, 0, new Set(), cloneRenaming(ren)) : null;
+    if (!solvedPairs) return {fact: "invalid", messages: [{code: "generalizeConstraints"}]};
+    commit(ren, solvedPairs);
   }
 
   if (parsed.form === "generalize") {
@@ -313,7 +371,10 @@ function checkFact(
       return parsed.name === expected.name && matchType(parsed.scheme, expected.scheme, scratch);
     }
     if (parsed.form === "generalize" && expected.form === "generalize") {
-      return matchType(parsed.type, expected.type, scratch) && matchType(parsed.scheme, expected.scheme, scratch);
+      const typeOk = matchType(parsed.type, expected.type, cloneRenaming(scratch))
+        ? matchType(parsed.type, expected.type, scratch)
+        : parsed.constraints === undefined && matchType(parsed.type, withoutForall(expected.scheme), cloneRenaming(scratch));
+      return typeOk && matchType(parsed.scheme, expected.scheme, scratch);
     }
     return false;
   });
@@ -484,7 +545,7 @@ function withInlineDefinitions(root: ManualNode, base: Definitions): {definition
 
 export function checkManualTree(root: ManualNode, answerKey: ProofTree, usesConstraints: boolean, boxDefinitions: Definitions = NO_DEFINITIONS): ManualResults {
   const results: ManualResults = {};
-  setRequireTypeVariableTick(usesConstraints);
+  setBareTypeVariables(usesConstraints);
   const {definitions, duplicates} = withInlineDefinitions(root, boxDefinitions);
   const ren = emptyRenaming();
 

@@ -1010,7 +1010,7 @@
     "termPlaceholder": "term",
     "typePlaceholder": "type",
     "rulePlaceholder": "rule",
-    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(T, Γ_n) = S",
+    "factPlaceholder": "x : T ∈ Γ_n   |   instantiate(x : S ∈ Γ_n)   |   generalize(C_1, Γ_n, x : T) = x : S",
     "msg": {
       "ruleMissing": "Write the rule name (e.g. T-App or CT-Var).",
       "termParse": "Couldn't read the term: {{detail}}",
@@ -1036,8 +1036,10 @@
       "factContextType": "{{context}} binds {{name}} : {{actual}}, not {{name}} : {{claimed}}.",
       "factContextDiffers": "generalize must use the let's own context {{expected}}, but {{context}} = {{contents}}.",
       "generalizeType": "T = {{given}} differs from the type you wrote in the value premise ({{premise}}).",
-      "generalizeScheme": "The scheme {{given}} differs from what the body's Γ binds {{name}} to ({{bound}}) — the variable names must match too.",
-      "generalizeBodyMissing": "The body's Γ doesn't bind {{name}} (it holds {{contents}}), so there is nothing for this generalize to feed."
+      "generalizeScheme": "The scheme {{given}} differs from what the body's Γ binds {{name}} to ({{bound}}). Free type variables must match by name; ∀-bound ones may be renamed.",
+      "generalizeBodyMissing": "The body's Γ doesn't bind {{name}} (it holds {{contents}}), so there is nothing for this generalize to feed.",
+      "generalizeName": "generalize was given {{given}}, but this let binds {{name}}.",
+      "generalizeConstraints": "C₁ must be the value premise's constraint set — write C_1 or its equations."
     },
     "clearMarks": "Clear marks",
     "removeConstraints": "Remove the constraint set from this judgement",
@@ -1070,7 +1072,7 @@
         },
         "sideConditions": {
           "title": "Use side conditions for leaves",
-          "body": "Rules like `T-Var` need a side condition instead of a premise (“side condition”). Forms: `x : T ∈ Γ`, and with let-polymorphism `instantiate(x : S ∈ Γ)` and `generalize(T, Γ) = S`."
+          "body": "Rules like `T-Var` need a side condition instead of a premise (“side condition”). Forms: `x : T ∈ Γ`, and with let-polymorphism `instantiate(x : S ∈ Γ)` and `generalize(C₁, Γ, x : T₁) = x : S` — C₁ and T₁ come from the value premise (C_1 refers to its constraints), S is the scheme the body's Γ binds x to."
         },
         "notation": {
           "title": "Type symbols quickly",

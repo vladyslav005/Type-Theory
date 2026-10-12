@@ -253,7 +253,7 @@ export class LetPolymorphismTexMapper {
   private visitAbs(node: InferProofTree): TexTree {
     return {
       ...this.judgements(node),
-      rule: "CT-Abs",
+      rule: node.rule === Rule.CtAbsInf ? "CT-AbsInf" : "CT-Abs",
       children: this.childrenWithKind(node),
     };
   }
@@ -342,15 +342,20 @@ export class LetPolymorphismTexMapper {
     };
   }
 
-  // Shows the generalize(T, Γ) = S step, the dual of instantiate(...) shown at each CT-VarLet site.
+  // The lecture's generalize(C₁, Γ, x : T₁) = x : S step, the dual of instantiate(...) shown at each CT-VarLet site.
   private generalizeTex(valueProof: ProofTree, bodyProof: ProofTree, letName: string): TexTree {
     const scheme = bodyProof.gamma[letName];
     const schemeTex = scheme !== undefined ? TexMapper.typeToTex(scheme) : TexMapper.typeToTex(valueProof.type);
-    const gammaRef = CT_RULES.has(valueProof.rule) ? this.gammaRefFor(valueProof as InferProofTree) : null;
+    const isCt = CT_RULES.has(valueProof.rule);
+    const gammaRef = isCt ? this.gammaRefFor(valueProof as InferProofTree) : null;
     const gammaTex = gammaRef ? gammaRef.shortTex : "\\Gamma";
+    const constraints = isCt ? (valueProof as InferProofTree).constraints : [];
+    const constraintsRef = isCt && constraints.length > 0 ? this.constraintsRefFor(valueProof as InferProofTree) : null;
+    const constraintsTex = constraintsRef ? constraintsRef.shortTex
+      : constraints.length > 0 ? LetPolymorphismTexMapper.constraintSetLiteral(constraints) : "\\emptyset";
 
     return {
-      judgement: `\\mathit{generalize}(${TexMapper.typeToTex(valueProof.type)}, ${gammaTex}) = ${schemeTex}`,
+      judgement: `\\mathit{generalize}(${constraintsTex}, ${gammaTex}, ${letName} : ${TexMapper.typeToTex(valueProof.type)}) = ${letName} : ${schemeTex}`,
       rule: "",
     };
   }

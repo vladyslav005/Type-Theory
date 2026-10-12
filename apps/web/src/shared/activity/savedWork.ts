@@ -76,6 +76,14 @@ export function importSavedWork(incoming: unknown): number {
   return added.length;
 }
 
+// Forgets every answer saved under keys starting with `prefix`, e.g. a task's nested sub-tasks on Reset.
+export function clearSavedWork(prefix: string) {
+  const keys = Object.keys(work).filter((key) => key.startsWith(prefix));
+  if (keys.length === 0) return;
+  work = Object.fromEntries(Object.entries(work).filter(([key]) => !key.startsWith(prefix)));
+  saveSoon(keys);
+}
+
 export function deleteSavedWork() {
   work = {};
   dirty = new Set();

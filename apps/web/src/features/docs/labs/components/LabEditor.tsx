@@ -126,11 +126,18 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
       editor.focus();
       editor.setPosition(editor.getModel()?.getFullModelRange().getEndPosition() ?? {lineNumber: 1, column: 1});
     }
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => submitRef.current?.(), "!suggestWidgetVisible");
-    if (compact) {
-      editor.addCommand(monaco.KeyCode.Enter, () => submitRef.current?.(), "!suggestWidgetVisible");
-      editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => editor.trigger("keyboard", "type", {text: "\n"}));
-    }
+    // Not editor.addCommand: its keybindings are global, so a compact editor's Enter would swallow Enter in every other editor on the page.
+    editor.onKeyDown((e) => {
+      if (e.keyCode !== monaco.KeyCode.Enter || e.altKey) return;
+      const suggestVisible = (editor as any)._contextKeyService?.getContextKeyValue?.("suggestWidgetVisible") === true;
+      if (suggestVisible) return;
+      const submit = e.ctrlKey || e.metaKey || (compact && !e.shiftKey);
+      if (!submit && !(compact && e.shiftKey)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (submit) submitRef.current?.();
+      else editor.trigger("keyboard", "type", {text: "\n"});
+    });
     // Picking a suggestion briefly moves focus away, so only a blur that sticks counts.
     editor.onDidBlurEditorWidget(() => setTimeout(() => {
       if (!editor.hasWidgetFocus()) blurRef.current?.();

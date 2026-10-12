@@ -42,7 +42,7 @@ const CT_LABELS: Partial<Record<Rule, string>> = {
   [Rule.CtVar]: "CT-Var",
   [Rule.CtVarLet]: "CT-VarLet",
   [Rule.CtAbs]: "CT-Abs",
-  [Rule.CtAbsInf]: "CT-Abs",
+  [Rule.CtAbsInf]: "CT-AbsInf",
   [Rule.CtApp]: "CT-App",
   [Rule.CtLit]: "CT-Lit",
   [Rule.CtIf]: "CT-If",

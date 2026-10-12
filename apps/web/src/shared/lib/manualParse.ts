@@ -13,6 +13,14 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// The app prints schemes as "forall 'A. T"; also accept \forall and the shorthand ∀'A 'B. T.
+function normalizeQuantifiers(text: string): string {
+  return text
+    .replace(/\\forall(?![A-Za-z])|\bforall\b/g, "∀")
+    .replace(/∀\s*((?:'?[\p{L}_][\w']*\s+)+'?[\p{L}_][\w']*)\s*\./gu, (_match, binders: string) =>
+      binders.trim().split(/\s+/).map((binder) => `∀${binder}.`).join(" "));
+}
+
 function encodeVariables(text: string): string {
   return text.replace(/'([A-Za-z_][A-Za-z0-9_]*)/g, `${MV_PREFIX}$1`);
 }
@@ -33,20 +41,23 @@ function decodeVariables(type: Type): Type {
 }
 
 const BASE_TYPE_NAMES = new Set(["Nat", "Bool", "Unit", "String"]);
-let requireTick = false;
+let bareVariables = false;
 
 // Module state because the type parser is reached through many call paths that carry no options.
-export function setRequireTypeVariableTick(on: boolean): void {
-  requireTick = on;
+// With inference on, a bare A is a type variable, as the lectures write it — the same one as 'A.
+export function setBareTypeVariables(on: boolean): void {
+  bareVariables = on;
 }
 
-function assertTicked(type: Type): void {
-  JSON.stringify(type, (_key, value) => {
+function tickBareVariables(type: Type): Type {
+  return JSON.parse(JSON.stringify(type), (_key, value) => {
     if (value && typeof value === "object") {
-      const bare = value.kind === "TyIdentifier" && !BASE_TYPE_NAMES.has(value.name) ? value.name
-        : (value.kind === "TyForall" || value.kind === "RecursiveType") && typeof value.typeVariable === "string" && !value.typeVariable.startsWith("'") ? value.typeVariable
-          : null;
-      if (bare !== null) throw new ManualParseError(`"${bare}" is not a type — type variables start with ', write '${bare}`);
+      if (value.kind === "TyIdentifier" && typeof value.name === "string" && !BASE_TYPE_NAMES.has(value.name) && !value.name.startsWith("'")) {
+        return {kind: "TyMetaVar", id: value.id, name: `'${value.name}`};
+      }
+      if ((value.kind === "TyForall" || value.kind === "RecursiveType") && typeof value.typeVariable === "string" && !value.typeVariable.startsWith("'")) {
+        return {...value, typeVariable: `'${value.typeVariable}`};
+      }
     }
     return value;
   });
@@ -56,12 +67,11 @@ export function parseTypeText(text: string): Type {
   const source = text.trim();
   if (!source) throw new ManualParseError("nothing written here");
   try {
-    const program = parser.parseExpression(`__t : ${encodeVariables(source)};`);
+    const program = parser.parseExpression(`__t : ${encodeVariables(normalizeQuantifiers(source))};`);
     const decl = program.globals[0];
     if (!decl || decl.kind !== "VarDecl") throw new ManualParseError("not a type");
     const type = decodeVariables(decl.type);
-    if (requireTick) assertTicked(type);
-    return type;
+    return bareVariables ? tickBareVariables(type) : type;
   } catch (error) {
     throw new ManualParseError(message(error));
   }
@@ -361,7 +371,8 @@ export function splitEquation(item: string): [string, string] | null {
 export type ParsedFact =
   | {form: "membership"; name: string; type: Type; context: string}
   | {form: "instantiate"; name: string; scheme: Type; context: string}
-  | {form: "generalize"; type: Type; scheme: Type; context: string};
+  // `constraints`/`name` only in the lecture's form generalize(C₁, Γ, x : T₁) = x : S.
+  | {form: "generalize"; type: Type; scheme: Type; context: string; constraints?: string; name?: string};
 
 const MEMBER = /(?:∈|\\in(?![A-Za-z]))/y;
 
@@ -390,13 +401,20 @@ function balancedInside(text: string, open: number): {inside: string; rest: stri
   return null;
 }
 
+// The lecture writes CT-VarLet's premise as a judgement: Γ ⊢ instantiate(x : S ∈ Γ) | { }.
+function unwrapJudgement(source: string): string {
+  const turnstile = /^[^()]*?(?:⊢|\\vdash(?![A-Za-z]))\s*(?=instantiate\s*\()/i.exec(source);
+  if (!turnstile) return source;
+  return source.slice(turnstile[0].length).replace(/\s*[|∣]\s*(?:\{\s*\}|∅|\\emptyset)\s*$/, "");
+}
+
 export function parseFactText(text: string): ParsedFact {
-  const source = text.trim().replace(/\\mathit\{(\w+)\}/g, "$1");
+  const source = unwrapJudgement(text.trim().replace(/\\mathit\{(\w+)\}/g, "$1"));
 
   const unknown = /^([A-Za-z]\w*)\s*\(/.exec(source);
   const call = /^(generali[sz]e|instantiate)\s*\(/i.exec(source);
   if (unknown && !call) {
-    throw new ManualParseError(`unknown side condition "${unknown[1]}(…)" — use "x : T ∈ Γ_n", "instantiate(x : S ∈ Γ_n)" or "generalize(T, Γ_n) = S"`);
+    throw new ManualParseError(`unknown side condition "${unknown[1]}(…)" — use "x : T ∈ Γ_n", "instantiate(x : S ∈ Γ_n)" or "generalize(C_n, Γ_n, x : T) = x : S"`);
   }
   if (call) {
     const parts = balancedInside(source, call[0].length - 1);
@@ -413,9 +431,26 @@ export function parseFactText(text: string): ParsedFact {
         context: requireContext(sides[1], shape),
       };
     }
-    const shape = "generalize(T, Γ) = scheme";
-    const [type, ...context] = splitAtTopLevel(parts.inside, (i) => (parts.inside[i] === "," ? 1 : 0));
+    const args = splitAtTopLevel(parts.inside, (i) => (parts.inside[i] === "," ? 1 : 0));
     const rest = parts.rest.trim().replace(/^:=/, "=");
+    const binding = args.length >= 3 ? /^([A-Za-z_]\w*)\s*:(?!=)([\s\S]*)$/.exec(args[args.length - 1]) : null;
+    if (binding) {
+      // The lecture's form: generalize(C₁, Γ, x : T₁) = x : S, where S generalizes T₁ under C₁'s solution.
+      const shape = "generalize(C, Γ, x : T) = x : scheme";
+      if (!rest.startsWith("=")) throw new ManualParseError(`expected "${shape}" — write "= ${binding[1]} : scheme" after the closing parenthesis`);
+      const result = /^([A-Za-z_]\w*)\s*:(?!=)([\s\S]*)$/.exec(rest.slice(1).trim());
+      if (result && result[1] !== binding[1]) throw new ManualParseError(`the result binds ${result[1]}, but generalize was given ${binding[1]}`);
+      return {
+        form: "generalize",
+        constraints: args[0],
+        name: binding[1],
+        type: parseTypeText(binding[2]),
+        scheme: parseTypeText(result ? result[2] : rest.slice(1)),
+        context: requireContext(args.slice(1, -1).join(", "), shape),
+      };
+    }
+    const shape = "generalize(T, Γ) = scheme";
+    const [type, ...context] = args;
     if (context.length === 0) throw new ManualParseError(`expected "${shape}" — the context (second argument) is missing`);
     if (!rest.startsWith("=")) throw new ManualParseError(`expected "${shape}" — write "= scheme" after the closing parenthesis`);
     return {

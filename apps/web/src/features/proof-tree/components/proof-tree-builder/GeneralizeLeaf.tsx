@@ -14,6 +14,7 @@ import {buildTypeSuggestions} from "@/features/proof-tree/components/proof-tree-
 import {gammaRefTex, markTex} from "@/features/proof-tree/components/proof-tree-builder/ConclusionBuilder.tsx";
 import {NodeFeedback} from "@/features/proof-tree/feedback/NodeFeedback.tsx";
 import {generalizeFeedback} from "@/features/proof-tree/feedback/semiFeedback.ts";
+import {valueConstraintsTex} from "@/features/proof-tree/components/proof-tree-builder/generalizeTex.ts";
 
 interface GeneralizeLeafProps {
   letStudentNode: StudentProofNode;
@@ -38,7 +39,9 @@ export function GeneralizeLeaf({letStudentNode, letAnswerNode, registry}: Genera
   const gammaTex = letAnswerNode.gamma && Object.keys(letAnswerNode.gamma).length > 0 ? gammaRefTex(letAnswerNode.gamma, registry, false) : "\\Gamma";
   const schemeText = scheme ? TexMapper.typeToTex(scheme) : "?";
   const schemeTex = markTex(schemeText, letStudentNode.generalizeCheck);
-  const judgement = `\\mathit{generalize}(${valueTex}, ${gammaTex}) = ${unlocked ? `\\href{scheme}{${schemeTex}}` : schemeTex}`;
+  const letName = (letAnswerNode.term as {name?: string}).name ?? "x";
+  const constraintsTex = valueConstraintsTex(letAnswerNode.premises[0]);
+  const judgement = `\\mathit{generalize}(${constraintsTex}, ${gammaTex}, ${letName} : ${valueTex}) = ${letName} : ${unlocked ? `\\href{scheme}{${schemeTex}}` : schemeTex}`;
 
   const draftAsType = draft ? draftToType(draft) : null;
   const submit = useCallback(() => {

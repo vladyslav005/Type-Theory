@@ -31,7 +31,7 @@ import {
   type TypingProblem,
 } from "@/features/docs/labs/typing/labTyping.ts";
 import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTracking.ts";
-import {useSavedState} from "@/shared/activity/savedWork.ts";
+import {clearSavedWork, useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
 
@@ -313,6 +313,15 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
     ? {ok: true, text: t("typingLab.notWellTypedCorrect")}
     : {ok: false, kind: "claimedIllTyped", text: t("labWidgets.tryAgain")});
 
+  // Starts over: the starter text again and no evaluation, including the practice saved for any applied term.
+  const reset = () => {
+    setValue(starter);
+    setApplied(undefined);
+    setError(undefined);
+    setVerdict(undefined);
+    if (taskId) clearSavedWork(`${taskId}/`);
+  };
+
   const solution = problem ? (
     <p>{parsed ? t("typingLab.solutionIllTyped", {judgement: problem.judgement}) : t("typingLab.solutionNotTerm", {detail: ""})}</p>
   ) : example ? (() => {
@@ -333,6 +342,7 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
         <LabEditor value={value} onChange={(next) => { setValue(next); setError(undefined); }} onSubmit={apply}/>
         <TaskActions>
           <Button size="sm" variant="outline" onClick={claimIllTyped}>{t("typingLab.notWellTyped")}</Button>
+          <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
           <Button size="sm" disabled={!value.trim()} onClick={apply}>{t("typingLab.apply")}</Button>
         </TaskActions>
         {error && <p className="text-xs text-destructive">{error}</p>}

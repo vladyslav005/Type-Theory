@@ -331,11 +331,22 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
     note: "With this theory on, the checker switches to constraint judgements Γ ⊢ t : T | C — each rule collects equations C to be solved later by unification. Watch for these CT-* rules in the Proof Tree.",
     rules: [
       {
+        id: "CT-Var",
+        premisesTex: ["x : T \\in \\Gamma"],
+        conclusionTex: "\\Gamma \\vdash x : T \\mid \\{\\}",
+        description: "A variable bound by a λ — its type is read from Γ and adds no constraints.",
+      },
+      {
         id: "CT-Abs",
         premisesTex: ["\\Gamma, x{:}T_1 \\vdash t : T_2 \\mid C"],
         conclusionTex: "\\Gamma \\vdash \\lambda x{:}T_1.\\, t : T_1 \\to T_2 \\mid C",
-        description: "Lambda — the constraint set just passes through from the body. If the parameter has no annotation, T₁ is a fresh type variable for unification to pin down.",
-        wide: true,
+        description: "Annotated lambda — the constraint set just passes through from the body.",
+      },
+      {
+        id: "CT-AbsInf",
+        premisesTex: ["\\Gamma, x{:}X \\vdash t : T_2 \\mid C"],
+        conclusionTex: "\\Gamma \\vdash \\lambda x.\\, t : X \\to T_2 \\mid C",
+        description: "Unannotated lambda — X is a fresh type variable for unification to pin down.",
       },
       {
         id: "CT-App",
@@ -349,6 +360,20 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
         premisesTex: ["\\Gamma \\vdash t_1 : T_1 \\mid C_1", "\\Gamma \\vdash t_2 : T_2 \\mid C_2", "\\Gamma \\vdash t_3 : T_3 \\mid C_3"],
         conclusionTex: "\\Gamma \\vdash \\text{if}\\ t_1\\ \\text{then}\\ t_2\\ \\text{else}\\ t_3 : T_2 \\mid C = C_1 \\cup C_2 \\cup C_3 \\cup \\{T_1 = \\text{Bool},\\, T_2 = T_3\\}",
         description: "Constrain the condition to Bool and both branches to the same type.",
+        wide: true,
+      },
+      {
+        id: "CT-Let",
+        premisesTex: ["\\Gamma \\vdash t_1 : T_1 \\mid C_1", "\\mathit{generalize}(C_1, \\Gamma, x{:}T_1) \\vdash t_2 : T_2 \\mid C_2"],
+        conclusionTex: "\\Gamma \\vdash \\text{let}\\ x = t_1\\ \\text{in}\\ t_2 : T_2 \\mid C = C_1 \\cup C_2",
+        description: "generalize solves C₁ (U₁ = σ_mgu T₁), applies σ to Γ and binds x : ∀X₁…Xₙ. U₁ for the type variables free in U₁ but not in Γ. In the proof trees the app writes it as its own step between the two premises: generalize(C₁, Γ, x : T₁) = x : S.",
+        wide: true,
+      },
+      {
+        id: "CT-VarLet",
+        premisesTex: [""],
+        conclusionTex: "\\Gamma \\vdash x : \\mathit{instantiate}(x : T \\in \\Gamma) \\mid \\{\\}",
+        description: "A let-bound variable — instantiate replaces every ∀-bound variable of its scheme with a fresh type variable.",
         wide: true,
       },
     ],
