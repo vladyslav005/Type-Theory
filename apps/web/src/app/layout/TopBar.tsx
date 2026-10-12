@@ -14,6 +14,8 @@ import {ActiveExtensionsBadges} from "@/features/editor/components/ActiveExtensi
 import {LayoutPresetsDropdown} from "@/features/workspace/components/LayoutPresetsDropdown.tsx";
 import {ExamplesDropdown} from "@/features/editor/components/ExamplesDropdown.tsx";
 import {InsertPreludeButton} from "@/features/editor/components/InsertPreludeButton.tsx";
+import {preludeToInsert} from "@/features/editor/preludeInsert.ts";
+import {toast} from "sonner";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
@@ -54,9 +56,15 @@ export function Topbar({editorRef}: TopbarProps) {
   };
 
   // Prepends rather than replaces — unlike loading an example, inserting the prelude shouldn't
-  // discard whatever the user already wrote.
-  const onInsertPrelude = (code: string) => {
-    const combined = code + "\n" + (termText ?? "");
+  // discard whatever the user already wrote. Only definitions the editor lacks are added.
+  const onInsertPrelude = () => {
+    const current = editorRef.current?.getValue() ?? termText ?? "";
+    const code = preludeToInsert(current);
+    if (code === null) {
+      toast.info(t("prelude.alreadyInserted"));
+      return;
+    }
+    const combined = code + "\n" + current;
     editorRef.current?.setValue(combined);
     dispatch(setTermText(combined));
   };

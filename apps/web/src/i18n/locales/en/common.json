@@ -148,7 +148,8 @@
   },
   "prelude": {
     "trigger": "Prelude",
-    "tooltip": "Insert standard untyped lambda calculus definitions (booleans, pairs, numerals, arithmetic, Y/Z) at the top of the editor"
+    "tooltip": "Insert standard untyped lambda calculus definitions (booleans, pairs, numerals, arithmetic, Y/Z) at the top of the editor",
+    "alreadyInserted": "The prelude is already in the editor — all its definitions are there."
   },
   "editor": {
     "autoBuild": "Auto-build",

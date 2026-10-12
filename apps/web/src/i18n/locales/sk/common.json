@@ -148,7 +148,8 @@
   },
   "prelude": {
     "trigger": "Prelúdium",
-    "tooltip": "Vloží štandardné definície netypovaného lambda kalkulu (booleovské hodnoty, dvojice, číslice, aritmetika, Y/Z) na začiatok editora"
+    "tooltip": "Vloží štandardné definície netypovaného lambda kalkulu (booleovské hodnoty, dvojice, číslice, aritmetika, Y/Z) na začiatok editora",
+    "alreadyInserted": "Prelúdium už v editore je — všetky jeho definície sú na mieste."
   },
   "editor": {
     "autoBuild": "Auto-build",
