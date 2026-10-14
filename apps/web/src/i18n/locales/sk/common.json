@@ -587,20 +587,44 @@
       "description": "Všetky panely naraz, usporiadané do mriežky"
     },
     "editorErrors": {
-      "label": "Editor + chyby",
-      "description": "Editor a chyby vedľa seba hore, ostatné v záložkách dole"
+      "label": "Editor + výstup",
+      "description": "Editor a výstup vedľa seba hore, ostatné v záložkách dole"
     }
   },
   "panels": {
     "editor": "Editor",
-    "errors": "Chyby",
+    "errors": "Výstup",
     "evaluation": "Vyhodnotenie",
     "proofTree": "Strom dôkazu",
     "ast": "AST",
     "results": "Výsledky"
   },
   "errorsPanel": {
-    "allValid": "Všetky výrazy sú platné. Žiadne chyby na zobrazenie."
+    "empty": "Zatiaľ žiadny výstup — spustite alebo skontrolujte výraz a uvidíte tu výsledky, upozornenia a chyby."
+  },
+  "output": {
+    "parsed": "Analýza prebehla úspešne.",
+    "typeChecked": "Typová kontrola prešla — hlavný výraz má typ {{type}}.",
+    "evaluated_one": "Vyhodnotené v {{count}} kroku ({{strategy}}).",
+    "evaluated_few": "Vyhodnotené v {{count}} krokoch ({{strategy}}).",
+    "evaluated_many": "Vyhodnotené v {{count}} kroku ({{strategy}}).",
+    "evaluated_other": "Vyhodnotené v {{count}} krokoch ({{strategy}}).",
+    "alreadyNormal": "Výraz už je v normálnej forme — nebolo čo redukovať.",
+    "weakByValue": "Volanie hodnotou sa zastaví pri λ-abstrakcii, takže výsledok môže v tele λ ešte obsahovať redexy. Na úplnú redukciu prepnite na normálne poradie.",
+    "weakByName": "Volanie menom neredukuje v telách λ ani v argumentoch, takže výsledok môže ešte obsahovať redexy. Na úplnú redukciu prepnite na normálne poradie.",
+    "tryNormalOrder": "Volanie hodnotou najprv vyhodnotí každý argument, aj taký, ktorý sa nikdy nepoužije (napr. rekurzia cez Y). Skúste normálne poradie alebo fixx namiesto Y.",
+    "evaluatedDespiteErrors": "Vyhodnotené, hoci kontrola našla chyby — výsledok môže uviaznuť alebo nedávať zmysel."
+  },
+  "outputToast": {
+    "errors_one": "{{count}} chyba vo výstupe",
+    "errors_few": "{{count}} chyby vo výstupe",
+    "errors_many": "{{count}} chyby vo výstupe",
+    "errors_other": "{{count}} chýb vo výstupe",
+    "warnings_one": "{{count}} upozornenie vo výstupe",
+    "warnings_few": "{{count}} upozornenia vo výstupe",
+    "warnings_many": "{{count}} upozornenia vo výstupe",
+    "warnings_other": "{{count}} upozornení vo výstupe",
+    "open": "Otvoriť výstup"
   },
   "fullscreen": {
     "enter": "Zobraziť na celú obrazovku",

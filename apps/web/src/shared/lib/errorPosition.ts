@@ -4,7 +4,10 @@ const isPosition = (value: unknown): value is SourcePosition =>
   typeof value === "object" && value !== null && typeof (value as SourcePosition).line === "number";
 
 export function errorPosition(error: Error): SourcePosition | undefined {
+  // Duck-typed too: a ParseSyntaxError from another copy of tt-core fails instanceof.
   if (error instanceof ParseSyntaxError) return error.errors[0];
+  const syntaxErrors = (error as {errors?: unknown}).errors;
+  if (Array.isArray(syntaxErrors) && isPosition(syntaxErrors[0])) return syntaxErrors[0];
   const pos = (error as {pos?: unknown}).pos;
   return isPosition(pos) ? pos : undefined;
 }

@@ -2,9 +2,9 @@ import type {Program} from "@vladyslav005/tt-core";
 import type {ProofTree} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector, useAppStore} from "@/shared/hooks/reduxHooks.ts";
-import {clean, clearEvaluationErrors, EvaluationRunError, EvaluationWarning, pushProcessingError, setAst, setErrorMarkers, setBuilding, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
-import type {EvaluationResult, EvaluationStrategy} from "@vladyslav005/tt-core";
-import {elaborateNbl, Evaluator, helperCandidates, noMainExpressionMessage, ParseSyntaxError} from "@vladyslav005/tt-core";
+import {clean, clearEvaluationErrors, EvaluationInfo, EvaluationRunError, EvaluationWarning, isError, OutputNote, pushProcessingError, setAst, setErrorMarkers, setBuilding, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
+import type {EvaluationResult} from "@vladyslav005/tt-core";
+import {elaborateNbl, EvaluationStrategy, Evaluator, helperCandidates, noMainExpressionMessage, ParseSyntaxError, typeToString} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 import {afterPaint} from "@/shared/lib/afterPaint.ts";
@@ -102,6 +102,7 @@ export function useTermHooks() {
       dispatch(setTypeAliases(typeCheckerSLTC.getTypeAliases()));
       dispatch(setInferenceSteps(typeCheckerSLTC.getInferenceSteps()));
       dispatch(setInferenceProofSnapshots(typeCheckerSLTC.getInferenceProofSnapshots()));
+      reportBuild(proof, typeErrors.length === 0);
 
       return ast;
     } catch (error) {
@@ -146,6 +147,8 @@ export function useTermHooks() {
         ))),
       );
 
+      reportEvaluation(targetAst, evaluationResult, strategy);
+
       if (evaluationResult.reachedStepLimit) {
         dispatch(
           pushProcessingError(
@@ -162,6 +165,42 @@ export function useTermHooks() {
       dispatch(pushProcessingError(new EvaluationRunError(`${(error as Error).message}`)));
     } finally {
       dispatch(setEvaluating(false));
+    }
+  }
+
+  // Pushed after setProof: the activity tracker reads the output at that moment to count failures.
+  function reportBuild(proof: ProofTree, ok: boolean) {
+    if (!ok) return;
+    dispatch(pushProcessingError(new OutputNote(enabledTheories.untyped || enabledTheories.nbl
+      ? t("output.parsed")
+      : t("output.typeChecked", {type: typeToString(proof.type)}), "info")));
+  }
+
+  function reportEvaluation(program: Program, result: EvaluationResult, strategy: EvaluationStrategy) {
+    const info = (message: string) => dispatch(pushProcessingError(new EvaluationInfo(message)));
+    const strategyLabel = t(`evalStrategy.${strategy}.label`);
+    const checkFailed = store.getState().term.processingErrors?.some((e) => isError(e) && !(e instanceof EvaluationRunError));
+    if (checkFailed) dispatch(pushProcessingError(new EvaluationWarning(t("output.evaluatedDespiteErrors"))));
+    if (result.reachedStepLimit) {
+      if (strategy === EvaluationStrategy.CALL_BY_VALUE) info(t("output.tryNormalOrder"));
+      return;
+    }
+    if (result.errors?.length) return;
+    const reductions = result.steps.filter((step) => step.rule !== "definition").length;
+    info(reductions === 0
+      ? t("output.alreadyNormal")
+      : t("output.evaluated", {count: reductions, strategy: strategyLabel}));
+    if (strategy !== EvaluationStrategy.NORMAL && reducibleUnderNormalOrder(program, result.result)) {
+      info(t(strategy === EvaluationStrategy.CALL_BY_VALUE ? "output.weakByValue" : "output.weakByName"));
+    }
+  }
+
+  function reducibleUnderNormalOrder(program: Program, term: Program["term"]): boolean {
+    try {
+      const probe = new Evaluator(20).evaluate({...program, term}, EvaluationStrategy.NORMAL);
+      return probe.steps.some((step) => step.rule !== "definition");
+    } catch {
+      return false;
     }
   }
 

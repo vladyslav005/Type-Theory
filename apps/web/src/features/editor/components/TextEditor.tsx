@@ -19,6 +19,7 @@ import {Switch} from "@/shared/components/ui/switch.tsx";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 import {Label} from "@/shared/components/ui/label.tsx";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/shared/components/ui/tooltip.tsx";
+import {visibleRange} from "@/features/editor/lib/visibleRange.ts";
 import {EditorSettingsDropdown} from "@/features/editor/components/EditorSettingsDropdown.tsx";
 
 // Auto-build debounce: how long to wait after the last keystroke before parsing —
@@ -210,10 +211,12 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
     if (!model) return;
 
     monaco.editor.setModelMarkers(model, "lambda-errors", errorMarkers.map((e) => ({
-      startLineNumber: e.line,
-      startColumn: e.column + 1,
-      endLineNumber: e.line,
-      endColumn: e.column + 1 + e.length,
+      ...visibleRange(model, {
+        startLineNumber: e.line,
+        startColumn: e.column + 1,
+        endLineNumber: e.line,
+        endColumn: e.column + 1 + e.length,
+      }),
       message: e.message,
       severity: monaco.MarkerSeverity.Error,
     })));
@@ -260,12 +263,12 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
         return;
       }
       decorations.set([{
-        range: {
+        range: visibleRange(editorRef.current?.getModel(), {
           startLineNumber: pos.line,
           startColumn: pos.column + 1,
           endLineNumber: pos.endLine ?? pos.line,
           endColumn: pos.endColumn !== undefined ? pos.endColumn + 1 : pos.column + 1 + pos.length,
-        },
+        }),
         options: {
           inlineClassName: tone === "error" ? "error-hover-highlight" : "proof-hover-highlight",
         },

@@ -3,11 +3,17 @@ import {cn} from "@/shared/lib/utils.ts";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {Card, CardContent} from "@/shared/components/ui/card.tsx";
 import {motion} from "framer-motion";
-import {useEffect, type RefObject} from "react";
+import {useContext, useEffect, useMemo, type RefObject} from "react";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 import {errorPosition} from "@/shared/lib/errorPosition.ts";
-import {isWarning} from "@/shared/ui-state/termSlice.ts";
-import {AlertTriangle} from "lucide-react";
+import {severityOf, type OutputSeverity} from "@/shared/ui-state/termSlice.ts";
+import {markOutputVisible} from "@/shared/ui-state/outputPanel.ts";
+import {OUTPUT_TOAST_ID} from "@/features/error-output/useOutputToasts.ts";
+import {toast} from "sonner";
+import {ViewVisibleContext} from "@/shared/activity/activityClock.ts";
+import {AlertTriangle, Info} from "lucide-react";
+
+const SEVERITY_ORDER: Record<OutputSeverity, number> = {error: 0, warning: 1, info: 2};
 
 export interface ErrorOutputProps {
   className?: string;
@@ -27,14 +33,27 @@ export function ErrorOutput({
 } : ErrorOutputProps) {
 
   const {t} = useTranslation();
-  const errors = useAppSelector((state) => state.term.processingErrors);
-  const hasErrors = errors && errors.length > 0;
+  const messages = useAppSelector((state) => state.term.processingErrors);
+  const visible = useContext(ViewVisibleContext);
+  const entries = useMemo(() => {
+    let errorNumber = 0;
+    return (messages ?? [])
+      .map((error) => ({error, severity: severityOf(error)}))
+      .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity])
+      .map((entry) => ({...entry, number: entry.severity === "error" ? ++errorNumber : 0}));
+  }, [messages]);
+
+  useEffect(() => {
+    if (!visible) return;
+    toast.dismiss(OUTPUT_TOAST_ID);
+    return markOutputVisible();
+  }, [visible]);
 
   // A rebuild can remove the hovered row without a mouseleave, so drop any highlight it left behind.
   useEffect(() => {
     const editor = editorRef?.current;
     return () => editor?.highlightRange?.(null);
-  }, [errors, editorRef]);
+  }, [messages, editorRef]);
 
   return (
     <motion.div
@@ -45,11 +64,10 @@ export function ErrorOutput({
     >
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
         <CardContent className="pt-6 flex-1 overflow-auto">
-          {hasErrors ? (
+          {entries.length > 0 ? (
             <div className="space-y-3">
-              {errors.map((error, index) => {
+              {entries.map(({error, severity, number}, index) => {
                 const pos = editorRef ? errorPosition(error) : undefined;
-                const warning = isWarning(error);
                 return (
                 <motion.div
                   key={index}
@@ -58,21 +76,27 @@ export function ErrorOutput({
                   transition={{delay: index * 0.05, duration: 0.3}}
                   className={cn(
                     "flex gap-3 p-4 rounded-xl border transition-colors duration-200",
-                    warning
-                      ? "bg-amber-500/5 border-amber-500/30 hover:bg-amber-500/10"
-                      : "bg-destructive/5 border-destructive/20 hover:bg-destructive/10",
+                    severity === "info"
+                      ? "bg-sky-500/5 border-sky-500/25 hover:bg-sky-500/10"
+                      : severity === "warning"
+                        ? "bg-amber-500/5 border-amber-500/30 hover:bg-amber-500/10"
+                        : "bg-destructive/5 border-destructive/20 hover:bg-destructive/10",
                   )}
                   onMouseEnter={pos ? () => editorRef?.current?.highlightRange?.(pos, "error") : undefined}
                   onMouseLeave={pos ? () => editorRef?.current?.highlightRange?.(null) : undefined}
                 >
                   <div className="shrink-0 mt-0.5">
-                    {warning ? (
+                    {severity === "info" ? (
+                      <div className="w-6 h-6 rounded-full bg-sky-500/15 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                        <Info className="h-3.5 w-3.5"/>
+                      </div>
+                    ) : severity === "warning" ? (
                       <div className="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 dark:text-amber-400">
                         <AlertTriangle className="h-3.5 w-3.5"/>
                       </div>
                     ) : (
                       <div className="w-6 h-6 rounded-full bg-destructive/20 flex items-center justify-center text-destructive text-xs font-semibold">
-                        {index + 1}
+                        {number}
                       </div>
                     )}
                   </div>
@@ -89,9 +113,9 @@ export function ErrorOutput({
               })}
             </div>
           ) : (
-            <div className="p-6 text-center rounded-xl bg-green-500/5 border border-green-500/20">
+            <div className="p-6 text-center rounded-xl bg-muted/30 border">
               <p className="text-sm text-muted-foreground">
-                {t("errorsPanel.allValid")}
+                {t("errorsPanel.empty")}
               </p>
             </div>
           )}

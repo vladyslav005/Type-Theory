@@ -1,6 +1,6 @@
 import {createListenerMiddleware, isAnyOf} from "@reduxjs/toolkit";
 import type {ProofTree} from "@vladyslav005/tt-core";
-import {checkProof, enterBuildMode, setCurryHoward, setEvaluation, setManualResults, setProof, setTheoryEnabled, type TermState} from "@/shared/ui-state/termSlice.ts";
+import {checkProof, enterBuildMode, isError, setCurryHoward, setEvaluation, setManualResults, setProof, setTheoryEnabled, type TermState} from "@/shared/ui-state/termSlice.ts";
 import type {StudentProofNode} from "@/shared/ui-state/studentProof.ts";
 import {bump, countBucket, isCollecting, recordWeek, type WeekStats} from "@/shared/activity/activityStore.ts";
 import {manualNodeRules} from "@/features/proof-tree/manual/manualCheck.ts";
@@ -65,7 +65,7 @@ activityListener.startListening({
     if (setProof.match(action)) {
       const proof = action.payload.proof;
       const rules = proof ? failedRules(proof) : [];
-      const hasErrors = rules.length > 0 || (after.processingErrors?.length ?? 0) > 0;
+      const hasErrors = rules.length > 0 || (after.processingErrors?.some(isError) ?? false);
       recordWeek((week, internal) => {
         if (!proof) {
           week.typecheck.parseFailed++;

@@ -587,20 +587,38 @@
       "description": "All panels visible at once, arranged in a grid"
     },
     "editorErrors": {
-      "label": "Editor + Errors",
-      "description": "Editor and Errors side by side on top, everything else tabbed below"
+      "label": "Editor + Output",
+      "description": "Editor and Output side by side on top, everything else tabbed below"
     }
   },
   "panels": {
     "editor": "Editor",
-    "errors": "Errors",
+    "errors": "Output",
     "evaluation": "Evaluation",
     "proofTree": "Proof Tree",
     "ast": "AST",
     "results": "Results"
   },
   "errorsPanel": {
-    "allValid": "All expressions are valid. No errors to display."
+    "empty": "No output yet — Run or type-check to see results, warnings and errors here."
+  },
+  "output": {
+    "parsed": "Parsed successfully.",
+    "typeChecked": "Type checks — the main expression has type {{type}}.",
+    "evaluated_one": "Evaluated in {{count}} step ({{strategy}}).",
+    "evaluated_other": "Evaluated in {{count}} steps ({{strategy}}).",
+    "alreadyNormal": "Already in normal form — there was nothing to reduce.",
+    "weakByValue": "Call-by-value stops at a λ-abstraction, so the result can still contain redexes inside a λ body. Switch to Normal Order to reduce it fully.",
+    "weakByName": "Call-by-name doesn't reduce inside λ bodies or arguments, so the result can still contain redexes. Switch to Normal Order to reduce it fully.",
+    "tryNormalOrder": "Call-by-value evaluates every argument first, even ones that are never used (e.g. a Y-combinator recursion). Try Normal Order, or fixx instead of Y.",
+    "evaluatedDespiteErrors": "Evaluated even though checking reported errors — the result may be stuck or meaningless."
+  },
+  "outputToast": {
+    "errors_one": "{{count}} error in Output",
+    "errors_other": "{{count}} errors in Output",
+    "warnings_one": "{{count}} warning in Output",
+    "warnings_other": "{{count}} warnings in Output",
+    "open": "Open Output"
   },
   "fullscreen": {
     "enter": "Enter Fullscreen",

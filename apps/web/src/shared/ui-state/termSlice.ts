@@ -134,8 +134,26 @@ export class EvaluationRunError extends Error {
 
 // Something worth knowing about a run that isn't a failure (stale build, a limit was hit).
 export class EvaluationWarning extends EvaluationRunError {}
+export class EvaluationInfo extends EvaluationRunError {}
 
-export const isWarning = (error: Error) => error instanceof EvaluationWarning;
+// A note from parsing/type-checking; unlike EvaluationRunError it survives a re-evaluation.
+export class OutputNote extends Error {
+  constructor(message: string, readonly severity: "warning" | "info", readonly pos?: SourcePosition) {
+    super(message);
+  }
+}
+
+export type OutputSeverity = "error" | "warning" | "info";
+
+export function severityOf(error: Error): OutputSeverity {
+  if (error instanceof EvaluationInfo) return "info";
+  if (error instanceof EvaluationWarning) return "warning";
+  if (error instanceof OutputNote) return error.severity;
+  return "error";
+}
+
+export const isWarning = (error: Error) => severityOf(error) === "warning";
+export const isError = (error: Error) => severityOf(error) === "error";
 
 // Replace STLC instead of extending it, so enabling one clears every other theory.
 const EXCLUSIVE_THEORIES: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];

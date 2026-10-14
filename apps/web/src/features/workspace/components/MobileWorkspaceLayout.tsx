@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useViewTime} from "@/shared/activity/activityClock.ts";
 import {useTranslation} from "react-i18next";
 import {useOutletContext} from "react-router-dom";
@@ -18,7 +18,8 @@ import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTree
 import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {setTermText} from "@/shared/ui-state/termSlice.ts";
+import {setTermText, severityOf} from "@/shared/ui-state/termSlice.ts";
+import {registerOutputOpener} from "@/shared/ui-state/outputPanel.ts";
 
 type PrimaryTab = "editor" | "errors" | "results";
 type ResultView = "proofTree" | "evaluation" | "ast";
@@ -58,6 +59,9 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
 
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>("editor");
   const [resultView, setResultView] = useState<ResultView>("proofTree");
+  const problemCount = errors?.filter((e) => severityOf(e) !== "info").length ?? 0;
+
+  useEffect(() => registerOutputOpener(() => setPrimaryTab("errors")), []);
 
   return (
     <div className={className ? `${className} flex flex-col` : "flex flex-col"}>
@@ -65,7 +69,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
         <TabsList className="w-full h-11 shrink-0">
           <TabsTrigger value="editor" className="flex-1 h-full">{t("panels.editor")}</TabsTrigger>
           <TabsTrigger value="errors" className="flex-1 h-full">
-            {t("panels.errors")}{errors && errors.length > 0 ? ` (${errors.length})` : ""}
+            {t("panels.errors")}{problemCount > 0 ? ` (${problemCount})` : ""}
           </TabsTrigger>
           <TabsTrigger value="results" className="flex-1 h-full">{t("panels.results")}</TabsTrigger>
         </TabsList>

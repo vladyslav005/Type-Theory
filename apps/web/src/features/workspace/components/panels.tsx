@@ -52,8 +52,10 @@ export function EditorPanel({params, api}: IDockviewPanelProps<EditorPanelParams
 export function ErrorOutputPanel({params, api}: IDockviewPanelProps<EditorPanelParams>) {
   return (
     <div className="h-full overflow-auto p-2">
-      <VisiblePanel api={api}><ViewTime view="errors"/></VisiblePanel>
-      <ErrorOutput className="h-full" editorRef={params.editorRef}/>
+      <VisiblePanel api={api}>
+        <ViewTime view="errors"/>
+        <ErrorOutput className="h-full" editorRef={params.editorRef}/>
+      </VisiblePanel>
     </div>
   );
 }

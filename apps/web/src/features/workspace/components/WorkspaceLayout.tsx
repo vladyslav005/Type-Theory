@@ -31,6 +31,8 @@ import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {clearPendingLayoutPreset} from "@/shared/ui-state/workspaceLayoutSlice.ts";
 import {useMediaQuery} from "@/shared/hooks/useMediaQuery.ts";
 import {MobileWorkspaceLayout} from "@/features/workspace/components/MobileWorkspaceLayout.tsx";
+import {useOutputToasts} from "@/features/error-output/useOutputToasts.ts";
+import {registerOutputOpener} from "@/shared/ui-state/outputPanel.ts";
 import "dockview-react/dist/styles/dockview.css";
 import "./workspace.css";
 
@@ -73,6 +75,13 @@ export function WorkspaceLayout({className}: WorkspaceLayoutProps) {
   const {resolvedTheme} = useTheme();
   const dispatch = useAppDispatch();
   const pendingPreset = useAppSelector((state) => state.workspaceLayoutUi.pendingPreset);
+  useOutputToasts();
+
+  // Mobile registers its own opener; registering here too would override it (parent effects run last).
+  useEffect(() => {
+    if (isMobile) return;
+    return registerOutputOpener(() => apiRef.current?.getPanel("errorOutput")?.api.setActive());
+  }, [isMobile]);
 
   // A restored/serialized panel's `params` can't carry a live React ref through JSON, so the
   // editor/AST/proofTree/errorOutput panels need it re-injected after every build (fresh mount, restore, or preset switch).
