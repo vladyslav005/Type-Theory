@@ -15,12 +15,14 @@ import {
 interface ReductionStrategyExplorerProps {
   term: string;
   hint?: string;
+  // Untyped λ-calculus has no keywords, so names like true/if/fix are allowed.
+  untyped?: boolean;
 }
 
 const PREVIEW_STEPS = 6;
 const STRATEGIES = Object.values(EvaluationStrategy);
 
-export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplorerProps) {
+export function ReductionStrategyExplorer({term, hint, untyped = false}: ReductionStrategyExplorerProps) {
   const {t} = useTranslation();
   const {parser, evaluator} = useDependencies();
   const [strategy, setStrategy] = useState<EvaluationStrategy>(EvaluationStrategy.CALL_BY_VALUE);
@@ -32,7 +34,7 @@ export function ReductionStrategyExplorer({term, hint}: ReductionStrategyExplore
   const run = () => {
     trackWidgetUse(`reductionExplorer:${strategy}`);
     try {
-      const ast = parser.parseExpression(term);
+      const ast = parser.parseExpression(term, {keywordsAsIdentifiers: untyped});
       const evaluation = evaluator.evaluate(ast, strategy);
       setSteps(evaluation.steps);
       setDiverged(evaluation.reachedStepLimit);

@@ -1,12 +1,18 @@
 import {setUpJudgementLanguage} from "@/features/editor/hooks/judgementLanguage.ts";
 
 export const NBL_LANGUAGE_ID = "lambda-nbl";
+export const UNTYPED_LANGUAGE_ID = "lambda-untyped";
+const LANGUAGE_IDS = ["lambda", UNTYPED_LANGUAGE_ID, NBL_LANGUAGE_ID];
+
+export function editorLanguageFor(theories: {untyped: boolean; nbl: boolean; typedNbl: boolean}): string {
+  if (theories.untyped) return UNTYPED_LANGUAGE_ID;
+  return theories.nbl || theories.typedNbl ? NBL_LANGUAGE_ID : "lambda";
+}
 
 export function useSetUpEditor() {
 
   function setUpMonacoLanguage(monaco: any) {
-    monaco.languages.register({id: "lambda"});
-    monaco.languages.register({id: NBL_LANGUAGE_ID});
+    for (const id of LANGUAGE_IDS) monaco.languages.register({id});
 
     const keywords: string[] = [
       "as", "case", "of", "if", "then", "else", "inl", "inr", "nil",
@@ -15,9 +21,44 @@ export function useSetUpEditor() {
     ];
 
     monaco.languages.setMonarchTokensProvider("lambda", tokensProvider(keywords));
-    // succ/pred/iszero are keywords only in NBL mode — elsewhere they're ordinary (Church numeral) names.
-    monaco.languages.setMonarchTokensProvider(NBL_LANGUAGE_ID, tokensProvider([...keywords, "succ", "pred", "iszero"]));
+    monaco.languages.setMonarchTokensProvider(UNTYPED_LANGUAGE_ID, untypedTokensProvider());
+    monaco.languages.setMonarchTokensProvider(NBL_LANGUAGE_ID, nblTokensProvider());
     setUpJudgementLanguage(monaco, tokensProvider(keywords));
+
+    // Untyped λ-calculus has no keywords, constants or types: every word is a name.
+    function untypedTokensProvider() {
+      return {
+        tokenizer: {
+          root: [
+            [/\/\/.*$/, "comment"],
+            [/[a-zA-Z_]\w*/, "variable"],
+            [/[λ\\]/, "lambda"],
+            [/\./, "dot"],
+            [/=/, "delimiter"],
+            [/[ \t\r\n]+/, "white"],
+          ],
+        },
+      };
+    }
+
+    // NBL (and typed NBL) is only true/false/0, succ/pred/iszero, if-then-else and the types Nat/Bool.
+    function nblTokensProvider() {
+      return {
+        keywords: ["if", "then", "else", "succ", "pred", "iszero"],
+        tokenizer: {
+          root: [
+            [/\/\/.*$/, "comment"],
+            [/\b(Nat|Bool)\b/, "builtInType"],
+            [/\b(true|false)\b/, "constant"],
+            [/\b\d+\b/, "number"],
+            [/[a-zA-Z_]\w*/, {cases: {"@keywords": "keyword", "@default": "variable"}}],
+            [/→|->/, "arrow"],
+            [/:/, "semi"],
+            [/[ \t\r\n]+/, "white"],
+          ],
+        },
+      };
+    }
 
     function tokensProvider(keywords: string[]) {
       return {
@@ -25,7 +66,7 @@ export function useSetUpEditor() {
         tokenizer: {
           root: [
             [/\b(Nat|Bool|Unit|String)\b/, "builtInType"],
-            [/true|false|True|False|Unit|unit/, "constant"],
+            [/\b(true|false|True|False|Unit|unit)\b/, "constant"],
             [/"(?:\\.|[^"\\])*"/, "string"],
             [/\b\d+(\.\d+)?\b/, "number"],
 
@@ -218,7 +259,7 @@ export function useSetUpEditor() {
         {open: "\"", close: "\""},
       ],
     };
-    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.setLanguageConfiguration(id, languageConfiguration);
+    for (const id of LANGUAGE_IDS) monaco.languages.setLanguageConfiguration(id, languageConfiguration);
 
     // Variable names already used in the buffer, plus keyword/construct snippets — merged into one
     // provider so Monaco only shows a single, deduplicated suggestion list per keystroke.
@@ -384,10 +425,19 @@ export function useSetUpEditor() {
             range: slashRange
           },
         ];
+        const languageId = model.getLanguageId();
+        if (languageId === UNTYPED_LANGUAGE_ID) return {suggestions: variableSuggestions};
+        if (languageId === NBL_LANGUAGE_ID) {
+          return {
+            suggestions: ["true", "false", "succ", "pred", "iszero", "if", "then", "else", "Nat", "Bool"]
+              .filter((keyword) => keyword !== word.word)
+              .map((keyword) => ({label: keyword, kind: monaco.languages.CompletionItemKind.Keyword, insertText: keyword, range: wordRange})),
+          };
+        }
         return {suggestions: [...suggestions, ...variableSuggestions]};
       }
     };
-    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.registerCompletionItemProvider(id, identifierCompletions);
+    for (const id of LANGUAGE_IDS) monaco.languages.registerCompletionItemProvider(id, identifierCompletions);
 
     const symbolCompletions = {
       triggerCharacters: ['\\'],
@@ -752,7 +802,7 @@ export function useSetUpEditor() {
         return {suggestions};
       }
     };
-    for (const id of ["lambda", NBL_LANGUAGE_ID]) monaco.languages.registerCompletionItemProvider(id, symbolCompletions);
+    for (const id of LANGUAGE_IDS) monaco.languages.registerCompletionItemProvider(id, symbolCompletions);
   }
 
   return {setUpMonacoLanguage};

@@ -67,7 +67,7 @@ funkcie vlastne *robia*.
 Všetko nižšie je skutočný kód a nemusíte tomu veriť na slovo — spustiť sa dá každý
 príklad. Otvorte **Editor**, v zozname **Rozšírenia** zapnite **Netypovaný lambda kalkul**
 a potom kliknite na **Prelúdium**: vloží všetky definície použité na tejto stránke
-(`tru`/`fls`, čísla, dvojice, oba pomocníky rekurzie) pod presnými menami použitými tu.
+(`true`/`false`, čísla, dvojice, oba pomocníky rekurzie) pod presnými menami použitými tu.
 Je to obyčajný, upraviteľný text — nič nie je skrytá vstavaná súčasť enginu.
 
 </Callout>
@@ -82,11 +82,11 @@ presne takýto prepínač zapísaný ako funkcia, ktorej sa odovzdajú dve veci 
 vráti jednu z nich:
 
 ```
-tru = λ t . λ f . t;   // vždy vráť prvú vec, ktorú dostaneš
-fls = λ t . λ f . f;   // vždy vráť druhú vec, ktorú dostaneš
+true  = λ t . λ f . t;   // vždy vráť prvú vec, ktorú dostaneš
+false = λ t . λ f . f;   // vždy vráť druhú vec, ktorú dostaneš
 ```
 
-Skúste čítať `tru a b` nahlas ako „pri `a` a `b` si `tru` vždy vyberie `a`." To je
+Skúste čítať `true a b` nahlas ako „pri `a` a `b` si `true` vždy vyberie `a`." To je
 naozaj všetko — nikde za touto funkciou sa neskrýva žiadna samostatná „hodnota true".
 Dostať dve možnosti a vždy vrátiť prvú *je*, čo tu znamená byť „true".
 
@@ -98,23 +98,24 @@ Keď už máte niečo, čo dokáže vybrať medzi dvoma vetvami, každá známa 
 operácia je len iným usporiadaním toho istého výberu:
 
 ```
-test = λ b . λ c . λ a . b c a;   // ak b, tak c, inak a
-not  = λ b . b fls tru;           // prehoď obe vetvy
-and  = λ b . λ c . b c fls;       // ak b, tak c, inak fls
-or   = λ b . λ c . b tru c;       // ak b, tak tru, inak c
+if   = λ b . λ c . λ a . b c a;   // ak b, tak c, inak a
+not  = λ b . b false true;        // prehoď obe vetvy
+and  = λ b . λ c . b c false;     // ak b, tak c, inak false
+or   = λ b . λ c . b true c;      // ak b, tak true, inak c
 ```
 
 Vezmite `and` pomaly: `and b c` len odovzdá `b` dve možnosti — `c` (ak sa `b` ukáže
-ako `tru`) alebo `fls` (ak sa `b` ukáže ako `fls`). Čo dáva zmysel, keď to poviete
-vetou: „ak `b`, odpoveď je to, čo je `c`; inak je odpoveď už `fls`, netreba sa
+ako `true`) alebo `false` (ak sa `b` ukáže ako `false`). Čo dáva zmysel, keď to poviete
+vetou: „ak `b`, odpoveď je to, čo je `c`; inak je odpoveď už `false`, netreba sa
 ani pozerať na `c`." Žiadne vstavané `if`, žiadna analýza prípadov — len prepínač,
 ktorému sa odovzdali správne dve možnosti.
 
 </ConceptSection>
 
 <ReductionStrategyExplorer
-  term={"tru = λ t . λ f . t;\nfls = λ t . λ f . f;\nand = λ b . λ c . b c fls;\nand tru fls;"}
-  hint="and tru fls by sa malo správať presne ako fls — sledujte, ako prepínač vyberá svoju vetvu, krok za krokom."
+  untyped
+  term={"true = λ t . λ f . t;\nfalse = λ t . λ f . f;\nand = λ b . λ c . b c false;\nand true false;"}
+  hint="and true false by sa malo správať presne ako false — sledujte, ako prepínač vyberá svoju vetvu, krok za krokom."
 />
 
 <SectionHeading id="pairs" index="2" title="Dvojice" blurb="Zabaľte dve veci do jednej rovnakým trikom." />
@@ -128,12 +129,12 @@ dostane, vráti jednu z nich.
 
 ```
 pair = λ f . λ s . λ b . b f s;
-fst  = λ p . p tru;
-snd  = λ p . p fls;
+fst  = λ p . p true;
+snd  = λ p . p false;
 ```
 
 `pair 3 5` postaví škatuľku: `λ b . b 3 5`, ktorá stále čaká na kľúč. `fst` jej podá
-kľúč `tru`, takže vnútorný prepínač škatuľky vyberie `3`; `snd` jej podá kľúč `fls` a
+kľúč `true`, takže vnútorný prepínač škatuľky vyberie `3`; `snd` jej podá kľúč `false` a
 vyberie `5`. Je to úplne ten istý prepínač z časti o booleovských hodnotách, len použitý na uloženie
 údajov namiesto rozhodovania.
 
@@ -211,6 +212,7 @@ od `zero`. Ten istý trik, použitý sám na seba.
 </ConceptSection>
 
 <ReductionStrategyExplorer
+  untyped
   term={"zero = λ s . λ z . z;\nsucc = λ n . λ s . λ z . s (n s z);\none = succ zero;\ntwo = succ one;\nplus = λ m . λ n . λ s . λ z . m s (n s z);\nplus one two;"}
   hint="plus one two by sa malo správať presne ako three: s aplikované trikrát na z. Porovnajte tento priebeh s ručným prechodom vyššie."
 />
@@ -218,10 +220,10 @@ od `zero`. Ten istý trik, použitý sám na seba.
 <ConceptSection id="numeral-predecessor" title="Nepohodlná časť: cesta späť">
 
 Skontrolovať, či je numerál nula, je jednoduché — odovzdajte mu krokovú funkciu, ktorá vždy odpovie
-`fls`, a len `zero` vráti `tru` (tým, že krok úplne preskočí):
+`false`, a len `zero` vráti `true` (tým, že krok úplne preskočí):
 
 ```
-iszero = λ n . n (λ x . fls) tru;
+iszero = λ n . n (λ x . false) true;
 ```
 
 Ísť opačným smerom — `pred`, „o jedna menej ako `n`" — je naozaj nepohodlné a stojí za to
@@ -234,8 +236,8 @@ chodbou a vyvoláva miestnosť, ktorú práve opustil, a miestnosť, v ktorej st
 
 ```
 pair  = λ f . λ s . λ b . b f s;
-fst   = λ p . p tru;
-snd   = λ p . p fls;
+fst   = λ p . p true;
+snd   = λ p . p false;
 shift = λ p . pair (snd p) (succ (snd p));      // (predchádzajúce, aktuálne) -> (aktuálne, aktuálne+1)
 pred  = λ n . fst (n shift (pair zero zero));   // prejdi n krokov od (0, 0), ponechaj „predchádzajúce"
 ```
@@ -273,7 +275,7 @@ funkciu napíšte funkciu, ktorá očakáva, že dostane kópiu samej seba ako �
 argument, a volá *tú* namiesto svojho (neexistujúceho) mena:
 
 ```
-g = λ self . λ n . test (iszero n) one (times n (self (pred n)));
+g = λ self . λ n . if (iszero n) one (times n (self (pred n)));
 ```
 
 `g` ešte nie je `factorial` — je to „faktoriál, *ak* mi najprv odovzdáte niečo na
@@ -291,22 +293,22 @@ pevného bodu* — niečo, kde <Math>{"\\mathit{fix}\\ g"}</Math> a
 
 ```
 Y    = λ f . (λ x . f (x x)) (λ x . f (x x));
-fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+fix = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 ```
 
-`Y` je kombinátor z úvodnej prednášky, teraz použitý naozaj; `fixx` obalí rekurzívne volanie ďalším `λ y . ...`
+`Y` je kombinátor z úvodnej prednášky, teraz použitý naozaj; `fix` obalí rekurzívne volanie ďalším `λ y . ...`
 skôr, než sa použije. Tento obal nie je ozdoba — pri **volaní hodnotou** sa
 argumenty redukujú *predtým*, než sa dosadia, takže holé `Y` vynúti sebaaplikáciu
 okamžite a expanduje donekonečna, tá istá divergencia, ktorú ste videli pri Ω = `ω ω`
-v úvodnej prednáške. `fixx` skrýva túto sebaaplikáciu za funkciu, takže sa
+v úvodnej prednáške. `fix` skrýva túto sebaaplikáciu za funkciu, takže sa
 skutočne spustí, až keď ju niečo zavolá.
 
 </ConceptSection>
 
 <TryItBox
   steps={[
-    <>Vložte prelúdium (pozri okno vyššie) a potom pridajte <code>fact = fixx (λ self . λ n . test (iszero n) one (times n (self (pred n))));</code> a <code>fact two;</code>.</>,
-    <>Nastavte stratégiu na <strong>Volanie hodnotou</strong> (predvolené) a vyhodnoťte — nikdy sa nedokončí. Každé volanie <code>test</code> horlivo vyhodnocuje <em>obe</em> vetvy, vrátane rekurzívnej, takže <code>self (pred n)</code> sa ďalej rozširuje aj keď je <code>n</code> už <code>zero</code>.</>,
+    <>Vložte prelúdium (pozri okno vyššie) a potom pridajte <code>fact = fix (λ self . λ n . if (iszero n) one (times n (self (pred n))));</code> a <code>fact two;</code>.</>,
+    <>Nastavte stratégiu na <strong>Volanie hodnotou</strong> (predvolené) a vyhodnoťte — nikdy sa nedokončí. Každé volanie <code>if</code> horlivo vyhodnocuje <em>obe</em> vetvy, vrátane rekurzívnej, takže <code>self (pred n)</code> sa ďalej rozširuje aj keď je <code>n</code> už <code>zero</code>.</>,
     <>Prepnite na <strong>Volanie menom</strong> a vyhodnoťte ten istý term — dokončí sa, pretože nepoužitá vetva sa vôbec nevynúti.</>,
   ]}
 />
@@ -317,7 +319,7 @@ skutočne spustí, až keď ju niečo zavolá.
     {label: "Trik", detail: "urobte z hodnoty drobný stroj, ktorý sa správa správne, namiesto ukladania údajov a ich neskoršieho skúmania."},
     {label: "Booleovské hodnoty a dvojice", detail: "obe sú prepínače — funkcie, ktorým sa odovzdajú dve možnosti a vždy vrátia jednu z nich."},
     {label: "Čísla", detail: "Churchov numerál nie je množstvo, je to akcia \"aplikuj tento krok N-krát\" — succ len obalí o jednu ďalšiu aplikáciu navrch."},
-    {label: "Rekurzia", detail: "funkcia sa nemôže pomenovať sama, tak jej odovzdajte jej vlastnú kópiu (sebaaplikácia); fixx to zabalí tak, aby prežilo volanie hodnotou."},
+    {label: "Rekurzia", detail: "funkcia sa nemôže pomenovať sama, tak jej odovzdajte jej vlastnú kópiu (sebaaplikácia); fix to zabalí tak, aby prežilo volanie hodnotou."},
   ]}
 />
 

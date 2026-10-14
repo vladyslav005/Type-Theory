@@ -28,6 +28,8 @@ interface EvaluationPracticeProps {
   strategyMode?: "follow" | "any";
   // How the student's text is read — e.g. NBL syntax in the NBL lab.
   parseInput?: (text: string) => Term | undefined;
+  // Monaco language of the answer editor (see editorLanguageFor).
+  language?: string;
   // Where the step count, guide and restart go when a surrounding panel header has room for them.
   toolbarTarget?: HTMLElement | null;
   // Accept answers several steps ahead, or any β-equivalent term, as one valid step.
@@ -89,7 +91,7 @@ function replaceNode(root: Term, id: string, replacement: Term): Term {
   return walk(root) as Term;
 }
 
-function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode = "follow", parseInput = defaultParse, toolbarTarget, allowSkipping = false}: EvaluationPracticeProps) {
+function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode = "follow", parseInput = defaultParse, language, toolbarTarget, allowSkipping = false}: EvaluationPracticeProps) {
   const anyOrder = strategyMode === "any";
   const {t} = useTranslation();
   const {strategy} = evaluation;
@@ -469,6 +471,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
         {contextPanel}
         <LabEditor
           handleRef={inputRef}
+          language={language}
           compact
           value={input}
           onChange={(text) => {

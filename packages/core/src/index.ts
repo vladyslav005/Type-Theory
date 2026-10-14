@@ -4,7 +4,7 @@ export * from "@/domain/examples";
 
 export type {Parser} from "@/application/Parser";
 
-export {AntlrParserAdapter} from "@/adapter/AntlrParserAdapter";
+export {AntlrParserAdapter, type ParseOptions} from "@/adapter/AntlrParserAdapter";
 export {ParseSyntaxError} from "@/adapter/SyntaxErrorListener";
 
 export {Evaluator, type EvaluateOptions} from "@/application/evaluation/Evaluator";

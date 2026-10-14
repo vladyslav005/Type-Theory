@@ -1,12 +1,12 @@
 import {useTranslation} from "react-i18next";
-import {PRELUDE_CODE} from "@/features/editor/components/InsertPreludeButton.tsx";
+import {LAB_PRELUDE_CODE} from "@/features/docs/labs/lambda/lambdaEngine.ts";
 import {Tip} from "@/shared/components/Tip.tsx";
 
 // Shown in lab notation: the engine's tru/fls are what students write as true/false.
 const toLabNotation = (text: string) => text.replace(/\btru\b/g, "true").replace(/\bfls\b/g, "false");
 
 // Read from the prelude itself, so the list always matches what the task's checker has in scope.
-const DEFINITIONS = PRELUDE_CODE.split("\n")
+const DEFINITIONS = LAB_PRELUDE_CODE.split("\n")
   .map((line) => line.replace(/\/\/.*$/, "").trim())
   .map((line) => line.match(/^(\w+)\s*=\s*(.+?);$/))
   .filter((match): match is RegExpMatchArray => match !== null)

@@ -48,7 +48,7 @@ class AnalysisCache {
 	private compute(document: vscode.TextDocument, theories: TypeTheoryConfig): DocumentAnalysis {
 		const parser = new AntlrParserAdapter();
 		try {
-			const parsed = parser.parseExpression(document.getText());
+			const parsed = parser.parseExpression(document.getText(), {keywordsAsIdentifiers: theories.untyped});
 			const program = theories.nbl || theories.typedNbl ? elaborateNbl(parsed) : parsed;
 			const checker = new SLTLCTypeChecker();
 			checker.setTheories(theories);

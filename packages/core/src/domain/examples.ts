@@ -110,40 +110,39 @@ twice ((compose identity) identity) : T -> T;`,
     items: [
       {
         label: "Church Booleans & Pairs",
-        description: "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory",
-        code: `// Named "tru"/"fls" here, not "true"/"false" — those are reserved Bool literals.
-tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+        description: "true/false encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair true false) reduces to true; enable the Untyped lambda calculus theory",
+        code: `true = λ t . λ f . t;
+false = λ t . λ f . f;
 
 pair = λ f . λ s . λ b . b f s;
-fst = λ p . p tru;
-snd = λ p . p fls;
+fst = λ p . p true;
+snd = λ p . p false;
 
-fst (pair tru fls);`,
+fst (pair true false);`,
       },
       {
         label: "Church Booleans: and / or / not",
-        description: "and/or/not built from tru/fls as selectors — (tru and fls) or (not fls) reduces to tru",
-        code: `tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+        description: "and/or/not built from true/false as selectors — (true and false) or (not false) reduces to true",
+        code: `true = λ t . λ f . t;
+false = λ t . λ f . f;
 
-and = λ b . λ c . b c fls;   // b ? c : false
-or  = λ b . λ c . b tru c;   // b ? true : c
-not = λ b . b fls tru;       // b ? false : true
+and = λ b . λ c . b c false;   // b ? c : false
+or  = λ b . λ c . b true c;    // b ? true : c
+not = λ b . b false true;      // b ? false : true
 
-or (and tru fls) (not fls);`,
+or (and true false) (not false);`,
       },
       {
         label: "Church Booleans: if (test)",
-        description: "test b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; test just names it",
-        code: `tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+        description: "if b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; if just names it",
+        code: `true = λ t . λ f . t;
+false = λ t . λ f . f;
 
-// test b c a is literally b applied to c and a — naming it "if" is just for
+// if b c a is literally b applied to c and a — naming it "if" is just for
 // readability, it adds no new behaviour over using the boolean directly.
-test = λ b . λ c . λ a . b c a;
+if = λ b . λ c . λ a . b c a;
 
-test fls tru fls;`,
+if false true false;`,
       },
       {
         label: "Church Numerals: Zero, Succ, Numbers",
@@ -161,21 +160,21 @@ three succ zero;`,
       },
       {
         label: "Church Numerals: The Core Idea (Repeat N Times)",
-        description: "a numeral n is really a generic \"apply f to x, n times\" machine — three not fls flips fls three times, landing on tru",
+        description: "a numeral n is really a generic \"apply f to x, n times\" machine — three not false flips false three times, landing on true",
         code: `zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
 one   = succ zero;
 two   = succ one;
 three = succ two;
 
-tru = λ t . λ f . t;
-fls = λ t . λ f . f;
-not = λ b . b fls tru;
+true = λ t . λ f . t;
+false = λ t . λ f . f;
+not = λ b . b false true;
 
-// Nothing here is about counting — three just applies "not" to "fls", 3
-// times: fls -> tru -> fls -> tru. Any f/x pair works the same way; succ/zero
+// Nothing here is about counting — three just applies "not" to "false", 3
+// times: false -> true -> false -> true. Any f/x pair works the same way; succ/zero
 // are just ONE particular choice of f/x that happens to build numbers.
-three not fls;`,
+three not false;`,
       },
       {
         label: "Church Arithmetic: Addition (plus)",
@@ -209,14 +208,14 @@ times = λ m . λ n . m (plus n) zero;
       },
       {
         label: "Church Numerals: iszero",
-        description: "n (λx.fls) tru applies always-false to tru, n times — survives unchanged only when n never applies it, i.e. n = zero",
+        description: "n (λx.false) true applies always-false to true, n times — survives unchanged only when n never applies it, i.e. n = zero",
         code: `zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
-tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+true = λ t . λ f . t;
+false = λ t . λ f . f;
 
-// Apply "always false" to tru, n times — stays tru only if n = zero.
-iszero = λ n . n (λ x . fls) tru;
+// Apply "always false" to true, n times — stays true only if n = zero.
+iszero = λ n . n (λ x . false) true;
 
 iszero (succ zero);`,
       },
@@ -225,12 +224,12 @@ iszero (succ zero);`,
         description: "Church numerals have no built-in predecessor — runs a (prev, current) pair forward n times from (0,0), landing on (n-1, n)",
         code: `zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
-tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+true = λ t . λ f . t;
+false = λ t . λ f . f;
 
 pair = λ f . λ s . λ b . b f s;
-fst = λ p . p tru;
-snd = λ p . p fls;
+fst = λ p . p true;
+snd = λ p . p false;
 
 // Running (prev, current) -> (current, current+1) n times from (0,0) lands on
 // (n-1, n) — fst of that pair is the predecessor. The classic Kleene trick.
@@ -243,7 +242,7 @@ two = succ (succ zero);
       },
       {
         label: "Y Combinator: Never Terminates",
-        description: "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fixx example for the fix",
+        description: "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fix example for the fix",
         code: `Y = λ f . (λ x . f (x x)) (λ x . f (x x));
 
 id = λ z . z;
@@ -252,41 +251,39 @@ Y id;`,
       },
       {
         label: "fixx: The Call-by-value-safe Fix",
-        description: "same self-application as Y, but the extra λy defers it until needed — fixx id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever). Called \"fixx\" here — plain \"fix\" is already a reserved builtin",
-        code: `// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
-fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+        description: "same self-application as Y, but the extra λy defers it until needed — fix id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever).",
+        code: `fix = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 
 id = λ z . z;
 
-fixx id;`,
+fix id;`,
       },
       {
         label: "fixx: Real Recursion (isEven)",
-        description: "Y/fixx used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls",
-        code: `tru = λ t . λ f . t;
-fls = λ t . λ f . f;
-not = λ b . b fls tru;
+        description: "Y/fix used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to false",
+        code: `true = λ t . λ f . t;
+false = λ t . λ f . f;
+not = λ b . b false true;
 
 zero = λ z . λ s . z;
 succ = λ n . λ z . λ s . s n;
-iszero = λ n . n tru (λ m . fls);
+iszero = λ n . n true (λ m . false);
 pred = λ n . n zero (λ m . m);
 
 three = succ (succ (succ zero));
 
-isEvenGen = λ f . λ n . ((iszero n) (λ d . tru) (λ d . not (f (pred n)))) (λ x . x);
+isEvenGen = λ f . λ n . ((iszero n) (λ d . true) (λ d . not (f (pred n)))) (λ x . x);
 
-// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
-fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
-isEven = fixx isEvenGen;
+fix = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+isEven = fix isEvenGen;
 
 isEven three;`,
       },
       {
         label: "fixx: Factorial",
-        description: "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fixx — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)",
-        code: `tru = λ t . λ f . t;
-fls = λ t . λ f . f;
+        description: "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fix — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)",
+        code: `true = λ t . λ f . t;
+false = λ t . λ f . f;
 
 zero = λ s . λ z . z;
 succ = λ n . λ s . λ z . s (n s z);
@@ -296,11 +293,11 @@ three = succ two;
 
 plus = λ m . λ n . λ s . λ z . m s (n s z);
 times = λ m . λ n . m (plus n) zero;
-iszero = λ n . n (λ x . fls) tru;
+iszero = λ n . n (λ x . false) true;
 
 pair = λ f . λ s . λ b . b f s;
-fst = λ p . p tru;
-snd = λ p . p fls;
+fst = λ p . p true;
+snd = λ p . p false;
 shift = λ p . pair (snd p) (succ (snd p));
 pred = λ n . fst (n shift (pair zero zero));
 
@@ -308,9 +305,8 @@ pred = λ n . fst (n shift (pair zero zero));
 // Call-by-value would evaluate fact (pred n) forever.
 factGen = λ f . λ n . ((iszero n) (λ d . one) (λ d . times n (f (pred n)))) (λ x . x);
 
-// Named "fixx", not "fix" — plain "fix" is already a reserved builtin.
-fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
-fact = fixx factGen;
+fix = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+fact = fix factGen;
 
 fact three;`,
       },

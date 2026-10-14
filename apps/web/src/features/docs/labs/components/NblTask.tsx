@@ -250,7 +250,7 @@ function EvaluateRow({id, index, source}: {id?: string; index: number; source: s
       {evaluation && (
         <SolveArea taskId={taskId}>
           <div className="rounded-lg border bg-background pt-3">
-            <EvaluationPractice key={source} evaluation={evaluation} typeAliases={{}} taskId={taskId} parseInput={readNbl}/>
+            <EvaluationPractice key={source} evaluation={evaluation} typeAliases={{}} taskId={taskId} parseInput={readNbl} language={NBL_LANGUAGE_ID}/>
           </div>
         </SolveArea>
       )}

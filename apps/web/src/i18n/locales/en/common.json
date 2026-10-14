@@ -262,15 +262,15 @@
       },
       "church-booleans-pairs": {
         "label": "Church Booleans & Pairs",
-        "description": "tru/fls encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair tru fls) reduces to tru; enable the Untyped lambda calculus theory"
+        "description": "true/false encode booleans as pure functions (no Bool type at all), pair/fst/snd encode a 2-tuple the same way — fst (pair true false) reduces to true; enable the Untyped lambda calculus theory"
       },
       "church-booleans-and-or-not": {
         "label": "Church Booleans: and / or / not",
-        "description": "and/or/not built from tru/fls as selectors — (tru and fls) or (not fls) reduces to tru"
+        "description": "and/or/not built from true/false as selectors — (true and false) or (not false) reduces to true"
       },
       "church-booleans-if-test": {
-        "label": "Church Booleans: if (test)",
-        "description": "test b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; test just names it"
+        "label": "Church Booleans: if",
+        "description": "if b c a picks c if b is true, a if false — exactly what applying a Church boolean directly already does; if just names it"
       },
       "church-numerals-zero-succ-numbers": {
         "label": "Church Numerals: Zero, Succ, Numbers",
@@ -278,7 +278,7 @@
       },
       "church-numerals-the-core-idea-repeat-n-times": {
         "label": "Church Numerals: The Core Idea (Repeat N Times)",
-        "description": "a numeral n is really a generic \"apply f to x, n times\" machine — three not fls flips fls three times, landing on tru"
+        "description": "a numeral n is really a generic \"apply f to x, n times\" machine — three not false flips false three times, landing on true"
       },
       "church-arithmetic-addition-plus": {
         "label": "Church Arithmetic: Addition (plus)",
@@ -290,7 +290,7 @@
       },
       "church-numerals-iszero": {
         "label": "Church Numerals: iszero",
-        "description": "n (λx.fls) tru applies always-false to tru, n times — survives unchanged only when n never applies it, i.e. n = zero"
+        "description": "n (λx.false) true applies always-false to true, n times — survives unchanged only when n never applies it, i.e. n = zero"
       },
       "church-numerals-predecessor-pred": {
         "label": "Church Numerals: Predecessor (pred)",
@@ -298,19 +298,19 @@
       },
       "y-combinator-never-terminates": {
         "label": "Y Combinator: Never Terminates",
-        "description": "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fixx example for the fix"
+        "description": "x x applies x to itself — impossible in any typed fragment above. Y id diverges under every strategy here, just differently: grows forever under Call-by-value, cycles forever under Normal order/Call-by-name — see the fix example for the fix"
       },
       "fixx-the-call-by-value-safe-fix": {
-        "label": "fixx: The Call-by-value-safe Fix",
-        "description": "same self-application as Y, but the extra λy defers it until needed — fixx id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever). Called \"fixx\" here — plain \"fix\" is already a reserved builtin"
+        "label": "fix: The Call-by-value-safe Fix",
+        "description": "same self-application as Y, but the extra λy defers it until needed — fix id settles to a value under Call-by-value/Call-by-name instead of diverging (Normal order still unfolds forever)"
       },
       "fixx-real-recursion-iseven": {
-        "label": "fixx: Real Recursion (isEven)",
-        "description": "Y/fixx used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to fls"
+        "label": "fix: Real Recursion (isEven)",
+        "description": "Y/fix used for real: isEvenGen recurses through f. Scott-encoded naturals keep pred/iszero cheap; both branches are thunked so Call-by-value isn't too eager — isEven three reduces to false"
       },
       "fixx-factorial": {
-        "label": "fixx: Factorial",
-        "description": "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fixx — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)"
+        "label": "fix: Factorial",
+        "description": "fact n = if n is zero then 1 else n × fact (n - 1), built from Church numerals, iszero, Kleene's pred, times and fix — use Normal order to see fact three reduce all the way to the numeral 6 (Call-by-value/Call-by-name stop earlier, at a λ whose body isn't reduced yet)"
       },
       "sum-types-inl-inr": {
         "label": "Sum Types: inl / inr",

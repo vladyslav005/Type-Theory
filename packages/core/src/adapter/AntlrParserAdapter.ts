@@ -1,17 +1,32 @@
 import type {Parser} from "@/application/Parser.ts";
 import type {Program, Term, Type} from "@/domain/ast";
-import {CharStreams, CommonTokenStream} from "antlr4";
+import {CharStreams, CommonTokenStream, Token} from "antlr4";
 import LambdaLexer from "@/antlr/LambdaLexer.ts";
 import LambdaParser from "@/antlr/LambdaParser.ts";
 import {ProgramBuilderVisitor} from "@/adapter/ProgramBuilderVisitor.ts";
 import {TypeBuilderVisitor} from "@/adapter/TypeBuilderVisitor.ts";
 import {CollectingErrorListener, ParseSyntaxError} from "@/adapter/SyntaxErrorListener.ts";
 
+export interface ParseOptions {
+  // Untyped λ-calculus has no keywords, so `true`, `if`, `fix`, … are lexed as ordinary names.
+  keywordsAsIdentifiers?: boolean;
+}
+
+const WORD = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
 export class AntlrParserAdapter implements Parser {
 
-  parseExpression(input: string): Program {
+  parseExpression(input: string, options: ParseOptions = {}): Program {
     const chars = CharStreams.fromString(input)
     const lexer = new LambdaLexer(chars)
+    if (options.keywordsAsIdentifiers) {
+      const nextToken = lexer.nextToken.bind(lexer);
+      lexer.nextToken = () => {
+        const token = nextToken();
+        if (token.type !== Token.EOF && token.type !== LambdaLexer.ID && WORD.test(token.text)) token.type = LambdaLexer.ID;
+        return token;
+      };
+    }
     const tokens = new CommonTokenStream(lexer)
     const parser = new LambdaParser(tokens)
 

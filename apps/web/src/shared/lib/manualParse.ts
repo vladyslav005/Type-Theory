@@ -1,5 +1,5 @@
 import {AntlrParserAdapter, ParseSyntaxError, astToText, typeToString} from "@vladyslav005/tt-core";
-import type {Program, Term, Type} from "@vladyslav005/tt-core";
+import type {ParseOptions, Program, Term, Type} from "@vladyslav005/tt-core";
 
 const parser = new AntlrParserAdapter();
 
@@ -77,17 +77,19 @@ export function parseTypeText(text: string): Type {
   }
 }
 
-export function parseTermProgram(text: string): Program {
+export function parseTermProgram(text: string, options?: ParseOptions): Program {
   const source = text.trim().replace(/[;\s]+$/, "");
   if (!source) throw new ManualParseError("nothing written here");
   try {
-    const program = parser.parseExpression(`${source};`);
+    const program = parser.parseExpression(`${source};`, options);
     if (!program.term) throw new ManualParseError("not a term");
     return program;
   } catch (error) {
     throw new ManualParseError(message(error));
   }
 }
+
+export const parseUntypedTerm = (text: string) => parseTermProgram(text, {keywordsAsIdentifiers: true}).term;
 
 export function termKey(term: Term): string {
   return astToText({kind: "Program", id: "term-key", globals: [], term} as Program).trim().replace(/;$/, "").trim();

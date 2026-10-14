@@ -4,6 +4,8 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {cn} from "@/shared/lib/utils.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
+import {UNTYPED_LANGUAGE_ID} from "@/features/editor/hooks/setUpEditor.ts";
+import {parseUntypedTerm} from "@/shared/lib/manualParse.ts";
 import {Feedback, Row, SolveArea, TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
 import {appendName, LabContext} from "@/features/docs/labs/components/LabContext.tsx";
 import {type Verdict} from "@/features/docs/labs/components/taskStyles.ts";
@@ -56,7 +58,7 @@ function ParensRow({id, index, source}: {id?: string; index: number; source: str
   return (
     <Row taskId={taskId} index={index} source={source} solution={parsed.ok ? <code className="font-mono">{fullyParenthesized(parsed.term)}</code> : parsed.message}>
       <SolveArea taskId={taskId}>
-        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source} compact className="w-full max-w-md"/>
+        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={source} language={UNTYPED_LANGUAGE_ID} compact className="w-full max-w-md"/>
         <TaskActions>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
         </TaskActions>
@@ -172,7 +174,7 @@ function NormalFormRow({id, index, source}: {id?: string; index: number; source:
       {normalized && (
         <SolveArea taskId={taskId}>
           <div className="rounded-lg border bg-background pt-3">
-            <EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId} strategyMode="any"/>
+            <EvaluationPractice key={source} evaluation={normalized.evaluation} typeAliases={{}} taskId={taskId} strategyMode="any" parseInput={parseUntypedTerm} language={UNTYPED_LANGUAGE_ID}/>
           </div>
         </SolveArea>
       )}
@@ -215,7 +217,7 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
       )}
     >
       <SolveArea taskId={taskId}>
-        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} compact className="w-72"/>
+        <LabEditor value={value} onChange={(next) => { setValue(next); setVerdict(undefined); }} onSubmit={check} placeholder={t("labWidgets.churchPlaceholder")} language={UNTYPED_LANGUAGE_ID} compact className="w-72"/>
         <LabContext onInsert={(name) => { setValue((v) => appendName(v, name)); setVerdict(undefined); }}/>
         <TaskActions>
           <Button size="sm" disabled={!value.trim()} onClick={check}>{t("labWidgets.check")}</Button>
@@ -261,7 +263,7 @@ export function DefineTask({id, tests, solution, forbid = []}: {id?: string; tes
     <ul className="list-none print:hidden">
       <Row taskId={taskId} index={0} solution={solution ? <code className="font-mono">{solution}</code> : undefined}>
         <SolveArea taskId={taskId}>
-          <LabEditor value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")}/>
+          <LabEditor value={value} onChange={(next) => { setValue(next); setResults(undefined); setError(undefined); }} onSubmit={run} placeholder={t("labWidgets.definePlaceholder")} language={UNTYPED_LANGUAGE_ID}/>
           <p className="text-[11px] text-muted-foreground">{t("labWidgets.defineHint")}</p>
           <LabContext hide={forbid} onInsert={(name) => { setValue((v) => appendName(v, name)); setResults(undefined); setError(undefined); }}/>
           <TaskActions>

@@ -262,15 +262,15 @@
       },
       "church-booleans-pairs": {
         "label": "Churchove booleovské hodnoty a páry",
-        "description": "tru/fls kódujú booleovské hodnoty ako čisté funkcie (žiadny typ Bool), pair/fst/snd rovnako kódujú dvojicu — fst (pair tru fls) sa redukuje na tru; zapnite rozšírenie Netypovaný lambda kalkul"
+        "description": "true/false kódujú booleovské hodnoty ako čisté funkcie (žiadny typ Bool), pair/fst/snd rovnako kódujú dvojicu — fst (pair true false) sa redukuje na true; zapnite rozšírenie Netypovaný lambda kalkul"
       },
       "church-booleans-and-or-not": {
         "label": "Churchove booleovské hodnoty: and / or / not",
-        "description": "and/or/not postavené na tru/fls ako selektoroch — (tru and fls) or (not fls) sa redukuje na tru"
+        "description": "and/or/not postavené na true/false ako selektoroch — (true and false) or (not false) sa redukuje na true"
       },
       "church-booleans-if-test": {
-        "label": "Churchove booleovské hodnoty: if (test)",
-        "description": "test b c a vyberie c, ak je b true, a ak je false — presne to, čo už robí priama aplikácia Churchovej booleovskej hodnoty; test to len pomenúva"
+        "label": "Churchove booleovské hodnoty: if",
+        "description": "if b c a vyberie c, ak je b true, a ak je false — presne to, čo už robí priama aplikácia Churchovej booleovskej hodnoty; if to len pomenúva"
       },
       "church-numerals-zero-succ-numbers": {
         "label": "Churchove číslice: Zero, Succ, Čísla",
@@ -278,7 +278,7 @@
       },
       "church-numerals-the-core-idea-repeat-n-times": {
         "label": "Churchove číslice: Základná myšlienka (Zopakuj N-krát)",
-        "description": "číslica n je vlastne všeobecný stroj \"aplikuj f na x, n-krát\" — three not fls preklopí fls trikrát, skončí na tru"
+        "description": "číslica n je vlastne všeobecný stroj \"aplikuj f na x, n-krát\" — three not false preklopí false trikrát, skončí na true"
       },
       "church-arithmetic-addition-plus": {
         "label": "Churchova aritmetika: Sčítanie (plus)",
@@ -290,7 +290,7 @@
       },
       "church-numerals-iszero": {
         "label": "Churchove číslice: iszero",
-        "description": "n (λx.fls) tru aplikuje vždy-false na tru, n-krát — zostane nezmenené len keď n ho nikdy neaplikuje, teda n = zero"
+        "description": "n (λx.false) true aplikuje vždy-false na true, n-krát — zostane nezmenené len keď n ho nikdy neaplikuje, teda n = zero"
       },
       "church-numerals-predecessor-pred": {
         "label": "Churchove číslice: Predchodca (pred)",
@@ -298,19 +298,19 @@
       },
       "y-combinator-never-terminates": {
         "label": "Y kombinátor: nikdy sa neskončí",
-        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id diverguje pri každej stratégii tu, len inak: pri Call-by-value stále rastie, pri Normal order/Call-by-name donekonečna cykluje — opravu nájdete v príklade fixx"
+        "description": "x x aplikuje x na seba samého — nemožné v žiadnom typovanom fragmente vyššie. Y id diverguje pri každej stratégii tu, len inak: pri Call-by-value stále rastie, pri Normal order/Call-by-name donekonečna cykluje — opravu nájdete v príklade fix"
       },
       "fixx-the-call-by-value-safe-fix": {
-        "label": "fixx: oprava bezpečná pre Call-by-value",
-        "description": "rovnaká sebaaplikácia ako pri Y, no navyše λy ju odloží, kým nie je potrebná — fixx id sa ustáli na hodnote pri Call-by-value/Call-by-name namiesto divergencie (pri Normal order sa stále rozvíja donekonečna). Volá sa tu \"fixx\" — samotné \"fix\" je už rezervovaný vstavaný operátor"
+        "label": "fix: oprava bezpečná pre Call-by-value",
+        "description": "rovnaká sebaaplikácia ako pri Y, no navyše λy ju odloží, kým nie je potrebná — fix id sa ustáli na hodnote pri Call-by-value/Call-by-name namiesto divergencie (pri Normal order sa stále rozvíja donekonečna)"
       },
       "fixx-real-recursion-iseven": {
-        "label": "fixx: skutočná rekurzia (isEven)",
-        "description": "Y/fixx v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na fls"
+        "label": "fix: skutočná rekurzia (isEven)",
+        "description": "Y/fix v skutočnom použití: isEvenGen sa rekurzívne volá cez f. Scottovo kódovanie drží pred/iszero lacné; obe vetvy sú oneskorené, takže Call-by-value nie je príliš dychtivé — isEven three sa redukuje na false"
       },
       "fixx-factorial": {
-        "label": "fixx: Faktoriál",
-        "description": "fact n = ak je n nula, tak 1, inak n × fact (n - 1), zostavené z Churchových čísel, iszero, Kleeneho pred, times a fixx — v normálnom poradí uvidíte, ako sa fact three zredukuje až na číslo 6 (Call-by-value/Call-by-name skončia skôr, pri λ, ktorej telo ešte nie je zredukované)"
+        "label": "fix: Faktoriál",
+        "description": "fact n = ak je n nula, tak 1, inak n × fact (n - 1), zostavené z Churchových čísel, iszero, Kleeneho pred, times a fix — v normálnom poradí uvidíte, ako sa fact three zredukuje až na číslo 6 (Call-by-value/Call-by-name skončia skôr, pri λ, ktorej telo ešte nie je zredukované)"
       },
       "sum-types-inl-inr": {
         "label": "Súčtové typy: inl / inr",

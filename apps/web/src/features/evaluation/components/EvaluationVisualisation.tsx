@@ -23,6 +23,8 @@ import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import {env} from "@/shared/lib/env.ts";
 import {EvaluationPractice} from "@/features/evaluation/practice/EvaluationPractice.tsx";
 import {runBusy, useBusy} from "@/shared/lib/busy.ts";
+import {editorLanguageFor} from "@/features/editor/hooks/setUpEditor.ts";
+import {parseUntypedTerm} from "@/shared/lib/manualParse.ts";
 import {BusyOverlay} from "@/shared/components/BusyOverlay.tsx";
 
 const NO_BLACK_BOXES: string[] = [];
@@ -40,6 +42,7 @@ export function EvaluationVisualisation({
   const {fullEvaluation} = useTermHooks();
   const busy = useBusy("evaluation");
   const typeAliases = useAppSelector((state) => state.term.typeAliases);
+  const enabledTheories = useAppSelector((state) => state.term.enabledTheories);
   const hasEvaluation = evaluation !== null && evaluation !== undefined;
   const hasSteps = hasEvaluation && evaluation.steps.length > 0;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -138,6 +141,8 @@ export function EvaluationVisualisation({
                 evaluation={practiceEvaluation}
                 allowSkipping={allowSkipping}
                 typeAliases={typeAliases}
+                language={editorLanguageFor(enabledTheories)}
+                parseInput={enabledTheories.untyped ? parseUntypedTerm : undefined}
                 toolbarTarget={practiceToolbar}
               />
             ) : (

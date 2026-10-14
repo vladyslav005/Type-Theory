@@ -18,6 +18,7 @@ import {registerAstGraphCommand} from "./panels/astGraphPanel";
 import {AstTreeProvider} from "./astView/astTreeProvider";
 import {revealPosition} from "./editorReveal";
 import {registerStatusBar} from "./statusBar";
+import {getTypeTheoryConfig} from "./settings";
 import {registerAutoShowPanels} from "./autoShowPanels";
 import {registerFileDecoration} from "./fileDecoration";
 
@@ -96,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 			try {
 				const parser = new AntlrParserAdapter();
 
-				parser.parseExpression(source);
+				parser.parseExpression(source, {keywordsAsIdentifiers: getTypeTheoryConfig().untyped});
 
 				vscode.window.showInformationMessage(
 					"TT: parsing successful",

@@ -262,15 +262,15 @@
       },
       "church-booleans-pairs": {
         "label": "Булеві значення та пари Черча",
-        "description": "tru/fls кодують булеві значення як чисті функції (без типу Bool узагалі), pair/fst/snd так само кодують пару — fst (pair tru fls) редукується до tru; увімкніть розширення «Нетипізоване лямбда-числення»"
+        "description": "true/false кодують булеві значення як чисті функції (без типу Bool узагалі), pair/fst/snd так само кодують пару — fst (pair true false) редукується до true; увімкніть розширення «Нетипізоване лямбда-числення»"
       },
       "church-booleans-and-or-not": {
         "label": "Булеві значення Черча: and / or / not",
-        "description": "and/or/not побудовані з tru/fls як селекторів — (tru and fls) or (not fls) редукується до tru"
+        "description": "and/or/not побудовані з true/false як селекторів — (true and false) or (not false) редукується до true"
       },
       "church-booleans-if-test": {
-        "label": "Булеві значення Черча: if (test)",
-        "description": "test b c a обирає c, якщо b істинне, a — якщо хибне — саме те, що вже робить пряме застосування булевого значення Черча; test лише називає це"
+        "label": "Булеві значення Черча: if",
+        "description": "if b c a обирає c, якщо b істинне, a — якщо хибне — саме те, що вже робить пряме застосування булевого значення Черча; if лише називає це"
       },
       "church-numerals-zero-succ-numbers": {
         "label": "Числа Черча: Zero, Succ, Числа",
@@ -278,7 +278,7 @@
       },
       "church-numerals-the-core-idea-repeat-n-times": {
         "label": "Числа Черча: Головна ідея (Повтори N разів)",
-        "description": "число n насправді є загальною машиною \"застосуй f до x, n разів\" — three not fls перемикає fls тричі, зупиняючись на tru"
+        "description": "число n насправді є загальною машиною \"застосуй f до x, n разів\" — three not false перемикає false тричі, зупиняючись на true"
       },
       "church-arithmetic-addition-plus": {
         "label": "Арифметика Черча: Додавання (plus)",
@@ -290,7 +290,7 @@
       },
       "church-numerals-iszero": {
         "label": "Числа Черча: iszero",
-        "description": "n (λx.fls) tru застосовує завжди-хибне до tru, n разів — залишається незмінним, лише коли n жодного разу його не застосовує, тобто n = zero"
+        "description": "n (λx.false) true застосовує завжди-хибне до true, n разів — залишається незмінним, лише коли n жодного разу його не застосовує, тобто n = zero"
       },
       "church-numerals-predecessor-pred": {
         "label": "Числа Черча: Попередник (pred)",
@@ -298,19 +298,19 @@
       },
       "y-combinator-never-terminates": {
         "label": "Y-комбінатор: ніколи не завершується",
-        "description": "x x застосовує x до самого себе — неможливо в жодному типізованому фрагменті вище. Y id розходиться при кожній стратегії тут, лише по-різному: зростає при Call-by-value, нескінченно циклиться при Normal order/Call-by-name — виправлення дивіться в прикладі fixx"
+        "description": "x x застосовує x до самого себе — неможливо в жодному типізованому фрагменті вище. Y id розходиться при кожній стратегії тут, лише по-різному: зростає при Call-by-value, нескінченно циклиться при Normal order/Call-by-name — виправлення дивіться в прикладі fix"
       },
       "fixx-the-call-by-value-safe-fix": {
-        "label": "fixx: виправлення, безпечне для Call-by-value",
-        "description": "те саме самозастосування, що й у Y, але додаткова λy відкладає його до потреби — fixx id встановлюється до значення при Call-by-value/Call-by-name замість розходження (при Normal order все ще нескінченно розгортається). Тут це зветься «fixx» — саме «fix» вже є зарезервованим вбудованим оператором"
+        "label": "fix: виправлення, безпечне для Call-by-value",
+        "description": "те саме самозастосування, що й у Y, але додаткова λy відкладає його до потреби — fix id встановлюється до значення при Call-by-value/Call-by-name замість розходження (при Normal order все ще нескінченно розгортається)"
       },
       "fixx-real-recursion-iseven": {
-        "label": "fixx: справжня рекурсія (isEven)",
-        "description": "Y/fixx у справжньому використанні: isEvenGen рекурсивно викликає себе через f. Кодування Скотта тримає pred/iszero дешевими; обидві гілки відкладені, тож Call-by-value не надто квапиться — isEven three редукується до fls"
+        "label": "fix: справжня рекурсія (isEven)",
+        "description": "Y/fix у справжньому використанні: isEvenGen рекурсивно викликає себе через f. Кодування Скотта тримає pred/iszero дешевими; обидві гілки відкладені, тож Call-by-value не надто квапиться — isEven three редукується до false"
       },
       "fixx-factorial": {
-        "label": "fixx: Факторіал",
-        "description": "fact n = якщо n нуль, то 1, інакше n × fact (n - 1), побудовано з чисел Черча, iszero, попередника Кліні pred, times і fixx — у нормальному порядку видно, як fact three редукується аж до числа 6 (Call-by-value/Call-by-name зупиняються раніше, на λ, тіло якої ще не редуковане)"
+        "label": "fix: Факторіал",
+        "description": "fact n = якщо n нуль, то 1, інакше n × fact (n - 1), побудовано з чисел Черча, iszero, попередника Кліні pred, times і fix — у нормальному порядку видно, як fact three редукується аж до числа 6 (Call-by-value/Call-by-name зупиняються раніше, на λ, тіло якої ще не редуковане)"
       },
       "sum-types-inl-inr": {
         "label": "Типи-суми: inl / inr",

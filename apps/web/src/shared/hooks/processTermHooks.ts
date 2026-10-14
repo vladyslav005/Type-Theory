@@ -35,7 +35,7 @@ export function useTermHooks() {
   const requireTermType = useAppSelector((state) => state.term.requireTermType);
 
   function parseTerm(term: string): Program {
-    const program = parser.parseExpression(term);
+    const program = parser.parseExpression(term, {keywordsAsIdentifiers: enabledTheories.untyped});
     return enabledTheories.nbl || enabledTheories.typedNbl ? elaborateNbl(program) : program;
   }
 

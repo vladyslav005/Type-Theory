@@ -7,11 +7,53 @@ import {
   type Program,
   type Term,
 } from "@vladyslav005/tt-core";
-import {PRELUDE_CODE} from "@/features/editor/components/InsertPreludeButton.tsx";
 import {termsAlphaEqual} from "@/features/evaluation/practice/termCompare.ts";
 import {termKey} from "@/shared/lib/manualParse.ts";
 
+// Frozen copy of the editor prelude as the labs were written against (tru/fls/test/fixx):
+// task terms and saved answers depend on these exact names, so it must not follow the editor's.
+export const LAB_PRELUDE_CODE = `// Standard combinators for untyped lambda calculus — enable "Untyped lambda
+// calculus" in the Type Theories dropdown to use them. Edit or delete anything
+// you don't need.
+
+// Booleans (named "tru"/"fls" — "true"/"false" are reserved Bool literals)
+tru = λ t . λ f . t;
+fls = λ t . λ f . f;
+not = λ b . b fls tru;
+and = λ b . λ c . b c fls;
+or  = λ b . λ c . b tru c;
+test = λ b . λ c . λ a . b c a;   // if b then c else a
+
+// Pairs
+pair = λ f . λ s . λ b . b f s;
+fst  = λ p . p tru;
+snd  = λ p . p fls;
+
+// Numerals (named "zero"/"one"/"two"/"three" — plain digits can't be identifiers)
+zero  = λ s . λ z . z;
+succ  = λ n . λ s . λ z . s (n s z);
+one   = succ zero;
+two   = succ one;
+three = succ two;
+
+plus = λ m . λ n . λ s . λ z . m s (n s z);
+times = λ m . λ n . m (plus n) zero;
+iszero = λ n . n (λ x . fls) tru;
+
+// pred: run (prev, current) forward n times from (0, 0) via the classic pair trick.
+shift = λ p . pair (snd p) (succ (snd p));
+pred  = λ n . fst (n shift (pair zero zero));
+
+// Recursion — Y works under Normal order/Call-by-name but diverges under
+// Call-by-value; fixx is the Call-by-value-safe version, prefer it by default.
+// (Named "fixx", not "fix" — plain "fix" is already a reserved builtin.)
+Y = λ f . (λ x . f (x x)) (λ x . f (x x));
+fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
+
+`;
+
 const parser = new AntlrParserAdapter();
+const UNTYPED = {keywordsAsIdentifiers: true};
 // Recursive fixx-based definitions (lab 3) need far more than the default 500 steps
 // even for tiny inputs — pred's pair-shifting trick alone is O(n) reduction steps.
 // Correct lab solutions peak around 500 nodes and 30 ms; wrong ones can grow exponentially.
@@ -34,14 +76,14 @@ export function labNotation(text: string): string {
     .replace(/\b\d+\b/g, (digits) => churchNumeral(Number(digits)));
 }
 
-const PRELUDE_NAMES = parser.parseExpression(PRELUDE_CODE).globals.map((declaration) => declaration.name);
+const PRELUDE_NAMES = parser.parseExpression(LAB_PRELUDE_CODE, UNTYPED).globals.map((declaration) => declaration.name);
 const PRELUDE_GLOBALS = PRELUDE_NAMES.length;
 
 export function parseLambda(text: string, withPrelude = false): Parsed {
   const source = text.trim().replace(/[;\s]+$/, "");
   if (!source) return {ok: false, message: "nothing written here"};
   try {
-    const program = parser.parseExpression(`${withPrelude ? `${PRELUDE_CODE}\n` : ""}${source};`);
+    const program = parser.parseExpression(`${withPrelude ? `${LAB_PRELUDE_CODE}\n` : ""}${source};`, UNTYPED);
     if (!program.term) return {ok: false, message: "not a term"};
     if (program.globals.length > (withPrelude ? PRELUDE_GLOBALS : 0)) return {ok: false, message: "write a single term, without your own definitions"};
     return {ok: true, program, term: program.term};
@@ -63,7 +105,7 @@ export function parseAnswer(text: string, forbid: string[] = []): Answer {
   if (!source) return {ok: false, problem: {kind: "cannotRead", detail: "nothing written here"}};
   let program: Program;
   try {
-    program = parser.parseExpression(`${PRELUDE_CODE}\n${source};`);
+    program = parser.parseExpression(`${LAB_PRELUDE_CODE}\n${source};`, UNTYPED);
   } catch (error) {
     return {ok: false, problem: {kind: "cannotRead", detail: messageOf(error)}};
   }

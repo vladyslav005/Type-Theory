@@ -38,7 +38,7 @@ function computeMissing(term: TermState) {
   const errors: string[] = [];
 
   try {
-    if (!ast && term.termText) ast = new AntlrParserAdapter().parseExpression(term.termText);
+    if (!ast && term.termText) ast = new AntlrParserAdapter().parseExpression(term.termText, {keywordsAsIdentifiers: term.enabledTheories.untyped});
     if (ast?.term && !proof) {
       const checker = new SLTLCTypeChecker();
       checker.setTheories(term.enabledTheories);
