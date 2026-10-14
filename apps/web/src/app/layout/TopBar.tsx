@@ -120,7 +120,7 @@ export function Topbar({editorRef}: TopbarProps) {
                   transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
                   className="hidden md:flex items-center gap-2 min-w-0"
                 >
-                  <ExamplesDropdown onSelect={onSelectExample}/>
+                  <ExamplesDropdown onSelect={onSelectExample} compact/>
                   <AnimatePresence initial={false}>
                     {isUntyped && (
                       <motion.div
@@ -129,9 +129,9 @@ export function Topbar({editorRef}: TopbarProps) {
                         animate={{opacity: 1, width: "auto"}}
                         exit={{opacity: 0, width: 0}}
                         transition={{duration: 0.25, ease: "easeOut"}}
-                        className="overflow-hidden"
+                        className="shrink-0 overflow-hidden"
                       >
-                        <InsertPreludeButton onInsert={onInsertPrelude}/>
+                        <InsertPreludeButton onInsert={onInsertPrelude} compact/>
                       </motion.div>
                     )}
                   </AnimatePresence>

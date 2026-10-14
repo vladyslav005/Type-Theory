@@ -11,7 +11,7 @@ const CONNECTIVE_RULES: ReadonlySet<Rule> = new Set([
 ]);
 
 // Every rule tag that only a type-theory extension can produce: Fold/Unfold (iso-recursive),
-// TypeAbs/TypeApp (System F), TyConstructorAbs/App (System Fω), TPiApp (System λP), and the whole
+// TypeAbs/TypeApp (System F), TyConstructorAbs/App (System λω̲), TPiApp (System λP), and the whole
 // Ct-prefixed family (constraint-based checking, emitted once type inference or let-polymorphism
 // is generalizing/inferring). A tree containing any of these has no clean Curry-Howard reading.
 const NON_STLC_RULES: ReadonlySet<Rule> = new Set([
@@ -27,7 +27,7 @@ const NON_STLC_RULES: ReadonlySet<Rule> = new Set([
 ]);
 
 // A kindPremise (Δ ⊢ T :: K) only ever gets attached once a type mentions a λω̲ constructor or a
-// Π-type, i.e. only under System Fω / System λP — so its mere presence marks the proof impure too.
+// Π-type, i.e. only under System λω̲ / System λP — so its mere presence marks the proof impure too.
 export function isPlainStlcProof(node: ProofTree): boolean {
   if (NON_STLC_RULES.has(node.rule)) return false;
   if (node.kindPremise) return false;

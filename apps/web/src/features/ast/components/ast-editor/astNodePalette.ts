@@ -137,7 +137,7 @@ export const AST_NODE_PALETTE: PaletteCategory[] = [
         ],
       },
       {
-        label: "System Fω",
+        label: "System λω̲",
         items: [
           {type: "typeConstructorAbs", label: "λX:@", title: "Type Constructor Abstraction (λX:K. T)"},
           {type: "typeConstructorApp", label: "F T", title: "Type Constructor Application (F T)"},

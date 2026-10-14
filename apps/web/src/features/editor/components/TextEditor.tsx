@@ -4,16 +4,14 @@ import {useTranslation} from "react-i18next";
 import {NBL_LANGUAGE_ID, useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
 import {useTheme} from "next-themes";
 import {cn} from "@/shared/lib/utils.ts";
-import {TypeCheckButton} from "@/features/editor/components/TypeCheckButton.tsx";
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {fadeInUp} from "@/features/error-output/components/ErrorOutput.tsx";
 import {Card, CardContent, CardHeader} from "@/shared/components/ui/card.tsx";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {Maximize2, Minimize2} from "lucide-react";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setAutoBuild, setTermText} from "@/shared/ui-state/termSlice.ts";
-import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {useTermHooks} from "@/shared/hooks/processTermHooks.ts";
 import type {SourcePosition} from "@vladyslav005/tt-core";
 import {DownloadButton} from "@/features/editor/components/DownloadButton.tsx";
@@ -41,7 +39,7 @@ export interface TextEditorProps {
   readOnly?: boolean;
   className?: string;
   options?: Record<string, any>;
-  // Hides the Parse/Evaluate buttons from the editor's own header — used on mobile,
+  // Hides the Parse/Run buttons from the editor's own header — used on mobile,
   // where those actions live in a shared sticky bottom bar instead.
   hideActions?: boolean;
 }
@@ -81,12 +79,10 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   const autoBuild = useAppSelector((state) => state.term.autoBuild);
   const termText = useAppSelector((state) => state.term.termText);
   const evaluationStrategy = useAppSelector((state) => state.term.evaluationStrategy);
-  // Gate auto-evaluate on `proof`, not `ast` — matches the Evaluate button's own disabled
-  // condition, so auto-build doesn't try to evaluate declarations with no final term yet.
+  // Gate auto-evaluate on `proof`, not `ast`, so auto-build doesn't evaluate declarations with no final term yet.
   const proof = useAppSelector((state) => state.term.proof);
   const fontSize = useAppSelector((state) => state.term.fontSize);
   const showMinimap = useAppSelector((state) => state.term.showMinimap);
-  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped || state.term.enabledTheories.nbl);
   const isNbl = useAppSelector((state) => state.term.enabledTheories.nbl || state.term.enabledTheories.typedNbl);
   const editorLanguage = isNbl && language === "lambda" ? NBL_LANGUAGE_ID : language;
   const autoBuildTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -183,8 +179,8 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
   }, []);
 
   // Auto-build's own parse/type-check just landed a fresh `proof` — evaluate right behind it so
-  // the result appears without a manual Evaluate click. Also re-fires when the strategy chevron
-  // changes while auto-build is on, since the Evaluate button is disabled in that state.
+  // the result appears without a manual Run click. Also re-fires when the strategy chevron
+  // changes while auto-build is on, since the Run button is disabled in that state.
   useEffect(() => {
     if (!autoBuild || !proof) return;
     evaluateTerm(evaluationStrategy);
@@ -294,33 +290,7 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(function
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3 flex-nowrap overflow-x-auto min-w-0 flex-1">
               {!hideActions && (
-                <AnimatePresence mode="wait" initial={false}>
-                  {isUntyped ? (
-                    <motion.div
-                      key="run-button"
-                      initial={{opacity: 0, width: 0}}
-                      animate={{opacity: 1, width: "auto"}}
-                      exit={{opacity: 0, width: 0}}
-                      transition={{duration: 0.25, ease: "easeOut"}}
-                      className="flex items-center gap-2 shrink-0 overflow-hidden"
-                    >
-                      <TypeCheckButton parseOnly />
-                      <RunButton />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="two-buttons"
-                      initial={{opacity: 0, width: 0}}
-                      animate={{opacity: 1, width: "auto"}}
-                      exit={{opacity: 0, width: 0}}
-                      transition={{duration: 0.25, ease: "easeOut"}}
-                      className="flex items-center gap-2 shrink-0 overflow-hidden"
-                    >
-                      <TypeCheckButton />
-                      <EvaluateButton />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <RunButton className="shrink-0" />
               )}
 
               {!STUDY_MODE && (

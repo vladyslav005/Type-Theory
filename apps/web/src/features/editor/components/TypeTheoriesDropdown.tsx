@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { setCurryHoward, setRequireTermType, setStlcFeature, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
 
 const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
+const CUBE_THEORY_IDS: TypeTheoryId[] = ["systemF", "systemFOmega", "systemLambdaP"];
 
 type Base = "stlc" | "untyped" | "nbl" | "typedNbl";
 
@@ -52,8 +53,10 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const termTypeExempt = enabledTheories.typeInference || enabledTheories.letPolymorphism;
   const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : enabledTheories.typedNbl ? "typedNbl" : "stlc";
   const exclusiveTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
-  const extensions = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
-  const addedCount = extensions.filter((theory) => enabledTheories[theory.id]).length + (curryHoward ? 1 : 0);
+  const addOns = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
+  const cubeTheories = addOns.filter((theory) => CUBE_THEORY_IDS.includes(theory.id));
+  const extensions = addOns.filter((theory) => !CUBE_THEORY_IDS.includes(theory.id));
+  const addedCount = addOns.filter((theory) => enabledTheories[theory.id]).length + (curryHoward ? 1 : 0);
   const enabledFeatureCount = STLC_FEATURES.filter((feature) => stlcFeatures[feature.id]).length;
 
   const theoryLabel = (id: TypeTheoryId, fallback: string) => t(`extensions.theories.${id}.label`, fallback);
@@ -165,18 +168,22 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
               transition={{duration: 0.2, ease: "easeOut"}}
               className="overflow-hidden"
             >
-              <SectionLabel>{t("extensions.sections.extensions")}</SectionLabel>
-              {extensions.map((theory) => (
-                <DropdownMenuCheckboxItem
-                  key={theory.id}
-                  checked={enabledTheories[theory.id]}
-                  disabled={curryHoward}
-                  onSelect={(e) => e.preventDefault()}
-                  onCheckedChange={(checked) => dispatch(setTheoryEnabled({id: theory.id, enabled: checked}))}
-                  {...describe(theoryDescription(theory.id, theory.description))}
-                >
-                  {theoryLabel(theory.id, theory.label)}
-                </DropdownMenuCheckboxItem>
+              {([["typeTheories", cubeTheories], ["extensions", extensions]] as const).map(([section, theories]) => (
+                <div key={section}>
+                  <SectionLabel>{t(`extensions.sections.${section}`)}</SectionLabel>
+                  {theories.map((theory) => (
+                    <DropdownMenuCheckboxItem
+                      key={theory.id}
+                      checked={enabledTheories[theory.id]}
+                      disabled={curryHoward}
+                      onSelect={(e) => e.preventDefault()}
+                      onCheckedChange={(checked) => dispatch(setTheoryEnabled({id: theory.id, enabled: checked}))}
+                      {...describe(theoryDescription(theory.id, theory.description))}
+                    >
+                      {theoryLabel(theory.id, theory.label)}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </div>
               ))}
 
               <SectionLabel>{t("extensions.sections.views")}</SectionLabel>

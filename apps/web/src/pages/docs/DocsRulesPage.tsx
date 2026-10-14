@@ -37,7 +37,7 @@ const TOPIC_PAIRINGS: {typeId: string; label: string; evalIds: string[]; title?:
   {typeId: "iso-recursive", label: "Iso-recursive", evalIds: ["iso-recursive-eval"]},
   {typeId: "let-polymorphism", label: "Let & Inference", evalIds: []},
   {typeId: "system-f", label: "System F", evalIds: ["system-f-eval"]},
-  {typeId: "system-f-omega", label: "System Fω", evalIds: []},
+  {typeId: "system-f-omega", label: "System λω̲", evalIds: []},
   {typeId: "system-lambda-p", label: "System λP", evalIds: []},
   {typeId: "curry-howard", label: "Curry–Howard", evalIds: []},
 ];

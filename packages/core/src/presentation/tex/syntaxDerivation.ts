@@ -77,8 +77,11 @@ function derive(term: Term, language: SyntaxLanguage, globals: ReadonlyMap<strin
         collapsedChildren: [],
       };
     }
-    case "Abs":
-      return term.paramType ? noRule() : node("(abs)", [term.body], new Set([...bound, term.param]));
+    case "Abs": {
+      if (term.paramType) return noRule();
+      const param: Term = {kind: "Var", id: `${term.id}-param`, name: term.param};
+      return node("(abs)", [param, term.body], new Set([...bound, term.param]));
+    }
     case "App":
       return node("(app)", [term.func, term.arg]);
     default:

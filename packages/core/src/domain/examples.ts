@@ -639,7 +639,7 @@ isZero = λ x : Nat . (x == 0) : Nat -> Bool;
     items: [
       {
         label: "Identity Constructor (System Fω)",
-        description: "typedef Id = λX:@.X — a type constructor of kind @→@ that's a no-op on types; (Id Nat) normalizes to Nat — enable the System Fω theory",
+        description: "typedef Id = λX:@.X — a type constructor of kind @→@ that's a no-op on types; (Id Nat) normalizes to Nat — enable the System λω̲ theory",
         code: `typedef Id = λ X : @ . X;
 
 f = λ x : (Id Nat) . x + 1 : (Id Nat) -> (Id Nat);

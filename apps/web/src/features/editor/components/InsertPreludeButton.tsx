@@ -48,9 +48,11 @@ fixx = λ f . (λ x . f (λ y . x x y)) (λ x . f (λ y . x x y));
 
 export interface InsertPreludeButtonProps {
   onInsert: (code: string) => void;
+  // Icon-only below xl, where the desktop top bar is too narrow for the label.
+  compact?: boolean;
 }
 
-export function InsertPreludeButton({onInsert}: InsertPreludeButtonProps) {
+export function InsertPreludeButton({onInsert, compact}: InsertPreludeButtonProps) {
   const {t} = useTranslation();
 
   return (
@@ -62,9 +64,10 @@ export function InsertPreludeButton({onInsert}: InsertPreludeButtonProps) {
             size="sm"
             className="gap-1"
             onClick={() => onInsert(PRELUDE_CODE)}
+            aria-label={t("prelude.trigger")}
           >
             <Blocks className="h-3.5 w-3.5" />
-            {t("prelude.trigger")}
+            <span className={compact ? "max-xl:sr-only" : undefined}>{t("prelude.trigger")}</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom">{t("prelude.tooltip")}</TooltipContent>

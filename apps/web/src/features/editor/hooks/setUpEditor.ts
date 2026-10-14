@@ -365,7 +365,7 @@ export function useSetUpEditor() {
             label: '\\tyconstructor',
             kind: monaco.languages.CompletionItemKind.Text,
             insertText: 'λ X : @ . X',
-            detail: 'Type constructor abstraction (kind @) — System Fω',
+            detail: 'Type constructor abstraction (kind @) — System λω̲',
             range: slashRange,
           },
           {

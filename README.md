@@ -20,7 +20,7 @@ independently on npm) that also powers a [VS Code extension](apps/vscode-extensi
 ## What's implemented today
 
 - **Parser & type checker** for simply-typed lambda calculus plus six optional extensions, toggleable
-  independently: let-polymorphism, type inference, iso-recursive types, System F, System Fω, and
+  independently: let-polymorphism, type inference, iso-recursive types, System F, System λω̲, and
   System λP (dependent types).
 - **AST visualization** as an interactive node graph, alongside a structural AST editor for building
   terms without writing syntax.

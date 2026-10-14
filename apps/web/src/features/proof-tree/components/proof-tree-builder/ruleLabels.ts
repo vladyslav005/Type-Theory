@@ -73,7 +73,7 @@ const CT_LABELS: Partial<Record<Rule, string>> = {
 Object.assign(RULE_LABELS, CT_LABELS);
 
 // Which optional theory (if any) a rule requires — mirrors STLCTypeChecker's own gates. Lists have
-// no toggle (always on), and System Fω never introduces a new *term* rule (only kind-checks existing
+// no toggle (always on), and System λω̲ never introduces a new *term* rule (only kind-checks existing
 // annotations), so neither appears here.
 const RULE_THEORY: Partial<Record<Rule, TypeTheoryId>> = {
   [Rule.Fold]: "isoRecursiveTypes",

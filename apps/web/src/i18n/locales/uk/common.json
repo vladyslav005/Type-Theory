@@ -136,6 +136,7 @@
   "actions": {
     "typeCheck": "Розібрати та перевірити типи",
     "typeCheckTooltip": "Розібрати та перевірити типи поточного виразу — будує AST, дерево доведення та подання Каррі–Говарда",
+    "typeCheckShort": "Перевірити типи",
     "autoBuildTooltip": "Автоматична побудова увімкнена — запускається автоматично під час введення",
     "evaluate": "Обчислити",
     "evaluateNeedsProof": "Спершу розберіть і перевірте типи коректного виразу",
@@ -193,7 +194,7 @@
       "Let & Polymorphism": "Let і поліморфізм",
       "Type Inference": "Виведення типів",
       "System F": "System F",
-      "System Fω (Type Constructors)": "System Fω (конструктори типів)",
+      "System Fω (Type Constructors)": "System λω̲ (конструктори типів)",
       "System λP (Dependent Types)": "System λP (залежні типи)",
       "Typed Numbers & Booleans": "Типізовані числа та булеві значення",
       "Numbers & Booleans (NBL)": "Числа та булеві значення (NBL)"
@@ -209,7 +210,7 @@
       "Let & Polymorphism": "Let/Поліморф",
       "Type Inference": "Виведення",
       "System F": "Sys F",
-      "System Fω (Type Constructors)": "Sys Fω",
+      "System Fω (Type Constructors)": "Sys λω̲",
       "System λP (Dependent Types)": "Sys λP",
       "Typed Numbers & Booleans": "Типіз. NBL",
       "Numbers & Booleans (NBL)": "NBL"
@@ -428,11 +429,11 @@
         "description": "compose приймає три явні типові параметри ∀A.∀B.∀C, інстанціюється через compose[Nat][Nat][Bool] для композиції isZero після inc"
       },
       "identity-constructor-system-f": {
-        "label": "Конструктор тотожності (System Fω)",
-        "description": "typedef Id = λX:@.X — конструктор типів роду @→@, що нічого не робить із типами; (Id Nat) нормалізується до Nat — увімкніть теорію System Fω"
+        "label": "Конструктор тотожності (System λω̲)",
+        "description": "typedef Id = λX:@.X — конструктор типів роду @→@, що нічого не робить із типами; (Id Nat) нормалізується до Nat — увімкніть теорію System λω̲"
       },
       "endo-constructor-system-f": {
-        "label": "Конструктор Endo (System Fω)",
+        "label": "Конструктор Endo (System λω̲)",
         "description": "typedef Endo = λX:@.X->X будує з будь-якого T \"тип ендофункцій на T\", сам класифікований родом @→@"
       },
       "dependent-head-system-p": {
@@ -517,8 +518,8 @@
         "description": "Явний поліморфізм: ΛX. t і t [T]"
       },
       "systemFOmega": {
-        "label": "System Fω (конструктори типів)",
-        "shortLabel": "System Fω",
+        "label": "System λω̲ (конструктори типів)",
+        "shortLabel": "System λω̲",
         "description": "Конструктори типів: λX:@. T і F T, класифіковані родами"
       },
       "systemLambdaP": {
@@ -560,6 +561,7 @@
     "hint": "Виберіть базову мову, а потім додайте розширення до STLC. Наведіть на пункт, щоб побачити, що він додає.",
     "sections": {
       "base": "Основа",
+      "typeTheories": "Теорії типів",
       "extensions": "Розширення",
       "views": "Подання",
       "checking": "Перевірка"
@@ -755,7 +757,7 @@
       "Control": "Керування",
       "Types": "Типи",
       "System F": "System F",
-      "System Fω": "System Fω",
+      "System Fω": "System λω̲",
       "System λP": "System λP",
       "Kinds": "Роди",
       "Decls": "Оголош.",
@@ -936,7 +938,7 @@
       },
       "theories": {
         "title": "Розширені теорії типів",
-        "description": "Вмикайте let-поліморфізм, ізорекурсивні типи, System F, System Fω та залежні типи (λP) поверх базового STLC."
+        "description": "Вмикайте let-поліморфізм, ізорекурсивні типи, System F, System λω̲ та залежні типи (λP) поверх базового STLC."
       },
       "curryHoward": {
         "title": "Подання Каррі–Говарда / логіки",
@@ -960,7 +962,7 @@
       },
       "examples": {
         "title": "Готові приклади",
-        "description": "Вбудований каталог, який завантажується в редактор одним кліком: основи, суми, кортежі, списки, рекурсія, поліморфізм та системи F, Fω і λP."
+        "description": "Вбудований каталог, який завантажується в редактор одним кліком: основи, суми, кортежі, списки, рекурсія, поліморфізм та системи F, λω̲ і λP."
       },
       "untyped": {
         "title": "Нетипізоване λ-числення та кодування Чорча",

@@ -81,8 +81,8 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
   },
   {
     id: "systemFOmega",
-    label: "System Fω (type constructors)",
-    shortLabel: "System Fω",
+    label: "System λω̲ (type constructors)",
+    shortLabel: "System λω̲",
     description: "Types abstracted over types (λX:K. T) and applied to a type argument (F T), classified by kinds (K ::= * | K→K) instead of just types",
   },
   {

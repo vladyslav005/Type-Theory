@@ -399,8 +399,8 @@ export const TYPE_RULE_GROUPS: RuleGroup[] = [
   },
   {
     id: "system-f-omega",
-    title: "System Fω — Kinding",
-    note: "Kinds classify types the way types classify terms. ∗ (\"star\") is the kind of ordinary types; □ (\"box\") is the sort of kinds. In tt's concrete syntax you write ∗ as @ — the * character is already taken by the tuple/product type ⟨A * B⟩. The lecture presents Fω as a Pure Type System — one Γ ⊢ A : B judgement across all levels — so its Abst / Appl rules are exactly K-Abs / K-App read at the kind level.",
+    title: "System λω̲ — Kinding",
+    note: "Kinds classify types the way types classify terms. ∗ (\"star\") is the kind of ordinary types; □ (\"box\") is the sort of kinds. In tt's concrete syntax you write ∗ as @ — the * character is already taken by the tuple/product type ⟨A * B⟩. The lecture presents λω̲ as a Pure Type System — one Γ ⊢ A : B judgement across all levels — so its Abst / Appl rules are exactly K-Abs / K-App read at the kind level.",
     rules: [
       {
         id: "K-Base",

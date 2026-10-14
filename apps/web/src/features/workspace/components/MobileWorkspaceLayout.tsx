@@ -16,10 +16,7 @@ import {ErrorOutput} from "@/features/error-output/components/ErrorOutput.tsx";
 import {EvaluationVisualisation} from "@/features/evaluation/components/EvaluationVisualisation.tsx";
 import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTreeVisualisation.tsx";
 import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
-import {TypeCheckButton} from "@/features/editor/components/TypeCheckButton.tsx";
-import {EvaluateButton} from "@/features/editor/components/EvaluateButton.tsx";
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
-import {AnimatePresence, motion} from "framer-motion";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
 
@@ -58,7 +55,6 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
   const buildModeActive = useAppSelector((state) => state.term.buildMode.active);
   const termText = useAppSelector((state) => state.term.termText);
   const errors = useAppSelector((state) => state.term.processingErrors);
-  const isUntyped = useAppSelector((state) => state.term.enabledTheories.untyped || state.term.enabledTheories.nbl);
 
   const [primaryTab, setPrimaryTab] = useState<PrimaryTab>("editor");
   const [resultView, setResultView] = useState<ResultView>("proofTree");
@@ -131,33 +127,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
       {/* Sticky primary-action bar — always the bottom row of this flex column, so it stays
           reachable without floating above content or fighting the viewport's dvh chrome. */}
       <div className="shrink-0 mt-2 flex items-stretch gap-2">
-        <AnimatePresence mode="wait" initial={false}>
-          {isUntyped ? (
-            <motion.div
-              key="run-button"
-              initial={{opacity: 0, width: 0}}
-              animate={{opacity: 1, width: "auto"}}
-              exit={{opacity: 0, width: 0}}
-              transition={{duration: 0.25, ease: "easeOut"}}
-              className="flex flex-1 min-w-0 items-stretch gap-2 overflow-hidden"
-            >
-              <TypeCheckButton parseOnly className="flex-1 min-w-0 justify-center whitespace-normal text-center leading-tight py-2 h-auto min-h-9"/>
-              <RunButton className="flex-1 min-w-0 [&>button:first-child]:flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:justify-center [&>button:first-child]:whitespace-normal [&>button:first-child]:text-center [&>button:first-child]:leading-tight [&>button:first-child]:py-2 [&>button:first-child]:h-auto [&>button:first-child]:min-h-9"/>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="two-buttons"
-              initial={{opacity: 0, width: 0}}
-              animate={{opacity: 1, width: "auto"}}
-              exit={{opacity: 0, width: 0}}
-              transition={{duration: 0.25, ease: "easeOut"}}
-              className="flex flex-1 min-w-0 items-stretch gap-2 overflow-hidden"
-            >
-              <TypeCheckButton className="flex-1 min-w-0 justify-center whitespace-normal text-center leading-tight py-2 h-auto min-h-9"/>
-              <EvaluateButton className="flex-1 min-w-0 [&>button:first-child]:flex-1 [&>button:first-child]:min-w-0 [&>button:first-child]:justify-center [&>button:first-child]:whitespace-normal [&>button:first-child]:flex-wrap [&>button:first-child]:gap-x-2 [&>button:first-child]:gap-y-0 [&>button:first-child]:text-center [&>button:first-child]:leading-tight [&>button:first-child]:py-2 [&>button:first-child]:h-auto [&>button:first-child]:min-h-9"/>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <RunButton className="flex-1 min-w-0 [&>[data-run]]:flex-1 [&>[data-run]]:min-w-0 [&>[data-run]]:justify-center [&>[data-run]]:whitespace-normal [&>[data-run]]:flex-wrap [&>[data-run]]:gap-x-2 [&>[data-run]]:gap-y-0 [&>[data-run]]:text-center [&>[data-run]]:leading-tight [&>[data-run]]:py-2 [&>[data-run]]:h-auto [&>[data-run]]:min-h-9"/>
       </div>
     </div>
   );

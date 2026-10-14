@@ -136,6 +136,7 @@
   "actions": {
     "typeCheck": "Analyzovať a skontrolovať typy",
     "typeCheckTooltip": "Analyzovať a typovo skontrolovať aktuálny výraz — zostaví AST, strom dôkazu a Curry–Howardov pohľad",
+    "typeCheckShort": "Typová kontrola",
     "autoBuildTooltip": "Automatické zostavenie je zapnuté — spúšťa sa automaticky počas písania",
     "evaluate": "Vyhodnotiť",
     "evaluateNeedsProof": "Najprv analyzujte a typovo skontrolujte platný výraz",
@@ -193,7 +194,7 @@
       "Let & Polymorphism": "Let a polymorfizmus",
       "Type Inference": "Typová inferencia",
       "System F": "System F",
-      "System Fω (Type Constructors)": "System Fω (typové konštruktory)",
+      "System Fω (Type Constructors)": "System λω̲ (typové konštruktory)",
       "System λP (Dependent Types)": "System λP (závislé typy)",
       "Typed Numbers & Booleans": "Typované čísla a booleovské hodnoty",
       "Numbers & Booleans (NBL)": "Čísla a booleovské hodnoty (NBL)"
@@ -209,7 +210,7 @@
       "Let & Polymorphism": "Let/Poly",
       "Type Inference": "Inferencia",
       "System F": "Sys F",
-      "System Fω (Type Constructors)": "Sys Fω",
+      "System Fω (Type Constructors)": "Sys λω̲",
       "System λP (Dependent Types)": "Sys λP",
       "Typed Numbers & Booleans": "Typovaný NBL",
       "Numbers & Booleans (NBL)": "NBL"
@@ -428,11 +429,11 @@
         "description": "compose prijíma tri explicitné typové parametre ∀A.∀B.∀C, inštanciované cez compose[Nat][Nat][Bool] na zloženie isZero po inc"
       },
       "identity-constructor-system-f": {
-        "label": "Konštruktor identity (System Fω)",
-        "description": "typedef Id = λX:@.X — typový konštruktor druhu @→@, ktorý s typmi nič nerobí; (Id Nat) sa normalizuje na Nat — zapnite teóriu System Fω"
+        "label": "Konštruktor identity (System λω̲)",
+        "description": "typedef Id = λX:@.X — typový konštruktor druhu @→@, ktorý s typmi nič nerobí; (Id Nat) sa normalizuje na Nat — zapnite teóriu System λω̲"
       },
       "endo-constructor-system-f": {
-        "label": "Konštruktor Endo (System Fω)",
+        "label": "Konštruktor Endo (System λω̲)",
         "description": "typedef Endo = λX:@.X->X vytvorí z ľubovoľného T \"typ endofunkcií na T\", sám klasifikovaný druhom @→@"
       },
       "dependent-head-system-p": {
@@ -517,8 +518,8 @@
         "description": "Explicitný polymorfizmus: ΛX. t a t [T]"
       },
       "systemFOmega": {
-        "label": "System Fω (typové konštruktory)",
-        "shortLabel": "System Fω",
+        "label": "System λω̲ (typové konštruktory)",
+        "shortLabel": "System λω̲",
         "description": "Typové konštruktory: λX:@. T a F T, klasifikované druhmi"
       },
       "systemLambdaP": {
@@ -560,6 +561,7 @@
     "hint": "Vyberte základný jazyk a potom k STLC pridajte rozšírenia. Prejdite myšou na položku a uvidíte, čo pridáva.",
     "sections": {
       "base": "Základ",
+      "typeTheories": "Typové teórie",
       "extensions": "Rozšírenia",
       "views": "Zobrazenia",
       "checking": "Kontrola"
@@ -755,7 +757,7 @@
       "Control": "Riadenie",
       "Types": "Typy",
       "System F": "System F",
-      "System Fω": "System Fω",
+      "System Fω": "System λω̲",
       "System λP": "System λP",
       "Kinds": "Druhy",
       "Decls": "Deklar.",
@@ -935,7 +937,7 @@
       },
       "theories": {
         "title": "Rozšírené typové teórie",
-        "description": "Zapnite let-polymorfizmus, izo-rekurzívne typy, System F, System Fω a závislé typy (λP) navrch základného STLC."
+        "description": "Zapnite let-polymorfizmus, izo-rekurzívne typy, System F, System λω̲ a závislé typy (λP) navrch základného STLC."
       },
       "curryHoward": {
         "title": "Curry–Howardov / logický pohľad",
@@ -959,7 +961,7 @@
       },
       "examples": {
         "title": "Hotové príklady",
-        "description": "Vstavaný katalóg, ktorý načítate do editora jedným kliknutím: základy, súčty, n-tice, zoznamy, rekurzia, polymorfizmus a systémy F, Fω a λP."
+        "description": "Vstavaný katalóg, ktorý načítate do editora jedným kliknutím: základy, súčty, n-tice, zoznamy, rekurzia, polymorfizmus a systémy F, λω̲ a λP."
       },
       "untyped": {
         "title": "Netypovaný λ-kalkul a Churchove kódovania",

@@ -132,7 +132,7 @@ extensions below.
 ### Optional type theories
 
 The Terms/Types grammar above is the always-on STLC core. Six more theories add further syntax —
-System F's `ΛX. t`/`t [T]`, `∀X. T`; System Fω's `λX:K. T`/`F T` and kinds; System λP's `Π x:A. B`
+System F's `ΛX. t`/`t [T]`, `∀X. T`; System λω̲'s `λX:K. T`/`F T` and kinds; System λP's `Π x:A. B`
 and dependent kinds; iso-recursive `μX.T`/`fold`/`unfold` — summarized by example below rather than
 spelled out in full BNF here; see [`src/antlr/Lambda.g4`](./src/antlr/Lambda.g4) for the complete
 grammar including every extension. The parser accepts all of it unconditionally (grammar doesn't
@@ -281,7 +281,7 @@ type Type = TyIdentifier | TyArrow | TupleType | SumType | VariantType | RecordT
 ```
 
 The full field list per variant is in the shipped `.d.ts` — every extension's node shape lives
-right next to the plain-STLC ones (e.g. `TyPi` for System λP, `TyConstructorAbs` for System Fω).
+right next to the plain-STLC ones (e.g. `TyPi` for System λP, `TyConstructorAbs` for System λω̲).
 
 ### Visitors
 

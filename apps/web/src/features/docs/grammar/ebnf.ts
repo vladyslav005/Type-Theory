@@ -44,13 +44,13 @@ term        ::= term '.' natural-number                          (* tuple projec
               | '(' term ')'
               | constant
 
-type        ::= type type                                        (* type constructor application, System Fω *)
+type        ::= type type                                        (* type constructor application, System λω̲ *)
               | type '[' term ']'                                 (* term-indexed application, System λP *)
               | 'List' type
               | type '+' type                                     (* sum type *)
               | type '->' type                                    (* function type, right-assoc *)
               | '∀' type-variable '.' type                        (* forall, System F *)
-              | 'λ' type-variable ':' kind '.' type                (* type constructor abstraction, Fω *)
+              | 'λ' type-variable ':' kind '.' type                (* type constructor abstraction, λω̲ *)
               | 'Π' ID ':' type '.' type                           (* dependent function type, λP *)
               | 'μ' type-variable '.' type                         (* recursive type *)
               | '<' ID ':' type { ',' ID ':' type } '>'            (* record type *)

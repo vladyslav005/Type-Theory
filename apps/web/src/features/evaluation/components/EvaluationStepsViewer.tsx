@@ -812,7 +812,7 @@ function StepCounter({current, total, onJump}: {current: number; total: number; 
   const [before, after] = t("evalSteps.stepOf", {current: "\u0000", total}).split("\u0000");
   const commit = () => {
     const n = Number(draft);
-    if (draft !== undefined && Number.isFinite(n) && draft.trim() !== "") onJump(Math.min(total, Math.max(1, Math.round(n))) - 1);
+    if (draft !== undefined && Number.isFinite(n) && draft.trim() !== "") onJump(Math.min(total, Math.max(0, Math.round(n))) - 1);
     setDraft(undefined);
   };
   return (
@@ -895,7 +895,7 @@ function ReductionChain({
           {t("evalSteps.showEarlier", { count: Math.min(CHAIN_WINDOW, from), hidden: from })}
         </button>
       )}
-      {termBox(steps[from].before, stepIndex === from, stepIndex === from ? { selectedId: current.selectedId } : {})}
+      {termBox(steps[from].before, stepIndex <= from, { selectedId: stepIndex < 0 ? steps[0].selectedId : stepIndex === from ? current.selectedId : undefined })}
       <AnimatePresence initial={false}>
         {steps.slice(from, stepIndex + 1).map((step, offset) => {
           const i = from + offset;
@@ -1021,7 +1021,8 @@ interface EvaluationStepsViewerInnerProps {
 
 function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
-  const [stepIndex, setStepIndex] = useState(0);
+  // -1 is the start: only the original term, before any reduction.
+  const [stepIndex, setStepIndex] = useState(-1);
 
   const { steps: rawSteps, result, reachedStepLimit, errors, globals } = evaluation;
   const steps = useMemo(() => foldUnfoldings(rawSteps), [rawSteps]);
@@ -1033,7 +1034,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
   const isFullyReduced = !reachedStepLimit;
 
   const bindingsAtCurrentStep = useMemo(
-    () => accumulateBindings(rawSteps, (steps[stepIndex]?.rawIndex ?? 0)),
+    () => accumulateBindings(rawSteps, steps[stepIndex]?.rawIndex ?? -1),
     [rawSteps, steps, stepIndex],
   );
 
@@ -1059,7 +1060,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
     );
   }
 
-  const isFirstStep = stepIndex === 0;
+  const isFirstStep = stepIndex === -1;
   const isLastStep = stepIndex === steps.length - 1;
   const isErrorStep = isLastStep && hasErrors;
   // Waits for the last step's own fade-in so the two don't arrive at once.
@@ -1078,7 +1079,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
             size="icon"
             variant="outline"
             className="h-8 w-8"
-            onClick={() => setStepIndex(0)}
+            onClick={() => setStepIndex(-1)}
             disabled={isFirstStep}
             title={t("evalSteps.first")}
             aria-label={t("evalSteps.first")}
@@ -1088,7 +1089,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+            onClick={() => setStepIndex((i) => Math.max(-1, i - 1))}
             disabled={isFirstStep}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -1099,10 +1100,11 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">
           <StepCounter current={stepIndex} total={steps.length} onJump={setStepIndex}/>
           <div className="flex items-center gap-1">
-            {visibleDotIndexes(steps.length, stepIndex).map((i, slot) => {
-              if (i === null) {
+            {visibleDotIndexes(steps.length + 1, stepIndex + 1).map((dot, slot) => {
+              if (dot === null) {
                 return <span key={`gap-${slot}`} className="text-xs leading-none text-muted-foreground/60">…</span>;
               }
+              const i = dot - 1;
               const isLast = i === steps.length - 1;
               const isActive = i === stepIndex;
               return (

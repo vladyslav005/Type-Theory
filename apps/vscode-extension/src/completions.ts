@@ -28,7 +28,7 @@ const KEYWORD_ITEMS: StaticItem[] = [
 
 const SLASH_ITEMS: StaticItem[] = [
 	{ label: "\\abstraction", insertText: "λ x : T . (x) : T -> T", detail: "Abstraction" },
-	{ label: "\\tyconstructor", insertText: "λ X : @ . X", detail: "Type constructor abstraction (kind @) — System Fω" },
+	{ label: "\\tyconstructor", insertText: "λ X : @ . X", detail: "Type constructor abstraction (kind @) — System λω̲" },
 	{ label: "\\to", insertText: "->", detail: "Arrow" },
 	{ label: "\\Rightarrow", insertText: "=>", detail: "DoubleArrow" },
 ];

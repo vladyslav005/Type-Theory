@@ -136,6 +136,7 @@
   "actions": {
     "typeCheck": "Parse & Type Check",
     "typeCheckTooltip": "Parse & type-check the current expression — builds the AST, proof tree and Curry–Howard view",
+    "typeCheckShort": "Type check",
     "autoBuildTooltip": "Auto-build is on — this runs automatically as you type",
     "evaluate": "Evaluate",
     "evaluateNeedsProof": "Parse & type-check a valid expression first",
@@ -193,7 +194,7 @@
       "Let & Polymorphism": "Let & Polymorphism",
       "Type Inference": "Type Inference",
       "System F": "System F",
-      "System Fω (Type Constructors)": "System Fω (Type Constructors)",
+      "System Fω (Type Constructors)": "System λω̲ (Type Constructors)",
       "System λP (Dependent Types)": "System λP (Dependent Types)",
       "Typed Numbers & Booleans": "Typed Numbers & Booleans",
       "Numbers & Booleans (NBL)": "Numbers & Booleans (NBL)"
@@ -209,7 +210,7 @@
       "Let & Polymorphism": "Let/Poly",
       "Type Inference": "Inference",
       "System F": "Sys F",
-      "System Fω (Type Constructors)": "Sys Fω",
+      "System Fω (Type Constructors)": "Sys λω̲",
       "System λP (Dependent Types)": "Sys λP",
       "Typed Numbers & Booleans": "Typed NBL",
       "Numbers & Booleans (NBL)": "NBL"
@@ -428,11 +429,11 @@
         "description": "compose takes three explicit type parameters ∀A.∀B.∀C, instantiated with compose[Nat][Nat][Bool] to compose isZero after inc"
       },
       "identity-constructor-system-f": {
-        "label": "Identity Constructor (System Fω)",
-        "description": "typedef Id = λX:@.X — a type constructor of kind @→@ that's a no-op on types; (Id Nat) normalizes to Nat — enable the System Fω theory"
+        "label": "Identity Constructor (System λω̲)",
+        "description": "typedef Id = λX:@.X — a type constructor of kind @→@ that's a no-op on types; (Id Nat) normalizes to Nat — enable the System λω̲ theory"
       },
       "endo-constructor-system-f": {
-        "label": "Endo Constructor (System Fω)",
+        "label": "Endo Constructor (System λω̲)",
         "description": "typedef Endo = λX:@.X->X builds \"the type of endofunctions on T\" from any T, itself classified by kind @→@"
       },
       "dependent-head-system-p": {
@@ -517,8 +518,8 @@
         "description": "Explicit polymorphism: ΛX. t and t [T]"
       },
       "systemFOmega": {
-        "label": "System Fω (type constructors)",
-        "shortLabel": "System Fω",
+        "label": "System λω̲ (type constructors)",
+        "shortLabel": "System λω̲",
         "description": "Type constructors: λX:@. T and F T, classified by kinds"
       },
       "systemLambdaP": {
@@ -560,6 +561,7 @@
     "hint": "Pick the base language, then add extensions on top of STLC. Hover an item to see what it adds.",
     "sections": {
       "base": "Base",
+      "typeTheories": "Type theories",
       "extensions": "Extensions",
       "views": "Views",
       "checking": "Checking"
@@ -749,7 +751,7 @@
       "Control": "Control",
       "Types": "Types",
       "System F": "System F",
-      "System Fω": "System Fω",
+      "System Fω": "System λω̲",
       "System λP": "System λP",
       "Kinds": "Kinds",
       "Decls": "Decls",
@@ -926,7 +928,7 @@
       },
       "theories": {
         "title": "Extended type theories",
-        "description": "Toggle let-polymorphism, iso-recursive types, System F, System Fω, and dependent types (λP) on top of base STLC."
+        "description": "Toggle let-polymorphism, iso-recursive types, System F, System λω̲, and dependent types (λP) on top of base STLC."
       },
       "curryHoward": {
         "title": "Curry–Howard / logic view",
@@ -950,7 +952,7 @@
       },
       "examples": {
         "title": "Ready-made examples",
-        "description": "A built-in catalogue you can load into the editor in one click: basics, sums, tuples, lists, recursion, polymorphism, and System F, Fω, and λP."
+        "description": "A built-in catalogue you can load into the editor in one click: basics, sums, tuples, lists, recursion, polymorphism, and System F, λω̲, and λP."
       },
       "untyped": {
         "title": "Untyped λ-calculus & Church encodings",

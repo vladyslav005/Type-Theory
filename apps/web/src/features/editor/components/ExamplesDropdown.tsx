@@ -22,6 +22,7 @@ import {trackExample} from "@/shared/activity/taskTracking.ts";
 interface ExamplesDropdownProps {
   onSelect: (code: string) => void;
   disabled?: boolean;
+  compact?: boolean;
 }
 
 const exampleSlug = (label: string) =>
@@ -48,11 +49,11 @@ const GROUP_SHORT_LABELS: Record<string, string> = {
   "Let & Polymorphism": "Let/Poly",
   "Type Inference": "Inference",
   "System F": "Sys F",
-  "System Fω (Type Constructors)": "Sys Fω",
+  "System Fω (Type Constructors)": "Sys λω̲",
   "System λP (Dependent Types)": "Sys λP",
 };
 
-export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdownProps) {
+export function ExamplesDropdown({ onSelect, disabled = false, compact }: ExamplesDropdownProps) {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const topic = useAppSelector((state) => state.term.examplesTopic);
@@ -98,10 +99,11 @@ export function ExamplesDropdown({ onSelect, disabled = false }: ExamplesDropdow
           size="sm"
           className="gap-1"
           disabled={disabled}
-          title={disabled ? t("topbar.onlyOnEditor") : undefined}
+          title={disabled ? t("topbar.onlyOnEditor") : compact ? t("examples.trigger") : undefined}
+          aria-label={t("examples.trigger")}
         >
           <BookOpen className="h-3.5 w-3.5" />
-          {t("examples.trigger")}
+          <span className={compact ? "max-xl:sr-only" : undefined}>{t("examples.trigger")}</span>
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>

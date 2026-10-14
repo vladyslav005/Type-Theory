@@ -701,7 +701,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     if (usesFOmega && !this.theories.systemFOmega) {
       return {
         rejected: true,
-        message: `Type "${typeToString(type)}" uses a type constructor (λ-abstraction/application on types) — enable the "System Fω" theory to use it`,
+        message: `Type "${typeToString(type)}" uses a type constructor (λ-abstraction/application on types) — enable the "System λω̲" theory to use it`,
       };
     }
 
@@ -810,7 +810,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const usesLambdaP = containsLambdaPConstruct(expanded);
     if (usesFOmega || usesLambdaP) {
       if (usesFOmega && !this.theories.systemFOmega) {
-        this.errorBuffer.push(new TypeCheckError(`typedef "${node.name}": uses a type constructor (λ-abstraction/application on types) — enable the "System Fω" theory to use it`, node.pos));
+        this.errorBuffer.push(new TypeCheckError(`typedef "${node.name}": uses a type constructor (λ-abstraction/application on types) — enable the "System λω̲" theory to use it`, node.pos));
       } else if (usesLambdaP && !this.theories.systemLambdaP) {
         this.errorBuffer.push(new TypeCheckError(`typedef "${node.name}": uses a dependent type (Π-type or term-indexed type application) — enable the "System λP" theory to use it`, node.pos));
       } else {
