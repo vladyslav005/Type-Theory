@@ -443,6 +443,9 @@ function Tour({tour, editorRef}: {tour: TourDefinition; editorRef: RefObject<Tex
           >
             <div className="-mx-4 -mt-4 mb-2 flex cursor-grab touch-none items-center gap-2 px-4 pt-2 active:cursor-grabbing" onPointerDown={startDrag} title={t("tour.drag")}>
               <GripHorizontal className="h-4 w-4 shrink-0 text-muted-foreground/60"/>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                {t("tour.progress", {current: index + 1, total: steps.length})}
+              </span>
               {step.panel && (
                 <span className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors",
@@ -508,23 +511,27 @@ function Tour({tour, editorRef}: {tour: TourDefinition; editorRef: RefObject<Tex
               </div>
             )}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="mr-auto text-xs tabular-nums text-muted-foreground">
-                {t("tour.progress", {current: index + 1, total: steps.length})}
-              </span>
+            <div className="mt-4 flex items-center gap-2">
+              {index > 0 && <Button variant="outline" size="sm" className="shrink-0" onClick={() => go(-1)}>{t("tour.back")}</Button>}
+              <span className="ml-auto"/>
               {(interactive || needsTab) && !done && (
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => go(1)}>{t("tour.skipStep")}</Button>
+                <Button variant="ghost" size="sm" className="shrink-0 text-muted-foreground" onClick={() => go(1)}>{t("tour.skipStep")}</Button>
               )}
-              {index > 0 && <Button variant="outline" size="sm" onClick={() => go(-1)}>{t("tour.back")}</Button>}
               {isLast && tour.next ? (
                 <>
-                  <Button variant="outline" size="sm" onClick={endTour}>{t("tour.done")}</Button>
-                  <Button ref={nextRef} size="sm" onClick={() => continueWith(tour.next!)}>
-                    {t("tour.continueWith", {title: t(`tour.tours.${tour.next}.short`)})}
+                  <Button variant="outline" size="sm" className="shrink-0" onClick={endTour}>{t("tour.done")}</Button>
+                  <Button
+                    ref={nextRef}
+                    size="sm"
+                    className="min-w-0"
+                    title={t("tour.continueWith", {title: t(`tour.tours.${tour.next}.short`)})}
+                    onClick={() => continueWith(tour.next!)}
+                  >
+                    <span className="truncate">{t("tour.continueWith", {title: t(`tour.tours.${tour.next}.short`)})}</span>
                   </Button>
                 </>
               ) : (
-                <Button ref={nextRef} size="sm" disabled={!done} onClick={() => go(1)}>{isLast ? t("tour.done") : t("tour.next")}</Button>
+                <Button ref={nextRef} size="sm" className="shrink-0" disabled={!done} onClick={() => go(1)}>{isLast ? t("tour.done") : t("tour.next")}</Button>
               )}
             </div>
           </div>
