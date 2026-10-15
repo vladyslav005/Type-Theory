@@ -155,15 +155,26 @@ function highlightSnippet(editor: TextEditorHandle | null, snippet: string) {
   editor.highlightRange({line, column, length: snippet.length, endLine, endColumn});
 }
 
-// `code` spans in translations become inline code.
+// Translation markup: `code`, **a label as it appears on screen**, [[a keyboard key]].
+const MARKUP = /(`[^`]+`|\*\*[^*]+\*\*|\[\[[^\]]+\]\])/;
+
 function RichText({text}: {text: string}) {
   return (
     <>
       {text.split("\n\n").map((paragraph, i) => (
         <p key={i}>
-          {paragraph.split("`").map((part, j) => j % 2 === 1
-            ? <code key={j} className="rounded bg-muted px-1 py-0.5 font-mono text-[0.8rem] text-foreground">{part}</code>
-            : part)}
+          {paragraph.split(MARKUP).map((part, j) => {
+            if (part.startsWith("`")) {
+              return <code key={j} className="rounded bg-muted px-1 py-0.5 font-mono text-[0.8rem] text-foreground">{part.slice(1, -1)}</code>;
+            }
+            if (part.startsWith("**")) {
+              return <span key={j} className="box-decoration-clone rounded border bg-background px-1 py-px text-[0.8rem] font-semibold text-foreground shadow-xs">{part.slice(2, -2)}</span>;
+            }
+            if (part.startsWith("[[")) {
+              return <kbd key={j} className="rounded border border-b-2 bg-muted px-1 font-mono text-[0.75rem] text-foreground">{part.slice(2, -2)}</kbd>;
+            }
+            return part;
+          })}
         </p>
       ))}
     </>

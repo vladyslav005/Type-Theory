@@ -195,7 +195,21 @@ export function Topbar({editorRef}: TopbarProps) {
                 </Button>
               )}
 
-              <TourMenu onStart={() => setIsMobileMenuOpen(false)}/>
+              <AnimatePresence initial={false}>
+                {isEditorPage && (
+                  <motion.div
+                    key="tutorials"
+                    // Overflow opens after the slide-in so the first-visit hint isn't clipped.
+                    initial={{opacity: 0, width: 0, overflow: "hidden"}}
+                    animate={{opacity: 1, width: "auto", transitionEnd: {overflow: "visible"}}}
+                    exit={{opacity: 0, width: 0, overflow: "hidden"}}
+                    transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
+                    className="shrink-0"
+                  >
+                    <TourMenu onStart={() => setIsMobileMenuOpen(false)}/>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Mobile Menu Toggle */}
               <Button

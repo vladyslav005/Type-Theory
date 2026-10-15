@@ -71,7 +71,7 @@
     "themeToLight": "Switch to light mode",
     "themeToDark": "Switch to dark mode",
     "startTour": "Tutorials",
-    "startTourHint": "Step-by-step tutorials for every part of the app",
+    "startTourHint": "how to use every part of the app, step by step",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "onlyOnEditor": "Only available on the Editor page"
@@ -980,7 +980,7 @@
       }
     },
     "ctaOpen": "Open the playground",
-    "ctaGuide": "Read the guide",
+    "ctaGuide": "Learn the theory",
     "exploreHeading": "Start exploring",
     "exploreLead": "Short, hands-on pages that pair the theory with things to try in the editor.",
     "explore": {
@@ -1523,6 +1523,12 @@
       "typed": "Wrote this into the editor (highlighted there):",
       "appended": "Added this line at the end of the editor (highlighted there):"
     },
+    "hint": {
+      "title": "New here?",
+      "body": "Short tutorials show how every part of the app works — some you just read, others you try yourself. You can always find them under this button.",
+      "start": "Start the quick tour",
+      "later": "Later"
+    },
     "learn": {
       "before": "New to this? The theory is explained on Learn",
       "after": "Learn more about what you just did",
@@ -1582,22 +1588,22 @@
     "shared": {
       "languageStlc": {
         "title": "Choose the language",
-        "body": "This tutorial uses the simply typed λ-calculus (STLC): every function states the type of its argument, like `λ x : Bool . x`, and the type checker proves the program is well typed before it runs. Everything else in the app builds on it.\n\nOpen the “$t(extensions.trigger)” menu in the top bar and choose “$t(extensions.stlcLabel)” under “$t(extensions.sections.base)”. If it is already selected, this step is done — just continue."
+        "body": "This tutorial uses the **$t(extensions.stlcLabel)** (STLC): every function states the type of its argument, like `λ x : Bool . x`, and the type checker proves the program is well typed before it runs. Everything else in the app builds on it.\n\nOpen the **$t(extensions.trigger)** menu in the top bar and choose **$t(extensions.stlcLabel)** under **$t(extensions.sections.base)**. If it is already selected, this step is done — just continue."
       }
     },
     "steps": {
       "overview": {
         "welcome": {
           "title": "Welcome to the lambda calculus playground",
-          "body": "This short tour shows every part of the editor: where to write terms, how to run them and what each panel tells you.\n\nUse Next and Back (or the arrow keys) to move, and Esc to leave at any time. The hands-on tutorials in the Tutorials menu let you try everything yourself."
+          "body": "This short tour shows every part of the editor: where to write terms, how to run them and what each panel tells you.\n\nUse **$t(tour.next)** and **$t(tour.back)** (or the arrow keys) to move, and [[Esc]] to leave at any time. The hands-on tutorials in the **$t(topbar.startTour)** menu let you try everything yourself."
         },
         "editor": {
           "title": "Editor",
-          "body": "Write your program here. Declare variables with a type (`a : T;`), define names (`id = λ x : T . x : T → T;`) and end with the term to examine, e.g. `id a;`\n\nYou can type `\\` instead of λ. Ctrl+Space suggests names that are in scope. The icons above the editor hold editor settings, download and fullscreen."
+          "body": "Write your program here. Declare variables with a type (`a : T;`), define names (`id = λ x : T . x : T → T;`) and end with the term to examine, e.g. `id a;`\n\nYou can type `\\` instead of λ. [[Ctrl+Space]] suggests names that are in scope. The icons above the editor hold editor settings, download and fullscreen."
         },
         "run": {
           "title": "Type check and run",
-          "body": "“$t(actions.typeCheckShort)” parses and type-checks the program and builds the AST and proof tree. “$t(actions.run)” does the same and then evaluates the term.\n\nThe arrow on the right picks the evaluation strategy. In untyped and NBL mode the first button only parses."
+          "body": "**$t(actions.typeCheckShort)** parses and type-checks the program and builds the AST and proof tree. **$t(actions.run)** does the same and then evaluates the term.\n\nThe arrow on the right picks the evaluation strategy. In untyped and NBL mode the first button only parses."
         },
         "examples": {
           "title": "Examples",
@@ -1605,7 +1611,7 @@
         },
         "theories": {
           "title": "Language and extensions",
-          "body": "The “$t(extensions.trigger)” menu chooses the base calculus: simply typed λ-calculus (STLC), untyped λ-calculus, or numbers & booleans (NBL, typed or untyped). On top of STLC you can turn on System F, λω̲, λP, type inference, let-polymorphism, recursive types and the Curry–Howard view.\n\nIn untyped mode a Prelude button appears that inserts standard definitions such as true, false, pairs, numerals and fix."
+          "body": "The **$t(extensions.trigger)** menu chooses the base calculus: **$t(extensions.stlcLabel)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.nbl.label)** or **$t(extensions.theories.typedNbl.label)**. On top of STLC you can turn on **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** and **$t(extensions.curryHoward.label)**.\n\nIn untyped mode a **$t(prelude.trigger)** button appears that inserts standard definitions such as true, false, pairs, numerals and fix."
         },
         "output": {
           "title": "Output",
@@ -1613,19 +1619,19 @@
         },
         "proofTree": {
           "title": "Proof tree",
-          "body": "“$t(proofTree.tabAutomatic)” shows the full typing derivation and the rule behind every step. “$t(proofTree.tabBuildCheck)” lets you build it yourself. With Curry–Howard on, a Logic tab reads the same proof as logic. The tree can be exported as LaTeX."
+          "body": "**$t(proofTree.tabAutomatic)** shows the full typing derivation and the rule behind every step. **$t(proofTree.tabBuildCheck)** lets you build it yourself. With Curry–Howard on, a **$t(proofTree.tabLogic)** tab reads the same proof as logic. The tree can be exported as LaTeX."
         },
         "evaluation": {
           "title": "Evaluation",
-          "body": "“$t(evalPractice.tabAutomatic)” shows every reduction step with the redex highlighted. “$t(evalPractice.tabPractice)” lets you write the steps yourself and checks them."
+          "body": "**$t(evalPractice.tabAutomatic)** shows every reduction step with the redex highlighted. **$t(evalPractice.tabPractice)** lets you write the steps yourself and checks them."
         },
         "ast": {
           "title": "Abstract syntax tree",
-          "body": "“$t(astPanel.tabViewer)” draws the term's syntax tree; hovering a node highlights its code. “$t(astPanel.tabEditor)” lets you change a program by editing the tree."
+          "body": "**$t(astPanel.tabViewer)** draws the term's syntax tree; hovering a node highlights its code. **$t(astPanel.tabEditor)** lets you change a program by editing the tree."
         },
         "layout": {
           "title": "Arrange the workspace",
-          "body": "Drag panel tabs to split, stack or move panels; the layout is remembered. Layout presets restore one of the ready-made arrangements."
+          "body": "Drag panel tabs to split, stack or move panels; the layout is remembered. **$t(layoutPresets.trigger)** restore one of the ready-made arrangements."
         },
         "docs": {
           "title": "Learn",
@@ -1641,7 +1647,7 @@
         },
         "finish": {
           "title": "That's the overview!",
-          "body": "Every tutorial starts from this Tutorials button. Next, try the hands-on one: you write and run your first program."
+          "body": "Every tutorial starts from this **$t(topbar.startTour)** button. Next, try the hands-on one: you write and run your first program."
         }
       },
       "firstProgram": {
@@ -1655,27 +1661,27 @@
         },
         "typeCheck": {
           "title": "Type check it",
-          "body": "Press “$t(actions.typeCheckShort)”. The app parses your program, works out its type and builds the proof tree."
+          "body": "Press **$t(actions.typeCheckShort)**. The app parses your program, works out its type and builds the proof tree."
         },
         "proofTree": {
           "title": "The proof tree",
-          "body": "This panel shows why your term has its type. Open the “$t(proofTree.tabAutomatic)” tab to see the whole derivation: every line is a typing rule, read from the bottom up."
+          "body": "This panel shows why your term has its type. Open the **$t(proofTree.tabAutomatic)** tab to see the whole derivation: every line is a typing rule, read from the bottom up."
         },
         "mistake": {
           "title": "Make a mistake",
-          "body": "Now break it: in the editor, change the highlighted `Bool` to `Nat`, so the program reads\n\n`(λ x : Nat . x) true;`\n\nand press “$t(actions.typeCheckShort)” again. A function expecting a number cannot take `true`."
+          "body": "Now break it: in the editor, change the highlighted `Bool` to `Nat`, so the program reads\n\n`(λ x : Nat . x) true;`\n\nand press **$t(actions.typeCheckShort)** again. A function expecting a number cannot take `true`."
         },
         "output": {
           "title": "Read the error",
-          "body": "The Output panel explains what went wrong. Hover the message: the exact place in your code lights up in the editor, which is kept visible next to it."
+          "body": "The **$t(panels.errors)** panel explains what went wrong. Hover the message: the exact place in your code lights up in the editor, which is kept visible next to it."
         },
         "fix": {
           "title": "Fix it and run",
-          "body": "Change the highlighted `Nat` back to `Bool`:\n\n`(λ x : Bool . x) true;`\n\nThis time press “$t(actions.run)” — it type-checks and then evaluates the term."
+          "body": "Change the highlighted `Nat` back to `Bool`:\n\n`(λ x : Bool . x) true;`\n\nThis time press **$t(actions.run)** — it type-checks and then evaluates the term."
         },
         "evaluation": {
           "title": "The result",
-          "body": "Open the “$t(evalPractice.tabAutomatic)” tab to see how the term reduced to its value, step by step."
+          "body": "Open the **$t(evalPractice.tabAutomatic)** tab to see how the term reduced to its value, step by step."
         },
         "finish": {
           "title": "Well done!",
@@ -1689,23 +1695,23 @@
         },
         "typeCheck": {
           "title": "Type check first",
-          "body": "Practice needs a term that type-checks. Press “$t(actions.typeCheckShort)”."
+          "body": "Practice needs a term that type-checks. Press **$t(actions.typeCheckShort)**."
         },
         "openPractice": {
           "title": "Open Practice",
-          "body": "Open the “$t(proofTree.tabBuildCheck)” tab of the proof tree."
+          "body": "Open the **$t(proofTree.tabBuildCheck)** tab of the proof tree."
         },
         "start": {
           "title": "Start building",
-          "body": "Press “$t(proofBuilder.modeSemi)”. The tree's shape is given and you fill in each node."
+          "body": "Press **$t(proofBuilder.modeSemi)**. The tree's shape is given and you fill in each node."
         },
         "fill": {
           "title": "Fill in every node",
-          "body": "For each node, click “$t(proofBuilder.pickRule)” and choose the typing rule that applies — the bottom node is an application, so start with T-App. Then fill in the type of each judgement.\n\nTip: the variable x gets its type from the context Γ, and true is a Bool. The counter above the tree shows how many nodes are filled."
+          "body": "For each node, click **$t(proofBuilder.pickRule)** and choose the typing rule that applies — the bottom node is an application, so start with T-App. Then fill in the type of each judgement.\n\nTip: the variable x gets its type from the context Γ, and true is a Bool. The counter above the tree shows how many nodes are filled."
         },
         "check": {
           "title": "Check your proof",
-          "body": "Press “$t(proofBuilder.checkProof)”. Correct nodes turn green, wrong ones red."
+          "body": "Press **$t(proofBuilder.checkProof)**. Correct nodes turn green, wrong ones red."
         },
         "result": {
           "title": "Make it all green",
@@ -1713,11 +1719,11 @@
         },
         "exit": {
           "title": "Leave the builder",
-          "body": "Press “$t(proofBuilder.exit)” to go back. The editor was read-only while you were building; now it is editable again."
+          "body": "Press **$t(proofBuilder.exit)** to go back. The editor was read-only while you were building; now it is editable again."
         },
         "finish": {
           "title": "Proof complete!",
-          "body": "That is exactly the derivation the type checker builds for you in “$t(proofTree.tabAutomatic)”. Next: the other proof tree views and LaTeX export."
+          "body": "That is exactly the derivation the type checker builds for you in **$t(proofTree.tabAutomatic)**. Next: the other proof tree views and LaTeX export."
         }
       },
       "proofViews": {
@@ -1727,39 +1733,39 @@
         },
         "typeCheck": {
           "title": "Type check",
-          "body": "Press “$t(actions.typeCheckShort)” to build the tree."
+          "body": "Press **$t(actions.typeCheckShort)** to build the tree."
         },
         "automatic": {
           "title": "The automatic tree",
-          "body": "Open the “$t(proofTree.tabAutomatic)” tab."
+          "body": "Open the **$t(proofTree.tabAutomatic)** tab."
         },
         "hover": {
           "title": "Tree and code are linked",
-          "body": "Move the mouse over any judgement in the tree: the matching part of your code lights up in the editor (both are kept visible here). The “$t(proofTree.highlightInEditor)” switch turns this off."
+          "body": "Move the mouse over any judgement in the tree: the matching part of your code lights up in the editor (both are kept visible here). The **$t(proofTree.highlightInEditor)** switch turns this off."
         },
         "panZoom": {
           "title": "Move and zoom",
-          "body": "Drag the tree to move it, and use the mouse wheel or the zoom buttons on the tree to zoom. “$t(proofTreeCanvas.centerView)” brings it back to the middle."
+          "body": "Drag the tree to move it, and use the mouse wheel or the zoom buttons on the tree to zoom. **$t(proofTreeCanvas.centerView)** brings it back to the middle."
         },
         "stepByStep": {
           "title": "Step by step",
-          "body": "Turn on the “$t(proofTree.stepByStep)” switch above the tree."
+          "body": "Turn on the **$t(proofTree.stepByStep)** switch above the tree."
         },
         "stepThrough": {
           "title": "Build it up rule by rule",
-          "body": "The tree now starts with only the goal judgement at the bottom. Use “$t(proofTreeCanvas.nextStep)” and “$t(proofTreeCanvas.prevStep)” on the tree to add or remove one rule at a time — the order you would write it on paper."
+          "body": "The tree now starts with only the goal judgement at the bottom. Use **$t(proofTreeCanvas.nextStep)** and **$t(proofTreeCanvas.prevStep)** on the tree to add or remove one rule at a time — the order you would write it on paper."
         },
         "latex": {
           "title": "Export as LaTeX",
-          "body": "The document button on the tree opens “$t(latexExport.menuLabel)”: “$t(latexExport.preview)”, “$t(latexExport.copy)” or “$t(latexExport.downloadTex)”. The export matches what is expanded on screen. Try one of them."
+          "body": "The document button on the tree opens **$t(latexExport.menuLabel)**: **$t(latexExport.preview)**, **$t(latexExport.copy)** or **$t(latexExport.downloadTex)**. The export matches what is expanded on screen. Try one of them."
         },
         "openPractice": {
           "title": "Practice, fully manual",
-          "body": "Open the “$t(proofTree.tabBuildCheck)” tab again."
+          "body": "Open the **$t(proofTree.tabBuildCheck)** tab again."
         },
         "manual": {
           "title": "Fully manual mode",
-          "body": "This time press “$t(proofBuilder.modeManual)”."
+          "body": "This time press **$t(proofBuilder.modeManual)**."
         },
         "manualHow": {
           "title": "How fully manual works",
@@ -1767,15 +1773,15 @@
         },
         "exitManual": {
           "title": "Leave the builder",
-          "body": "Press “$t(proofBuilder.exit)”."
+          "body": "Press **$t(proofBuilder.exit)**."
         },
         "curryHoward": {
           "title": "Turn on Curry–Howard",
-          "body": "Open the “$t(extensions.trigger)” menu in the top bar and tick “$t(extensions.curryHoward.label)” under “$t(extensions.sections.views)”. The tutorial turns it back off when it closes, if it was off before."
+          "body": "Open the **$t(extensions.trigger)** menu in the top bar and tick **$t(extensions.curryHoward.label)** under **$t(extensions.sections.views)**. The tutorial turns it back off when it closes, if it was off before."
         },
         "logic": {
           "title": "The logic view",
-          "body": "Open the new “$t(proofTree.tabLogic)” tab. It is the same proof read as a proof in logic: types become propositions (→ is implication) and the term is the proof."
+          "body": "Open the new **$t(proofTree.tabLogic)** tab. It is the same proof read as a proof in logic: types become propositions (→ is implication) and the term is the proof."
         },
         "finish": {
           "title": "That's every view",
@@ -1789,19 +1795,19 @@
         },
         "enable": {
           "title": "Turn on type inference",
-          "body": "Open the “$t(extensions.trigger)” menu in the top bar and tick “$t(extensions.theories.typeInference.label)”."
+          "body": "Open the **$t(extensions.trigger)** menu in the top bar and tick **$t(extensions.theories.typeInference.label)**."
         },
         "typeCheck": {
           "title": "Type check",
-          "body": "Press “$t(actions.typeCheckShort)”. No error this time."
+          "body": "Press **$t(actions.typeCheckShort)**. No error this time."
         },
         "automatic": {
           "title": "The inferred tree",
-          "body": "Open the “$t(proofTree.tabAutomatic)” tab: f has been given the type Nat → Nat."
+          "body": "Open the **$t(proofTree.tabAutomatic)** tab: f has been given the type Nat → Nat."
         },
         "inferenceSteps": {
           "title": "Watch it being solved",
-          "body": "Turn on “$t(proofTree.showInferenceSteps)”. The tree now shows the type variables (X₁, X₂, …) the checker introduced, before anything is solved."
+          "body": "Turn on **$t(proofTree.showInferenceSteps)**. The tree now shows the type variables (X₁, X₂, …) the checker introduced, before anything is solved."
         },
         "stepping": {
           "title": "One constraint at a time",
@@ -1809,7 +1815,7 @@
         },
         "constraints": {
           "title": "The constraint list",
-          "body": "Turn on “$t(proofTree.showConstraintList)” to see every equation the checker collected. Click one to jump to the moment it is solved."
+          "body": "Turn on **$t(proofTree.showConstraintList)** to see every equation the checker collected. Click one to jump to the moment it is solved."
         },
         "finish": {
           "title": "That's type inference",
@@ -1823,43 +1829,43 @@
         },
         "run": {
           "title": "Run it",
-          "body": "Press “$t(actions.run)” so the app knows the correct reduction to compare your steps with."
+          "body": "Press **$t(actions.run)** so the app knows the correct reduction to compare your steps with."
         },
         "openPractice": {
           "title": "Open Practice",
-          "body": "Open the “$t(evalPractice.tabPractice)” tab of the Evaluation panel."
+          "body": "Open the **$t(evalPractice.tabPractice)** tab of the **$t(panels.evaluation)** panel."
         },
         "insert": {
           "title": "Insert instead of retyping",
-          "body": "The first step replaces f in the body `f true` with the argument. Hover the argument `λ y : Bool . y` in the term shown above the answer box and press Alt+I (⌥I on Mac): it is copied into your answer.\n\nThen complete the answer so it reads `(λ y : Bool . y) true`."
+          "body": "The first step replaces f in the body `f true` with the argument. Hover the argument `λ y : Bool . y` in the term shown above the answer box and press [[Alt+I]] ([[⌥I]] on Mac): it is copied into your answer.\n\nThen complete the answer so it reads `(λ y : Bool . y) true`."
         },
         "check": {
           "title": "Check before adding",
-          "body": "Press “$t(evalPractice.check)”. Green means the step is right; red explains where it is off — without giving the answer. It's optional and saves nothing."
+          "body": "Press **$t(evalPractice.check)**. Green means the step is right; red explains where it is off — without giving the answer. It's optional and saves nothing."
         },
         "add": {
           "title": "Add the step",
-          "body": "Press “$t(evalPractice.nextStep)” (or Enter). The step is saved and an empty box opens for the next one."
+          "body": "Press **$t(evalPractice.nextStep)** (or [[Enter]]). The step is saved and an empty box opens for the next one."
         },
         "stepBack": {
           "title": "Changing an earlier step",
-          "body": "If you spot a mistake later, “$t(evalPractice.stepBack)” (or clicking an earlier step) takes you there; change it and press “$t(evalPractice.saveStep)” — the steps after it stay. You don't need it now."
+          "body": "If you spot a mistake later, **$t(evalPractice.stepBack)** (or clicking an earlier step) takes you there; change it and press **$t(evalPractice.saveStep)** — the steps after it stay. You don't need it now."
         },
         "secondStep": {
           "title": "Second step",
-          "body": "One more β-reduction: the identity applied to true. Write `true` and press “$t(evalPractice.nextStep)”."
+          "body": "One more β-reduction: the identity applied to true. Write `true` and press **$t(evalPractice.nextStep)**."
         },
         "skipping": {
           "title": "Skipping steps",
-          "body": "The “$t(evalPractice.allowSkipping)” switch decides whether an answer may jump over several steps at once. Turn it off for strict one-step practice."
+          "body": "The **$t(evalPractice.allowSkipping)** switch decides whether an answer may jump over several steps at once. Turn it off for strict one-step practice."
         },
         "finishEval": {
           "title": "Finish",
-          "body": "No rule applies to `true` any more — it is a value. Press “$t(evalPractice.itIsValue)”."
+          "body": "No rule applies to `true` any more — it is a value. Press **$t(evalPractice.itIsValue)**."
         },
         "result": {
           "title": "See how you did",
-          "body": "Each step is now marked correct or not, with the right step shown under any mistake. “$t(evalPractice.reopen)” reopens the evaluation if you want to fix something."
+          "body": "Each step is now marked correct or not, with the right step shown under any mistake. **$t(evalPractice.reopen)** reopens the evaluation if you want to fix something."
         },
         "finish": {
           "title": "Well done!",
@@ -1873,11 +1879,11 @@
         },
         "run": {
           "title": "Run with call-by-value",
-          "body": "Press “$t(actions.run)”. The strategy is “$t(evalStrategy.CALL_BY_VALUE.label)”, shown on the button."
+          "body": "Press **$t(actions.run)**. The strategy is **$t(evalStrategy.CALL_BY_VALUE.label)**, shown on the button."
         },
         "automatic": {
           "title": "The reduction",
-          "body": "Open the “$t(evalPractice.tabAutomatic)” tab."
+          "body": "Open the **$t(evalPractice.tabAutomatic)** tab."
         },
         "stepThrough": {
           "title": "Step through it",
@@ -1889,15 +1895,15 @@
         },
         "gamma": {
           "title": "The context",
-          "body": "Turn on “$t(evaluationPanel.gammaContext)” to list the definitions the term can use, next to the steps."
+          "body": "Turn on **$t(evaluationPanel.gammaContext)** to list the definitions the term can use, next to the steps."
         },
         "strategy": {
           "title": "Switch the strategy",
-          "body": "Open the ⌄ menu right of “$t(actions.run)” and choose “$t(evalStrategy.NORMAL.label)”."
+          "body": "Open the ⌄ menu right of **$t(actions.run)** and choose **$t(evalStrategy.NORMAL.label)**."
         },
         "rerun": {
           "title": "Run again",
-          "body": "Press “$t(actions.run)” again to evaluate with “$t(evalStrategy.NORMAL.label)”."
+          "body": "Press **$t(actions.run)** again to evaluate with **$t(evalStrategy.NORMAL.label)**."
         },
         "compare": {
           "title": "Compare",
@@ -1905,7 +1911,7 @@
         },
         "settings": {
           "title": "Shortcuts and limits",
-          "body": "“$t(blackBoxes.button)” lets checked helper definitions run as a single step. The limits (gear) stop runaway evaluations after a number of steps or when the term grows too big."
+          "body": "**$t(blackBoxes.button)** lets checked helper definitions run as a single step. The limits (gear) stop runaway evaluations after a number of steps or when the term grows too big."
         },
         "finish": {
           "title": "Well done!",
@@ -1919,27 +1925,27 @@
         },
         "typeCheck": {
           "title": "Build the tree",
-          "body": "Press “$t(actions.typeCheckShort)” so the program's syntax tree is built."
+          "body": "Press **$t(actions.typeCheckShort)** so the program's syntax tree is built."
         },
         "viewer": {
           "title": "The tree viewer",
-          "body": "“$t(astPanel.tabViewer)” draws the tree: the application on top, the λ-abstraction and `true` below. Hover a node — its code lights up in the editor, kept visible here."
+          "body": "**$t(astPanel.tabViewer)** draws the tree: the application on top, the λ-abstraction and `true` below. Hover a node — its code lights up in the editor, kept visible here."
         },
         "openEditor": {
           "title": "Open the editor",
-          "body": "Open the “$t(astPanel.tabEditor)” tab of the AST panel."
+          "body": "Open the **$t(astPanel.tabEditor)** tab of the **$t(panels.ast)** panel."
         },
         "fromViewer": {
           "title": "Load the tree",
-          "body": "Press “$t(astPanel.btnCopyFromViewer)”: the tree from the viewer is loaded here as editable cards."
+          "body": "Press **$t(astPanel.btnCopyFromViewer)**: the tree from the viewer is loaded here as editable cards."
         },
         "edit": {
           "title": "Edit a node",
-          "body": "Find the yellow Literal card that shows `true`, click into its box and change it to `false`."
+          "body": "Find the yellow **Literal** card that shows `true`, click into its box and change it to `false`."
         },
         "paste": {
           "title": "Back to code",
-          "body": "Press “$t(astPanel.btnPasteToEditor)”: the tree is turned back into code and written into the editor, which now reads `(λ x : Bool . x) false;`."
+          "body": "Press **$t(astPanel.btnPasteToEditor)**: the tree is turned back into code and written into the editor, which now reads `(λ x : Bool . x) false;`."
         },
         "build": {
           "title": "Building from scratch",
@@ -1957,11 +1963,11 @@
         },
         "switch": {
           "title": "Switch the language",
-          "body": "In the untyped λ-calculus there are no types at all: `λ x . x` takes anything, and numbers or booleans are written as functions (Church encodings).\n\nOpen the “$t(extensions.trigger)” menu in the top bar and choose “$t(extensions.theories.untyped.label)” under “$t(extensions.sections.base)”."
+          "body": "In the **$t(extensions.theories.untyped.label)** there are no types at all: `λ x . x` takes anything, and numbers or booleans are written as functions (Church encodings).\n\nOpen the **$t(extensions.trigger)** menu in the top bar and choose **$t(extensions.theories.untyped.label)** under **$t(extensions.sections.base)**."
         },
         "prelude": {
           "title": "Insert the Prelude",
-          "body": "A “$t(prelude.trigger)” button appeared in the top bar. Press it: standard definitions — booleans, pairs, the numerals zero…three, plus, times, pred, Y and fix — are added at the top of the editor as ordinary code you can read and change."
+          "body": "A **$t(prelude.trigger)** button appeared in the top bar. Press it: standard definitions — booleans, pairs, the numerals zero…three, plus, times, pred, Y and fix — are added at the top of the editor as ordinary code you can read and change."
         },
         "write": {
           "title": "Write a term",
@@ -1969,19 +1975,19 @@
         },
         "run": {
           "title": "Run it",
-          "body": "Press “$t(actions.run)”. The tutorial set the strategy to “$t(evalStrategy.NORMAL.label)”, because Church numerals are only fully reduced under it."
+          "body": "Press **$t(actions.run)**. The tutorial set the strategy to **$t(evalStrategy.NORMAL.label)**, because Church numerals are only fully reduced under it."
         },
         "result": {
           "title": "1 + 2 = 3",
-          "body": "Open the “$t(evalPractice.tabAutomatic)” tab and go to the last step: the result `λ s . λ z . s (s (s z))` is recognised as the Church numeral 3."
+          "body": "Open the **$t(evalPractice.tabAutomatic)** tab and go to the last step: the result `λ s . λ z . s (s (s z))` is recognised as the Church numeral 3."
         },
         "syntax": {
           "title": "A syntax derivation",
-          "body": "Without types there is no typing derivation. Instead the proof tree shows that the term is a well-formed λ-term. Open the “$t(proofTree.tabSyntax)” tab."
+          "body": "Without types there is no typing derivation. Instead the proof tree shows that the term is a well-formed λ-term. Open the **$t(proofTree.tabSyntax)** tab."
         },
         "syntaxPractice": {
           "title": "Practise it too",
-          "body": "In “$t(proofTree.tabBuildCheck)” you can build this derivation yourself: pick a rule for every node, and its premises appear automatically."
+          "body": "In **$t(proofTree.tabBuildCheck)** you can build this derivation yourself: pick a rule for every node, and its premises appear automatically."
         },
         "finish": {
           "title": "That's untyped λ-calculus",

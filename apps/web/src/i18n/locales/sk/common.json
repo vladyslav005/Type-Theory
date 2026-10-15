@@ -71,7 +71,7 @@
     "themeToLight": "Prepnúť na svetlý režim",
     "themeToDark": "Prepnúť na tmavý režim",
     "startTour": "Návody",
-    "startTourHint": "Návody krok za krokom ku každej časti aplikácie",
+    "startTourHint": "ako používať každú časť aplikácie, krok za krokom",
     "openMenu": "Otvoriť menu",
     "closeMenu": "Zavrieť menu",
     "onlyOnEditor": "Dostupné len na stránke Editor"
@@ -995,7 +995,7 @@
       }
     },
     "ctaOpen": "Otvoriť prostredie",
-    "ctaGuide": "Prečítať príručku",
+    "ctaGuide": "Naučiť sa teóriu",
     "exploreHeading": "Začnite objavovať",
     "exploreLead": "Krátke praktické stránky, ktoré spájajú teóriu s vecami na vyskúšanie v editore.",
     "explore": {
@@ -1580,6 +1580,12 @@
       "typed": "Do editora bolo zapísané (je tam zvýraznené):",
       "appended": "Na koniec editora bol pridaný tento riadok (je tam zvýraznený):"
     },
+    "hint": {
+      "title": "Ste tu prvýkrát?",
+      "body": "Krátke návody ukážu, ako funguje každá časť aplikácie — niektoré si len prečítate, iné si vyskúšate sami. Vždy ich nájdete pod týmto tlačidlom.",
+      "start": "Spustiť rýchlu prehliadku",
+      "later": "Neskôr"
+    },
     "learn": {
       "before": "Ste v tom noví? Teóriu vysvetľuje stránka Učenie",
       "after": "Viac o tom, čo ste práve robili",
@@ -1639,22 +1645,22 @@
     "shared": {
       "languageStlc": {
         "title": "Vyberte jazyk",
-        "body": "Tento návod používa jednoducho typovaný λ-kalkul (STLC): každá funkcia uvádza typ svojho argumentu, napríklad `λ x : Bool . x`, a typová kontrola dokáže, že program je správne typovaný, ešte pred spustením. Všetko ostatné v aplikácii stavia naň.\n\nOtvorte ponuku “$t(extensions.trigger)” v hornej lište a v časti “$t(extensions.sections.base)” zvoľte “$t(extensions.stlcLabel)”. Ak je už vybraný, krok je hotový — pokračujte."
+        "body": "Tento návod používa **$t(extensions.stlcLabel)** (STLC): každá funkcia uvádza typ svojho argumentu, napríklad `λ x : Bool . x`, a typová kontrola dokáže, že program je správne typovaný, ešte pred spustením. Všetko ostatné v aplikácii stavia naň.\n\nOtvorte ponuku **$t(extensions.trigger)** v hornej lište a v časti **$t(extensions.sections.base)** zvoľte **$t(extensions.stlcLabel)**. Ak je už vybraný, krok je hotový — pokračujte."
       }
     },
     "steps": {
       "overview": {
         "welcome": {
           "title": "Vitajte v pieskovisku lambda kalkulu",
-          "body": "Táto krátka prehliadka ukáže všetky časti editora: kde písať termy, ako ich spustiť a čo vám hovorí každý panel.\n\nNa pohyb použite Ďalej a Späť (alebo šípky), klávesom Esc ju kedykoľvek ukončíte. Praktické návody v ponuke Návody vám umožnia všetko si vyskúšať."
+          "body": "Táto krátka prehliadka ukáže všetky časti editora: kde písať termy, ako ich spustiť a čo vám hovorí každý panel.\n\nNa pohyb použite **$t(tour.next)** a **$t(tour.back)** (alebo šípky), klávesom [[Esc]] ju kedykoľvek ukončíte. Praktické návody v ponuke **$t(topbar.startTour)** vám umožnia všetko si vyskúšať."
         },
         "editor": {
           "title": "Editor",
-          "body": "Sem píšete program. Premenné deklarujete s typom (`a : T;`), mená definujete (`id = λ x : T . x : T → T;`) a na koniec dáte term, ktorý chcete skúmať, napr. `id a;`\n\nNamiesto λ môžete písať `\\`. Ctrl+Medzera ponúkne mená v rozsahu. Ikony nad editorom obsahujú nastavenia, stiahnutie a režim celej obrazovky."
+          "body": "Sem píšete program. Premenné deklarujete s typom (`a : T;`), mená definujete (`id = λ x : T . x : T → T;`) a na koniec dáte term, ktorý chcete skúmať, napr. `id a;`\n\nNamiesto λ môžete písať `\\`. [[Ctrl+Medzera]] ponúkne mená v rozsahu. Ikony nad editorom obsahujú nastavenia, stiahnutie a režim celej obrazovky."
         },
         "run": {
           "title": "Typová kontrola a spustenie",
-          "body": "“$t(actions.typeCheckShort)” program sparsuje, typovo skontroluje a vytvorí AST a odvodzovací strom. “$t(actions.run)” urobí to isté a potom term vyhodnotí.\n\nŠípka vpravo vyberá stratégiu vyhodnocovania. V netypovanom režime a v NBL prvé tlačidlo iba parsuje."
+          "body": "**$t(actions.typeCheckShort)** program sparsuje, typovo skontroluje a vytvorí AST a odvodzovací strom. **$t(actions.run)** urobí to isté a potom term vyhodnotí.\n\nŠípka vpravo vyberá stratégiu vyhodnocovania. V netypovanom režime a v NBL prvé tlačidlo iba parsuje."
         },
         "examples": {
           "title": "Príklady",
@@ -1662,7 +1668,7 @@
         },
         "theories": {
           "title": "Jazyk a rozšírenia",
-          "body": "Ponuka “$t(extensions.trigger)” vyberá základný kalkul: jednoducho typovaný λ-kalkul (STLC), netypovaný λ-kalkul alebo čísla a booleovské hodnoty (NBL, typované aj netypované). Nad STLC môžete zapnúť System F, λω̲, λP, typovú inferenciu, let-polymorfizmus, rekurzívne typy a pohľad Curry–Howard.\n\nV netypovanom režime sa objaví tlačidlo Prelude, ktoré vloží štandardné definície ako true, false, dvojice, číslovky a fix."
+          "body": "Ponuka **$t(extensions.trigger)** vyberá základný kalkul: **$t(extensions.stlcLabel)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.nbl.label)** alebo **$t(extensions.theories.typedNbl.label)**. Nad STLC môžete zapnúť **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** a **$t(extensions.curryHoward.label)**.\n\nV netypovanom režime sa objaví tlačidlo **$t(prelude.trigger)**, ktoré vloží štandardné definície ako true, false, dvojice, číslovky a fix."
         },
         "output": {
           "title": "Výstup",
@@ -1670,19 +1676,19 @@
         },
         "proofTree": {
           "title": "Odvodzovací strom",
-          "body": "“$t(proofTree.tabAutomatic)” zobrazí celé typové odvodenie a pravidlo pri každom kroku. V karte “$t(proofTree.tabBuildCheck)” si ho postavíte sami. So zapnutým Curry–Howardom karta Logika číta ten istý dôkaz ako logiku. Strom sa dá exportovať do LaTeXu."
+          "body": "**$t(proofTree.tabAutomatic)** zobrazí celé typové odvodenie a pravidlo pri každom kroku. V karte **$t(proofTree.tabBuildCheck)** si ho postavíte sami. So zapnutým Curry–Howardom karta **$t(proofTree.tabLogic)** číta ten istý dôkaz ako logiku. Strom sa dá exportovať do LaTeXu."
         },
         "evaluation": {
           "title": "Vyhodnocovanie",
-          "body": "“$t(evalPractice.tabAutomatic)” ukáže každý redukčný krok so zvýrazneným redexom. V karte “$t(evalPractice.tabPractice)” kroky píšete sami a aplikácia ich kontroluje."
+          "body": "**$t(evalPractice.tabAutomatic)** ukáže každý redukčný krok so zvýrazneným redexom. V karte **$t(evalPractice.tabPractice)** kroky píšete sami a aplikácia ich kontroluje."
         },
         "ast": {
           "title": "Abstraktný syntaktický strom",
-          "body": "“$t(astPanel.tabViewer)” nakreslí syntaktický strom termu; podržaním myši nad uzlom sa zvýrazní jeho kód. V karte “$t(astPanel.tabEditor)” zmeníte program úpravou stromu."
+          "body": "**$t(astPanel.tabViewer)** nakreslí syntaktický strom termu; podržaním myši nad uzlom sa zvýrazní jeho kód. V karte **$t(astPanel.tabEditor)** zmeníte program úpravou stromu."
         },
         "layout": {
           "title": "Usporiadanie pracovnej plochy",
-          "body": "Ťahaním kariet panelov ich rozdelíte, zoskupíte alebo presuniete; rozloženie sa zapamätá. Predvolené rozloženia obnovia pripravené usporiadania."
+          "body": "Ťahaním kariet panelov ich rozdelíte, zoskupíte alebo presuniete; rozloženie sa zapamätá. **$t(layoutPresets.trigger)** obnovia pripravené usporiadania."
         },
         "docs": {
           "title": "Učenie",
@@ -1698,7 +1704,7 @@
         },
         "finish": {
           "title": "To je prehľad!",
-          "body": "Každý návod spustíte týmto tlačidlom Návody. Ďalej vyskúšajte praktický návod: napíšete a spustíte svoj prvý program."
+          "body": "Každý návod spustíte týmto tlačidlom **$t(topbar.startTour)**. Ďalej vyskúšajte praktický návod: napíšete a spustíte svoj prvý program."
         }
       },
       "firstProgram": {
@@ -1712,27 +1718,27 @@
         },
         "typeCheck": {
           "title": "Typová kontrola",
-          "body": "Stlačte “$t(actions.typeCheckShort)”. Aplikácia program sparsuje, zistí jeho typ a vytvorí odvodzovací strom."
+          "body": "Stlačte **$t(actions.typeCheckShort)**. Aplikácia program sparsuje, zistí jeho typ a vytvorí odvodzovací strom."
         },
         "proofTree": {
           "title": "Odvodzovací strom",
-          "body": "Tento panel ukazuje, prečo má term svoj typ. Otvorte kartu “$t(proofTree.tabAutomatic)” a uvidíte celé odvodenie: každý riadok je typové pravidlo, číta sa zdola nahor."
+          "body": "Tento panel ukazuje, prečo má term svoj typ. Otvorte kartu **$t(proofTree.tabAutomatic)** a uvidíte celé odvodenie: každý riadok je typové pravidlo, číta sa zdola nahor."
         },
         "mistake": {
           "title": "Urobte chybu",
-          "body": "Teraz program pokazte: v editore zmeňte zvýraznené `Bool` na `Nat`, aby vyzeral takto\n\n`(λ x : Nat . x) true;`\n\na znova stlačte “$t(actions.typeCheckShort)”. Funkcia, ktorá čaká číslo, nemôže dostať `true`."
+          "body": "Teraz program pokazte: v editore zmeňte zvýraznené `Bool` na `Nat`, aby vyzeral takto\n\n`(λ x : Nat . x) true;`\n\na znova stlačte **$t(actions.typeCheckShort)**. Funkcia, ktorá čaká číslo, nemôže dostať `true`."
         },
         "output": {
           "title": "Prečítajte chybu",
-          "body": "Panel Výstup vysvetľuje, čo je zle. Podržte myš nad správou: presné miesto v kóde sa zvýrazní v editore, ktorý zostáva viditeľný vedľa."
+          "body": "Panel **$t(panels.errors)** vysvetľuje, čo je zle. Podržte myš nad správou: presné miesto v kóde sa zvýrazní v editore, ktorý zostáva viditeľný vedľa."
         },
         "fix": {
           "title": "Opravte a spustite",
-          "body": "Zmeňte zvýraznené `Nat` späť na `Bool`:\n\n`(λ x : Bool . x) true;`\n\nTentoraz stlačte “$t(actions.run)” — program sa typovo skontroluje a potom vyhodnotí."
+          "body": "Zmeňte zvýraznené `Nat` späť na `Bool`:\n\n`(λ x : Bool . x) true;`\n\nTentoraz stlačte **$t(actions.run)** — program sa typovo skontroluje a potom vyhodnotí."
         },
         "evaluation": {
           "title": "Výsledok",
-          "body": "Otvorte kartu “$t(evalPractice.tabAutomatic)” a uvidíte, ako sa term krok za krokom zredukoval na hodnotu."
+          "body": "Otvorte kartu **$t(evalPractice.tabAutomatic)** a uvidíte, ako sa term krok za krokom zredukoval na hodnotu."
         },
         "finish": {
           "title": "Výborne!",
@@ -1746,23 +1752,23 @@
         },
         "typeCheck": {
           "title": "Najprv typová kontrola",
-          "body": "Precvičovanie potrebuje typovo správny term. Stlačte “$t(actions.typeCheckShort)”."
+          "body": "Precvičovanie potrebuje typovo správny term. Stlačte **$t(actions.typeCheckShort)**."
         },
         "openPractice": {
           "title": "Otvorte precvičovanie",
-          "body": "Otvorte kartu “$t(proofTree.tabBuildCheck)” v odvodzovacom strome."
+          "body": "Otvorte kartu **$t(proofTree.tabBuildCheck)** v odvodzovacom strome."
         },
         "start": {
           "title": "Začnite stavať",
-          "body": "Stlačte “$t(proofBuilder.modeSemi)”. Tvar stromu je daný a vy vypĺňate jednotlivé uzly."
+          "body": "Stlačte **$t(proofBuilder.modeSemi)**. Tvar stromu je daný a vy vypĺňate jednotlivé uzly."
         },
         "fill": {
           "title": "Vyplňte všetky uzly",
-          "body": "Pri každom uzle kliknite na “$t(proofBuilder.pickRule)” a zvoľte typové pravidlo, ktoré platí — spodný uzol je aplikácia, takže začnite s T-App. Potom doplňte typ každého súdu.\n\nTip: premenná x dostane typ z kontextu Γ a true je Bool. Počítadlo nad stromom ukazuje, koľko uzlov je vyplnených."
+          "body": "Pri každom uzle kliknite na **$t(proofBuilder.pickRule)** a zvoľte typové pravidlo, ktoré platí — spodný uzol je aplikácia, takže začnite s T-App. Potom doplňte typ každého súdu.\n\nTip: premenná x dostane typ z kontextu Γ a true je Bool. Počítadlo nad stromom ukazuje, koľko uzlov je vyplnených."
         },
         "check": {
           "title": "Skontrolujte dôkaz",
-          "body": "Stlačte “$t(proofBuilder.checkProof)”. Správne uzly sa zafarbia na zeleno, nesprávne na červeno."
+          "body": "Stlačte **$t(proofBuilder.checkProof)**. Správne uzly sa zafarbia na zeleno, nesprávne na červeno."
         },
         "result": {
           "title": "Všetko na zeleno",
@@ -1770,11 +1776,11 @@
         },
         "exit": {
           "title": "Opustite staviteľa",
-          "body": "Stlačte “$t(proofBuilder.exit)”. Počas stavania bol editor len na čítanie; teraz sa dá znova upravovať."
+          "body": "Stlačte **$t(proofBuilder.exit)**. Počas stavania bol editor len na čítanie; teraz sa dá znova upravovať."
         },
         "finish": {
           "title": "Dôkaz je hotový!",
-          "body": "Presne toto odvodenie za vás vytvorí typová kontrola v karte “$t(proofTree.tabAutomatic)”. Ďalej: ostatné zobrazenia stromu a export do LaTeXu."
+          "body": "Presne toto odvodenie za vás vytvorí typová kontrola v karte **$t(proofTree.tabAutomatic)**. Ďalej: ostatné zobrazenia stromu a export do LaTeXu."
         }
       },
       "proofViews": {
@@ -1784,39 +1790,39 @@
         },
         "typeCheck": {
           "title": "Typová kontrola",
-          "body": "Stlačte “$t(actions.typeCheckShort)” a strom sa vytvorí."
+          "body": "Stlačte **$t(actions.typeCheckShort)** a strom sa vytvorí."
         },
         "automatic": {
           "title": "Automatický strom",
-          "body": "Otvorte kartu “$t(proofTree.tabAutomatic)”."
+          "body": "Otvorte kartu **$t(proofTree.tabAutomatic)**."
         },
         "hover": {
           "title": "Strom a kód sú prepojené",
-          "body": "Podržte myš nad ľubovoľným súdom v strome: zodpovedajúca časť kódu sa rozsvieti v editore (oba sú tu viditeľné). Prepínač “$t(proofTree.highlightInEditor)” to vypne."
+          "body": "Podržte myš nad ľubovoľným súdom v strome: zodpovedajúca časť kódu sa rozsvieti v editore (oba sú tu viditeľné). Prepínač **$t(proofTree.highlightInEditor)** to vypne."
         },
         "panZoom": {
           "title": "Posun a priblíženie",
-          "body": "Strom posúvate ťahaním, priblížite kolieskom myši alebo tlačidlami na strome. “$t(proofTreeCanvas.centerView)” ho vráti do stredu."
+          "body": "Strom posúvate ťahaním, priblížite kolieskom myši alebo tlačidlami na strome. **$t(proofTreeCanvas.centerView)** ho vráti do stredu."
         },
         "stepByStep": {
           "title": "Krok za krokom",
-          "body": "Zapnite prepínač “$t(proofTree.stepByStep)” nad stromom."
+          "body": "Zapnite prepínač **$t(proofTree.stepByStep)** nad stromom."
         },
         "stepThrough": {
           "title": "Strom pravidlo po pravidle",
-          "body": "Strom teraz začína len cieľovým súdom dole. Tlačidlami “$t(proofTreeCanvas.nextStep)” a “$t(proofTreeCanvas.prevStep)” na strome pridávate alebo uberáte po jednom pravidle — v poradí, v akom by ste ho písali na papier."
+          "body": "Strom teraz začína len cieľovým súdom dole. Tlačidlami **$t(proofTreeCanvas.nextStep)** a **$t(proofTreeCanvas.prevStep)** na strome pridávate alebo uberáte po jednom pravidle — v poradí, v akom by ste ho písali na papier."
         },
         "latex": {
           "title": "Export do LaTeXu",
-          "body": "Tlačidlo s dokumentom na strome otvorí “$t(latexExport.menuLabel)”: “$t(latexExport.preview)”, “$t(latexExport.copy)” alebo “$t(latexExport.downloadTex)”. Export zodpovedá tomu, čo je na obrazovke rozbalené. Vyskúšajte jednu z možností."
+          "body": "Tlačidlo s dokumentom na strome otvorí **$t(latexExport.menuLabel)**: **$t(latexExport.preview)**, **$t(latexExport.copy)** alebo **$t(latexExport.downloadTex)**. Export zodpovedá tomu, čo je na obrazovke rozbalené. Vyskúšajte jednu z možností."
         },
         "openPractice": {
           "title": "Plne manuálne precvičovanie",
-          "body": "Znova otvorte kartu “$t(proofTree.tabBuildCheck)”."
+          "body": "Znova otvorte kartu **$t(proofTree.tabBuildCheck)**."
         },
         "manual": {
           "title": "Plne manuálny režim",
-          "body": "Tentoraz stlačte “$t(proofBuilder.modeManual)”."
+          "body": "Tentoraz stlačte **$t(proofBuilder.modeManual)**."
         },
         "manualHow": {
           "title": "Ako funguje plne manuálny režim",
@@ -1824,15 +1830,15 @@
         },
         "exitManual": {
           "title": "Opustite staviteľa",
-          "body": "Stlačte “$t(proofBuilder.exit)”."
+          "body": "Stlačte **$t(proofBuilder.exit)**."
         },
         "curryHoward": {
           "title": "Zapnite Curry–Howard",
-          "body": "Otvorte ponuku “$t(extensions.trigger)” v hornej lište a zaškrtnite “$t(extensions.curryHoward.label)” v časti “$t(extensions.sections.views)”. Ak bol predtým vypnutý, návod ho po zatvorení znova vypne."
+          "body": "Otvorte ponuku **$t(extensions.trigger)** v hornej lište a zaškrtnite **$t(extensions.curryHoward.label)** v časti **$t(extensions.sections.views)**. Ak bol predtým vypnutý, návod ho po zatvorení znova vypne."
         },
         "logic": {
           "title": "Logický pohľad",
-          "body": "Otvorte novú kartu “$t(proofTree.tabLogic)”. Je to ten istý dôkaz čítaný ako dôkaz v logike: typy sú výroky (→ je implikácia) a term je dôkaz."
+          "body": "Otvorte novú kartu **$t(proofTree.tabLogic)**. Je to ten istý dôkaz čítaný ako dôkaz v logike: typy sú výroky (→ je implikácia) a term je dôkaz."
         },
         "finish": {
           "title": "To sú všetky zobrazenia",
@@ -1846,19 +1852,19 @@
         },
         "enable": {
           "title": "Zapnite typovú inferenciu",
-          "body": "Otvorte ponuku “$t(extensions.trigger)” v hornej lište a zaškrtnite “$t(extensions.theories.typeInference.label)”."
+          "body": "Otvorte ponuku **$t(extensions.trigger)** v hornej lište a zaškrtnite **$t(extensions.theories.typeInference.label)**."
         },
         "typeCheck": {
           "title": "Typová kontrola",
-          "body": "Stlačte “$t(actions.typeCheckShort)”. Tentoraz bez chyby."
+          "body": "Stlačte **$t(actions.typeCheckShort)**. Tentoraz bez chyby."
         },
         "automatic": {
           "title": "Odvodený strom",
-          "body": "Otvorte kartu “$t(proofTree.tabAutomatic)”: f dostalo typ Nat → Nat."
+          "body": "Otvorte kartu **$t(proofTree.tabAutomatic)**: f dostalo typ Nat → Nat."
         },
         "inferenceSteps": {
           "title": "Sledujte riešenie",
-          "body": "Zapnite “$t(proofTree.showInferenceSteps)”. Strom teraz ukazuje typové premenné (X₁, X₂, …), ktoré kontrola zaviedla, ešte pred vyriešením."
+          "body": "Zapnite **$t(proofTree.showInferenceSteps)**. Strom teraz ukazuje typové premenné (X₁, X₂, …), ktoré kontrola zaviedla, ešte pred vyriešením."
         },
         "stepping": {
           "title": "Jedno obmedzenie za druhým",
@@ -1866,7 +1872,7 @@
         },
         "constraints": {
           "title": "Zoznam obmedzení",
-          "body": "Zapnite “$t(proofTree.showConstraintList)” a uvidíte každú rovnicu, ktorú kontrola zozbierala. Kliknutím na ňu skočíte na moment, keď sa vyrieši."
+          "body": "Zapnite **$t(proofTree.showConstraintList)** a uvidíte každú rovnicu, ktorú kontrola zozbierala. Kliknutím na ňu skočíte na moment, keď sa vyrieši."
         },
         "finish": {
           "title": "To je typová inferencia",
@@ -1880,43 +1886,43 @@
         },
         "run": {
           "title": "Spustite ho",
-          "body": "Stlačte “$t(actions.run)”, aby aplikácia poznala správnu redukciu, s ktorou porovná vaše kroky."
+          "body": "Stlačte **$t(actions.run)**, aby aplikácia poznala správnu redukciu, s ktorou porovná vaše kroky."
         },
         "openPractice": {
           "title": "Otvorte precvičovanie",
-          "body": "Otvorte kartu “$t(evalPractice.tabPractice)” v paneli Vyhodnotenie."
+          "body": "Otvorte kartu **$t(evalPractice.tabPractice)** v paneli **$t(panels.evaluation)**."
         },
         "insert": {
           "title": "Vkladajte namiesto prepisovania",
-          "body": "Prvý krok nahradí f v tele `f true` argumentom. Podržte myš nad argumentom `λ y : Bool . y` v terme nad poľom odpovede a stlačte Alt+I (⌥I na Macu): skopíruje sa do vašej odpovede.\n\nPotom odpoveď doplňte, aby znela `(λ y : Bool . y) true`."
+          "body": "Prvý krok nahradí f v tele `f true` argumentom. Podržte myš nad argumentom `λ y : Bool . y` v terme nad poľom odpovede a stlačte [[Alt+I]] ([[⌥I]] na Macu): skopíruje sa do vašej odpovede.\n\nPotom odpoveď doplňte, aby znela `(λ y : Bool . y) true`."
         },
         "check": {
           "title": "Skontrolujte pred pridaním",
-          "body": "Stlačte “$t(evalPractice.check)”. Zelená znamená správny krok; červená vysvetlí, kde je chyba — bez prezradenia odpovede. Je to nepovinné a nič neukladá."
+          "body": "Stlačte **$t(evalPractice.check)**. Zelená znamená správny krok; červená vysvetlí, kde je chyba — bez prezradenia odpovede. Je to nepovinné a nič neukladá."
         },
         "add": {
           "title": "Pridajte krok",
-          "body": "Stlačte “$t(evalPractice.nextStep)” (alebo Enter). Krok sa uloží a otvorí sa prázdne pole pre ďalší."
+          "body": "Stlačte **$t(evalPractice.nextStep)** (alebo [[Enter]]). Krok sa uloží a otvorí sa prázdne pole pre ďalší."
         },
         "stepBack": {
           "title": "Zmena skoršieho kroku",
-          "body": "Ak neskôr nájdete chybu, “$t(evalPractice.stepBack)” (alebo kliknutie na skorší krok) vás k nemu vráti; zmeňte ho a stlačte “$t(evalPractice.saveStep)” — kroky za ním zostanú. Teraz to netreba."
+          "body": "Ak neskôr nájdete chybu, **$t(evalPractice.stepBack)** (alebo kliknutie na skorší krok) vás k nemu vráti; zmeňte ho a stlačte **$t(evalPractice.saveStep)** — kroky za ním zostanú. Teraz to netreba."
         },
         "secondStep": {
           "title": "Druhý krok",
-          "body": "Ešte jedna β-redukcia: identita aplikovaná na true. Napíšte `true` a stlačte “$t(evalPractice.nextStep)”."
+          "body": "Ešte jedna β-redukcia: identita aplikovaná na true. Napíšte `true` a stlačte **$t(evalPractice.nextStep)**."
         },
         "skipping": {
           "title": "Preskakovanie krokov",
-          "body": "Prepínač “$t(evalPractice.allowSkipping)” určuje, či odpoveď smie preskočiť viac krokov naraz. Na prísne precvičovanie po jednom kroku ho vypnite."
+          "body": "Prepínač **$t(evalPractice.allowSkipping)** určuje, či odpoveď smie preskočiť viac krokov naraz. Na prísne precvičovanie po jednom kroku ho vypnite."
         },
         "finishEval": {
           "title": "Dokončenie",
-          "body": "Na `true` už neplatí žiadne pravidlo — je to hodnota. Stlačte “$t(evalPractice.itIsValue)”."
+          "body": "Na `true` už neplatí žiadne pravidlo — je to hodnota. Stlačte **$t(evalPractice.itIsValue)**."
         },
         "result": {
           "title": "Ako ste dopadli",
-          "body": "Každý krok je teraz označený ako správny alebo nie a pod chybou je správny krok. “$t(evalPractice.reopen)” znova otvorí vyhodnocovanie, ak chcete niečo opraviť."
+          "body": "Každý krok je teraz označený ako správny alebo nie a pod chybou je správny krok. **$t(evalPractice.reopen)** znova otvorí vyhodnocovanie, ak chcete niečo opraviť."
         },
         "finish": {
           "title": "Výborne!",
@@ -1930,11 +1936,11 @@
         },
         "run": {
           "title": "Spustenie volaním hodnotou",
-          "body": "Stlačte “$t(actions.run)”. Stratégia je “$t(evalStrategy.CALL_BY_VALUE.label)”, vidno ju na tlačidle."
+          "body": "Stlačte **$t(actions.run)**. Stratégia je **$t(evalStrategy.CALL_BY_VALUE.label)**, vidno ju na tlačidle."
         },
         "automatic": {
           "title": "Redukcia",
-          "body": "Otvorte kartu “$t(evalPractice.tabAutomatic)”."
+          "body": "Otvorte kartu **$t(evalPractice.tabAutomatic)**."
         },
         "stepThrough": {
           "title": "Prejdite ňou",
@@ -1946,15 +1952,15 @@
         },
         "gamma": {
           "title": "Kontext",
-          "body": "Zapnite “$t(evaluationPanel.gammaContext)” a vedľa krokov sa zobrazia definície, ktoré term môže použiť."
+          "body": "Zapnite **$t(evaluationPanel.gammaContext)** a vedľa krokov sa zobrazia definície, ktoré term môže použiť."
         },
         "strategy": {
           "title": "Zmeňte stratégiu",
-          "body": "Otvorte ponuku ⌄ vpravo od “$t(actions.run)” a zvoľte “$t(evalStrategy.NORMAL.label)”."
+          "body": "Otvorte ponuku ⌄ vpravo od **$t(actions.run)** a zvoľte **$t(evalStrategy.NORMAL.label)**."
         },
         "rerun": {
           "title": "Spustite znova",
-          "body": "Znova stlačte “$t(actions.run)” a term sa vyhodnotí stratégiou “$t(evalStrategy.NORMAL.label)”."
+          "body": "Znova stlačte **$t(actions.run)** a term sa vyhodnotí stratégiou **$t(evalStrategy.NORMAL.label)**."
         },
         "compare": {
           "title": "Porovnanie",
@@ -1962,7 +1968,7 @@
         },
         "settings": {
           "title": "Skratky a limity",
-          "body": "“$t(blackBoxes.button)” nechá overené pomocné definície prebehnúť v jednom kroku. Limity (ozubené koleso) zastavia nekonečné vyhodnocovanie po určitom počte krokov alebo keď term priveľmi narastie."
+          "body": "**$t(blackBoxes.button)** nechá overené pomocné definície prebehnúť v jednom kroku. Limity (ozubené koleso) zastavia nekonečné vyhodnocovanie po určitom počte krokov alebo keď term priveľmi narastie."
         },
         "finish": {
           "title": "Výborne!",
@@ -1976,27 +1982,27 @@
         },
         "typeCheck": {
           "title": "Vytvorte strom",
-          "body": "Stlačte “$t(actions.typeCheckShort)”, aby sa vytvoril syntaktický strom programu."
+          "body": "Stlačte **$t(actions.typeCheckShort)**, aby sa vytvoril syntaktický strom programu."
         },
         "viewer": {
           "title": "Prehliadač stromu",
-          "body": "“$t(astPanel.tabViewer)” kreslí strom: aplikácia hore, λ-abstrakcia a `true` pod ňou. Podržte myš nad uzlom — jeho kód sa rozsvieti v editore, ktorý je tu viditeľný."
+          "body": "**$t(astPanel.tabViewer)** kreslí strom: aplikácia hore, λ-abstrakcia a `true` pod ňou. Podržte myš nad uzlom — jeho kód sa rozsvieti v editore, ktorý je tu viditeľný."
         },
         "openEditor": {
           "title": "Otvorte editor",
-          "body": "Otvorte kartu “$t(astPanel.tabEditor)” v paneli AST."
+          "body": "Otvorte kartu **$t(astPanel.tabEditor)** v paneli **$t(panels.ast)**."
         },
         "fromViewer": {
           "title": "Načítajte strom",
-          "body": "Stlačte “$t(astPanel.btnCopyFromViewer)”: strom z prehliadača sa sem načíta ako upraviteľné karty."
+          "body": "Stlačte **$t(astPanel.btnCopyFromViewer)**: strom z prehliadača sa sem načíta ako upraviteľné karty."
         },
         "edit": {
           "title": "Upravte uzol",
-          "body": "Nájdite žltú kartu Literal s hodnotou `true`, kliknite do jej poľa a zmeňte ju na `false`."
+          "body": "Nájdite žltú kartu **Literal** s hodnotou `true`, kliknite do jej poľa a zmeňte ju na `false`."
         },
         "paste": {
           "title": "Späť na kód",
-          "body": "Stlačte “$t(astPanel.btnPasteToEditor)”: strom sa zmení späť na kód a zapíše do editora, kde teraz je `(λ x : Bool . x) false;`."
+          "body": "Stlačte **$t(astPanel.btnPasteToEditor)**: strom sa zmení späť na kód a zapíše do editora, kde teraz je `(λ x : Bool . x) false;`."
         },
         "build": {
           "title": "Stavanie od nuly",
@@ -2014,11 +2020,11 @@
         },
         "switch": {
           "title": "Prepnite jazyk",
-          "body": "V netypovanom λ-kalkule nie sú žiadne typy: `λ x . x` prijme čokoľvek a čísla či booleovské hodnoty sa zapisujú ako funkcie (Churchove kódovania).\n\nOtvorte ponuku “$t(extensions.trigger)” v hornej lište a v časti “$t(extensions.sections.base)” zvoľte “$t(extensions.theories.untyped.label)”."
+          "body": "V jazyku **$t(extensions.theories.untyped.label)** nie sú žiadne typy: `λ x . x` prijme čokoľvek a čísla či booleovské hodnoty sa zapisujú ako funkcie (Churchove kódovania).\n\nOtvorte ponuku **$t(extensions.trigger)** v hornej lište a v časti **$t(extensions.sections.base)** zvoľte **$t(extensions.theories.untyped.label)**."
         },
         "prelude": {
           "title": "Vložte Prelude",
-          "body": "V hornej lište sa objavilo tlačidlo “$t(prelude.trigger)”. Stlačte ho: na začiatok editora sa pridajú štandardné definície — booleovské hodnoty, dvojice, číslovky zero…three, plus, times, pred, Y a fix — ako obyčajný kód, ktorý môžete čítať aj meniť."
+          "body": "V hornej lište sa objavilo tlačidlo **$t(prelude.trigger)**. Stlačte ho: na začiatok editora sa pridajú štandardné definície — booleovské hodnoty, dvojice, číslovky zero…three, plus, times, pred, Y a fix — ako obyčajný kód, ktorý môžete čítať aj meniť."
         },
         "write": {
           "title": "Napíšte term",
@@ -2026,19 +2032,19 @@
         },
         "run": {
           "title": "Spustite ho",
-          "body": "Stlačte “$t(actions.run)”. Návod nastavil stratégiu “$t(evalStrategy.NORMAL.label)”, lebo Churchove čísla sa úplne zredukujú len pri nej."
+          "body": "Stlačte **$t(actions.run)**. Návod nastavil stratégiu **$t(evalStrategy.NORMAL.label)**, lebo Churchove čísla sa úplne zredukujú len pri nej."
         },
         "result": {
           "title": "1 + 2 = 3",
-          "body": "Otvorte kartu “$t(evalPractice.tabAutomatic)” a prejdite na posledný krok: výsledok `λ s . λ z . s (s (s z))` je rozpoznaný ako Churchovo číslo 3."
+          "body": "Otvorte kartu **$t(evalPractice.tabAutomatic)** a prejdite na posledný krok: výsledok `λ s . λ z . s (s (s z))` je rozpoznaný ako Churchovo číslo 3."
         },
         "syntax": {
           "title": "Syntaktické odvodenie",
-          "body": "Bez typov neexistuje typové odvodenie. Strom namiesto toho dokazuje, že term je správne utvorený λ-term. Otvorte kartu “$t(proofTree.tabSyntax)”."
+          "body": "Bez typov neexistuje typové odvodenie. Strom namiesto toho dokazuje, že term je správne utvorený λ-term. Otvorte kartu **$t(proofTree.tabSyntax)**."
         },
         "syntaxPractice": {
           "title": "Precvičte si ho",
-          "body": "V karte “$t(proofTree.tabBuildCheck)” si toto odvodenie postavíte sami: pre každý uzol vyberte pravidlo a jeho premisy sa objavia automaticky."
+          "body": "V karte **$t(proofTree.tabBuildCheck)** si toto odvodenie postavíte sami: pre každý uzol vyberte pravidlo a jeho premisy sa objavia automaticky."
         },
         "finish": {
           "title": "To je netypovaný λ-kalkul",
