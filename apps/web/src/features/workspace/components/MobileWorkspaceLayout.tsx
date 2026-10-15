@@ -18,7 +18,7 @@ import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTree
 import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {setTermText, severityOf} from "@/shared/ui-state/termSlice.ts";
+import {DEFAULT_TERM_TEXT, setTermText, severityOf} from "@/shared/ui-state/termSlice.ts";
 import {registerPanelOpener} from "@/shared/ui-state/outputPanel.ts";
 
 type PrimaryTab = "editor" | "errors" | "results";
@@ -89,7 +89,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
             <TextEditor
               ref={editorRef}
               className="h-full"
-              defaultValue={termText ?? "a : T; (λ x : T . (x) ) a;"}
+              defaultValue={termText ?? DEFAULT_TERM_TEXT}
               height="100%"
               language="lambda"
               readOnly={buildModeActive}

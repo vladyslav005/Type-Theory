@@ -6,7 +6,7 @@ import {EvaluationVisualisation} from "@/features/evaluation/components/Evaluati
 import {ProofTreeVisualisation} from "@/features/proof-tree/components/ProofTreeVisualisation.tsx";
 import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisation.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
-import {setTermText} from "@/shared/ui-state/termSlice.ts";
+import {DEFAULT_TERM_TEXT, setTermText} from "@/shared/ui-state/termSlice.ts";
 import {useViewTime, ViewVisibleContext} from "@/shared/activity/activityClock.ts";
 
 function VisiblePanel({api, children}: {api: DockviewPanelApi; children: ReactNode}) {
@@ -39,7 +39,7 @@ export function EditorPanel({params, api}: IDockviewPanelProps<EditorPanelParams
         // eslint-disable-next-line react-hooks/refs -- ref created via useRef in AppLayout, threaded through dockview panel params
         ref={params.editorRef}
         className="h-full"
-        defaultValue={termText ?? "a : T; (λ x : T . (x) ) a;"}
+        defaultValue={termText ?? DEFAULT_TERM_TEXT}
         height="100%"
         language="lambda"
         readOnly={buildModeActive}

@@ -980,7 +980,7 @@
       }
     },
     "ctaOpen": "Open the playground",
-    "ctaGuide": "Learn the theory",
+    "ctaGuide": "Study materials",
     "exploreHeading": "Start exploring",
     "exploreLead": "Short, hands-on pages that pair the theory with things to try in the editor.",
     "explore": {
@@ -1611,7 +1611,7 @@
         },
         "theories": {
           "title": "Language and extensions",
-          "body": "The **$t(extensions.trigger)** menu chooses the base calculus: **$t(extensions.stlcLabel)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.nbl.label)** or **$t(extensions.theories.typedNbl.label)**. On top of STLC you can turn on **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** and **$t(extensions.curryHoward.label)**.\n\nIn untyped mode a **$t(prelude.trigger)** button appears that inserts standard definitions such as true, false, pairs, numerals and fix."
+          "body": "The **$t(extensions.trigger)** menu chooses the base calculus: **$t(extensions.theories.nbl.label)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.typedNbl.label)** or **$t(extensions.stlcLabel)**. On top of STLC you can turn on **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** and **$t(extensions.curryHoward.label)**.\n\nIn untyped mode a **$t(prelude.trigger)** button appears that inserts standard definitions such as true, false, pairs, numerals and fix."
         },
         "output": {
           "title": "Output",

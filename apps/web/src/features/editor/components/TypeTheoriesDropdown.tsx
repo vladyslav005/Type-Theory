@@ -20,13 +20,14 @@ import { STLC_FEATURES, TYPE_THEORIES, type TypeTheoryId } from "@vladyslav005/t
 import { useAppDispatch, useAppSelector } from "@/shared/hooks/reduxHooks.ts";
 import { setCurryHoward, setRequireTermType, setStlcFeature, setTheoryEnabled } from "@/shared/ui-state/termSlice.ts";
 
-const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["untyped", "nbl", "typedNbl"];
+// Simplest first: the bases are listed in the order the course introduces them, STLC last.
+const EXCLUSIVE_THEORY_IDS: TypeTheoryId[] = ["nbl", "untyped", "typedNbl"];
 const CUBE_THEORY_IDS: TypeTheoryId[] = ["systemF", "systemFOmega", "systemLambdaP"];
 
 type Base = "stlc" | "untyped" | "nbl" | "typedNbl";
 
 function SectionLabel({children}: {children: ReactNode}) {
-  return <DropdownMenuLabel className="px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{children}</DropdownMenuLabel>;
+  return <DropdownMenuLabel className="whitespace-nowrap px-2 pt-2 pb-1 text-xs font-medium text-muted-foreground">{children}</DropdownMenuLabel>;
 }
 
 // Shows the description of whichever item is focused (Radix focuses items on hover), so rows stay one line.
@@ -34,7 +35,8 @@ function DescriptionStrip({text}: {text: string}) {
   return (
     <>
       <DropdownMenuSeparator />
-      <p className="min-h-[3.25rem] px-2 py-1.5 text-xs leading-snug text-muted-foreground">{text}</p>
+      {/* w-0 min-w-full: wraps to the menu's width instead of widening it. */}
+      <p className="w-0 min-w-full min-h-[3.25rem] px-2 py-1.5 text-xs leading-snug text-muted-foreground">{text}</p>
     </>
   );
 }
@@ -52,7 +54,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
   const requireTermType = useAppSelector((state) => state.term.requireTermType);
   const termTypeExempt = enabledTheories.typeInference || enabledTheories.letPolymorphism;
   const base: Base = enabledTheories.untyped ? "untyped" : enabledTheories.nbl ? "nbl" : enabledTheories.typedNbl ? "typedNbl" : "stlc";
-  const exclusiveTheories = TYPE_THEORIES.filter((theory) => EXCLUSIVE_THEORY_IDS.includes(theory.id));
+  const exclusiveTheories = EXCLUSIVE_THEORY_IDS.map((id) => TYPE_THEORIES.find((theory) => theory.id === id)!);
   const addOns = TYPE_THEORIES.filter((theory) => !EXCLUSIVE_THEORY_IDS.includes(theory.id));
   const cubeTheories = addOns.filter((theory) => CUBE_THEORY_IDS.includes(theory.id));
   const extensions = addOns.filter((theory) => !CUBE_THEORY_IDS.includes(theory.id));
@@ -87,7 +89,7 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
       >
         {t("extensions.requireTermType.label")}
       </DropdownMenuCheckboxItem>
-      {termTypeExempt && <p className="px-2 pb-1 pl-8 text-[11px] leading-snug text-muted-foreground">{t("extensions.requireTermType.exempt")}</p>}
+      {termTypeExempt && <p className="w-0 min-w-full px-2 pb-1 pl-8 text-[11px] leading-snug text-muted-foreground">{t("extensions.requireTermType.exempt")}</p>}
     </>
   );
 
@@ -109,8 +111,21 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
           <ChevronDown className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
+      <DropdownMenuContent align="end" className="w-max min-w-64 max-w-[calc(100vw-2rem)] [&_[role^=menuitem]]:whitespace-nowrap">
         <SectionLabel>{t("extensions.sections.base")}</SectionLabel>
+        <DropdownMenuRadioGroup value={base} onValueChange={chooseBase}>
+          {exclusiveTheories.map((theory) => (
+            <DropdownMenuRadioItem
+              key={theory.id}
+              value={theory.id}
+              disabled={curryHoward}
+              onSelect={(e) => e.preventDefault()}
+              {...describe(theoryDescription(theory.id, theory.description))}
+            >
+              {theoryLabel(theory.id, theory.label)}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger
@@ -122,10 +137,10 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
             <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
               {base === "stlc" && <Circle className="size-2 fill-current text-foreground" />}
             </span>
-            <span className="truncate">{t("extensions.stlcLabel")}</span>
+            <span>{t("extensions.stlcLabel")}</span>
             <span className="ml-auto pl-2 text-[11px] text-muted-foreground">{enabledFeatureCount}/{STLC_FEATURES.length}</span>
           </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="w-60">
+          <DropdownMenuSubContent className="w-max min-w-60 max-w-[calc(100vw-2rem)] [&_[role^=menuitem]]:whitespace-nowrap">
             <SectionLabel>{t("extensions.stlcFeatures.trigger")}</SectionLabel>
             {STLC_FEATURES.map((feature) => (
               <DropdownMenuCheckboxItem
@@ -142,20 +157,6 @@ export function TypeTheoriesDropdown({disabled = false}: TypeTheoriesDropdownPro
             <DescriptionStrip text={featureDescription ?? t("extensions.stlcFeatures.hint")}/>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
-
-        <DropdownMenuRadioGroup value={base} onValueChange={chooseBase}>
-          {exclusiveTheories.map((theory) => (
-            <DropdownMenuRadioItem
-              key={theory.id}
-              value={theory.id}
-              disabled={curryHoward}
-              onSelect={(e) => e.preventDefault()}
-              {...describe(theoryDescription(theory.id, theory.description))}
-            >
-              {theoryLabel(theory.id, theory.label)}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
 
         <AnimatePresence initial={false}>
           {base === "stlc" && (

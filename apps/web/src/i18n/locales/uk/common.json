@@ -996,7 +996,7 @@
       }
     },
     "ctaOpen": "Відкрити середовище",
-    "ctaGuide": "Вивчити теорію",
+    "ctaGuide": "Навчальні матеріали",
     "exploreHeading": "Почніть досліджувати",
     "exploreLead": "Короткі практичні сторінки, що поєднують теорію з тим, що можна спробувати в редакторі.",
     "explore": {
@@ -1673,7 +1673,7 @@
         },
         "theories": {
           "title": "Мова та розширення",
-          "body": "Меню **$t(extensions.trigger)** обирає базове числення: **$t(extensions.stlcLabel)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.nbl.label)** або **$t(extensions.theories.typedNbl.label)**. Поверх STLC можна ввімкнути **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** та **$t(extensions.curryHoward.label)**.\n\nУ нетипізованому режимі з'являється кнопка **$t(prelude.trigger)**, яка вставляє стандартні визначення: true, false, пари, числа та fix."
+          "body": "Меню **$t(extensions.trigger)** обирає базове числення: **$t(extensions.theories.nbl.label)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.typedNbl.label)** або **$t(extensions.stlcLabel)**. Поверх STLC можна ввімкнути **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** та **$t(extensions.curryHoward.label)**.\n\nУ нетипізованому режимі з'являється кнопка **$t(prelude.trigger)**, яка вставляє стандартні визначення: true, false, пари, числа та fix."
         },
         "output": {
           "title": "Вивід",

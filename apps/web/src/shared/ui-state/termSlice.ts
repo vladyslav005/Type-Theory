@@ -98,6 +98,10 @@ export const APP_DEFAULT_STLC_FEATURES: StlcFeatureConfig = {
   lists: false,
 };
 
+// First open starts with the simplest calculus; a saved choice always wins (see persistTermState).
+export const APP_DEFAULT_THEORIES: TypeTheoryConfig = {...DEFAULT_TYPE_THEORY_CONFIG, untyped: true};
+export const DEFAULT_TERM_TEXT = "(λ x . x) (λ y . y);";
+
 export const initialTermState: TermState = {
   termText: undefined,
   processingErrors: undefined,
@@ -112,7 +116,7 @@ export const initialTermState: TermState = {
   evaluating: false,
   building: false,
   builtText: undefined,
-  enabledTheories: DEFAULT_TYPE_THEORY_CONFIG,
+  enabledTheories: APP_DEFAULT_THEORIES,
   curryHoward: false,
   stlcFeatures: APP_DEFAULT_STLC_FEATURES,
   requireTermType: false,

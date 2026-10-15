@@ -995,7 +995,7 @@
       }
     },
     "ctaOpen": "Otvoriť prostredie",
-    "ctaGuide": "Naučiť sa teóriu",
+    "ctaGuide": "Študijné materiály",
     "exploreHeading": "Začnite objavovať",
     "exploreLead": "Krátke praktické stránky, ktoré spájajú teóriu s vecami na vyskúšanie v editore.",
     "explore": {
@@ -1668,7 +1668,7 @@
         },
         "theories": {
           "title": "Jazyk a rozšírenia",
-          "body": "Ponuka **$t(extensions.trigger)** vyberá základný kalkul: **$t(extensions.stlcLabel)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.nbl.label)** alebo **$t(extensions.theories.typedNbl.label)**. Nad STLC môžete zapnúť **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** a **$t(extensions.curryHoward.label)**.\n\nV netypovanom režime sa objaví tlačidlo **$t(prelude.trigger)**, ktoré vloží štandardné definície ako true, false, dvojice, číslovky a fix."
+          "body": "Ponuka **$t(extensions.trigger)** vyberá základný kalkul: **$t(extensions.theories.nbl.label)**, **$t(extensions.theories.untyped.label)**, **$t(extensions.theories.typedNbl.label)** alebo **$t(extensions.stlcLabel)**. Nad STLC môžete zapnúť **$t(extensions.theories.systemF.label)**, **$t(extensions.theories.systemFOmega.label)**, **$t(extensions.theories.systemLambdaP.label)**, **$t(extensions.theories.typeInference.label)**, **$t(extensions.theories.letPolymorphism.label)**, **$t(extensions.theories.isoRecursiveTypes.label)** a **$t(extensions.curryHoward.label)**.\n\nV netypovanom režime sa objaví tlačidlo **$t(prelude.trigger)**, ktoré vloží štandardné definície ako true, false, dvojice, číslovky a fix."
         },
         "output": {
           "title": "Výstup",
