@@ -57,6 +57,7 @@ export function RunButton({onClick, className}: RunButtonProps) {
 
   return (
     <ButtonGroup
+      data-tour="run"
       className={cn(
         "shadow-lg transition-all duration-300 hover:shadow-xl",
         className

@@ -9,6 +9,7 @@ import {
   ExternalLink,
   FileCode,
   FileDown,
+  Github,
   Binary,
   Layers,
   Library,
@@ -114,7 +115,13 @@ export function HomePage() {
               <Link to="/docs">{t("home.ctaGuide")}</Link>
             </Button>
           </div>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+              <a href="https://github.com/vladyslav005/Type-Theory" target="_blank" rel="noopener noreferrer">
+                <Github className="mr-2 h-4 w-4" />
+                {t("home.sourceOnGithub")}
+              </a>
+            </Button>
             <Button variant="ghost" size="sm" className="text-muted-foreground" disabled>
               <FileCode className="mr-2 h-4 w-4" />
               {t("home.readThesis")}

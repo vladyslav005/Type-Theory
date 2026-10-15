@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {signalTour} from "@/features/tour/tourSignals.ts";
 import {useTranslation} from "react-i18next";
 import {Copy, Download, Eye, FileText} from "lucide-react";
 import {toast} from "sonner";
@@ -64,6 +65,7 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
             variant="secondary"
             className="shadow-lg hover:shadow-xl transition-shadow"
             title={t("latexExport.trigger")}
+            data-tour="latex-export"
           >
             <FileText className="h-4 w-4"/>
           </Button>
@@ -71,15 +73,15 @@ export function ExportLatexButtons({buildTree, filename}: ExportLatexButtonsProp
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{t("latexExport.menuLabel")}</DropdownMenuLabel>
           <DropdownMenuSeparator/>
-          <DropdownMenuItem onSelect={() => setPreviewOpen(true)}>
+          <DropdownMenuItem onSelect={() => { setPreviewOpen(true); signalTour("latexExport"); }}>
             <Eye className="h-4 w-4"/>
             {t("latexExport.preview")}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={copy}>
+          <DropdownMenuItem onSelect={() => { void copy(); signalTour("latexExport"); }}>
             <Copy className="h-4 w-4"/>
             {t("latexExport.copy")}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={download}>
+          <DropdownMenuItem onSelect={() => { download(); signalTour("latexExport"); }}>
             <Download className="h-4 w-4"/>
             {t("latexExport.downloadTex")}
           </DropdownMenuItem>

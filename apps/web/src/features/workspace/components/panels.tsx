@@ -33,7 +33,7 @@ export function EditorPanel({params, api}: IDockviewPanelProps<EditorPanelParams
   const termText = useAppSelector((state) => state.term.termText);
 
   return (
-    <div className="h-full p-2">
+    <div data-tour="panel-editor" className="h-full p-2">
       <VisiblePanel api={api}><ViewTime view="editor"/></VisiblePanel>
       <TextEditor
         // eslint-disable-next-line react-hooks/refs -- ref created via useRef in AppLayout, threaded through dockview panel params
@@ -51,7 +51,7 @@ export function EditorPanel({params, api}: IDockviewPanelProps<EditorPanelParams
 
 export function ErrorOutputPanel({params, api}: IDockviewPanelProps<EditorPanelParams>) {
   return (
-    <div className="h-full overflow-auto p-2">
+    <div data-tour="panel-errorOutput" className="h-full overflow-auto p-2">
       <VisiblePanel api={api}>
         <ViewTime view="errors"/>
         <ErrorOutput className="h-full" editorRef={params.editorRef}/>
@@ -62,7 +62,7 @@ export function ErrorOutputPanel({params, api}: IDockviewPanelProps<EditorPanelP
 
 export function EvaluationPanel({api}: IDockviewPanelProps) {
   return (
-    <div className="h-full overflow-auto p-2">
+    <div data-tour="panel-evaluation" className="h-full overflow-auto p-2">
       <VisiblePanel api={api}><EvaluationVisualisation className="h-full"/></VisiblePanel>
     </div>
   );
@@ -70,7 +70,7 @@ export function EvaluationPanel({api}: IDockviewPanelProps) {
 
 export function ProofTreePanel({params, api}: IDockviewPanelProps<EditorPanelParams>) {
   return (
-    <div className="h-full overflow-auto p-2">
+    <div data-tour="panel-proofTree" className="h-full overflow-auto p-2">
       <VisiblePanel api={api}><ProofTreeVisualisation className="h-full" editorRef={params.editorRef}/></VisiblePanel>
     </div>
   );
@@ -78,7 +78,7 @@ export function ProofTreePanel({params, api}: IDockviewPanelProps<EditorPanelPar
 
 export function AstPanel({params, api}: IDockviewPanelProps<EditorPanelParams>) {
   return (
-    <div className="h-full overflow-auto p-2">
+    <div data-tour="panel-ast" className="h-full overflow-auto p-2">
       <VisiblePanel api={api}><ViewTime view="ast"/></VisiblePanel>
       <LazyAstVisualisation className="h-full" editorRef={params.editorRef}/>
     </div>

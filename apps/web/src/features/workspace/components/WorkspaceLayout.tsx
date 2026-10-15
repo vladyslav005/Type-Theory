@@ -32,7 +32,7 @@ import {clearPendingLayoutPreset} from "@/shared/ui-state/workspaceLayoutSlice.t
 import {useMediaQuery} from "@/shared/hooks/useMediaQuery.ts";
 import {MobileWorkspaceLayout} from "@/features/workspace/components/MobileWorkspaceLayout.tsx";
 import {useOutputToasts} from "@/features/error-output/useOutputToasts.ts";
-import {registerOutputOpener} from "@/shared/ui-state/outputPanel.ts";
+import {registerPanelOpener} from "@/shared/ui-state/outputPanel.ts";
 import "dockview-react/dist/styles/dockview.css";
 import "./workspace.css";
 
@@ -52,7 +52,7 @@ function isRestorableLayout(data: SerializedDockview | undefined): data is Seria
 
 // No panel-add UI exists yet, so a closed panel would be unrecoverable — hide the close button until one does.
 function WorkspaceTab(props: IDockviewPanelHeaderProps) {
-  return <DockviewDefaultTab {...props} hideClose/>;
+  return <DockviewDefaultTab {...props} hideClose data-tour={`tab-${props.api.id}`}/>;
 }
 
 export interface WorkspaceLayoutProps {
@@ -80,7 +80,7 @@ export function WorkspaceLayout({className}: WorkspaceLayoutProps) {
   // Mobile registers its own opener; registering here too would override it (parent effects run last).
   useEffect(() => {
     if (isMobile) return;
-    return registerOutputOpener(() => apiRef.current?.getPanel("errorOutput")?.api.setActive());
+    return registerPanelOpener((panel) => apiRef.current?.getPanel(panel)?.api.setActive());
   }, [isMobile]);
 
   // A restored/serialized panel's `params` can't carry a live React ref through JSON, so the

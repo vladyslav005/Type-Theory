@@ -165,10 +165,10 @@ export function ProofTreeVisualisation({
             <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
               <Tabs value={effectiveTab} onValueChange={(v) => runBusy("proofTree", () => setActiveTab(v as ProofTreeTab))}>
                 <TabsList className="h-auto flex-wrap justify-start gap-1 p-1">
-                  <Tip label={t("proofTree.tabBuildCheckTip")}><TabsTrigger value="build-check">{t("proofTree.tabBuildCheck")}</TabsTrigger></Tip>
-                  <Tip label={t(noTypes ? "proofTree.tabSyntaxTip" : "proofTree.tabAutomaticTip")}><TabsTrigger value="automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger></Tip>
+                  <Tip label={t("proofTree.tabBuildCheckTip")}><TabsTrigger value="build-check" data-tour="proof-tab-practice">{t("proofTree.tabBuildCheck")}</TabsTrigger></Tip>
+                  <Tip label={t(noTypes ? "proofTree.tabSyntaxTip" : "proofTree.tabAutomaticTip")}><TabsTrigger value="automatic" data-tour="proof-tab-automatic">{t(noTypes ? "proofTree.tabSyntax" : "proofTree.tabAutomatic")}</TabsTrigger></Tip>
                   {curryHoward && (logicAvailable ? (
-                    <Tip label={t("proofTree.tabLogicTip")}><TabsTrigger value="logic">{t("proofTree.tabLogic")}</TabsTrigger></Tip>
+                    <Tip label={t("proofTree.tabLogicTip")}><TabsTrigger value="logic" data-tour="proof-tab-logic">{t("proofTree.tabLogic")}</TabsTrigger></Tip>
                   ) : (
                     <TooltipProvider>
                       <Tooltip>
@@ -191,6 +191,7 @@ export function ProofTreeVisualisation({
                       <div className="flex items-center gap-2">
                         <Switch
                           id="show-inference-steps"
+                          data-tour="proof-inference-steps"
                           checked={showInferenceSteps}
                           onCheckedChange={(checked) => {
                             setShowInferenceSteps(checked);
@@ -211,6 +212,7 @@ export function ProofTreeVisualisation({
                 <div className="flex items-center gap-2">
                   <Switch
                     id="show-constraint-list"
+                    data-tour="proof-constraint-list"
                     checked={showConstraintList}
                     onCheckedChange={setShowConstraintList}
                   />
@@ -222,7 +224,7 @@ export function ProofTreeVisualisation({
 
               {effectiveTab === "automatic" && (hasProof || syntaxTree) && !isInferenceStepping && (
                 <div className="flex items-center gap-2">
-                  <Switch id="step-by-step" checked={stepByStep} onCheckedChange={setStepByStep}/>
+                  <Switch id="step-by-step" data-tour="proof-step-by-step" checked={stepByStep} onCheckedChange={setStepByStep}/>
                   <Label htmlFor="step-by-step" className="text-sm text-muted-foreground whitespace-nowrap">
                     {t("proofTree.stepByStep")}
                   </Label>

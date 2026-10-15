@@ -1,4 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from "react";
+import {signalTour} from "@/features/tour/tourSignals.ts";
 import type {ChangeEvent} from "react";
 import {useTranslation} from "react-i18next";
 import {useAppSelector} from "@/shared/hooks/reduxHooks.ts";
@@ -102,6 +103,7 @@ export function AstVisualisation({
   const pasteAstToEditor = () => {
     try {
       editorRef?.current?.setValue(astToText(editorAst));
+      signalTour("astPasted");
     } catch (e) {
       console.error("Failed to paste AST into editor", e);
     }
@@ -114,6 +116,7 @@ export function AstVisualisation({
     newGraph.nodes.forEach((node) => {node.data.editable = true;});
     setGraph(layoutAstFlow(newGraph.nodes, newGraph.edges));
     astEditorRef.current?.requestFitView();
+    signalTour("astFromViewer");
   };
 
   const loadEditorAst = (program: Program) => {
@@ -168,8 +171,8 @@ export function AstVisualisation({
             <div className="flex items-center gap-2 flex-nowrap overflow-x-auto min-w-0 flex-1">
               <Tabs value={activeTab} onValueChange={(v) => runBusy("ast", () => setActiveTab(v as AstTab))}>
                 <TabsList className="shrink-0">
-                  <TabsTrigger value="viewer">{t("astPanel.tabViewer")}</TabsTrigger>
-                  <TabsTrigger value="editor">{t("astPanel.tabEditor")}</TabsTrigger>
+                  <TabsTrigger value="viewer" data-tour="ast-tab-viewer">{t("astPanel.tabViewer")}</TabsTrigger>
+                  <TabsTrigger value="editor" data-tour="ast-tab-editor">{t("astPanel.tabEditor")}</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -194,7 +197,7 @@ export function AstVisualisation({
                   <div className="flex items-center gap-3">
                     {!editorPreview && (
                       <>
-                        <ButtonGroup>
+                        <ButtonGroup data-tour="ast-palette">
                           <AstNodePaletteDropdowns onInsert={(type) => astEditorRef.current?.addStandaloneNode(type)} allowedTypes={allowedNodeTypes}/>
                         </ButtonGroup>
 
@@ -215,7 +218,7 @@ export function AstVisualisation({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-1.5" onClick={copyFromViewer} disabled={!viewerAst || editorPreview}>
+                          <Button variant="outline" size="sm" className="gap-1.5" data-tour="ast-from-viewer" onClick={copyFromViewer} disabled={!viewerAst || editorPreview}>
                             <Download className="h-3.5 w-3.5" />
                             {t("astPanel.btnCopyFromViewer")}
                           </Button>
@@ -258,7 +261,7 @@ export function AstVisualisation({
 
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button size="sm" className="gap-1.5" onClick={pasteAstToEditor} disabled={!editorRef}>
+                        <Button size="sm" className="gap-1.5" data-tour="ast-paste" onClick={pasteAstToEditor} disabled={!editorRef}>
                           <ClipboardPaste className="h-3.5 w-3.5" />
                           {t("astPanel.btnPasteToEditor")}
                         </Button>

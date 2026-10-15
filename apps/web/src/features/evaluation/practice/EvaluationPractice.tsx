@@ -18,6 +18,7 @@ import type {FeedbackMessage} from "@/features/proof-tree/feedback/feedback.ts";
 import {setEvaluationPracticeSnapshot} from "@/shared/lib/studentWorkSnapshot.ts";
 import {trackPractice, trackReveal} from "@/shared/activity/taskTracking.ts";
 import {usePracticeSession} from "@/shared/activity/practiceSession.ts";
+import {signalTour} from "@/features/tour/tourSignals.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 
 interface EvaluationPracticeProps {
@@ -294,6 +295,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
     if (!written) return;
     trackPractice(taskId, {type: "step", ok: valid(position, written)});
     if (!taskId) session.update((entry) => ({...entry, steps: (entry.steps ?? 0) + 1}));
+    signalTour("evalStep");
     const updated = [...rows];
     updated[cursor] = {text, term: written};
     setRows(updated);
@@ -324,6 +326,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
     const written = read(text);
     if (!written) return;
     if (!taskId) session.update((entry) => ({...entry, checks: entry.checks + 1}));
+    signalTour("evalCheck");
     if (valid(position, written)) {
       trackPractice(taskId, {type: "check", outcome: "match"});
       setHintOk(true);
@@ -339,6 +342,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
     const allCorrect = rows.every((_, i) => isCorrect(i)) && claim === actualEnding;
     trackPractice(taskId, {type: "completed", allCorrect});
     if (!taskId) session.update((entry) => ({...entry, finished: true, allCorrect}));
+    signalTour("evalFinished");
     setEnding(claim);
     setShowSolution(false);
     setFeedback([]);
@@ -353,7 +357,10 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
     moveTo(0, 0);
   };
 
-  const insertText = (raw: string) => inputRef.current?.insert(raw);
+  const insertText = (raw: string) => {
+    inputRef.current?.insert(raw);
+    signalTour("evalInsert");
+  };
 
   const insertFrom = (root: Term) => ({onPick: (id: string) => { const sub = findTermById(root, id); if (sub) insertText(termKey(sub)); }});
 
@@ -467,7 +474,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
         {anyOrder ? t("evalPractice.instructionAny") : t("evalPractice.instruction", {strategy: t(`evalStrategy.${strategy}.label`)})}
       </p>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2" data-tour="eval-input">
         {contextPanel}
         <LabEditor
           handleRef={inputRef}
@@ -497,7 +504,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
       <div className="flex flex-wrap items-center justify-between gap-2">
         {cursor > 0 ? (
           <Tip label={t("evalPractice.tip.back")}>
-            <Button size="sm" variant="ghost" className="gap-1 px-2" onClick={() => moveTo(cursor - 1)}>
+            <Button size="sm" variant="ghost" className="gap-1 px-2" data-tour="eval-step-back" onClick={() => { moveTo(cursor - 1); signalTour("evalStepBack"); }}>
               <Undo2 className="h-3.5 w-3.5"/>
               {t("evalPractice.stepBack")}
             </Button>
@@ -507,7 +514,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
           {atEnd && (
             <>
               <Tip label={t(anyOrder ? "evalPractice.tip.normalForm" : "evalPractice.tip.value")}>
-                <Button size="sm" variant="outline" className="gap-1" onClick={() => decide("value")}>
+                <Button size="sm" variant="outline" className="gap-1" data-tour="eval-finish" onClick={() => decide("value")}>
                   <Flag className="h-3.5 w-3.5"/>
                   {t(anyOrder ? "evalPractice.itIsNormalForm" : "evalPractice.itIsValue")}
                 </Button>
@@ -523,7 +530,7 @@ function EvaluationPracticeView({evaluation, typeAliases, taskId, strategyMode =
             </>
           )}
           <Tip label={t("evalPractice.tip.check")}>
-            <Button size="sm" variant="outline" className="gap-1" disabled={!input.trim()} onClick={check}>
+            <Button data-tour="eval-check" size="sm" variant="outline" className="gap-1" disabled={!input.trim()} onClick={check}>
               <Lightbulb className="h-3.5 w-3.5"/>
               {t("evalPractice.check")}
             </Button>

@@ -19,7 +19,7 @@ import {LazyAstVisualisation} from "@/features/ast/components/LazyAstVisualisati
 import {RunButton} from "@/features/editor/components/RunButton.tsx";
 import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText, severityOf} from "@/shared/ui-state/termSlice.ts";
-import {registerOutputOpener} from "@/shared/ui-state/outputPanel.ts";
+import {registerPanelOpener} from "@/shared/ui-state/outputPanel.ts";
 
 type PrimaryTab = "editor" | "errors" | "results";
 type ResultView = "proofTree" | "evaluation" | "ast";
@@ -61,20 +61,30 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
   const [resultView, setResultView] = useState<ResultView>("proofTree");
   const problemCount = errors?.filter((e) => severityOf(e) !== "info").length ?? 0;
 
-  useEffect(() => registerOutputOpener(() => setPrimaryTab("errors")), []);
+  useEffect(() => registerPanelOpener((panel) => {
+    if (panel === "editor") setPrimaryTab("editor");
+    else if (panel === "errorOutput") setPrimaryTab("errors");
+    else {
+      setPrimaryTab("results");
+      setResultView(panel);
+    }
+  }), []);
 
   return (
     <div className={className ? `${className} flex flex-col` : "flex flex-col"}>
       <Tabs value={primaryTab} onValueChange={(v) => setPrimaryTab(v as PrimaryTab)} className="flex flex-col flex-1 min-h-0">
         <TabsList className="w-full h-11 shrink-0">
-          <TabsTrigger value="editor" className="flex-1 h-full">{t("panels.editor")}</TabsTrigger>
-          <TabsTrigger value="errors" className="flex-1 h-full">
+          <TabsTrigger value="editor" className="flex-1 h-full" data-tour="tab-editor">{t("panels.editor")}</TabsTrigger>
+          <TabsTrigger value="errors" className="flex-1 h-full" data-tour="tab-errorOutput">
             {t("panels.errors")}{problemCount > 0 ? ` (${problemCount})` : ""}
           </TabsTrigger>
-          <TabsTrigger value="results" className="flex-1 h-full">{t("panels.results")}</TabsTrigger>
+          <TabsTrigger value="results" className="flex-1 h-full" data-tour={primaryTab === "results" ? "tab-results" : "tab-results tab-proofTree tab-evaluation tab-ast"}>{t("panels.results")}</TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 min-h-0 mt-2">
+        <div
+          className="flex-1 min-h-0 mt-2"
+          data-tour={primaryTab === "editor" ? "panel-editor" : primaryTab === "errors" ? "panel-errorOutput" : `panel-${resultView}`}
+        >
           {primaryTab === "editor" && (
             <TextEditor
               ref={editorRef}
@@ -101,7 +111,7 @@ export function MobileWorkspaceLayout({className}: MobileWorkspaceLayoutProps) {
           {primaryTab === "results" && (
             <div className="h-full flex flex-col gap-2 min-h-0">
               <Select value={resultView} onValueChange={(v) => setResultView(v as ResultView)}>
-                <SelectTrigger className="w-full shrink-0">
+                <SelectTrigger className="w-full shrink-0" data-tour="tab-proofTree tab-evaluation tab-ast">
                   <SelectValue/>
                 </SelectTrigger>
                 <SelectContent>

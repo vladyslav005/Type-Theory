@@ -2,7 +2,7 @@ import {useState} from 'react';
 import type {RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import {AnimatePresence, motion} from 'framer-motion';
-import {BarChart3, BookType, Github, Menu, Moon, Sun, X} from 'lucide-react';
+import {BarChart3, BookType, Menu, Moon, Sun, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/shared/components/ui/button';
 import {Separator} from '@/shared/components/ui/separator';
@@ -21,6 +21,7 @@ import {useAppDispatch, useAppSelector} from "@/shared/hooks/reduxHooks.ts";
 import {setTermText} from "@/shared/ui-state/termSlice.ts";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
 import {useActivity} from "@/shared/activity/useActivity.ts";
+import {TourMenu} from "@/features/tour/TourMenu.tsx";
 
 type NavItem = {
   key: 'editor' | 'docs' | 'about';
@@ -102,6 +103,7 @@ export function Topbar({editorRef}: TopbarProps) {
                 key={item.href}
                 to={item.href}
                 end={item.href === '/'}
+                data-tour={`nav-${item.key}`}
                 className={({isActive}) => `px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150 ${isActive ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {t(`nav.${item.key}`)}
@@ -120,7 +122,9 @@ export function Topbar({editorRef}: TopbarProps) {
                   transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
                   className="hidden md:flex items-center gap-2 min-w-0"
                 >
-                  <ExamplesDropdown onSelect={onSelectExample} compact/>
+                  <div data-tour="examples" className="flex min-w-0">
+                    <ExamplesDropdown onSelect={onSelectExample} compact/>
+                  </div>
                   <AnimatePresence initial={false}>
                     {isUntyped && (
                       <motion.div
@@ -130,12 +134,15 @@ export function Topbar({editorRef}: TopbarProps) {
                         exit={{opacity: 0, width: 0}}
                         transition={{duration: 0.25, ease: "easeOut"}}
                         className="shrink-0 overflow-hidden"
+                        data-tour="prelude"
                       >
                         <InsertPreludeButton onInsert={onInsertPrelude} compact/>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <TypeTheoriesDropdown/>
+                  <div data-tour="theories" className="flex shrink-0">
+                    <TypeTheoriesDropdown/>
+                  </div>
                   <Separator orientation="vertical" className="h-6 mx-1"/>
                 </motion.div>
               )}
@@ -151,23 +158,26 @@ export function Topbar({editorRef}: TopbarProps) {
                     exit={{opacity: 0, x: 24}}
                     transition={{duration: 0.3, ease: [0.22, 1, 0.36, 1]}}
                     className="hidden lg:block"
+                    data-tour="layout"
                   >
                     <LayoutPresetsDropdown/>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <LanguageMenu className="rounded-lg size-11 md:size-9"/>
+              <div data-tour="preferences" className="flex items-center gap-1">
+                <LanguageMenu className="rounded-lg size-11 md:size-9"/>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleDarkMode}
-                className="rounded-lg size-11 md:size-9"
-                aria-label={isDarkMode ? t("topbar.themeToLight") : t("topbar.themeToDark")}
-              >
-                {isDarkMode ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleDarkMode}
+                  className="rounded-lg size-11 md:size-9"
+                  aria-label={isDarkMode ? t("topbar.themeToLight") : t("topbar.themeToDark")}
+                >
+                  {isDarkMode ? <Sun className="h-4 w-4"/> : <Moon className="h-4 w-4"/>}
+                </Button>
+              </div>
 
               <Separator orientation="vertical" className="hidden md:block h-6 mx-1"/>
 
@@ -175,6 +185,7 @@ export function Topbar({editorRef}: TopbarProps) {
                 <Button asChild variant="ghost" size="icon" className="relative rounded-lg size-11 md:size-9">
                   <NavLink
                     to="/activity"
+                    data-tour="activity"
                     aria-label={collectingActivity ? t("activity.indicator.on") : t("activity.indicator.off")}
                     title={collectingActivity ? t("activity.indicator.on") : t("activity.indicator.off")}
                   >
@@ -184,15 +195,7 @@ export function Topbar({editorRef}: TopbarProps) {
                 </Button>
               )}
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-lg size-11 md:size-9"
-                aria-label={t("topbar.openGithub")}
-                onClick={() => window.location.assign("https://github.com/vladyslav005/Type-Theory")}
-              >
-                <Github className="h-4 w-4"/>
-              </Button>
+              <TourMenu onStart={() => setIsMobileMenuOpen(false)}/>
 
               {/* Mobile Menu Toggle */}
               <Button

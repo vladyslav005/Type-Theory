@@ -1,4 +1,5 @@
 import { createContext, memo, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {signalTour} from "@/features/tour/tourSignals.ts";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Term, Type } from "@vladyslav005/tt-core";
 import type { EvaluationResult, ReductionStep } from "@vladyslav005/tt-core";
@@ -191,6 +192,7 @@ function VarView({ term }: { term: Extract<Term, { kind: "Var" }> }) {
   const toggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     unfold.toggle(key);
+    signalTour("evalUnfold");
   };
   if (!unfold.expanded.has(key)) {
     return (
@@ -1023,6 +1025,9 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
   const { t } = useTranslation();
   // -1 is the start: only the original term, before any reduction.
   const [stepIndex, setStepIndex] = useState(-1);
+  useEffect(() => {
+    if (stepIndex >= 0) signalTour("evalViewerStep");
+  }, [stepIndex]);
 
   const { steps: rawSteps, result, reachedStepLimit, errors, globals } = evaluation;
   const steps = useMemo(() => foldUnfoldings(rawSteps), [rawSteps]);
@@ -1073,7 +1078,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto [&>*]:shrink-0">
       {/* Navigation */}
-      <div className="flex items-center justify-between gap-3 sticky top-0 backdrop-blur-sm py-1 z-10">
+      <div className="flex items-center justify-between gap-3 sticky top-0 backdrop-blur-sm py-1 z-10" data-tour="eval-stepper">
         <div className="flex items-center gap-1.5 shrink-0">
           <Button
             size="icon"

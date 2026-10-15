@@ -63,6 +63,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
               <Button
                 size="sm"
                 disabled={hasErrors}
+                data-tour="proof-mode-semi"
                 onClick={() => runBusy("proofTree", () => dispatch(enterBuildMode("semi")))}
               >
                 {t("proofBuilder.modeSemi")}
@@ -73,6 +74,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
                 size="sm"
                 variant="outline"
                 disabled={hasErrors}
+                data-tour="proof-mode-manual"
                 onClick={() => runBusy("proofTree", () => dispatch(enterBuildMode("manual")))}
               >
                 {t("proofBuilder.modeManual")}
@@ -89,7 +91,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
   const toolbar = (
     <>
       <div className="flex items-center gap-3 min-w-0">
-        <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" onClick={() => dispatch(exitBuildMode())}>
+        <Button size="sm" variant="ghost" className="gap-1.5 shrink-0 text-muted-foreground" data-tour="proof-exit" onClick={() => dispatch(exitBuildMode())}>
           <ArrowLeft className="h-3.5 w-3.5"/>
           {t("proofBuilder.exit")}
         </Button>
@@ -108,7 +110,7 @@ export function ProofTreeBuilder({toolbarTarget}: {toolbarTarget?: HTMLElement |
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={() => { session.update((entry) => ({...entry, checks: entry.checks + 1})); dispatch(checkProof()); }}>{t("proofBuilder.checkProof")}</Button>
+        <Button size="sm" data-tour="proof-check" onClick={() => { session.update((entry) => ({...entry, checks: entry.checks + 1})); dispatch(checkProof()); }}>{t("proofBuilder.checkProof")}</Button>
         {hasChecks(studentTree) && (
           <Button size="sm" variant="outline" onClick={() => dispatch(clearProofChecks())}>{t("manualBuilder.clearMarks")}</Button>
         )}

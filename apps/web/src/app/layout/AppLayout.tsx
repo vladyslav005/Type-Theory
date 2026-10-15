@@ -6,6 +6,7 @@ import {FeedbackButton} from "@/shared/components/FeedbackButton.tsx";
 import {BugReportButton} from "@/shared/components/BugReportButton.tsx";
 import {env} from "@/shared/lib/env.ts";
 import {useActivitySession} from "@/shared/activity/useActivity.ts";
+import {TourOverlay} from "@/features/tour/TourOverlay.tsx";
 import type {TextEditorHandle} from "@/features/editor/components/TextEditor.tsx";
 
 export interface AppOutletContext {
@@ -29,6 +30,7 @@ export function AppLayout() {
       )}
       <Outlet context={{editorRef} satisfies AppOutletContext}/>
       {!hideFooter && <Footer></Footer>}
+      <TourOverlay editorRef={editorRef}/>
       {env.VITE_SHOW_FEEDBACK_BUTTONS && (
         <>
           {env.VITE_SHOW_FEEDBACK_TAB && <FeedbackButton/>}

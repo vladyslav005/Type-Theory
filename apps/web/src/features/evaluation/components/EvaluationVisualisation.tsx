@@ -80,8 +80,8 @@ export function EvaluationVisualisation({
                 setActiveTab(v as "automatic" | "practice");
               })} className="shrink-0">
                 <TabsList className="h-auto justify-start gap-1 p-1">
-                  <Tip label={t("evalPractice.tabPracticeTip")}><TabsTrigger value="practice">{t("evalPractice.tabPractice")}</TabsTrigger></Tip>
-                  <Tip label={t("evalPractice.tabAutomaticTip")}><TabsTrigger value="automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger></Tip>
+                  <Tip label={t("evalPractice.tabPracticeTip")}><TabsTrigger value="practice" data-tour="eval-tab-practice">{t("evalPractice.tabPractice")}</TabsTrigger></Tip>
+                  <Tip label={t("evalPractice.tabAutomaticTip")}><TabsTrigger value="automatic" data-tour="eval-tab-automatic">{t("evalPractice.tabAutomatic")}</TabsTrigger></Tip>
                 </TabsList>
               </Tabs>
               {hasEvaluation && (
@@ -94,7 +94,7 @@ export function EvaluationVisualisation({
                   <Separator orientation="vertical" className="hidden sm:block shrink-0 data-[orientation=vertical]:h-6" />
                   <Tip label={t("evalPractice.allowSkippingTip")}>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <Switch id="allow-skipping" checked={allowSkipping} onCheckedChange={setAllowSkipping}/>
+                      <Switch id="allow-skipping" data-tour="eval-skipping" checked={allowSkipping} onCheckedChange={setAllowSkipping}/>
                       <Label htmlFor="allow-skipping" className="text-sm text-muted-foreground whitespace-nowrap">
                         {t("evalPractice.allowSkipping")}
                       </Label>
@@ -106,7 +106,7 @@ export function EvaluationVisualisation({
                 <>
                   {hasEvaluation && <Separator orientation="vertical" className="hidden sm:block shrink-0 data-[orientation=vertical]:h-6" />}
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <Switch id="show-gamma" checked={showGamma} onCheckedChange={setShowGamma}/>
+                    <Switch id="show-gamma" data-tour="eval-gamma" checked={showGamma} onCheckedChange={setShowGamma}/>
                     <Label htmlFor="show-gamma" className="text-sm text-muted-foreground whitespace-nowrap">
                       {t("evaluationPanel.gammaContext")}
                     </Label>
@@ -117,9 +117,9 @@ export function EvaluationVisualisation({
 
             <div ref={setPracticeToolbar} className={cn("flex items-center gap-2 shrink-0", activeTab !== "practice" && "hidden")}/>
 
-            {activeTab === "automatic" && <BlackBoxesSettings/>}
+            {activeTab === "automatic" && <span data-tour="eval-shortcuts" className="flex shrink-0"><BlackBoxesSettings/></span>}
 
-            <EvaluationLimitsSettings/>
+            <span data-tour="eval-limits" className="flex shrink-0"><EvaluationLimitsSettings/></span>
 
             <Button
               size="icon"
