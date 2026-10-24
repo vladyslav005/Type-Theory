@@ -512,6 +512,16 @@ function TermNodeView({
           </>
         );
       case "BinOp":
+        if (term.operator === "and" || term.operator === "or") {
+          return (
+            <>
+              <span className="text-sky-600 dark:text-sky-400">{term.operator} </span>
+              <TermView term={term.left} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+              <span> </span>
+              <TermView term={term.right} selectedId={selectedId} resultId={resultId} errorId={errorId} />
+            </>
+          );
+        }
         return (
           <>
             <span className="text-muted-foreground">(</span>
@@ -612,7 +622,8 @@ function TermNodeView({
         );
       case "Succ":
       case "Pred":
-      case "IsZero": {
+      case "IsZero":
+      case "Not": {
         const atomic = term.term.kind === "Lit" || term.term.kind === "Var";
         return (
           <>

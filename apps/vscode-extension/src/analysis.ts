@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import {
 	AntlrParserAdapter,
-	elaborateNbl,
+	elaborateProgram,
 	InferProofTree,
 	ParseSyntaxError,
 	Program,
@@ -48,8 +48,7 @@ class AnalysisCache {
 	private compute(document: vscode.TextDocument, theories: TypeTheoryConfig): DocumentAnalysis {
 		const parser = new AntlrParserAdapter();
 		try {
-			const parsed = parser.parseExpression(document.getText(), {keywordsAsIdentifiers: theories.untyped});
-			const program = theories.nbl || theories.typedNbl ? elaborateNbl(parsed) : parsed;
+			const program = elaborateProgram(parser.parseExpression(document.getText(), {keywordsAsIdentifiers: theories.untyped}), theories);
 			const checker = new SLTLCTypeChecker();
 			checker.setTheories(theories);
 			const proof = checker.check(program);

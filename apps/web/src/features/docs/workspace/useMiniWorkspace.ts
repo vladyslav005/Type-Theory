@@ -3,7 +3,7 @@ import type {Type} from "@vladyslav005/tt-core";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {TexMapper} from "@vladyslav005/tt-core";
 import {typeToString} from "@vladyslav005/tt-core";
-import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type TypeTheoryConfig} from "@vladyslav005/tt-core";
+import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, elaborateProgram, type TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 export interface MiniWorkspaceResult {
   type: Type;
@@ -23,14 +23,15 @@ export function useMiniWorkspace(initialTerm: string, theories?: Partial<TypeThe
   const check = useCallback(() => {
     setChecked(true);
     try {
-      const ast = parser.parseExpression(termText);
+      const config = {...DEFAULT_TYPE_THEORY_CONFIG, ...theories};
+      const ast = elaborateProgram(parser.parseExpression(termText), config);
       if (!ast.term) {
         setResult(undefined);
         setError("Write a term to check, not just declarations.");
         return;
       }
 
-      typeCheckerSLTC.setTheories({...DEFAULT_TYPE_THEORY_CONFIG, ...theories});
+      typeCheckerSLTC.setTheories(config);
       typeCheckerSLTC.setStlcFeatures(DEFAULT_STLC_FEATURES);
       const proof = typeCheckerSLTC.check(ast);
       const typeErrors = typeCheckerSLTC.getErrors();

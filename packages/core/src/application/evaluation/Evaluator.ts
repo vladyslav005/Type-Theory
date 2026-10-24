@@ -14,8 +14,11 @@ import {
 } from "@/application/evaluation/type.ts";
 import {ReductionVisitor} from "@/application/evaluation/ReductionVisitor.ts";
 import {HelperCollapse} from "@/application/evaluation/helperCollapse.ts";
-import {isNumericValue} from "@/application/nbl/nblValues.ts";
+import {isNumericValue, numeralOf} from "@/application/nbl/nblValues.ts";
 import {AstPrettyPrinter} from "@/presentation/AstPrettyPrinter.ts";
+import {operatorClass} from "@/application/typecheck/utils.ts";
+
+const isBoolLiteral = (term: Term) => term.kind === "Lit" && /^(true|false)$/i.test(term.value);
 
 // Reductions a black-boxed call may take on the side before it's stepped normally instead.
 const BLACK_BOX_BUDGET = 5000;
@@ -221,11 +224,18 @@ export class Evaluator {
         const found = this.findStuckTerm(term.left) ?? this.findStuckTerm(term.right);
         if (found) return found;
 
-        const isNatLiteral = (t: Term) => t.kind === "Lit" && /^\d+$/.test(t.value);
-        if (!isNatLiteral(term.left) || !isNatLiteral(term.right)) {
-          return {id: term.id, message: `Evaluation stuck: operator "${term.operator}" requires both operands to be Nat literals`};
+        const cls = operatorClass(term.operator);
+        if (cls === "logical" && (!isBoolLiteral(term.left) || !isBoolLiteral(term.right))) {
+          return {id: term.id, message: `Evaluation stuck: "${term.operator}" requires both operands to be true or false`};
         }
-        if (term.operator === "/" && (term.right as Extract<Term, {kind: "Lit"}>).value === "0") {
+        const literalOrNumber = (t: Term) => t.kind === "Lit" || isNumericValue(t);
+        if (cls === "equality" && (!literalOrNumber(term.left) || !literalOrNumber(term.right))) {
+          return {id: term.id, message: `Evaluation stuck: "${term.operator}" requires both operands to be literal values`};
+        }
+        if ((cls === "arithmetic" || cls === "comparison") && (!isNumericValue(term.left) || !isNumericValue(term.right))) {
+          return {id: term.id, message: `Evaluation stuck: operator "${term.operator}" requires both operands to be numbers`};
+        }
+        if (term.operator === "/" && numeralOf(term.right) === 0) {
           return {id: term.id, message: "Evaluation stuck: division by zero"};
         }
         return undefined;
@@ -267,6 +277,15 @@ export class Evaluator {
         if (found) return found;
         if (term.term.kind !== "Fold") {
           return {id: term.id, message: "Evaluation stuck: \"unfold\" requires a \"fold\" value, but got a non-fold value"};
+        }
+        return undefined;
+      }
+
+      case "Not": {
+        const found = this.findStuckTerm(term.term);
+        if (found) return found;
+        if (!isBoolLiteral(term.term)) {
+          return {id: term.id, message: `Evaluation stuck: "not" requires true or false, but got ${new AstPrettyPrinter().printTerm(term.term)}`};
         }
         return undefined;
       }
@@ -318,6 +337,7 @@ export class Evaluator {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return ast;
 
       case "Program": {

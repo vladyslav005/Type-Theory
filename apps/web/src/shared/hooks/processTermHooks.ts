@@ -4,7 +4,7 @@ import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {useAppDispatch, useAppSelector, useAppStore} from "@/shared/hooks/reduxHooks.ts";
 import {clean, clearEvaluationErrors, EvaluationInfo, EvaluationRunError, EvaluationWarning, isError, OutputNote, pushProcessingError, setAst, setErrorMarkers, setBuilding, setBuiltText, setEvaluating, setEvaluation, setInferenceProofSnapshots, setInferenceSteps, setProof, setTypeAliases} from "@/shared/ui-state/termSlice.ts";
 import type {EvaluationResult} from "@vladyslav005/tt-core";
-import {elaborateNbl, EvaluationStrategy, Evaluator, helperCandidates, noMainExpressionMessage, ParseSyntaxError, typeToString} from "@vladyslav005/tt-core";
+import {elaborateProgram, EvaluationStrategy, Evaluator, helperCandidates, noMainExpressionMessage, ParseSyntaxError, typeToString} from "@vladyslav005/tt-core";
 import {TypeCheckError} from "@vladyslav005/tt-core";
 import {findNodePosition} from "@/shared/lib/errorPosition.ts";
 import {afterPaint} from "@/shared/lib/afterPaint.ts";
@@ -35,8 +35,7 @@ export function useTermHooks() {
   const requireTermType = useAppSelector((state) => state.term.requireTermType);
 
   function parseTerm(term: string): Program {
-    const program = parser.parseExpression(term, {keywordsAsIdentifiers: enabledTheories.untyped});
-    return enabledTheories.nbl || enabledTheories.typedNbl ? elaborateNbl(program) : program;
+    return elaborateProgram(parser.parseExpression(term, {keywordsAsIdentifiers: enabledTheories.untyped}), enabledTheories);
   }
 
   function typecheckTerm(ast: Program): ProofTree {

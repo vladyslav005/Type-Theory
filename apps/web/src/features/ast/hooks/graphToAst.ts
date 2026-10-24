@@ -669,7 +669,8 @@ function reconstruct(node: AstFlowNode, nodeMap: NodeMap, edges: Edge[], visitin
 
     case "Succ":
     case "Pred":
-    case "IsZero": {
+    case "IsZero":
+    case "Not": {
       const termNode = firstTargetNode(byHandle, "term", nodeMap);
       const result = {
         id: raw.id ?? node.id,

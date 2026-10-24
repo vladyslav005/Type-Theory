@@ -8,6 +8,8 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/s
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {TexMapper} from "@vladyslav005/tt-core";
 import {
+  DEFAULT_TYPE_THEORY_CONFIG,
+  elaborateProgram,
   EvaluationStrategy,
   type ReductionStep,
 } from "@vladyslav005/tt-core";
@@ -34,7 +36,7 @@ export function ReductionStrategyExplorer({term, hint, untyped = false}: Reducti
   const run = () => {
     trackWidgetUse(`reductionExplorer:${strategy}`);
     try {
-      const ast = parser.parseExpression(term, {keywordsAsIdentifiers: untyped});
+      const ast = elaborateProgram(parser.parseExpression(term, {keywordsAsIdentifiers: untyped}), {...DEFAULT_TYPE_THEORY_CONFIG, untyped});
       const evaluation = evaluator.evaluate(ast, strategy);
       setSteps(evaluation.steps);
       setDiverged(evaluation.reachedStepLimit);

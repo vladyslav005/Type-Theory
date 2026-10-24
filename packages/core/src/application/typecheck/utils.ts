@@ -16,9 +16,18 @@ export function termIndexToString(t: Term): string {
 
 const ARITHMETIC_OPERATORS: ReadonlySet<BinaryOperator> = new Set(["+", "-", "*", "/"]);
 
-// Arithmetic operators type as Nat -> Nat -> Nat; comparisons type as Nat -> Nat -> Bool.
 export function isArithmeticOperator(operator: BinaryOperator): boolean {
   return ARITHMETIC_OPERATORS.has(operator);
+}
+
+export type OperatorClass = "arithmetic" | "comparison" | "equality" | "logical";
+
+// arithmetic: Nat × Nat → Nat, comparison: Nat × Nat → Bool, equality: T × T → Bool, logical: Bool × Bool → Bool.
+export function operatorClass(operator: BinaryOperator): OperatorClass {
+  if (ARITHMETIC_OPERATORS.has(operator)) return "arithmetic";
+  if (operator === "==" || operator === "!=") return "equality";
+  if (operator === "and" || operator === "or") return "logical";
+  return "comparison";
 }
 
 // 'C' is skipped: it's reserved for constraint sets (C_1, C_2, ...) in proof-tree rendering.

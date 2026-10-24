@@ -26,7 +26,8 @@ export function lintDocument(document: vscode.TextDocument, collection: vscode.D
 	for (const err of analysis.typeErrors ?? []) {
 		const pos = err instanceof TypeCheckError ? err.pos : undefined;
 		const range = pos ? toRange(pos) : new vscode.Range(0, 0, 0, 1);
-		diagnostics.push(new vscode.Diagnostic(range, err.message, vscode.DiagnosticSeverity.Error));
+		const hint = err instanceof TypeCheckError && err.hint ? `\nHint: ${err.hint}` : "";
+		diagnostics.push(new vscode.Diagnostic(range, err.message + hint, vscode.DiagnosticSeverity.Error));
 	}
 
 	collection.set(document.uri, diagnostics);

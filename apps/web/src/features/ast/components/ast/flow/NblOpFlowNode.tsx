@@ -3,7 +3,7 @@ import type {NblOpNodeData} from "@/shared/presentation/flow/types.ts";
 import {cn} from "@/shared/lib/utils";
 import {LimitedHandle} from "./LimitedHandle.tsx";
 
-const TITLES = {Succ: "Successor", Pred: "Predecessor", IsZero: "Zero test"} as const;
+const TITLES = {Succ: "Successor", Pred: "Predecessor", IsZero: "Zero test", Not: "Negation"} as const;
 
 export function NblOpFlowNode({data, selected}: { data: NblOpNodeData; selected?: boolean }) {
   return (

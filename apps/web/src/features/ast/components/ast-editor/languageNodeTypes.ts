@@ -1,12 +1,15 @@
 import type {StlcFeatureConfig, TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 const STLC_CORE = [
-  "abstraction", "application", "variable", "literal", "ifCondition", "dummyAbstraction", "sequencing", "ascribe", "binOp", "fix",
+  "abstraction", "application", "variable", "literal", "dummyAbstraction", "ascribe", "fix",
   "typeVar", "typeArrow",
   "funDecl", "varDecl", "typeAliasDecl",
 ];
 
 const BY_FEATURE: Record<keyof StlcFeatureConfig, string[]> = {
+  arithmetic: ["binOp", "succ", "pred", "iszero"],
+  booleans: ["ifCondition", "binOp", "not"],
+  unit: ["sequencing"],
   sums: ["inl", "inr", "case", "variant", "variantCase", "sumType", "variantType"],
   tuples: ["tuple", "tupleProjection", "tupleType"],
   records: ["record", "recordProjection", "recordType"],

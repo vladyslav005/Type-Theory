@@ -253,11 +253,12 @@ function makeDefaultTermNode(nodeType: string, id: string): { type: string; term
     case "succ":
     case "pred":
     case "iszero":
+    case "not":
       return {
         type: "nblOp",
         term: {
-          id, kind: nodeType === "succ" ? "Succ" : nodeType === "pred" ? "Pred" : "IsZero",
-          term: { id: `${id}-term`, kind: "Lit", value: "0" },
+          id, kind: nodeType === "succ" ? "Succ" : nodeType === "pred" ? "Pred" : nodeType === "iszero" ? "IsZero" : "Not",
+          term: { id: `${id}-term`, kind: "Lit", value: nodeType === "not" ? "true" : "0" },
         },
       };
     case "inl":

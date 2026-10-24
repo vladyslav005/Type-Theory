@@ -27,6 +27,7 @@ const STATIC_SLOTS: Record<string, string[]> = {
   Succ: ["term"],
   Pred: ["term"],
   IsZero: ["term"],
+  Not: ["term"],
   Nil: ["type"],
   RecordProjection: ["term"],
   Sequencing: ["first", "second"],
@@ -98,6 +99,7 @@ export function lectureLabel(term: any): string {
     case "Succ": return "succ";
     case "Pred": return "pred";
     case "IsZero": return "iszero";
+    case "Not": return "not";
     case "Nil": return "nil";
     case "Cons": return "cons";
     case "IsNil": return "isnil";

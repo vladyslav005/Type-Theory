@@ -12,6 +12,7 @@ import {OUTPUT_TOAST_ID} from "@/features/error-output/useOutputToasts.ts";
 import {toast} from "sonner";
 import {ViewVisibleContext} from "@/shared/activity/activityClock.ts";
 import {AlertTriangle, Info} from "lucide-react";
+import {TypeCheckError} from "@vladyslav005/tt-core";
 
 const SEVERITY_ORDER: Record<OutputSeverity, number> = {error: 0, warning: 1, info: 2};
 
@@ -100,9 +101,16 @@ export function ErrorOutput({
                       </div>
                     )}
                   </div>
-                  <p className="text-sm text-foreground leading-relaxed flex-1">
-                    {error.message}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-sm text-foreground leading-relaxed">
+                      {error.message}
+                    </p>
+                    {error instanceof TypeCheckError && error.hint && (
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        <span className="font-semibold">{t("errorsPanel.hint")}</span> {error.hint}
+                      </p>
+                    )}
+                  </div>
                   {pos && (
                     <span className="shrink-0 self-start mt-0.5 font-mono text-[11px] text-muted-foreground">
                       {pos.line}:{pos.column + 1}

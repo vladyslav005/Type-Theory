@@ -24,7 +24,7 @@ export const TERM_NODE_TYPES = [
   "typeAbs", "typeApp",
   "nil", "cons", "isNil", "headOp", "tailOp",
   "fold", "unfold",
-  "succ", "pred", "iszero",
+  "succ", "pred", "iszero", "not",
 ];
 
 // Every node type insertable from the AST editor's toolbar, grouped for the header dropdowns.
@@ -101,6 +101,7 @@ export const AST_NODE_PALETTE: PaletteCategory[] = [
           {type: "succ", label: "succ", title: "Successor (succ t)"},
           {type: "pred", label: "pred", title: "Predecessor (pred t)"},
           {type: "iszero", label: "iszero", title: "Zero test (iszero t)"},
+          {type: "not", label: "not", title: "Negation (not t)"},
         ],
       },
     ],

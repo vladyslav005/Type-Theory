@@ -13,7 +13,7 @@ import type {
   Head,
   IfCondition,
   Inl,
-  Inr, IsNil, IsZero, Kind, Let,
+  Inr, IsNil, IsZero, Kind, Let, Not,
   Lit,
   Nil,
   Pred,
@@ -102,6 +102,8 @@ export abstract class AstVisitor<R> {
         return this.visitPred(node)
       case "IsZero":
         return this.visitIsZero(node)
+      case "Not":
+        return this.visitNot(node)
 
       /* ===== Declarations ===== */
       case "FunDecl":
@@ -214,6 +216,8 @@ export abstract class AstVisitor<R> {
   protected abstract visitPred(node: Pred): R
 
   protected abstract visitIsZero(node: IsZero): R
+
+  protected abstract visitNot(node: Not): R
 
   /* ===== Let ===== */
   protected abstract visitLet(node: Let): R

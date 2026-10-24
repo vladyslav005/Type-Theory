@@ -187,6 +187,7 @@ export function childrenOf(node: AnyAstNode): ChildEntry[] {
 		case "Succ":
 		case "Pred":
 		case "IsZero":
+		case "Not":
 			return [{ child: node.term, label: "term" }];
 		case "TypeAbs":
 			return [{ child: node.body, label: "body" }];

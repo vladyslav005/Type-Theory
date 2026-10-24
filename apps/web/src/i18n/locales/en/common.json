@@ -486,7 +486,7 @@
   "extensions": {
     "trigger": "Language",
     "stlcLabel": "Simply Typed Lambda Calculus",
-    "stlcDescription": "Simply typed λ-calculus, the default base. Open its submenu to switch sums, tuples, records and lists on or off.",
+    "stlcDescription": "Simply typed λ-calculus, the default base. Open its submenu to switch numbers, booleans, unit, sums, tuples, records and lists on or off.",
     "theories": {
       "nbl": {
         "label": "Numbers and booleans (NBL)",
@@ -541,6 +541,18 @@
     },
     "stlcFeatures": {
       "trigger": "STLC features",
+      "arithmetic": {
+        "label": "Numbers & arithmetic",
+        "description": "Nat literals 0, 1, 2, …, succ t, pred t, iszero t, + - * / and comparisons < > <= >="
+      },
+      "booleans": {
+        "label": "Booleans & if",
+        "description": "true, false, if … then … else, not t, and t1 t2, or t1 t2 and equality t1 == t2, t1 != t2"
+      },
+      "unit": {
+        "label": "Unit",
+        "description": "unit : Unit, sequencing t1; t2 and if without an else branch"
+      },
       "sums": {
         "label": "Sum types & variants",
         "description": "inl / inr / case and labelled variants [l=t] as T with case … of"
@@ -557,7 +569,7 @@
         "label": "Lists",
         "description": "nil, cons, isnil, head and tail"
       },
-      "hint": "Choose which data types STLC includes. Hover one for its syntax."
+      "hint": "Choose which base types and data types STLC includes. Hover one for its syntax."
     },
     "hint": "Pick the base language, then add extensions on top of STLC. Hover an item to see what it adds.",
     "sections": {
@@ -601,7 +613,8 @@
     "results": "Results"
   },
   "errorsPanel": {
-    "empty": "No output yet — Run or type-check to see results, warnings and errors here."
+    "empty": "No output yet — Run or type-check to see results, warnings and errors here.",
+    "hint": "Hint:"
   },
   "output": {
     "parsed": "Parsed successfully.",

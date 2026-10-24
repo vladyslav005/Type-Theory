@@ -10,7 +10,7 @@ export interface ChosenRule {
   literal?: string;
 }
 
-const OPERATORS: BinaryOperator[] = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!="];
+const OPERATORS: BinaryOperator[] = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!=", "and", "or"];
 const LITERAL_NAMES = ["Lit", "Unit", "True", "False", "String", "Nv", "Zero"];
 
 const RULE_KIND_EXCEPTIONS: Partial<Record<string, Term["kind"]>> = {

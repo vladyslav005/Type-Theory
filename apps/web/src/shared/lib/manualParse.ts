@@ -1,4 +1,4 @@
-import {AntlrParserAdapter, ParseSyntaxError, astToText, typeToString} from "@vladyslav005/tt-core";
+import {AntlrParserAdapter, ParseSyntaxError, astToText, elaborateBuiltins, typeToString} from "@vladyslav005/tt-core";
 import type {ParseOptions, Program, Term, Type} from "@vladyslav005/tt-core";
 
 const parser = new AntlrParserAdapter();
@@ -81,9 +81,10 @@ export function parseTermProgram(text: string, options?: ParseOptions): Program 
   const source = text.trim().replace(/[;\s]+$/, "");
   if (!source) throw new ManualParseError("nothing written here");
   try {
-    const program = parser.parseExpression(`${source};`, options);
-    if (!program.term) throw new ManualParseError("not a term");
-    return program;
+    const parsed = parser.parseExpression(`${source};`, options);
+    if (!parsed.term) throw new ManualParseError("not a term");
+    // Match the checker's and evaluator's terms, where `and x y` is already an operator node.
+    return options?.keywordsAsIdentifiers ? parsed : elaborateBuiltins(parsed);
   } catch (error) {
     throw new ManualParseError(message(error));
   }

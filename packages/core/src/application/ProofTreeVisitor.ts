@@ -70,6 +70,7 @@ export abstract class ProofTreeVisitor<R> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return this.visitNblOp(node)
 
 

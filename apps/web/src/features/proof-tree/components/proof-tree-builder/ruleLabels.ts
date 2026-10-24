@@ -36,6 +36,7 @@ export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.Succ]: "T-Succ",
   [Rule.Pred]: "T-Pred",
   [Rule.IsZero]: "T-IsZero",
+  [Rule.Not]: "T-Not",
 };
 
 const CT_LABELS: Partial<Record<Rule, string>> = {
@@ -84,9 +85,6 @@ const RULE_THEORY: Partial<Record<Rule, TypeTheoryId>> = {
   [Rule.TypeAbs]: "systemF",
   [Rule.TypeApp]: "systemF",
   [Rule.TPiApp]: "systemLambdaP",
-  [Rule.Succ]: "typedNbl",
-  [Rule.Pred]: "typedNbl",
-  [Rule.IsZero]: "typedNbl",
 };
 
 const TYPED_NBL_RULES: readonly Rule[] = [Rule.Lit, Rule.If, Rule.Succ, Rule.Pred, Rule.IsZero];
@@ -125,6 +123,7 @@ export const BUILDER_RULES: readonly Rule[] = [
   Rule.Succ,
   Rule.Pred,
   Rule.IsZero,
+  Rule.Not,
   Rule.CtVar,
   Rule.CtVarLet,
   Rule.CtAbs,
@@ -163,7 +162,12 @@ const RULE_FEATURE: Partial<Record<Rule, StlcFeatureId>> = {
   [Rule.Record]: "records", [Rule.RecordProjection]: "records", [Rule.CtRecord]: "records", [Rule.CtRecordProjection]: "records",
   [Rule.Nil]: "lists", [Rule.Cons]: "lists", [Rule.IsNil]: "lists", [Rule.Head]: "lists", [Rule.Tail]: "lists",
   [Rule.CtNil]: "lists", [Rule.CtCons]: "lists", [Rule.CtIsNil]: "lists", [Rule.CtHead]: "lists", [Rule.CtTail]: "lists",
+  [Rule.Succ]: "arithmetic", [Rule.Pred]: "arithmetic", [Rule.IsZero]: "arithmetic",
+  [Rule.If]: "booleans", [Rule.CtIf]: "booleans", [Rule.Not]: "booleans",
+  [Rule.Sequencing]: "unit", [Rule.CtSequencing]: "unit",
 };
+
+const isBinOpRule = (rule: Rule) => rule === Rule.BinOp || rule === Rule.CtBinOp;
 
 export function rulesForTheories(theories: TypeTheoryConfig, features: StlcFeatureConfig = DEFAULT_STLC_FEATURES): Rule[] {
   if (theories.typedNbl) return [...TYPED_NBL_RULES];
@@ -172,6 +176,7 @@ export function rulesForTheories(theories: TypeTheoryConfig, features: StlcFeatu
     if (isCtRule(rule) && !usesConstraints) return false;
     const feature = RULE_FEATURE[rule];
     if (feature && !features[feature]) return false;
+    if (isBinOpRule(rule) && !features.arithmetic && !features.booleans) return false;
     const required = RULE_THEORY[rule];
     return !required || theories[required];
   });

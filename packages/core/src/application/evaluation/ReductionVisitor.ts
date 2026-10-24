@@ -17,6 +17,7 @@ import type {
   Inr,
   IsNil,
   IsZero,
+  Not,
   Pred,
   Succ,
   Kind,
@@ -43,8 +44,8 @@ import type {
 } from "@/domain/ast";
 
 import {EvaluationStrategy, type ReductionStep,} from "@/application/evaluation/type.ts";
-import {substituteTypeVariable} from "@/application/typecheck/utils.ts";
-import {isNumericValue} from "@/application/nbl/nblValues.ts";
+import {operatorClass, substituteTypeVariable} from "@/application/typecheck/utils.ts";
+import {isNumericValue, numeralOf} from "@/application/nbl/nblValues.ts";
 import type {HelperCollapse} from "@/application/evaluation/helperCollapse.ts";
 
 const isUnitLiteral = (term: Term): boolean =>
@@ -60,9 +61,25 @@ const isNatLiteral = (term: Term): term is Lit =>
   term.kind === "Lit" && /^\d+$/.test(term.value);
 
 // Nat subtraction is monus (truncated at zero) — there's no negative Nat.
-// Division by zero returns null so the caller can leave the term stuck
-// rather than producing a bogus result.
-function evalBinOp(operator: BinOp["operator"], left: number, right: number): string | null {
+// Returns null when the operator can't fire (wrong operand kinds, division by zero), leaving the term stuck.
+function evalBinOp(operator: BinOp["operator"], leftTerm: Term, rightTerm: Term): string | null {
+  const cls = operatorClass(operator);
+  if (cls === "logical") {
+    if (!isBoolLiteral(leftTerm) || !isBoolLiteral(rightTerm)) return null;
+    const left = isTrueLiteral(leftTerm);
+    const right = isTrueLiteral(rightTerm);
+    return String(operator === "and" ? left && right : left || right);
+  }
+  if (cls === "equality") {
+    const numbers = [numeralOf(leftTerm), numeralOf(rightTerm)];
+    if (numbers.every((n) => n !== undefined)) return String((numbers[0] === numbers[1]) === (operator === "=="));
+    if (leftTerm.kind !== "Lit" || rightTerm.kind !== "Lit") return null;
+    const same = literalKey(leftTerm.value) === literalKey(rightTerm.value);
+    return String(operator === "==" ? same : !same);
+  }
+  const left = numeralOf(leftTerm);
+  const right = numeralOf(rightTerm);
+  if (left === undefined || right === undefined) return null;
   switch (operator) {
     case "+": return String(left + right);
     case "-": return String(Math.max(0, left - right));
@@ -72,10 +89,14 @@ function evalBinOp(operator: BinOp["operator"], left: number, right: number): st
     case ">": return String(left > right);
     case "<=": return String(left <= right);
     case ">=": return String(left >= right);
-    case "==": return String(left === right);
-    case "!=": return String(left !== right);
+    default: return null;
   }
 }
+
+const isBoolLiteral = (term: Term): boolean => isTrueLiteral(term) || isFalseLiteral(term);
+
+// True/true and unit/Unit spell the same value.
+const literalKey = (value: string): string => /^(true|false|unit)$/i.test(value) ? value.toLowerCase() : value;
 
 export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
@@ -636,18 +657,10 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
     }
     if (right.stuck) return null;
 
-    if (!isNatLiteral(node.left) || !isNatLiteral(node.right)) {
-      // Stuck: both sides are values, but at least one isn't a Nat literal.
-      return null;
-    }
+    const result = evalBinOp(node.operator, node.left, node.right);
+    if (result === null) return null;
 
-    const result = evalBinOp(node.operator, Number(node.left.value), Number(node.right.value));
-    if (result === null) {
-      // Stuck: e.g. division by zero.
-      return null;
-    }
-
-    this.firedRule = "E-BinOp";
+    this.firedRule = node.operator === "and" ? "E-And" : node.operator === "or" ? "E-Or" : "E-BinOp";
     const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: result};
     return {before: node, after, selectedId: node.id, resultId: after.id};
   }
@@ -739,10 +752,10 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   }
 
   protected override visitPred(node: Pred): ReductionStep | null {
-    if (node.term.kind === "Lit" && node.term.value === "0") {
-      // E-PredZero
-      this.firedRule = "E-PredZero";
-      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: "0"};
+    if (node.term.kind === "Lit" && isNatLiteral(node.term)) {
+      // E-PredZero, or a literal n > 0 read as succ (n-1)
+      this.firedRule = node.term.value === "0" ? "E-PredZero" : "E-PredSucc";
+      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: String(Math.max(0, Number(node.term.value) - 1))};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
 
@@ -760,8 +773,9 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
   protected override visitIsZero(node: IsZero): ReductionStep | null {
     if (isNumericValue(node.term)) {
       // E-IszeroZero / E-IszeroSucc
-      this.firedRule = node.term.kind === "Lit" ? "E-IszeroZero" : "E-IszeroSucc";
-      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: node.term.kind === "Lit" ? "true" : "false"};
+      const zero = numeralOf(node.term) === 0;
+      this.firedRule = zero ? "E-IszeroZero" : "E-IszeroSucc";
+      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: zero ? "true" : "false"};
       return {before: node, after, selectedId: node.id, resultId: after.id};
     }
 
@@ -769,7 +783,18 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
     return this.reduceNblOperand(node);
   }
 
-  private reduceNblOperand<T extends Succ | Pred | IsZero>(node: T): ReductionStep | null {
+  protected override visitNot(node: Not): ReductionStep | null {
+    if (isBoolLiteral(node.term)) {
+      this.firedRule = isTrueLiteral(node.term) ? "E-NotTrue" : "E-NotFalse";
+      const after: Lit = {kind: "Lit", id: crypto.randomUUID(), value: isTrueLiteral(node.term) ? "false" : "true"};
+      return {before: node, after, selectedId: node.id, resultId: after.id};
+    }
+
+    // E-Not
+    return this.reduceNblOperand(node);
+  }
+
+  private reduceNblOperand<T extends Succ | Pred | IsZero | Not>(node: T): ReductionStep | null {
     const step = this.visit(node.term);
     if (!step) return null;
     return {
@@ -1078,6 +1103,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return {...term, term: this.substituteTypeInTerm(term.term, typeVar, replacement)};
 
       case "IsNil":
@@ -1341,6 +1367,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return {...term, term: this.substitute(term.term, variable, replacement)};
 
       case "IsNil":
@@ -1454,6 +1481,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
 
       case "Pred":
       case "IsZero":
+      case "Not":
         return false;
 
       case "Unfold":
@@ -1593,6 +1621,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return this.getFreeVariables(term.term, bound);
 
       case "IsNil":
@@ -1771,6 +1800,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return {...term, term: this.renameBoundVariable(term.term, oldName, newName)};
 
       case "IsNil":
@@ -1883,6 +1913,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return this.getAllNames(term.term);
 
       case "IsNil":
@@ -2096,6 +2127,7 @@ export class ReductionVisitor extends AstVisitor<ReductionStep | null> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return {...term, id: crypto.randomUUID(), term: this.cloneTermWithFreshIds(term.term)};
 
       case "IsNil":

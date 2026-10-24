@@ -18,7 +18,7 @@ export {
 export {AstVisitor} from "@/application/AstVisitor";
 export {ProofTreeVisitor} from "@/application/ProofTreeVisitor";
 
-export {SLTLCTypeChecker, noMainExpressionMessage, type CheckOptions} from "@/application/typecheck/STLCTypeChecker";
+export {SLTLCTypeChecker, noMainExpressionMessage, enableFeatureHint, type CheckOptions} from "@/application/typecheck/STLCTypeChecker";
 export * from "@/application/typecheck/ProofTree";
 export {TypeCheckError} from "@/application/typecheck/TypeCheckError";
 export {
@@ -29,6 +29,8 @@ export {
   expandTypeAliases,
   normalizeType,
   typeEquals,
+  operatorClass,
+  type OperatorClass,
 } from "@/application/typecheck/utils";
 
 export {
@@ -54,3 +56,4 @@ export {
 } from "@/presentation/tex/ebproofExport";
 export * from "@/nbl/nbl";
 export {elaborateNbl} from "@/application/nbl/elaborateNbl";
+export {elaborateBuiltins, elaborateProgram, BUILTIN_ARITY} from "@/application/builtins/elaborateBuiltins";

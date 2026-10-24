@@ -92,6 +92,9 @@ export interface TermState {
 }
 
 export const APP_DEFAULT_STLC_FEATURES: StlcFeatureConfig = {
+  arithmetic: true,
+  booleans: true,
+  unit: true,
   sums: false,
   tuples: false,
   records: false,

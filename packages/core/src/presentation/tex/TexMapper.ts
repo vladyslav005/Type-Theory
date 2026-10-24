@@ -18,6 +18,8 @@ const BINOP_TEX_SYMBOLS: Record<BinaryOperator, string> = {
   ">=": "\\geq",
   "==": "=",
   "!=": "\\neq",
+  "and": "\\land",
+  "or": "\\lor",
 };
 
 // Suffix only — callers prefix "T-" or "CT-", so one BinOp visitor method displays a distinct rule per operator.
@@ -32,6 +34,8 @@ const BINOP_RULE_NAMES: Record<BinaryOperator, string> = {
   ">=": "Geq",
   "==": "Eq",
   "!=": "Neq",
+  "and": "And",
+  "or": "Or",
 };
 
 // 'A must render like the checker's \text{'A}, not as a bare prime
@@ -630,6 +634,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return isAtomic(term.term)
           ? [t(`\\text{${term.kind.toLowerCase()}}\\ `), ...rec(term.term)]
           : [t(`\\text{${term.kind.toLowerCase()}}\\ (`), ...rec(term.term), t(")")];
@@ -717,6 +722,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         return isAtomic(term.term)
           ? `\\text{${term.kind.toLowerCase()}}\\ ${rec(term.term)}`
           : `\\text{${term.kind.toLowerCase()}}\\ (${rec(term.term)})`

@@ -69,6 +69,7 @@ export function useSetUpEditor() {
             [/\b(true|false|True|False|Unit|unit)\b/, "constant"],
             [/"(?:\\.|[^"\\])*"/, "string"],
             [/\b\d+(\.\d+)?\b/, "number"],
+            [/\b(succ|pred|iszero|not|and|or)\b/, "builtInFunction"],
 
             [/(\b)\w+(\b)/, {
               cases: {

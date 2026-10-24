@@ -17,6 +17,7 @@ import type {
   Inr,
   IsNil,
   IsZero,
+  Not,
   Pred,
   Succ,
   Kind,
@@ -390,6 +391,11 @@ export class AstFlowMapper extends AstVisitor<void> {
     this.visitChild(node, "term", "t", node.term);
   }
 
+  protected visitNot(node: Not): void {
+    this.pushNode(node);
+    this.visitChild(node, "term", "t", node.term);
+  }
+
   protected visitNil(node: Nil): void {
     this.pushNode(node);
     this.visitChild(node, "type", "type", node.type);
@@ -621,6 +627,7 @@ export class AstFlowMapper extends AstVisitor<void> {
       case "Succ":
       case "Pred":
       case "IsZero":
+      case "Not":
         this.nodes.push({id: node.id, type: "nblOp", position: {x: 0, y: 0}, data: {term: node}});
         return;
       case "Nil":

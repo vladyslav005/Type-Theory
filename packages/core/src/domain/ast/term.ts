@@ -33,7 +33,8 @@ export type Term =
   Unfold |
   Succ |
   Pred |
-  IsZero
+  IsZero |
+  Not
 
 export interface Var extends Node {
   kind: "Var"
@@ -180,7 +181,8 @@ export interface Let extends Node {
 // Arithmetic and comparison operators share a single AST node/visitor
 // method — the operator alone selects the typing rule, evaluation
 // behaviour, and displayed proof-tree rule name.
-export type BinaryOperator = "+" | "-" | "*" | "/" | "<" | ">" | "<=" | ">=" | "==" | "!=";
+// "and"/"or" have no infix syntax: they're written as the builtins `and t1 t2` / `or t1 t2`.
+export type BinaryOperator = "+" | "-" | "*" | "/" | "<" | ">" | "<=" | ">=" | "==" | "!=" | "and" | "or";
 
 export interface BinOp extends Node {
   kind: "BinOp";
@@ -282,5 +284,14 @@ export interface Pred extends Node {
 
 export interface IsZero extends Node {
   kind: "IsZero";
+  term: Term;
+}
+
+// =====================================================================
+// =                 BOOLEAN OPERATORS (STLC builtins)                 =
+// =====================================================================
+
+export interface Not extends Node {
+  kind: "Not";
   term: Term;
 }

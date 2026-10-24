@@ -15,7 +15,7 @@ import type {
   Head,
   IfCondition,
   Inl,
-  Inr, IsNil, IsZero, Kind, Let,
+  Inr, IsNil, IsZero, Kind, Let, Not,
   Lit,
   Nil,
   Pred,
@@ -46,7 +46,8 @@ import {
   containsLambdaPConstruct,
   containsTypeConstructor,
   expandTypeAliases,
-  isArithmeticOperator,
+  type OperatorClass,
+  operatorClass,
   kindEquals,
   kindToString,
   normalizeType,
@@ -71,7 +72,8 @@ import {
 } from "@/application/typecheck/ProofTree.ts";
 import {TypeInferenceEngine} from "@/application/typecheck/TypeInferenceEngine.ts";
 import {TypeCheckError} from "@/application/typecheck/TypeCheckError.ts";
-import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig} from "@/domain/typeTheory.ts";
+import {DEFAULT_STLC_FEATURES, DEFAULT_TYPE_THEORY_CONFIG, isStlcBuiltin, STLC_BUILTINS, STLC_FEATURES, type StlcFeatureConfig, type StlcFeatureId, type TypeTheoryConfig} from "@/domain/typeTheory.ts";
+import {BUILTIN_ARITY} from "@/application/builtins/elaborateBuiltins.ts";
 
 // Whether a variable was bound by an ordinary binder or by `let` — purely for picking the
 // matching CT-Var / CT-VarLet proof-tree label; has no effect on the computed type.
@@ -94,14 +96,49 @@ const FEATURE_GATES: {[kind: string]: {feature: StlcFeatureId; construct: string
   IsNil: {feature: "lists", construct: "\"isnil\""},
   Head: {feature: "lists", construct: "\"head\""},
   Tail: {feature: "lists", construct: "\"tail\""},
+  IfCondition: {feature: "booleans", construct: "\"if\""},
+  Sequencing: {feature: "unit", construct: "Sequencing (t1; t2)"},
+  Succ: {feature: "arithmetic", construct: "\"succ\""},
+  Pred: {feature: "arithmetic", construct: "\"pred\""},
+  IsZero: {feature: "arithmetic", construct: "\"iszero\""},
+  Not: {feature: "booleans", construct: "\"not\""},
 };
 
-const FEATURE_LABELS: {[feature in StlcFeatureId]: string} = {
-  sums: "Sum types & variants",
-  tuples: "Tuples",
-  records: "Records",
-  lists: "Lists",
+const OPERATOR_FEATURE: {[cls in OperatorClass]: StlcFeatureId} = {
+  arithmetic: "arithmetic",
+  comparison: "arithmetic",
+  equality: "booleans",
+  logical: "booleans",
 };
+
+function featureGate(node: ASTNode): {feature: StlcFeatureId; construct: string} | undefined {
+  if (node.kind === "Lit") {
+    if (/^\d+$/.test(node.value)) return {feature: "arithmetic", construct: `The number ${node.value}`};
+    if (/^(true|false)$/i.test(node.value)) return {feature: "booleans", construct: `"${node.value}"`};
+    if (/^unit$/i.test(node.value)) return {feature: "unit", construct: `"${node.value}"`};
+    return undefined;
+  }
+  if (node.kind === "BinOp") {
+    const construct = node.operator === "and" || node.operator === "or" ? `"${node.operator}"` : `Operator "${node.operator}"`;
+    return {feature: OPERATOR_FEATURE[operatorClass(node.operator)], construct};
+  }
+  return FEATURE_GATES[node.kind];
+}
+
+const FEATURE_LABELS: {[feature in StlcFeatureId]: string} = Object.fromEntries(
+  STLC_FEATURES.map((feature) => [feature.id, feature.label]),
+) as {[feature in StlcFeatureId]: string};
+
+export function enableFeatureHint(feature: StlcFeatureId): string {
+  return `Enable "${FEATURE_LABELS[feature]}" under Language → Simply Typed Lambda Calculus`;
+}
+
+const KIND_RULES: {[kind: string]: Rule | undefined} = {IfCondition: Rule.If, DummyAbstraction: Rule.DummyAbs};
+
+const ruleOfKind = (kind: string): Rule =>
+  KIND_RULES[kind] ?? ((Object.values(Rule) as string[]).includes(kind) ? kind as Rule : Rule.Var);
+
+const BASE_EQUALITY_TYPES = new Set(["Nat", "Bool", "Unit", "String"]);
 
 // A trailing `x : T;` is a declaration, not a typed main expression, so say how to write the latter.
 export function noMainExpressionMessage(program: Program): string {
@@ -353,8 +390,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   // Builds a leaf error proof and records the message — shared by every "not allowed here" gate.
-  private reject(term: ASTNode, rule: Rule, msg: string, premises: InferProofTree[] = []): InferProofTree {
-    this.errorBuffer.push(new TypeCheckError(msg, term.pos));
+  private reject(term: ASTNode, rule: Rule, msg: string, premises: InferProofTree[] = [], hint?: string): InferProofTree {
+    this.errorBuffer.push(new TypeCheckError(msg, term.pos, hint));
     return {
       rule,
       term: term as never,
@@ -380,10 +417,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   private rejectIfFeatureDisabled(node: ASTNode): InferProofTree | undefined {
     if (this.theories.untyped) return undefined;
-    const gated = FEATURE_GATES[node.kind];
+    const gated = featureGate(node);
     if (!gated || this.stlcFeatures[gated.feature]) return undefined;
-    const rule = (Object.values(Rule) as string[]).includes(node.kind) ? node.kind as Rule : Rule.Var;
-    return this.reject(node, rule, `${gated.construct} is switched off — enable "${FEATURE_LABELS[gated.feature]}" under STLC in the Language menu to use it`);
+    return this.reject(node, ruleOfKind(node.kind), `${gated.construct} is switched off`, [], enableFeatureHint(gated.feature));
   }
 
   // NBL is untyped: no constraints, only a gate on which syntax is allowed.
@@ -856,6 +892,15 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const scheme = this.schemeContext.get(node.name);
     const rule = this.inferring ? (this.varOrigin.get(node.name) ?? Rule.CtVar) : Rule.Var;
 
+    if (!scheme && isStlcBuiltin(node.name)) {
+      const feature = STLC_BUILTINS[node.name];
+      const usage = BUILTIN_ARITY[node.name] === 1 ? `${node.name} t` : `${node.name} t1 t2`;
+      const msg = this.stlcFeatures[feature]
+        ? `"${node.name}" is a builtin operator, not a function value — apply it to all its arguments (${usage}), or wrap it in a λ to pass it around`
+        : `"${node.name}" is switched off`;
+      return this.reject(node, rule, msg, [], this.stlcFeatures[feature] ? undefined : enableFeatureHint(feature));
+    }
+
     if (!scheme) {
       const contextKeys = Object.keys(this.schemeContext.serializeGamma());
       const contextHint = contextKeys.length > 0
@@ -1083,6 +1128,9 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
         {left: elseProof.type, right: resultType, reason: {kind: "expect", subject: node.else, why: "both branches of an if must have the same type"}},
       );
     } else {
+      if (!this.stlcFeatures.unit && !this.theories.typedNbl) {
+        return this.reject(node, this.ruleFor(Rule.If, Rule.CtIf), `"if" without "else" has type Unit, which is switched off — add an else branch`, premises, enableFeatureHint("unit"));
+      }
       constraints.push({left: resultType, right: unitType});
       resultType = unitType;
     }
@@ -1482,27 +1530,39 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitBinOp(node: BinOp): InferProofTree {
-    const gate = this.rejectIfUntyped(node, this.ruleFor(Rule.BinOp, Rule.CtBinOp), `arithmetic/comparison ("${node.operator}")`);
+    const rule = this.ruleFor(Rule.BinOp, Rule.CtBinOp);
+    const gate = this.rejectIfUntyped(node, rule, `arithmetic/comparison ("${node.operator}")`);
     if (gate) return gate;
 
-    const natType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"};
-    const boolType: TyIdentifier = {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Bool"};
-
+    const named = (name: string): TyIdentifier => ({kind: "TyIdentifier", id: crypto.randomUUID(), name});
     const leftProof = this.visit(node.left);
     const rightProof = this.visit(node.right);
+    const premises = [leftProof, rightProof];
+    const constraints: Constraint[] = [...leftProof.constraints, ...rightProof.constraints];
+    const cls = operatorClass(node.operator);
+
+    if (cls === "equality") {
+      const operandType = this.resolvedType(leftProof) ?? leftProof.type;
+      if (operandType.kind !== "TyMetaVar" && !leftProof.error && !(operandType.kind === "TyIdentifier" && BASE_EQUALITY_TYPES.has(operandType.name))) {
+        return this.reject(node, rule, `"${node.operator}" compares only Nat, Bool, Unit or String values, but the left side has type ${typeToString(operandType)}`, premises);
+      }
+      constraints.push({left: rightProof.type, right: leftProof.type, reason: {kind: "expect", subject: node.right, why: `both sides of "${node.operator}" must have the same type`}});
+    } else {
+      const operand = named(cls === "logical" ? "Bool" : "Nat");
+      const why = cls === "logical" ? `"${node.operator}" works on booleans` : `"${node.operator}" works on numbers`;
+      constraints.push(
+        {left: leftProof.type, right: operand, reason: {kind: "expect", subject: node.left, why}},
+        {left: rightProof.type, right: operand, reason: {kind: "expect", subject: node.right, why}},
+      );
+    }
 
     return {
-      rule: this.ruleFor(Rule.BinOp, Rule.CtBinOp),
+      rule,
       term: node,
-      type: isArithmeticOperator(node.operator) ? natType : boolType,
+      type: named(cls === "arithmetic" ? "Nat" : "Bool"),
       gamma: this.schemeContext.serializeGamma(),
-      premises: [leftProof, rightProof],
-      constraints: [
-        ...leftProof.constraints,
-        ...rightProof.constraints,
-        {left: leftProof.type, right: natType, reason: {kind: "expect", subject: node.left, why: `"${node.operator}" works on numbers`}},
-        {left: rightProof.type, right: natType, reason: {kind: "expect", subject: node.right, why: `"${node.operator}" works on numbers`}},
-      ],
+      premises,
+      constraints,
     };
   }
 
@@ -1724,8 +1784,10 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     };
   }
 
-  // T-Succ, T-Pred, T-IsZero: Succ/Pred/IsZero nodes only exist after elaborateNbl, so no theory gate here.
-  private visitTypedNblOp(node: Succ | Pred | IsZero, rule: Rule, result: "Nat" | "Bool"): InferProofTree {
+  // T-Succ, T-Pred, T-IsZero, T-Not: these nodes only exist after elaborateNbl/elaborateBuiltins.
+  private visitTypedNblOp(node: Succ | Pred | IsZero | Not, rule: Rule, result: "Nat" | "Bool", operand: "Nat" | "Bool" = "Nat"): InferProofTree {
+    const gate = this.rejectIfUntyped(node, rule, node.kind.toLowerCase());
+    if (gate) return gate;
     const argProof = this.visit(node.term);
     return {
       rule,
@@ -1735,8 +1797,8 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       premises: [argProof],
       constraints: [...argProof.constraints, {
         left: argProof.type,
-        right: {kind: "TyIdentifier", id: crypto.randomUUID(), name: "Nat"},
-        reason: {kind: "expect", subject: node.term, why: `${node.kind.toLowerCase()} needs a number`},
+        right: {kind: "TyIdentifier", id: crypto.randomUUID(), name: operand},
+        reason: {kind: "expect", subject: node.term, why: `${node.kind.toLowerCase()} needs ${operand === "Nat" ? "a number" : "a boolean"}`},
       }],
     };
   }
@@ -1751,6 +1813,10 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
 
   protected visitIsZero(node: IsZero): InferProofTree {
     return this.visitTypedNblOp(node, Rule.IsZero, "Bool");
+  }
+
+  protected visitNot(node: Not): InferProofTree {
+    return this.visitTypedNblOp(node, Rule.Not, "Bool", "Bool");
   }
 
   protected visitLet(node: Let): InferProofTree {

@@ -486,7 +486,7 @@
   "extensions": {
     "trigger": "Jazyk",
     "stlcLabel": "Jednoducho typovaný lambda kalkul",
-    "stlcDescription": "Jednoducho typovaný λ-kalkul — predvolený základ. V podmenu môžete zapínať a vypínať súčty, n-tice, záznamy a zoznamy.",
+    "stlcDescription": "Jednoducho typovaný λ-kalkul — predvolený základ. V podmenu môžete zapínať a vypínať čísla, booleovské hodnoty, unit, súčty, n-tice, záznamy a zoznamy.",
     "theories": {
       "nbl": {
         "label": "Čísla a booleovské hodnoty (NBL)",
@@ -541,6 +541,18 @@
     },
     "stlcFeatures": {
       "trigger": "Prvky STLC",
+      "arithmetic": {
+        "label": "Čísla a aritmetika",
+        "description": "Literály Nat 0, 1, 2, …, succ t, pred t, iszero t, + - * / a porovnania < > <= >="
+      },
+      "booleans": {
+        "label": "Booleovské hodnoty a if",
+        "description": "true, false, if … then … else, not t, and t1 t2, or t1 t2 a rovnosť t1 == t2, t1 != t2"
+      },
+      "unit": {
+        "label": "Unit",
+        "description": "unit : Unit, sekvencia t1; t2 a if bez vetvy else"
+      },
       "sums": {
         "label": "Súčtové typy a varianty",
         "description": "inl / inr / case a pomenované varianty [l=t] as T s case … of"
@@ -557,7 +569,7 @@
         "label": "Zoznamy",
         "description": "nil, cons, isnil, head a tail"
       },
-      "hint": "Vyberte, ktoré dátové typy STLC obsahuje. Prejdite myšou na položku a uvidíte jej syntax."
+      "hint": "Vyberte, ktoré základné a dátové typy STLC obsahuje. Prejdite myšou na položku a uvidíte jej syntax."
     },
     "hint": "Vyberte základný jazyk a potom k STLC pridajte rozšírenia. Prejdite myšou na položku a uvidíte, čo pridáva.",
     "sections": {
@@ -601,7 +613,8 @@
     "results": "Výsledky"
   },
   "errorsPanel": {
-    "empty": "Zatiaľ žiadny výstup — spustite alebo skontrolujte výraz a uvidíte tu výsledky, upozornenia a chyby."
+    "empty": "Zatiaľ žiadny výstup — spustite alebo skontrolujte výraz a uvidíte tu výsledky, upozornenia a chyby.",
+    "hint": "Tip:"
   },
   "output": {
     "parsed": "Analýza prebehla úspešne.",

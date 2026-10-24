@@ -94,16 +94,35 @@ export const TYPE_THEORIES: TypeTheoryDescriptor[] = [
 ];
 
 // Optional parts of STLC itself (not extensions) — each can be switched off to keep exercises focused.
-export type StlcFeatureId = "sums" | "tuples" | "records" | "lists";
+export type StlcFeatureId = "arithmetic" | "booleans" | "unit" | "sums" | "tuples" | "records" | "lists";
 
 export type StlcFeatureConfig = Record<StlcFeatureId, boolean>;
 
 export const DEFAULT_STLC_FEATURES: StlcFeatureConfig = {
+  arithmetic: true,
+  booleans: true,
+  unit: true,
   sums: true,
   tuples: true,
   records: true,
   lists: true,
 };
+
+// Builtin operators written like ordinary functions; a user binding of the same name shadows them.
+export const STLC_BUILTINS = {
+  succ: "arithmetic",
+  pred: "arithmetic",
+  iszero: "arithmetic",
+  not: "booleans",
+  and: "booleans",
+  or: "booleans",
+} as const satisfies Record<string, StlcFeatureId>;
+
+export type StlcBuiltinName = keyof typeof STLC_BUILTINS;
+
+export function isStlcBuiltin(name: string): name is StlcBuiltinName {
+  return Object.hasOwn(STLC_BUILTINS, name);
+}
 
 export interface StlcFeatureDescriptor {
   id: StlcFeatureId;
@@ -112,6 +131,9 @@ export interface StlcFeatureDescriptor {
 }
 
 export const STLC_FEATURES: StlcFeatureDescriptor[] = [
+  {id: "arithmetic", label: "Numbers & arithmetic", description: "Nat literals 0, 1, 2, …, succ t, pred t, iszero t, + - * / and comparisons < > <= >="},
+  {id: "booleans", label: "Booleans & if", description: "true, false, if … then … else, not t, and t1 t2, or t1 t2 and equality t1 == t2, t1 != t2"},
+  {id: "unit", label: "Unit", description: "unit : Unit, sequencing t1; t2 and if without an else branch"},
   {id: "sums", label: "Sum types & variants", description: "inl / inr / case and labelled variants [l=t] as T with case … of"},
   {id: "tuples", label: "Tuples", description: "<t1, t2, …> and projection t.N"},
   {id: "records", label: "Records", description: "<l=t, …> and projection t.l"},

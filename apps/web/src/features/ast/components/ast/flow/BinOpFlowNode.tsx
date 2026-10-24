@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select.tsx";
 
-const OPERATORS = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!="] as const;
+const OPERATORS = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!=", "and", "or"] as const;
 
 export function BinOpFlowNode({data, selected}: { data: BinOpNodeData; selected?: boolean }) {
   return (
@@ -42,7 +42,7 @@ export function BinOpFlowNode({data, selected}: { data: BinOpNodeData; selected?
         ) : (
           <span className="text-sm font-bold font-mono text-amber-600 dark:text-amber-400">{data.term.operator}</span>
         )}
-        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Arithmetic / Comparison</span>
+        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">{data.term.operator === "and" || data.term.operator === "or" ? "Boolean operator" : "Arithmetic / Comparison"}</span>
       </div>
 
       {/* Two-column slot grid */}

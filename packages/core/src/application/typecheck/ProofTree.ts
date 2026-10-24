@@ -117,6 +117,7 @@ export enum Rule {
   Succ = "Succ",
   Pred = "Pred",
   IsZero = "IsZero",
+  Not = "Not",
 
   // System F is syntax-directed, so it always gets plain (non-Ct) rule names, even inside a `let`.
   TypeAbs = "TypeAbs",

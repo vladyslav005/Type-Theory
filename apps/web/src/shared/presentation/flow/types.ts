@@ -16,6 +16,7 @@ import type {
   Inr,
   IsNil,
   IsZero,
+  Not,
   Kind,
   Let,
   Lit,
@@ -111,7 +112,7 @@ export type DummyAbstractionNodeData = { term: DummyAbstraction; editable?: bool
 export type LetNodeData = { term: Let; editable?: boolean; onChange?: (patch: any) => void };
 export type BinOpNodeData = { term: BinOp; editable?: boolean; onChange?: (patch: any) => void };
 export type FixNodeData = { term: Fix; editable?: boolean; onChange?: (patch: any) => void };
-export type NblOpNodeData = { term: Succ | Pred | IsZero; editable?: boolean; onChange?: (patch: any) => void };
+export type NblOpNodeData = { term: Succ | Pred | IsZero | Not; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAbsNodeData = { term: TypeAbs; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAppNodeData = { term: TypeApp; editable?: boolean; onChange?: (patch: any) => void };
 export type TypeAliasDeclNodeData = { term: TypeAliasDecl; editable?: boolean; onChange?: (patch: any) => void };

@@ -158,6 +158,8 @@ export class AstPrettyPrinter {
         return `(pred ${this.printTerm(term.term)})`;
       case "IsZero":
         return `(iszero ${this.printTerm(term.term)})`;
+      case "Not":
+        return `(not ${this.printTerm(term.term)})`;
     }
   }
 
@@ -229,6 +231,7 @@ export class AstPrettyPrinter {
   }
 
   private printBinOp(t: BinOp): string {
+    if (t.operator === "and" || t.operator === "or") return `(${t.operator} ${this.printTerm(t.left)} ${this.printTerm(t.right)})`;
     return `(${this.printTerm(t.left)} ${t.operator} ${this.printTerm(t.right)})`;
   }
 

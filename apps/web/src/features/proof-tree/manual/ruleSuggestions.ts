@@ -3,7 +3,7 @@ import {isCtRule} from "@/shared/ui-state/ruleFamilies.ts";
 import {RULE_LABELS, rulesForTheories} from "@/features/proof-tree/components/proof-tree-builder/ruleLabels.ts";
 
 const LIT_ALIASES = ["Unit", "True", "False", "String", "Nv", "Zero"];
-const BIN_OPS: BinaryOperator[] = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!="];
+const BIN_OPS: BinaryOperator[] = ["+", "-", "*", "/", "<", ">", "<=", ">=", "==", "!=", "and", "or"];
 
 // Every rule name manualCheck accepts under the enabled theories, aliases after the main labels.
 export function ruleSuggestions(theories: TypeTheoryConfig, features: StlcFeatureConfig): string[] {
