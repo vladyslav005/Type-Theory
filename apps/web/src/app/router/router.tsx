@@ -3,6 +3,7 @@ import {AppLayout} from "../layout/AppLayout.tsx";
 import {HomePage} from "@/pages/HomePage.tsx";
 import {ErrorPage} from "@/pages/ErrorPage.tsx";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
+import {env} from "@/shared/lib/env.ts";
 
 const loadMainPage = () => import("@/pages/MainPage.tsx");
 const loadDocsLayout = () => import("@/pages/docs/DocsLayout.tsx");
@@ -25,7 +26,7 @@ export const router = createBrowserRouter([
       {index: true, element: <HomePage/>},
       {path: "/main", lazy: async () => ({Component: (await loadMainPage()).MainPage})},
       {path: "/about", element: <Navigate to="/" replace/>},
-      {path: "/feedback", lazy: async () => ({Component: (await import("@/pages/FeedbackPage.tsx")).FeedbackPage})},
+      ...(env.VITE_SHOW_FEEDBACK_TAB ? [{path: "/feedback", lazy: async () => ({Component: (await import("@/pages/FeedbackPage.tsx")).FeedbackPage})}] : []),
       ...(STUDY_MODE ? [{path: "/activity", lazy: async () => ({Component: (await import("@/pages/ActivityPage.tsx")).ActivityPage})}] : []),
       {
         path: "/docs", lazy: async () => ({Component: (await loadDocsLayout()).DocsLayout}),

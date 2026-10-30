@@ -2,6 +2,7 @@ import {BookType} from "lucide-react";
 import {useTranslation} from "react-i18next";
 import {Link} from "react-router-dom";
 import {STUDY_MODE} from "@/shared/activity/studyConfig.ts";
+import {env} from "@/shared/lib/env.ts";
 
 export function Footer() {
   const {t} = useTranslation();
@@ -28,8 +29,12 @@ export function Footer() {
             {t("footer.courseLink")}
           </a>
         </span>
-        <span aria-hidden="true">·</span>
-        <Link to="/feedback" className="underline underline-offset-2 hover:text-foreground">{t("footer.feedback")}</Link>
+        {env.VITE_SHOW_FEEDBACK_TAB && (
+          <>
+            <span aria-hidden="true">·</span>
+            <Link to="/feedback" className="underline underline-offset-2 hover:text-foreground">{t("footer.feedback")}</Link>
+          </>
+        )}
         {STUDY_MODE && (
           <>
             <span aria-hidden="true">·</span>
