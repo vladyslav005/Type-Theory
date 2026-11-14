@@ -1,0 +1,612 @@
+import {
+  Callout,
+  ConceptSection,
+  GrammarBox,
+  Math,
+  MathBlock,
+  ReductionTrace,
+  ReferenceList,
+  RuleCardStrip,
+  ScreenOnly,
+  SectionHeading,
+  SummaryBox,
+} from "@/features/docs/lectures/blocks/LectureBlocks.tsx";
+import {MiniWorkspace} from "@/features/docs/workspace/MiniWorkspace.tsx";
+import {PredictThenVerify} from "@/features/docs/workspace/PredictThenVerify.tsx";
+import {AstBuilder} from "@/features/docs/workspace/AstBuilder.tsx";
+import {ReductionStrategyExplorer} from "@/features/docs/workspace/ReductionStrategyExplorer.tsx";
+
+Pri návrhu údajových typov nestačí povedať, z akých zložiek sa údaj skladá — často potrebujeme vyjadriť,
+**ktorú z viacerých podôb** môže mať. Prvú situáciu sme v predchádzajúcej prednáške zachytili súčinovými
+typmi: hodnota typu <Math>{"T_1 \\times T_2"}</Math> obsahuje **súčasne** obe zložky. Teraz sa zameriame na
+**alternatívy**, z ktorých je prítomná **práve jedna**.
+
+Vyhľadávanie môže záznam nájsť alebo oznámiť, že neexistuje; geometrický objekt môže byť bodom, kruhom alebo
+obdĺžnikom — a každá alternatíva pritom nesie iné údaje. Typ výsledku má tieto možnosti vyjadriť tak, aby sa
+dalo zistiť, ktorá nastala a aké údaje sú v nej dostupné.
+
+<Callout title="Príklad: počet kusov na sklade">
+
+Funkcia podľa identifikátora tovaru vyhľadá počet kusov na sklade. Ak záznam existuje, vráti prirodzené
+číslo; ak nie, musí oznámiť neprítomnosť údaja. Číslo <Math>{"0"}</Math> na to použiť nemôžeme — je to aj
+platný počet kusov. Oba výsledky zachytí **súčtový typ** <Math>{"\\mathtt{Nat} + \\mathtt{Unit}"}</Math>:
+jedna alternatíva nesie nájdený počet, druhá (s jedinou hodnotou `unit`) len oznamuje, že záznam chýba.
+Rozhodujúce je **označenie alternatívy** — prítomná nula a chýbajúci záznam sú dve rôzne hodnoty.
+
+</Callout>
+
+Súčtovú hodnotu **vytvárame** výberom a označením jednej možnosti a **spracúvame** ju rozborom prípadov.
+Typové pravidlá pri rozbore overia, že každú vetvu používame podľa typu jej údajov. Postupujeme ako doteraz:
+doplníme **syntax**, **typovacie pravidlá** a **vyhodnocovacie pravidlá** — najprv pre binárny súčet, potom
+pre jeho zovšeobecnenie, **varianty**. Používame volanie hodnotou a číslice <Math>{"1, 2, \\ldots"}</Math> sú
+skratky za <Math>{"\\mathtt{succ}\\ 0, \\ldots"}</Math>.
+
+<SectionHeading id="binary-sums" index="1" title="Binárny súčtový typ" blurb="Injekcie inl a inr, selektor case a prečo injekcie potrebujú anotáciu." />
+
+<ConceptSection id="sum-type" title="Typ T₁ + T₂">
+
+Pre typy <Math>{"T_1"}</Math> a <Math>{"T_2"}</Math> vytvorí **typový konštruktor** <Math>{"+"}</Math>
+**binárny súčtový typ** <Math>{"T_1 + T_2"}</Math>. Jeho hodnota obsahuje **buď** hodnotu typu
+<Math>{"T_1"}</Math> označenú ako ľavá alternatíva, **alebo** hodnotu typu <Math>{"T_2"}</Math> označenú ako
+pravá alternatíva.
+
+Samotný term <Math>{"t_1 : T_1"}</Math> ešte nie je termom typu <Math>{"T_1 + T_2"}</Math> — do súčtu ho
+treba **vložiť**. Na označení záleží aj vtedy, keď <Math>{"T_1 = T_2"}</Math>: ľavé a pravé vloženie tej istej
+hodnoty sú rozlíšiteľné.
+
+</ConceptSection>
+
+<ConceptSection id="injections" title="Injekcie inl a inr">
+
+Vkladanie robia dva **termové konštruktory**, nazývané **injekcie**:
+
+- **`inl`** (*left injection*) vloží term typu <Math>{"T_1"}</Math> do ľavej alternatívy,
+- **`inr`** (*right injection*) vloží term typu <Math>{"T_2"}</Math> do pravej alternatívy.
+
+Ich úlohu pre pevne zvolené <Math>{"T_1, T_2"}</Math> vystihuje schéma
+
+<MathBlock>{"\\mathtt{inl} : T_1 \\to (T_1 + T_2) \\qquad\\qquad \\mathtt{inr} : T_2 \\to (T_1 + T_2)"}</MathBlock>
+
+To je však len opis — v gramatike sú <Math>{"\\mathtt{inl}\\ t"}</Math> a <Math>{"\\mathtt{inr}\\ t"}</Math>
+**samostatné tvary termov**, nie aplikácie nejakých premenných `inl` a `inr`.
+
+Nie každý term súčtového typu je injekciou — môže to byť aj premenná, aplikácia alebo výraz `case`.
+**Kanonické hodnoty** súčtového typu však majú vždy tvar injekcie s **hodnotou** vo vnútri; injekcia
+s nevyhodnoteným argumentom hodnotou nie je.
+
+</ConceptSection>
+
+<Callout title="Typový a termový konštruktor">
+
+Typový konštruktor <Math>{"+"}</Math> vytvára **typ z typov**. Termové konštruktory `inl` a `inr` vytvárajú
+**term z termu** a označujú zvolenú alternatívu. Pri pomenovaných variantoch (časť 2) sa názvom alternatív
+bežne hovorí konštruktory, samo návestie však nie je ani premennou, ani typovým konštruktorom.
+
+</Callout>
+
+<ConceptSection id="case" title="Selektor case">
+
+Hodnotu súčtového typu spracujeme **rozborom prípadov** (*case analysis*). Jeho eliminátor, **selektor**,
+má tvar
+
+<MathBlock>{"\\begin{array}{rll} & \\mathtt{case}\\ t\\ \\mathtt{of} & \\\\ & \\mathtt{inl}\\ x_1 & \\Rightarrow t_1 \\\\ \\mid & \\mathtt{inr}\\ x_2 & \\Rightarrow t_2 \\end{array}"}</MathBlock>
+
+Term <Math>{"t"}</Math> má typ <Math>{"T_1 + T_2"}</Math>. Premenná <Math>{"x_1 : T_1"}</Math> je viazaná
+**iba v tele** <Math>{"t_1"}</Math>, premenná <Math>{"x_2 : T_2"}</Math> iba v <Math>{"t_2"}</Math>. Obe vetvy
+musia mať **rovnaký výsledný typ** — presne ako vetvy `if`.
+
+Pri vyhodnotení sa najprv vyhodnotí analyzovaný term <Math>{"t"}</Math>. Podľa injekcie sa vyberie vetva a do
+jej tela sa dosadí vnútorná hodnota za príslušnú premennú (substitúcia bez zachytenia). **Nezvolená vetva sa
+nevyhodnocuje.**
+
+</ConceptSection>
+
+<ConceptSection id="duality" title="Súčin a súčet sú duálne">
+
+Súčinové a súčtové typy sú zrkadlovým obrazom v tom, ako hodnoty vytvárame a ako ich používame:
+
+- **súčin** vytvoríme poskytnutím **oboch** zložiek; údaje z neho vyberáme **projekciami**,
+- **súčet** vytvoríme výberom **jednej** alternatívy; spracujeme ho **rozborom oboch** prípadov.
+
+V logickej interpretácii (Curry–Howardova korešpondencia, koniec semestra) zodpovedá súčin **konjunkcii**
+a súčet **disjunkcii**: na dôkaz <Math>{"A \\wedge B"}</Math> treba oba dôkazy, na dôkaz
+<Math>{"A \\vee B"}</Math> stačí jeden — spolu s informáciou, ktorý to je.
+
+</ConceptSection>
+
+<ConceptSection id="sum-syntax" title="Rozšírenie syntaxe">
+
+Najprv pridáme **neanotované** injekcie. Gramatiku rozšírime o nové tvary termov, hodnôt a typov:
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\mathtt{inl}\\ t \\ \\mid\\ \\mathtt{inr}\\ t \\ \\mid\\ \\mathtt{case}\\ t\\ \\mathtt{of}\\ \\mathtt{inl}\\ x_1 \\Rightarrow t_1\\ \\texttt{'|'}\\ \\mathtt{inr}\\ x_2 \\Rightarrow t_2 \\\\ v ::= & \\ldots & \\mid\\ \\mathtt{inl}\\ v \\ \\mid\\ \\mathtt{inr}\\ v \\\\ T ::= & \\ldots & \\mid\\ T + T \\end{array}"}</MathBlock>
+
+Symbol <Math>{"\\mid"}</Math> v BNF oddeľuje syntaktické možnosti; <Math>{"\\texttt{'|'}"}</Math> v úvodzovkách
+je **terminálny symbol** jazyka, ktorý oddeľuje dve vetvy jedného `case`.
+
+</ConceptSection>
+
+<ConceptSection id="precedence" title="Priorita typových konštruktorov">
+
+Pri zápise typov platí: <Math>{"\\times"}</Math> viaže najsilnejšie, potom <Math>{"+"}</Math> a najslabšie
+<Math>{"\\to"}</Math>, ktorá sa viaže doprava:
+
+<MathBlock>{"\\begin{array}{lcl} A \\to B \\to C & = & A \\to (B \\to C) \\\\ A \\times B + C & = & (A \\times B) + C \\\\ A \\times B + C \\to D & = & ((A \\times B) + C) \\to D \\\\ A \\times B \\to C + D & = & (A \\times B) \\to (C + D) \\end{array}"}</MathBlock>
+
+Vnorené súčiny a súčty **vždy zátvorkujeme**. <Math>{"A \\times (B \\times C)"}</Math> a
+<Math>{"(A \\times B) \\times C"}</Math> totiž **nie sú ten istý typ** — ich hodnoty sú inak vnorené dvojice
+s inými projekciami. Sú len **izomorfné** (<Math>{"\\cong"}</Math>): údaje sa dajú previesť oboma smermi a
+prevody sa navzájom rušia. Rovnako <Math>{"A + (B + C) \\cong (A + B) + C"}</Math>, ale injekcie sú vnorené
+inak. Napríklad funkcia
+
+<MathBlock>{"\\lambda p : A \\times (B \\times C).\\ \\langle \\langle p.1,\\ (p.2).1 \\rangle,\\ (p.2).2 \\rangle"}</MathBlock>
+
+prevedie pravé vnorenie dvojíc na ľavé: množstvo údajov ostáva, štruktúra typu sa mení.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"λ p : <A * <B * C>> . <<p.1, (p.2).1>, (p.2).2>;"}
+  hint="Typ výsledku je <<A * B> * C> — iný typ ako <A * <B * C>>, hoci nesie tie isté údaje. Skúste napísať aj opačný prevod."
+/>
+
+<ConceptSection id="uniqueness" title="Súčty a jednoznačnosť typov">
+
+V STLC platí **jednoznačnosť typov**: z <Math>{"\\Gamma \\vdash t : T"}</Math> a
+<Math>{"\\Gamma \\vdash t : S"}</Math> vyplýva <Math>{"T = S"}</Math>. S neanotovanými injekciami to už neplatí.
+Ich prirodzené pravidlá
+
+<MathBlock>{"\\dfrac{\\Gamma \\vdash t : T_1}{\\Gamma \\vdash \\mathtt{inl}\\ t : T_1 + T_2} \\qquad\\qquad \\dfrac{\\Gamma \\vdash t : T_2}{\\Gamma \\vdash \\mathtt{inr}\\ t : T_1 + T_2}"}</MathBlock>
+
+povoľujú **ľubovoľnú druhú zložku** súčtu: ak <Math>{"\\Gamma \\vdash t : \\mathtt{Nat}"}</Math>, potom
+<Math>{"\\mathtt{inl}\\ t"}</Math> má typ <Math>{"\\mathtt{Nat} + \\mathtt{Bool}"}</Math> aj
+<Math>{"\\mathtt{Nat} + \\mathtt{Unit}"}</Math>. Z typu vloženého termu výsledný typ injekcie nevyčítame —
+typová kontrola už nemôže, ako doteraz, len čítať pravidlá zdola nahor.
+
+Ponúkajú sa tri riešenia:
+
+- **Odvodenie (rekonštrukcia) typov** — chýbajúcu zložku nahradíme neznámou a určíme ju unifikáciou
+  z okolitého programu (prednáška o odvodení typu).
+- **Rozšírenie typového systému** — napríklad podtypovanie s najmenším typom <Math>{"\\mathtt{Bot}"}</Math>
+  priradí <Math>{"\\mathtt{inl}\\ t"}</Math> typ <Math>{"T_1 + \\mathtt{Bot}"}</Math> a ten sa neskôr rozšíri.
+  Vyžaduje nové typy a pravidlá; tu ho nezavádzame.
+- **Explicitné typové anotácie** — programátor uvedie zamýšľaný súčtový typ, a tým aj chýbajúcu zložku.
+
+Zvolíme **tretí prístup**.
+
+</ConceptSection>
+
+<ConceptSection id="annotated-injections" title="Anotované injekcie">
+
+Injekciu zapíšeme spolu s celým výsledným typom: <Math>{"\\mathtt{inl}\\ t\\ \\mathtt{as}\\ (T_1 + T_2)"}</Math>,
+obdobne pre `inr`. Hoci zápis pripomína pripísanie z predchádzajúcej prednášky, ide o inú konštrukciu:
+
+- **všeobecné pripísanie** <Math>{"t\\ \\mathtt{as}\\ T"}</Math> (T-Ascribe) overí, že <Math>{"t"}</Math>
+  **už má** typ <Math>{"T"}</Math>, a pri vyhodnotení sa odstráni,
+- **anotovaná injekcia** má anotáciu ako **vlastnú súčasť syntaxe** — typ určujú pravidlá pre injekcie
+  a anotácia zostáva súčasťou hodnoty.
+
+Neanotované tvary injekcií v gramatike **nahradíme** anotovanými (`case` sa nemení):
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ \\mathtt{inl}\\ t\\ \\mathtt{as}\\ T \\ \\mid\\ \\mathtt{inr}\\ t\\ \\mathtt{as}\\ T \\\\ v ::= & \\ldots & \\mid\\ \\mathtt{inl}\\ v\\ \\mathtt{as}\\ T \\ \\mid\\ \\mathtt{inr}\\ v\\ \\mathtt{as}\\ T \\end{array}"}</MathBlock>
+
+Zložitý argument zátvorkujeme (<Math>{"\\mathtt{inl}\\ (f\\ x)\\ \\mathtt{as}\\ (T_1 + T_2)"}</Math>), pri aplikácii
+zátvorkujeme celú injekciu (<Math>{"g\\ (\\mathtt{inl}\\ v\\ \\mathtt{as}\\ (T_1 + T_2))"}</Math>). Telo
+abstrakcie aj každá vetva `case` siahajú čo najďalej doprava. S anotáciami má každý term opäť **najviac
+jeden typ**.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["T-Inl", "T-Inr", "T-Case"]}
+  descriptions={{
+    "T-Inl": "Argument sa overí proti ľavej zložke anotácie; typ injekcie je presne anotovaný súčet.",
+    "T-Inr": "Argument sa overí proti pravej zložke anotácie; typ injekcie je presne anotovaný súčet.",
+    "T-Case": "Analyzovaný term je súčtom; každá vetva sa kontroluje v kontexte rozšírenom o svoju premennú a obe musia mať rovnaký typ T.",
+  }}
+/>
+
+<RuleCardStrip
+  ruleIds={["E-Inl", "E-Inr", "E-Case", "E-CaseInl", "E-CaseInr"]}
+  descriptions={{
+    "E-Inl": "Najprv sa vyhodnocuje argument ľavej injekcie.",
+    "E-Inr": "Najprv sa vyhodnocuje argument pravej injekcie.",
+    "E-Case": "Kým analyzovaný term nie je hodnotou, redukuje sa on — vetvy sa nechávajú tak.",
+    "E-CaseInl": "Ľavá injekcia hodnoty: jej obsah sa dosadí za x₁ a pokračuje sa vetvou inl.",
+    "E-CaseInr": "Pravá injekcia hodnoty: jej obsah sa dosadí za x₂ a pokračuje sa vetvou inr.",
+  }}
+/>
+
+<ConceptSection id="sum-evaluation" title="Poradie vyhodnocovania">
+
+Najprv sa vyhodnotí **argument injekcie**. Až keď je hodnotou, môže `case` vybrať vetvu a vykonať substitúciu.
+Anotácia ostáva súčasťou injekčnej hodnoty — žiadny samostatný krok E-Ascribe ju neodstraňuje; pri výbere vetvy
+sa „spotrebuje" celá injekcia. Telá vetiev sa pred výberom nevyhodnocujú.
+
+</ConceptSection>
+
+<ConceptSection id="getnat" title="Príklad: getnat">
+
+Funkcia <Math>{"\\mathit{getnat} : (\\mathtt{Nat} + \\mathtt{Bool}) \\to \\mathtt{Nat}"}</Math> pri ľavej injekcii
+vráti uložené číslo a pri pravej <Math>{"1"}</Math> pre `true` a <Math>{"0"}</Math> pre `false`:
+
+<MathBlock>{"\\begin{array}{rll} \\mathit{getnat} = \\lambda x : \\mathtt{Nat} + \\mathtt{Bool}. & \\mathtt{case}\\ x\\ \\mathtt{of} & \\\\ & \\mathtt{inl}\\ n & \\Rightarrow n \\\\ \\mid & \\mathtt{inr}\\ b & \\Rightarrow \\mathtt{if}\\ b\\ \\mathtt{then}\\ 1\\ \\mathtt{else}\\ 0 \\end{array}"}</MathBlock>
+
+Overme typ aplikácie <Math>{"\\mathit{getnat}\\ (\\mathtt{inr}\\ \\mathtt{true}\\ \\mathtt{as}\\ (\\mathtt{Nat} + \\mathtt{Bool}))"}</Math>.
+Označme <Math>{"\\Gamma_n = x{:}\\mathtt{Nat}{+}\\mathtt{Bool},\\, n{:}\\mathtt{Nat}"}</Math> a
+<Math>{"\\Gamma_b = x{:}\\mathtt{Nat}{+}\\mathtt{Bool},\\, b{:}\\mathtt{Bool}"}</Math>. Telo funkcie má typ
+<Math>{"\\mathtt{Nat}"}</Math> podľa T-Case:
+
+<MathBlock>{"\\dfrac{x{:}\\mathtt{Nat}{+}\\mathtt{Bool} \\vdash x : \\mathtt{Nat}{+}\\mathtt{Bool}\\ (\\text{T-Var}) \\qquad \\Gamma_n \\vdash n : \\mathtt{Nat}\\ (\\text{T-Var}) \\qquad \\dfrac{\\Gamma_b \\vdash b : \\mathtt{Bool} \\quad \\Gamma_b \\vdash 1 : \\mathtt{Nat} \\quad \\Gamma_b \\vdash 0 : \\mathtt{Nat}}{\\Gamma_b \\vdash \\mathtt{if}\\ b\\ \\mathtt{then}\\ 1\\ \\mathtt{else}\\ 0 : \\mathtt{Nat}}\\ (\\text{T-If})}{x{:}\\mathtt{Nat}{+}\\mathtt{Bool} \\vdash \\mathtt{case}\\ x\\ \\mathtt{of}\\ \\ldots : \\mathtt{Nat}}\\ (\\text{T-Case})"}</MathBlock>
+
+T-Abs z toho dá <Math>{"\\vdash \\mathit{getnat} : (\\mathtt{Nat} + \\mathtt{Bool}) \\to \\mathtt{Nat}"}</Math>, T-Inr dá
+argumentu typ <Math>{"\\mathtt{Nat} + \\mathtt{Bool}"}</Math> a T-App celej aplikácii typ <Math>{"\\mathtt{Nat}"}</Math>.
+
+Pri vyhodnotení je argument už hodnotou, takže β-krok dosadí za <Math>{"x"}</Math> hneď; potom `case` vyberie
+pravú vetvu a dosadí `true` za <Math>{"b"}</Math>. V každom kroku ostáva typ <Math>{"\\mathtt{Nat}"}</Math>.
+
+</ConceptSection>
+
+<ReductionTrace
+  title="getnat (inr true as (Nat + Bool))"
+  steps={[
+    {term: "[[getnat (inr true as (Nat + Bool))]]"},
+    {term: "[[case (inr true as (Nat + Bool)) of inl n ⇒ n | inr b ⇒ if b then 1 else 0]]", rule: "E-AppAbs"},
+    {term: "[[if true then 1 else 0]]", rule: "E-CaseInr"},
+    {term: "1", rule: "E-IfTrue"},
+  ]}
+/>
+
+<Callout title="Súčty v aplikácii" screenOnly>
+
+V aplikácii sa súčtový typ píše `Nat + Bool` a injekcia `inl t as Nat + Bool` — anotácia je povinná, bez nej
+parser injekciu neprijme. Binárny `case` sa píše **bez `of`** a vetvy oddeľuje `||`:
+`case t || inl x => t1 || inr y => t2`. Pomenované definície zapíšete ako `meno = term : typ;` a
+typové skratky ako `typedef Meno = T;`. Vyhodnocovač značí β-krok **β** a rozvinutie pomenovanej definície
+krokom **definition**.
+
+</Callout>
+
+<MiniWorkspace
+  initialTerm={"getnat = λ x : Nat + Bool . case x || inl n => n || inr b => if b then 1 else 0 : Nat + Bool -> Nat;\n\ngetnat (inr true as Nat + Bool);"}
+  hint="Zmeňte argument na inl 5 as Nat + Bool, potom na inl true as Nat + Bool — T-Inl overí argument proti ľavej zložke anotácie. Skúste aj v pravej vetve vrátiť b namiesto čísla: vetvy už nebudú mať rovnaký typ."
+/>
+
+<PredictThenVerify
+  id="sum-swap-type"
+  term={"λ s : Nat + Bool . case s || inl n => inr n as Bool + Nat || inr b => inl b as Bool + Nat;"}
+  prompt="Kontrolný bod: aký typ má táto funkcia? Pri každej vetve si všimnite, do ktorej strany a akého súčtu sa výsledok vkladá."
+/>
+
+<ReductionStrategyExplorer
+  term={"(λ x : Nat + Bool . case x || inl n => n || inr b => if b then 1 else 0) (inl (2 + 3) as Nat + Bool);"}
+  hint="Volanie hodnotou najprv vyhodnotí 2 + 3 vo vnútri injekcie (E-Inl), až potom urobí β-krok. Volanie menom a normálne poradie dosadia injekciu nevyhodnotenú — no ešte pred výberom vetvy ju musia vyhodnotiť, lebo E-CaseInl potrebuje vo vnútri hodnotu."
+/>
+
+<ScreenOnly>
+
+Zostavte strom termu, v ktorom sa funkcia aplikuje na injekciu:
+
+</ScreenOnly>
+
+<AstBuilder
+  id="ast-inl-argument"
+  allowedTypes={["application", "abstraction", "variable", "inl", "literal"]}
+  expectedSource="(λ x : Nat + Bool . x) (inl 5 as Nat + Bool)"
+  instructions="Zostavte (λ x : Nat + Bool . x) (inl 5 as Nat + Bool): aplikácia, ktorej funkciou je abstrakcia s telom x a argumentom injekcia inl s literálom 5."
+/>
+
+<SectionHeading id="variants" index="2" title="Varianty" blurb="Súčet n typov s pomenovanými alternatívami." />
+
+<ConceptSection id="variants-intro" title="Od súčtu k variantu">
+
+Tak ako sme dvojice zovšeobecnili na n-tice a záznamy, zovšeobecníme binárny súčet na súčet
+<Math>{"n"}</Math> typov s **návestiami** — **variantový typ**. Jeho hodnota obsahuje práve jednu z alternatív.
+Namiesto <Math>{"T_1 + T_2"}</Math> píšeme
+
+<MathBlock>{"[\\mathit{lab}_1 : T_1,\\ \\mathit{lab}_2 : T_2]"}</MathBlock>
+
+a ľavému a pravému vloženiu zodpovedajú
+
+<MathBlock>{"[\\mathit{lab}_1 = t]\\ \\mathtt{as}\\ [\\mathit{lab}_1 : T_1,\\ \\mathit{lab}_2 : T_2] \\qquad [\\mathit{lab}_2 = t]\\ \\mathtt{as}\\ [\\mathit{lab}_1 : T_1,\\ \\mathit{lab}_2 : T_2]"}</MathBlock>
+
+Návestia patria do množiny <Math>{"\\mathcal{L}"}</Math> zavedenej pri záznamoch, v jednom type sú navzájom rôzne
+a nie sú premennými — substitúcia ich nemení. Ako pri záznamoch **záleží na poradí** položiek typu.
+
+</ConceptSection>
+
+<Callout title="Záznam a variant">
+
+Rozdiel nie je len v zátvorkách: **záznam** <Math>{"\\langle \\mathit{lab}_1 = t_1,\\ \\mathit{lab}_2 = t_2 \\rangle"}</Math>
+obsahuje **všetky** položky, **variant** <Math>{"[\\mathit{lab}_j = t]\\ \\mathtt{as}\\ T"}</Math> **iba zvolenú**.
+
+</Callout>
+
+<ConceptSection id="variant-syntax" title="Syntax variantov">
+
+<MathBlock>{"\\begin{array}{lll} t ::= & \\ldots & \\mid\\ [\\mathit{lab} = t]\\ \\mathtt{as}\\ T \\ \\mid\\ \\mathtt{case}\\ t\\ \\mathtt{of}\\ ([\\mathit{lab}_i = x_i] \\Rightarrow t_i)^{i \\in 1..n} \\\\ v ::= & \\ldots & \\mid\\ [\\mathit{lab} = v]\\ \\mathtt{as}\\ T \\\\ T ::= & \\ldots & \\mid\\ [\\mathit{lab}_i : T_i{}^{\\,i \\in 1..n}] \\end{array}"}</MathBlock>
+
+Platí <Math>{"n \\ge 1"}</Math> a <Math>{"\\mathit{lab}_i \\ne \\mathit{lab}_j"}</Math> pre <Math>{"i \\ne j"}</Math>.
+Horný index <Math>{"i \\in 1..n"}</Math> znamená zoznam všetkých položiek či vetiev (oddelených
+<Math>{"\\mid"}</Math>), nie umocnenie. Pre <Math>{"t : [a : T_1,\\ b : T_2,\\ c : T_3]"}</Math> sa schéma rozvinie na
+
+<MathBlock>{"\\begin{array}{rll} & \\mathtt{case}\\ t\\ \\mathtt{of} & \\\\ & [a = x] & \\Rightarrow t_1 \\\\ \\mid & [b = y] & \\Rightarrow t_2 \\\\ \\mid & [c = z] & \\Rightarrow t_3 \\end{array}"}</MathBlock>
+
+kde <Math>{"x : T_1"}</Math>, <Math>{"y : T_2"}</Math>, <Math>{"z : T_3"}</Math> a všetky tri telá majú rovnaký typ.
+Anotácia je súčasťou variantového konštruktora a hodnotou je až <Math>{"[\\mathit{lab} = v]\\ \\mathtt{as}\\ T"}</Math>
+s vyhodnoteným obsahom.
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["T-Variant", "T-VariantCase"]}
+  descriptions={{
+    "T-Variant": "Zvolené návestie musí patriť do anotovaného typu a vložený term musí mať typ jeho položky; výsledkom je celý anotovaný variant.",
+    "T-VariantCase": "Pre každé návestie typu práve jedna vetva, v ktorej x_i : T_i; všetky telá musia mať rovnaký typ T. V prednáške sa pravidlo volá T-Case.",
+  }}
+/>
+
+<ConceptSection id="variant-typing" title="Čo pravidlá zaručujú">
+
+Pravidlá vyžadujú, aby zvolené návestie patrilo do anotovaného typu, aby `case` mal pre **každé návestie práve
+jednu vetvu** (žiadne chýbajúce ani navyše), aby premenná <Math>{"x_i"}</Math> mala typ <Math>{"T_i"}</Math>
+a aby všetky telá mali ten istý typ <Math>{"T"}</Math>.
+
+Jedinečnosť návestí a **vyčerpávajúci rozbor** zaručujú, že každá variantová hodnota nájde práve jednu vetvu —
+dobre typovaný uzavretý `case` sa teda nezasekne pre chýbajúci prípad (**progres**). Zhoda typov vetiev spolu so
+substitučnou lemou zaručuje, že výber vetvy typ nezmení (**zachovanie**).
+
+</ConceptSection>
+
+<RuleCardStrip
+  ruleIds={["E-CaseVariant", "E-Case", "E-Variant"]}
+  descriptions={{
+    "E-CaseVariant": "Vyberie sa vetva s návestím hodnoty a jej obsah sa dosadí za x_j.",
+    "E-Case": "Kým analyzovaný term nie je hodnotou, redukuje sa on.",
+    "E-Variant": "Najprv sa vyhodnocuje obsah variantu.",
+  }}
+/>
+
+<ConceptSection id="variant-order" title="Poradie vyhodnocovania">
+
+Poradie je rovnaké ako pri binárnom súčte: obsah variantu, výber vetvy, substitúcia bez zachytenia a potom
+vyhodnocovanie vybranej vetvy. Ostatné telá sa nevyhodnocujú.
+
+</ConceptSection>
+
+<ConceptSection id="shapes" title="Príklad: geometrické tvary">
+
+Variantom zjednotíme tri reprezentácie tvarov. Predpokladajme na chvíľu vstavaný typ
+<Math>{"\\mathtt{Float}"}</Math> s aritmetikou (a aproximáciou <Math>{"\\pi_{\\mathtt{Float}}"}</Math>):
+
+<MathBlock>{"\\begin{array}{lcl} \\mathit{Suradnica} & = & \\mathtt{Float} \\times \\mathtt{Float} \\\\ \\mathit{Tvar} & = & [\\mathit{bod} : \\mathit{Suradnica},\\ \\mathit{kruh} : \\mathit{Suradnica} \\times \\mathtt{Float},\\ \\mathit{obdl} : \\mathit{Suradnica} \\times \\mathit{Suradnica}] \\end{array}"}</MathBlock>
+
+Bod nesie súradnice, kruh dvojicu stredu a polomeru, obdĺžnik dvojicu protiľahlých rohov. (Nezápornosť polomeru
+ani poradie rohov typ nevynucuje.) Pre <Math>{"k : \\mathit{Suradnica} \\times \\mathtt{Float}"}</Math> je
+<Math>{"k.1"}</Math> stred a <Math>{"k.2"}</Math> polomer; pre obdĺžnik <Math>{"o"}</Math> je
+<Math>{"(o.1).1"}</Math> prvá súradnica prvého rohu. Obsah počítame úplným rozborom troch alternatív:
+
+<MathBlock>{"\\begin{array}{rll} \\mathit{obsah} = \\lambda x : \\mathit{Tvar}. & \\mathtt{case}\\ x\\ \\mathtt{of} & \\\\ & [\\mathit{bod} = b] & \\Rightarrow 0.0 \\\\ \\mid & [\\mathit{kruh} = k] & \\Rightarrow \\pi_{\\mathtt{Float}} \\cdot k.2 \\cdot k.2 \\\\ \\mid & [\\mathit{obdl} = o] & \\Rightarrow \\mathit{abs}\\,((o.1).1 - (o.2).1) \\cdot \\mathit{abs}\\,((o.1).2 - (o.2).2) \\end{array}"}</MathBlock>
+
+kde <Math>{"\\mathit{abs} = \\lambda x : \\mathtt{Float}.\\ \\mathtt{if}\\ x < 0.0\\ \\mathtt{then}\\ 0.0 - x\\ \\mathtt{else}\\ x"}</Math>.
+Všetky vetvy majú typ <Math>{"\\mathtt{Float}"}</Math>. Stred tvaru:
+
+<MathBlock>{"\\begin{array}{rll} \\mathit{stred} = \\lambda x : \\mathit{Tvar}. & \\mathtt{case}\\ x\\ \\mathtt{of} & \\\\ & [\\mathit{bod} = b] & \\Rightarrow b \\\\ \\mid & [\\mathit{kruh} = k] & \\Rightarrow k.1 \\\\ \\mid & [\\mathit{obdl} = o] & \\Rightarrow \\left\\langle \\dfrac{(o.1).1 + (o.2).1}{2.0},\\ \\dfrac{(o.1).2 + (o.2).2}{2.0} \\right\\rangle \\end{array}"}</MathBlock>
+
+Každá vetva má typ <Math>{"\\mathit{Suradnica}"}</Math>.
+
+</ConceptSection>
+
+<Callout title="Varianty v aplikácii" screenOnly>
+
+Variantový `case` sa v aplikácii píše **s `of`** a vetvy oddeľuje `||`:
+`case t of [bod = b] => t1 || [kruh = k] => t2`. Aplikácia nemá typ `Float`, preto okno nižšie počíta
+`stred` nad súradnicami typu `Nat` (s celočíselným delením `/`).
+
+</Callout>
+
+<MiniWorkspace
+  initialTerm={"typedef Suradnica = <Nat * Nat>;\ntypedef Tvar = [bod : Suradnica, kruh : <Suradnica * Nat>, obdl : <Suradnica * Suradnica>];\n\nstred = λ x : Tvar . case x of [bod = b] => b || [kruh = k] => k.1 || [obdl = o] => <((o.1).1 + (o.2).1) / 2, ((o.1).2 + (o.2).2) / 2> : Tvar -> Suradnica;\n\nstred ([obdl = <<0, 0>, <4, 6>>] as Tvar);"}
+  hint="Zmeňte argument na [kruh = <<1, 2>, 3>] as Tvar. Potom skúste neexistujúce návestie, napríklad [stvorec = <0, 0>] as Tvar, alebo vložte do bod term zlého typu — T-Variant to odmietne. Napokon zmažte jednu vetvu case: rozbor už nebude vyčerpávajúci."
+/>
+
+<PredictThenVerify
+  id="variant-case-type"
+  term={"λ v : [ok : Nat, err : Bool] . case v of [ok = n] => iszero n || [err = e] => e;"}
+  prompt="Kontrolný bod: aký typ má táto funkcia? Variantový typ v aplikácii zapíšete ako [ok : Nat, err : Bool]."
+/>
+
+<SectionHeading id="special-variants" index="3" title="Špeciálne variantové typy" blurb="Enumerácie, obaly a voliteľné hodnoty — bez jediného nového pravidla." />
+
+<ConceptSection id="special-intro" title="Tri užitočné vzory">
+
+Varianty umožňujú vyjadriť viacero bežných spôsobov organizácie údajov:
+
+- **enumeračné typy** vymenúvajú pevnú množinu alternatív bez ďalších údajov,
+- **jednopoložkové varianty** obalia hodnotu a odlíšia jej význam od reprezentácie,
+- **voliteľné hodnoty** rozlišujú prítomnosť a neprítomnosť údaja.
+
+Všetky tri sú len konkrétne variantové typy — nové pravidlá nepotrebujeme.
+
+</ConceptSection>
+
+<ConceptSection id="enums" title="Enumeračné typy">
+
+**Enumeračný typ** je variant, v ktorom má každá položka typ **`Unit`**. Napríklad dni v týždni:
+
+<MathBlock>{"\\mathit{Week} = [\\mathit{monday} : \\mathtt{Unit},\\ \\mathit{tuesday} : \\mathtt{Unit},\\ \\ldots,\\ \\mathit{sunday} : \\mathtt{Unit}]"}</MathBlock>
+
+Pondelok je hodnota <Math>{"[\\mathit{monday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week}"}</Math>. Keďže
+`Unit` má jedinú hodnotu, má <Math>{"\\mathit{Week}"}</Math> presne **7 hodnôt** — dni rozlišuje len návestie.
+Funkcia, ktorá vráti nasledujúci pracovný deň:
+
+<MathBlock>{"\\begin{array}{rll} \\mathit{nextWorkDay} = \\lambda w : \\mathit{Week}. & \\mathtt{case}\\ w\\ \\mathtt{of} & \\\\ & [\\mathit{monday} = x] & \\Rightarrow [\\mathit{tuesday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week} \\\\ \\mid & \\quad\\vdots & \\\\ \\mid & [\\mathit{friday} = x] & \\Rightarrow [\\mathit{monday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week} \\\\ \\mid & [\\mathit{saturday} = x] & \\Rightarrow [\\mathit{monday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week} \\\\ \\mid & [\\mathit{sunday} = x] & \\Rightarrow [\\mathit{monday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week} \\end{array}"}</MathBlock>
+
+V každej vetve má <Math>{"x"}</Math> typ `Unit` a nepoužije sa; rozbor pokrýva všetkých sedem dní a
+<Math>{"\\mathit{nextWorkDay}\\ ([\\mathit{saturday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week}) \\to^* [\\mathit{monday} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{Week}"}</Math>.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"typedef Week = [monday : Unit, tuesday : Unit, wednesday : Unit, thursday : Unit, friday : Unit, saturday : Unit, sunday : Unit];\n\nnextWorkDay = λ w : Week . case w of\n    [monday = x] => [tuesday = unit] as Week\n || [tuesday = x] => [wednesday = unit] as Week\n || [wednesday = x] => [thursday = unit] as Week\n || [thursday = x] => [friday = unit] as Week\n || [friday = x] => [monday = unit] as Week\n || [saturday = x] => [monday = unit] as Week\n || [sunday = x] => [monday = unit] as Week\n  : Week -> Week;\n\nnextWorkDay ([saturday = unit] as Week);"}
+  hint="Výsledkom je typ Week. Skúste vložiť do dňa niečo iné než unit, napríklad [monday = 1] as Week — položky enumerácie sú typu Unit."
+/>
+
+<ConceptSection id="wrappers" title="Variantové typy s jednou položkou">
+
+**Jednopoložkový variant** <Math>{"V = [\\mathit{lab} : T]"}</Math> má jediné návestie; term
+<Math>{"t : T"}</Math> doň vložíme ako <Math>{"[\\mathit{lab} = t]\\ \\mathtt{as}\\ V"}</Math>. Taký **obal**
+odlišuje **význam** údaja od jeho **reprezentácie**: operáciu očakávajúcu <Math>{"T"}</Math> nemožno priamo
+použiť na hodnotu typu <Math>{"V"}</Math> — najprv ju treba rozbaliť selektorom `case`. Typy
+<Math>{"T"}</Math> a <Math>{"[\\mathit{lab} : T]"}</Math> nestotožňujeme. (Jednopoložkový variant nemusí mať
+jedinú hodnotu — má ich toľko ako <Math>{"T"}</Math>.)
+
+</ConceptSection>
+
+<ConceptSection id="currency" title="Príklad: doláre a eurá">
+
+Predpokladajme typ <Math>{"\\mathtt{Real}"}</Math> s primitívnym násobením
+<Math>{"\\mathit{times} : \\mathtt{Real} \\to \\mathtt{Real} \\to \\mathtt{Real}"}</Math> a pevné kurzy
+<Math>{"0.8"}</Math> a <Math>{"1.25"}</Math>. Ak obe meny reprezentujeme priamo typom <Math>{"\\mathtt{Real}"}</Math>,
+
+<MathBlock>{"\\begin{array}{l} \\mathit{dollartoeuro} = \\lambda d : \\mathtt{Real}.\\ \\mathit{times}\\ d\\ 0.8 \\\\ \\mathit{eurotodollar} = \\lambda e : \\mathtt{Real}.\\ \\mathit{times}\\ e\\ 1.25 \\end{array}"}</MathBlock>
+
+potom je <Math>{"\\mathit{dollartoeuro}\\ (\\mathit{dollartoeuro}\\ 39.50) \\to^* 25.28"}</Math> **dobre typovaný**
+term — hoci omylom prepočítava už prepočítanú sumu tým istým smerom. Číselná reprezentácia meny nerozlišuje.
+
+Bezpečná verzia zavedie dva obaly s **rôznymi návestiami**:
+
+<MathBlock>{"\\mathit{DollarAmount} = [\\mathit{dollars} : \\mathtt{Real}] \\qquad \\mathit{EuroAmount} = [\\mathit{euros} : \\mathtt{Real}]"}</MathBlock>
+
+<MathBlock>{"\\begin{array}{l} \\mathit{dollartoeuro} = \\lambda d : \\mathit{DollarAmount}.\\ \\mathtt{case}\\ d\\ \\mathtt{of}\\ [\\mathit{dollars} = x] \\Rightarrow [\\mathit{euros} = \\mathit{times}\\ x\\ 0.8]\\ \\mathtt{as}\\ \\mathit{EuroAmount} \\\\ \\mathit{eurotodollar} = \\lambda e : \\mathit{EuroAmount}.\\ \\mathtt{case}\\ e\\ \\mathtt{of}\\ [\\mathit{euros} = x] \\Rightarrow [\\mathit{dollars} = \\mathit{times}\\ x\\ 1.25]\\ \\mathtt{as}\\ \\mathit{DollarAmount} \\end{array}"}</MathBlock>
+
+s typmi <Math>{"\\mathit{DollarAmount} \\to \\mathit{EuroAmount}"}</Math> a
+<Math>{"\\mathit{EuroAmount} \\to \\mathit{DollarAmount}"}</Math>. Konverzia hodnotu rozbalí, prepočíta a zabalí do
+správnej alternatívy; spätná konverzia vráti opäť **zabalenú** sumu typu <Math>{"\\mathit{DollarAmount}"}</Math>.
+Term <Math>{"\\mathit{dollartoeuro}\\ (\\mathit{dollartoeuro}\\ \\mathit{mybalance})"}</Math> už **neprejde typovou
+kontrolou**: vnútorná aplikácia má typ <Math>{"\\mathit{EuroAmount}"}</Math>, vonkajšia očakáva
+<Math>{"\\mathit{DollarAmount}"}</Math>, a T-App sa použiť nedá. Typová chyba je neúspech statickej kontroly, nie
+krok vyhodnocovania. Obaly sa odlišujú **návestiami**, nie len názvami typových skratiek.
+
+</ConceptSection>
+
+<Callout title="Meny v aplikácii" screenOnly>
+
+Aplikácia nemá typ `Real`, preto okno nižšie počíta sumy v **centoch** typu `Nat` a kurzy zapisuje ako
+`x * 4 / 5` a `x * 5 / 4`.
+
+</Callout>
+
+<MiniWorkspace
+  initialTerm={"typedef DollarAmount = [dollars : Nat];\ntypedef EuroAmount = [euros : Nat];\n\ndollartoeuro = λ d : DollarAmount . case d of [dollars = x] => [euros = x * 4 / 5] as EuroAmount : DollarAmount -> EuroAmount;\neurotodollar = λ e : EuroAmount . case e of [euros = x] => [dollars = x * 5 / 4] as DollarAmount : EuroAmount -> DollarAmount;\nmybalance = [dollars = 3950] as DollarAmount : DollarAmount;\n\neurotodollar (dollartoeuro mybalance);"}
+  hint="Výsledok je opäť typu DollarAmount, teda [dollars : Nat]. Teraz zmeňte posledný riadok na dollartoeuro (dollartoeuro mybalance); — typová kontrola zámenu mien odmietne."
+/>
+
+<ConceptSection id="options" title="Voliteľné hodnoty">
+
+Varianty umožňujú reprezentovať **voliteľné hodnoty** (*optional values*): údaj môže byť prítomný alebo
+chýbať. Pre každý pevne zvolený typ <Math>{"T"}</Math> použijeme schému
+
+<MathBlock>{"\\mathtt{Option}(T) = [\\mathit{none} : \\mathtt{Unit},\\ \\mathit{some} : T]"}</MathBlock>
+
+s hodnotami <Math>{"[\\mathit{none} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathtt{Option}(T)"}</Math> (údaj chýba) a
+<Math>{"[\\mathit{some} = v]\\ \\mathtt{as}\\ \\mathtt{Option}(T)"}</Math> pre <Math>{"v : T"}</Math>. Je to
+**metajazyková schéma**, nie polymorfný typový konštruktor — každá voľba <Math>{"T"}</Math> dáva konkrétny
+variantový typ, napríklad
+
+<MathBlock>{"\\mathit{OptionNat} = [\\mathit{none} : \\mathtt{Unit},\\ \\mathit{some} : \\mathtt{Nat}]"}</MathBlock>
+
+Rovnakú myšlienku poznáte z bežných jazykov: `Maybe a` v Haskelli (`Just 5`, `Nothing`), `Option<T>` v Ruste (`Some(5)`, `None`) či `Optional<T>` v Jave
+(`Optional.of(5)`, `Optional.empty()`).
+
+</ConceptSection>
+
+<ConceptSection id="partial-functions" title="Čiastočné a úplné funkcie">
+
+Čiastočná funkcia <Math>{"f : \\mathbb{N} \\rightharpoonup \\mathbb{N}"}</Math> nemusí mať hodnotu pre každý vstup.
+Reprezentovať ju môžeme **úplnou** funkciou
+<Math>{"\\widehat{f} : \\mathbb{N} \\to (\\mathbb{N} \\cup \\{\\mathit{none}\\})"}</Math>, ktorá tam, kde
+<Math>{"f"}</Math> nie je definovaná, vráti osobitný symbol <Math>{"\\mathit{none}"}</Math>. V našom jazyku tomu
+zodpovedá typ <Math>{"\\mathtt{Nat} \\to \\mathit{OptionNat}"}</Math>.
+
+`none` je **riadny výsledok** výpočtu — nie chýbajúce vyhodnotenie ani výnimka. Typ však sám nevytvorí algoritmus,
+ktorý by rozhodol nedefinovanosť ľubovoľnej vypočítateľnej funkcie; v našich príkladoch chýbajúci záznam vieme
+zistiť a oznámiť. Rozbor výsledku pomocou `case` musí pokryť obe alternatívy, výsledok však nemusíme rozbaľovať —
+môžeme ho aj vrátiť či odovzdať ďalej.
+
+</ConceptSection>
+
+<ConceptSection id="table" title="Príklad: tabuľka ako funkcia">
+
+Tabuľku s číselnými indexmi reprezentujeme funkciou <Math>{"\\mathit{Table} = \\mathtt{Nat} \\to \\mathit{OptionNat}"}</Math>,
+definovanou pre každý index. (Z typu nevyplýva konečný počet záznamov —
+<Math>{"\\lambda k : \\mathtt{Nat}.\\ [\\mathit{some} = k]\\ \\mathtt{as}\\ \\mathit{OptionNat}"}</Math> má hodnotu
+všade.) Tabuľka s jediným záznamom <Math>{"0 \\mapsto 7"}</Math> a vyhľadávanie:
+
+<MathBlock>{"\\begin{array}{l} \\mathit{table} = \\lambda k : \\mathtt{Nat}.\\ \\mathtt{if}\\ \\mathtt{iszero}\\ k\\ \\mathtt{then}\\ [\\mathit{some} = 7]\\ \\mathtt{as}\\ \\mathit{OptionNat}\\ \\mathtt{else}\\ [\\mathit{none} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{OptionNat} \\\\ \\mathit{lookup} = \\lambda k : \\mathtt{Nat}.\\ \\lambda t : \\mathit{Table}.\\ t\\ k \\ :\\ \\mathtt{Nat} \\to \\mathit{Table} \\to \\mathit{OptionNat} \\end{array}"}</MathBlock>
+
+Potom <Math>{"\\mathit{lookup}\\ 0\\ \\mathit{table} \\to^* [\\mathit{some} = 7]\\ \\mathtt{as}\\ \\mathit{OptionNat}"}</Math> a
+<Math>{"\\mathit{lookup}\\ 1\\ \\mathit{table} \\to^* [\\mathit{none} = \\mathtt{unit}]\\ \\mathtt{as}\\ \\mathit{OptionNat}"}</Math>.
+Prítomnosť údaja rozlíšime pomocou `case`, pri chýbajúcom zázname s náhradnou hodnotou <Math>{"0"}</Math>:
+
+<MathBlock>{"\\mathtt{case}\\ (\\mathit{lookup}\\ 0\\ \\mathit{table})\\ \\mathtt{of}\\ [\\mathit{none} = u] \\Rightarrow 0 \\mid [\\mathit{some} = n] \\Rightarrow n \\;\\to^*\\; 7"}</MathBlock>
+
+Tu <Math>{"u : \\mathtt{Unit}"}</Math>, <Math>{"n : \\mathtt{Nat}"}</Math> a obe telá majú typ <Math>{"\\mathtt{Nat}"}</Math>.
+Výsledok <Math>{"[\\mathit{some} = 0]"}</Math> by bol **prítomný** záznam s hodnotou nula — až náš `case` ich zámerne
+zlúči s chýbajúcim záznamom do rovnakej náhradnej hodnoty.
+
+</ConceptSection>
+
+<MiniWorkspace
+  initialTerm={"typedef OptionNat = [none : Unit, some : Nat];\n\ntable = λ k : Nat . if iszero k then [some = 7] as OptionNat else [none = unit] as OptionNat : Nat -> OptionNat;\nlookup = λ k : Nat . λ t : Nat -> OptionNat . t k : Nat -> (Nat -> OptionNat) -> OptionNat;\n\ncase lookup 0 table of [none = u] => 0 || [some = n] => n;"}
+  hint="Zmeňte index na 1 — vyberie sa vetva none. Skúste aj vrátiť priamo lookup 0 table; bez rozboru: typom výsledku bude OptionNat, teda [none : Unit, some : Nat]."
+/>
+
+<PredictThenVerify
+  id="option-default-type"
+  term={"λ o : [none : Unit, some : Nat] . λ d : Nat . case o of [none = u] => d || [some = n] => n;"}
+  prompt="Kontrolný bod: aký typ má funkcia, ktorá z voliteľnej hodnoty vyberie číslo alebo vráti náhradnú hodnotu d?"
+/>
+
+<GrammarBox
+  title="Čo táto prednáška pridala do gramatiky aplikácie"
+  grammar={`term ::= ...
+       | 'inl' term 'as' type                       (* ľavá injekcia *)
+       | 'inr' term 'as' type                       (* pravá injekcia *)
+       | 'case' term '||' 'inl' ID '=>' term
+                     '||' 'inr' ID '=>' term        (* binárny case *)
+       | '[' ID '=' term ']' 'as' type              (* variant *)
+       | 'case' term 'of' '[' ID '=' ID ']' '=>' term
+              ('||' '[' ID '=' ID ']' '=>' term)*   (* variantový case *)
+
+type ::= ... | type '+' type                        (* súčet T1 + T2 *)
+       | '[' ID ':' type (',' ID ':' type)* ']'     (* variantový typ *)`}
+/>
+
+<SummaryBox
+  id="summary"
+  points={[
+    {label: "Súčet a súčin", detail: "súčin spája viac údajov naraz, súčet označuje jednu z alternatív; v logike im zodpovedá konjunkcia a disjunkcia."},
+    {label: "Injekcie a case", detail: "inl a inr sú termové konštruktory, selektor case spracuje hodnotu rozborom prípadov; obe vetvy majú rovnaký typ a nezvolená vetva sa nevyhodnocuje."},
+    {label: "Anotácie", detail: "neanotované injekcie nemajú jednoznačný typ; explicitná anotácia inl t as T₁ + T₂ ho určí a zostáva súčasťou hodnoty."},
+    {label: "Varianty", detail: "zovšeobecňujú súčet na pomenované alternatívy; vyčerpávajúci rozbor s jednotným typom vetiev zaručuje progres aj zachovanie."},
+    {label: "Špeciálne varianty", detail: "enumerácie (položky typu Unit), jednopoložkové obaly odlišujúce význam hodnôt a voliteľné hodnoty Option(T) na modelovanie čiastočných funkcií."},
+  ]}
+/>
+
+<ReferenceList
+  id="sources"
+  entries={[
+    {
+      label: "Kurz Teória typov na TUKE — Prednáška 5 (Súčtové typy)",
+      href: "https://kurzy.kpi.fei.tuke.sk/tt/lectures/05.html",
+    },
+    {
+      label: "Pierce, B. C. — Types and Programming Languages (MIT Press, 2002), oddiely 11.9 Sums a 11.10 Variants",
+      href: "https://www.cis.upenn.edu/~bcpierce/tapl/",
+    },
+    {
+      label: "Pierce, B. C. a kol. — Software Foundations: More on the Simply Typed Lambda-Calculus (Sums)",
+      href: "https://softwarefoundations.cis.upenn.edu/plf-current/MoreStlc.html",
+    },
+  ]}
+/>

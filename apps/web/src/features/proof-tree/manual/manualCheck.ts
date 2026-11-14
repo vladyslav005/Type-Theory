@@ -215,8 +215,11 @@ function acceptedRuleNames(answer: ProofTree): string[] {
   const ct = isCtRule(answer.rule);
   const prefix = ct ? "CT-" : "T-";
   if (answer.rule === Rule.Lit || answer.rule === Rule.CtLit) {
-    ["Lit", "Unit", "True", "False", "String", "Nv", "Zero"].forEach((n) => names.add(`${prefix}${n}`));
+    ["Lit", "Unit", "True", "False", "Bool", "Nat", "String", "Nv", "Zero"].forEach((n) => names.add(`${prefix}${n}`));
   }
+  // The lecture's pair rules (T-Pair, T-Proj1/T-Proj2) are special cases of T-Tuple and T-Proj.
+  if ((answer.rule === Rule.Tuple || answer.rule === Rule.CtTuple) && (answer.term as {elements?: unknown[]}).elements?.length === 2) names.add(`${prefix}Pair`);
+  if (answer.rule === Rule.TupleProjection || answer.rule === Rule.CtTupleProjection) names.add(`${prefix}Proj${(answer.term as {index?: number}).index}`);
   if (answer.rule === Rule.BinOp || answer.rule === Rule.CtBinOp) {
     const operator = (answer.term as {operator?: never}).operator;
     if (operator !== undefined) names.add(`${prefix}${TexMapper.binOpRuleName(operator)}`);
@@ -422,7 +425,7 @@ function checkJudgement(
     messages.push(node.rule.trim() ? ruleFeedback(parseRuleLabel(node.rule), node.rule.trim(), answer) : {code: "ruleMissing"});
   }
 
-  const program = parseOrNull(() => parseTermProgram(node.term), messages, "termParse");
+  const program = parseOrNull(() => parseTermProgram(node.term, undefined, Object.keys(answer.gamma)), messages, "termParse");
   if (program) {
     const writtenKey = programTermKey(program);
     const same = writtenKey === termKey(answer.term);

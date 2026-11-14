@@ -47,11 +47,11 @@
     {
       "slug": "sum-types",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Súčtové typy",
-          "summary": "Súčtové typy a práca s nimi."
+          "summary": "Binárne súčtové typy, injekcie inl/inr a selektor case, anotácie, varianty a ich špeciálne prípady: enumerácie, obaly a voliteľné hodnoty."
         }
       }
     },

@@ -9,6 +9,8 @@ import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {typeToString, type AntlrParserAdapter} from "@vladyslav005/tt-core";
 import {TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
+import {cn} from "@/shared/lib/utils.ts";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import type {TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 interface PredictThenVerifyProps {
@@ -60,19 +62,19 @@ export function PredictThenVerify({id, term, prompt, theories}: PredictThenVerif
     <div className="rounded-xl border bg-muted/20 p-4 space-y-3 print:hidden">
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("lectureWidgets.checkpoint")}</p>
 
-      <pre className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto">{term}</pre>
+      <LabEditor value={term} onChange={() => {}} readOnly compact className="w-full bg-background"/>
 
       <p className="text-sm text-muted-foreground">{prompt ?? t("lectureWidgets.predictPrompt")}</p>
 
       <div>
-        <textarea
+        <LabEditor
           value={guess}
-          onChange={(e) => setGuess(e.target.value)}
+          onChange={setGuess}
+          onSubmit={revealed ? undefined : reveal}
           placeholder={t("lectureWidgets.predictPlaceholder")}
-          disabled={revealed}
-          rows={1}
-          spellCheck={false}
-          className="w-full max-w-xs min-h-9 resize-y font-mono text-sm rounded-md border bg-transparent px-3 py-1.5 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 disabled:cursor-not-allowed"
+          readOnly={revealed}
+          compact
+          className={cn("w-full max-w-xs", revealed && "opacity-50")}
         />
       </div>
       <TaskActions>

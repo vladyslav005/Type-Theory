@@ -19,6 +19,7 @@ import {cn} from "@/shared/lib/utils.ts";
 import {checkAst, type AstCheck} from "@/features/docs/workspace/astCheck.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 import {TaskActions} from "@/features/docs/labs/components/taskUi.tsx";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 
 const DECLARATION_TYPES = ["funDecl", "varDecl", "typeAliasDecl", "typeConstructorDecl"];
 
@@ -189,13 +190,11 @@ export function AstBuilder({id, label, instructions, allowedTypes, expected: exp
         </p>
       )}
 
-      <p className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto min-h-[2.5rem]">
-        {ast.globals.length === 0 && !ast.term ? (
-          <span className="text-muted-foreground">{t("lectureWidgets.astEmpty")}</span>
-        ) : (
-          astToText(ast)
-        )}
-      </p>
+      {ast.globals.length === 0 && !ast.term ? (
+        <p className="text-sm text-muted-foreground rounded-md border bg-background p-3">{t("lectureWidgets.astEmpty")}</p>
+      ) : (
+        <LabEditor value={astToText(ast)} onChange={() => {}} readOnly compact className="w-full bg-background"/>
+      )}
       </>
       )}
     </FullscreenArea>

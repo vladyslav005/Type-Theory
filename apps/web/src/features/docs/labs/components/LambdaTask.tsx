@@ -27,6 +27,7 @@ import {
   withHead,
 } from "@/features/docs/labs/lambda/lambdaEngine.ts";
 import {useSavedState} from "@/shared/activity/savedWork.ts";
+import {SolutionSteps} from "@/features/docs/labs/components/SolutionSteps.tsx";
 
 function useDescribeProblem() {
   const {t} = useTranslation();
@@ -161,8 +162,8 @@ function NormalFormRow({id, index, source}: {id?: string; index: number; source:
   const {t} = useTranslation();
 
   const solution = normalized && (
-    <div className="space-y-1">
-      <p className="font-mono">{printTerm(normalized.result)}</p>
+    <div className="space-y-2">
+      <SolutionSteps evaluation={normalized.evaluation} numerals="church"/>
       {!equalTerms(normalized.result, etaNormal(normalized.result)) && (
         <p className="font-mono">{t("labWidgets.afterEta")} {printTerm(etaNormal(normalized.result))}</p>
       )}
@@ -210,9 +211,9 @@ function ChurchRow({id, index, source}: {id?: string; index: number; source: str
       index={index}
       source={source}
       solution={normalized && (
-        <div className="space-y-1 font-mono">
-          {decoded && <p>{decoded}</p>}
-          <p className="text-muted-foreground">{printTerm(normalized.result)}</p>
+        <div className="space-y-2">
+          {decoded && <p className="font-mono">{decoded}</p>}
+          <SolutionSteps evaluation={normalized.evaluation} numerals="church"/>
         </div>
       )}
     >

@@ -77,14 +77,17 @@ export function parseTypeText(text: string): Type {
   }
 }
 
-export function parseTermProgram(text: string, options?: ParseOptions): Program {
+// `bound` names (e.g. Γ's) shadow builtins of the same name, as global declarations do in the checker's program.
+export function parseTermProgram(text: string, options?: ParseOptions, bound: readonly string[] = []): Program {
   const source = text.trim().replace(/[;\s]+$/, "");
   if (!source) throw new ManualParseError("nothing written here");
   try {
     const parsed = parser.parseExpression(`${source};`, options);
     if (!parsed.term) throw new ManualParseError("not a term");
     // Match the checker's and evaluator's terms, where `and x y` is already an operator node.
-    return options?.keywordsAsIdentifiers ? parsed : elaborateBuiltins(parsed);
+    if (options?.keywordsAsIdentifiers) return parsed;
+    const shadowing = bound.map((name) => ({kind: "VarDecl", name}) as unknown as Program["globals"][number]);
+    return {...elaborateBuiltins({...parsed, globals: [...shadowing, ...parsed.globals]}), globals: parsed.globals};
   } catch (error) {
     throw new ManualParseError(message(error));
   }

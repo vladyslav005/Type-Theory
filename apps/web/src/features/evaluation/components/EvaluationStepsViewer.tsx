@@ -972,7 +972,11 @@ interface EvaluationStepsViewerProps {
   typeAliases?: Record<string, Type>;
   showGamma: boolean;
   blackBoxes?: string[];
+  // Which numeral hint to show; defaults to the editor's selected language.
+  numerals?: Numerals;
 }
+
+type Numerals = "church" | "nbl" | "none";
 
 function nblNumeralValue(term: Term): number | null {
   let count = 0;
@@ -985,10 +989,12 @@ function nblNumeralValue(term: Term): number | null {
 }
 
 // Wraps EvaluationStepsViewerInner so its early returns don't each need the provider individually.
-function ChurchNumeralHint({ term }: { term: Term }) {
+function ChurchNumeralHint({ term, numerals }: { term: Term; numerals?: Numerals }) {
   const { t } = useTranslation();
-  const {untyped, nbl} = useAppSelector((state) => state.term.enabledTheories);
-  const value = untyped ? churchNumeralValue(term) : nbl ? nblNumeralValue(term) : null;
+  const theories = useAppSelector((state) => state.term.enabledTheories);
+  const kind = numerals ?? (theories.untyped ? "church" : theories.nbl ? "nbl" : "none");
+  const nbl = kind === "nbl";
+  const value = kind === "church" ? churchNumeralValue(term) : nbl ? nblNumeralValue(term) : null;
   if (value === null) return null;
   return (
     <div className="mt-2 text-xs text-muted-foreground">
@@ -1014,13 +1020,14 @@ function visibleDotIndexes(total: number, current: number): (number | null)[] {
 
 const EMPTY_ALIASES: Record<string, Type> = {};
 
-export const EvaluationStepsViewer = memo(function EvaluationStepsViewer({ evaluation, typeAliases = EMPTY_ALIASES, showGamma, blackBoxes }: EvaluationStepsViewerProps) {
+export const EvaluationStepsViewer = memo(function EvaluationStepsViewer({ evaluation, typeAliases = EMPTY_ALIASES, showGamma, blackBoxes, numerals }: EvaluationStepsViewerProps) {
   return (
     <TypeAliasesContext.Provider value={typeAliases}>
       <EvaluationStepsViewerInner
         evaluation={evaluation}
         showGamma={showGamma}
         blackBoxes={blackBoxes}
+        numerals={numerals}
       />
     </TypeAliasesContext.Provider>
   );
@@ -1030,9 +1037,10 @@ interface EvaluationStepsViewerInnerProps {
   evaluation: EvaluationResult;
   showGamma: boolean;
   blackBoxes?: string[];
+  numerals?: Numerals;
 }
 
-function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: EvaluationStepsViewerInnerProps) {
+function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes, numerals }: EvaluationStepsViewerInnerProps) {
   const { t } = useTranslation();
   // -1 is the start: only the original term, before any reduction.
   const [stepIndex, setStepIndex] = useState(-1);
@@ -1065,7 +1073,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
           </p>
         </div>
         <TermBox term={result} label={hasErrors ? t("evalSteps.stuckTerm") : t("evalSteps.normalForm")} errorId={stuckTermId} hasError={hasErrors} globals={globals} />
-        {!hasErrors && <ChurchNumeralHint term={result} />}
+        {!hasErrors && <ChurchNumeralHint term={result} numerals={numerals} />}
         {hasErrors && (
           <div className="flex items-start gap-2 p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-destructive text-sm">
             <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
@@ -1208,7 +1216,7 @@ function EvaluationStepsViewerInner({ evaluation, showGamma, blackBoxes }: Evalu
                   <TermView term={result} />
                 </UnfoldProvider>
               </div>
-              <ChurchNumeralHint term={result} />
+              <ChurchNumeralHint term={result} numerals={numerals} />
             </motion.div>
           )}
         </div>

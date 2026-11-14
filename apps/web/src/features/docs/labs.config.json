@@ -47,11 +47,11 @@
     {
       "slug": "let-products",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Väzba let a súčinové typy",
-          "summary": "Väzba let a súčinové typy."
+          "summary": "Typovanie a vyhodnotenie väzby let a dvojíc, programovanie s n-ticami a záznamami."
         }
       }
     },

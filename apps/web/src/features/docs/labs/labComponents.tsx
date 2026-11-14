@@ -4,6 +4,7 @@ import {LambdaTask} from "@/features/docs/labs/components/LambdaTask.tsx";
 import {NblTask} from "@/features/docs/labs/components/NblTask.tsx";
 import {NblTerms} from "@/features/docs/labs/components/NblTerms.tsx";
 import {TypingTask} from "@/features/docs/labs/components/TypingTask.tsx";
+import {ProgramTask} from "@/features/docs/labs/components/ProgramTask.tsx";
 
 // Everything a lab .mdx file may use without importing anything.
 export const labMdxComponents = {
@@ -12,6 +13,7 @@ export const labMdxComponents = {
   NblTask,
   LambdaTask,
   TypingTask,
+  ProgramTask,
   Callout,
   Math,
   MathBlock,

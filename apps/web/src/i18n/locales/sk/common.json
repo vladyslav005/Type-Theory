@@ -1396,6 +1396,7 @@
     "notWellTypedCorrect": "Správne — term nie je správne typovaný, takže nie je čo vyhodnocovať.",
     "applyHint": "Aplikujte term na argumenty správnych typov a vyhodnoťte ho krok po kroku (volanie hodnotou). Pre typ ako A si najprv zadeklarujte premennú, napr. a : A; — posledný riadok je aplikácia.",
     "apply": "Aplikovať",
+    "evaluate": "Vyhodnotiť",
     "notApplied_one": "Posledný riadok musí aplikovať zadaný term na {{count}} argument: ({{term}}) …",
     "notApplied_few": "Posledný riadok musí aplikovať zadaný term na {{count}} argumenty: ({{term}}) …",
     "notApplied_many": "Posledný riadok musí aplikovať zadaný term na {{count}} argumentu: ({{term}}) …",
@@ -1410,8 +1411,23 @@
       "branches": "vetvy if majú rôzne typy, {{then}} a {{else}}.",
       "needsNat": "{{term}} má typ {{type}}, ale očakáva sa Nat.",
       "unsupported": "{{construct}} sa v tejto úlohe nedá použiť.",
-      "declaration": "{{name}} je deklarované ako {{expected}}, ale jeho hodnota má typ {{actual}}."
-    }
+      "declaration": "{{name}} je deklarované ako {{expected}}, ale jeho hodnota má typ {{actual}}.",
+      "notTuple": "{{term}} má typ {{type}}, ktorý nie je n-tica.",
+      "tupleIndex": "n-tica typu {{type}} nemá zložku {{index}}.",
+      "notRecord": "{{term}} má typ {{type}}, ktorý nie je záznam.",
+      "noField": "záznam typu {{type}} nemá položku {{label}}."
+    },
+    "evaluateHint": "Term je uzavretý, netreba ho na nič aplikovať — posledný riadok je samotný term. Ak používa premennú z kontextu (napr. and), nahraďte jej deklaráciu definíciou, aby sa dal vyhodnotiť krok po kroku (volanie hodnotou).",
+    "notTheTerm": "Posledný riadok musí byť zadaný term: {{term}}"
+  },
+  "programTask": {
+    "placeholder": "typedef T = …;  f = λ x : T . … : T -> …;  f t",
+    "hint": "Jedna deklarácia na riadok: typové aliasy (typedef T = <Nat * Nat>;), funkcie a termy s typom (f = λ x : T . … : T -> Nat;). Posledný riadok je term, ktorý sa typovo skontroluje a vyhodnotí. Ctrl+Enter spustí testy.",
+    "finalTerm": "posledný term",
+    "diverges": "vyhodnotenie sa nedokončilo (prekročený limit krokov alebo chyba).",
+    "got": "výsledok: {{value}}",
+    "noTerm": "Na poslednom riadku chýba term — napíšte za deklarácie aplikáciu, ktorú chcete vyhodnotiť.",
+    "illTyped": "Program nie je správne typovaný: {{detail}}"
   },
   "activity": {
     "indicator": {
@@ -2062,6 +2078,112 @@
         "finish": {
           "title": "To je netypovaný λ-kalkul",
           "body": "Po zatvorení návodu sa jazyk aj stratégia prepnú späť a vráti sa váš kód."
+        }
+      }
+    }
+  },
+  "labGuides": {
+    "typing": {
+      "open": "Ako to funguje?",
+      "title": "Odvodzovací strom typov",
+      "intro": "Strom stavajte zdola nahor. Kontrola vám povie výsledok až po stlačení „Skontrolovať“.",
+      "steps": {
+        "root": {
+          "title": "Začnite dole",
+          "body": "Spodný sekvent už obsahuje term (a pri niektorých úlohách aj typ). Doplňte Γ, typ a názov pravidla, napr. `T-App`."
+        },
+        "premises": {
+          "title": "Pridajte predpoklady",
+          "body": "Tlačidlom „predpoklad“ pridáte nad sekvent ďalší sekvent `Γ ⊢ term : typ`. Pridajte ich toľko, koľko má použité pravidlo."
+        },
+        "variable": {
+          "title": "Premenné majú vedľajšiu podmienku",
+          "body": "`T-Var` nemá predpoklad, ale vedľajšiu podmienku, napr. `x : Bool ∈ Γ_1`. Pridáte ju tlačidlom „vedľajšia podmienka“."
+        },
+        "context": {
+          "title": "Kontexty",
+          "body": "Daný kontext je v poli Definície ako `Γ_1 = {…}`. Rozšírený kontext napíšte priamo, napr. `Γ_1, x : Bool`, alebo si ho pomenujte `Γ_2 = Γ_1, x : Bool` a ďalej píšte len `Γ_2`."
+        },
+        "notation": {
+          "title": "Rýchle písanie symbolov",
+          "body": "`\\lambda` `\\Gamma` `\\in` `->` sa zmenia na λ Γ ∈ →. Namiesto `Γ_1` môžete písať aj `Gamma_1`."
+        },
+        "check": {
+          "title": "Skontrolujte",
+          "body": "„Skontrolovať“ označí každé pole zelenou alebo červenou a pod uzlom vypíše, čo je zle. Ak sa niekde nedá použiť žiadne pravidlo, stlačte „Nie je správne typovaný“."
+        }
+      }
+    },
+    "syntax": {
+      "open": "Ako to funguje?",
+      "title": "Odvodenie, že term patrí do Term",
+      "intro": "Pre každý uzol vyberte pravidlo syntaxe, ktorým term vznikol.",
+      "steps": {
+        "choose": {
+          "title": "Vyberte pravidlo",
+          "body": "Kliknite na uzol a vyberte pravidlo. Nad uzlom sa objavia podtermy, ktoré pravidlo vyžaduje."
+        },
+        "repeat": {
+          "title": "Pokračujte nahor",
+          "body": "To isté urobte pre každý podterm, kým nedôjdete ku konštantám (`true`, `false`, `0`)."
+        },
+        "noRule": {
+          "title": "Keď žiadne pravidlo nesedí",
+          "body": "Ak sa podterm nedá vytvoriť žiadnym pravidlom, vyberte „Žiadne pravidlo“ — term potom do Term nepatrí."
+        },
+        "check": {
+          "title": "Skontrolujte",
+          "body": "„Skontrolovať“ ukáže zlé a chýbajúce voľby. Tlačidlom vpravo hore otvoríte strom na celú obrazovku."
+        }
+      }
+    },
+    "evaluate": {
+      "open": "Ako to funguje?",
+      "title": "Vyhodnotenie krok po kroku",
+      "intro": "Najprv pripravíte program, potom ho vyhodnotíte po jednotlivých krokoch.",
+      "steps": {
+        "program": {
+          "title": "Pripravte program",
+          "body": "Posledný riadok editora je term, ktorý sa vyhodnotí. Riadky nad ním sú deklarácie."
+        },
+        "define": {
+          "title": "Nahraďte deklarácie definíciami",
+          "body": "Premennú z kontextu (napr. `and : Bool -> Bool -> Bool;`) nahraďte definíciou, napr. `and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;` — inak sa term nemá ako vyhodnotiť."
+        },
+        "apply": {
+          "title": "Funkcie aplikujte",
+          "body": "Ak je term funkcia, aplikujte ho na argumenty správnych typov (tlačidlo „Aplikovať“). Uzavretý term len vyhodnotíte („Vyhodnotiť“)."
+        },
+        "steps": {
+          "title": "Krokujte",
+          "body": "Potom píšete term po každom kroku (volanie hodnotou). Návod ku krokovaniu otvoríte otáznikom pri krokoch."
+        }
+      }
+    },
+    "program": {
+      "open": "Ako to funguje?",
+      "title": "Písanie programu",
+      "intro": "Napíšte program; testy zavolajú vaše funkcie a porovnajú výsledky.",
+      "steps": {
+        "declarations": {
+          "title": "Jedna deklarácia na riadok",
+          "body": "Funkcia alebo hodnota sa píše `meno = term : typ;`, napr. `f = λ x : Nat . x + 1 : Nat -> Nat;`. Pozor, typ je až za termom."
+        },
+        "aliases": {
+          "title": "Typové aliasy",
+          "body": "Dlhý typ si pomenujte: `typedef Bod = <Nat * Nat>;` alebo `typedef Kniha = <autor : String, cena : Nat>;`."
+        },
+        "products": {
+          "title": "N-tice a záznamy",
+          "body": "N-tica `<1, true>` s projekciou `t.1`, záznam `<autor = \"Pierce\", cena = 60>` s projekciou `t.cena`."
+        },
+        "last": {
+          "title": "Posledný riadok je term",
+          "body": "Program končí termom, ktorý sa typovo skontroluje a vyhodnotí; výsledok vidíte pod editorom."
+        },
+        "tests": {
+          "title": "Spustite testy",
+          "body": "„Spustiť testy“ (alebo Ctrl+Enter) zavolá funkcie s menami zo zadania. Pri neúspešnom teste vidíte, čo vaša funkcia vrátila."
         }
       }
     }

@@ -38,7 +38,7 @@ export interface LabEditorHandle {
 
 // A small Monaco editor for lab answers that grows with its content. Ctrl+Enter submits; a compact
 // (one-line) editor also submits on Enter, like the plain input it replaces, with Shift+Enter for a new line.
-export function LabEditor({value, onChange, onSubmit, placeholder, language = "lambda", compact = false, className = "w-full max-w-xl", handleRef, autoFocus = false, suggestWhileTyping = false, detachWidgets = false, dense = false, minWidth = "100%", onBlur, markers}: {
+export function LabEditor({value, onChange, onSubmit, placeholder, language = "lambda", compact = false, className = "w-full max-w-xl", handleRef, autoFocus = false, suggestWhileTyping = false, detachWidgets = false, dense = false, minWidth = "100%", onBlur, markers, readOnly = false}: {
   value: string;
   onChange: (next: string) => void;
   onSubmit?: () => void;
@@ -56,6 +56,7 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
   minWidth?: string;
   onBlur?: () => void;
   markers?: LabEditorMarker[];
+  readOnly?: boolean;
 }) {
   const lineHeight = dense ? 16 : LINE_HEIGHT;
   const padding = dense ? 5 : PADDING;
@@ -200,6 +201,8 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
           accessibilitySupport: "off",
           quickSuggestions: suggestWhileTyping,
           contextmenu: false,
+          readOnly,
+          domReadOnly: readOnly,
         }}
       />
     </div>

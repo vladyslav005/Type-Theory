@@ -20,6 +20,7 @@ export const RULE_LABELS: Partial<Record<Rule, string>> = {
   [Rule.RecordProjection]: "T-RecordProj",
   [Rule.Sequencing]: "T-Seq",
   [Rule.DummyAbs]: "T-Wildcard",
+  [Rule.Let]: "T-Let",
   [Rule.Ascribe]: "T-Ascribe",
   [Rule.BinOp]: "T-BinOp",
   [Rule.Fix]: "T-Fix",
@@ -107,6 +108,7 @@ export const BUILDER_RULES: readonly Rule[] = [
   Rule.RecordProjection,
   Rule.Sequencing,
   Rule.DummyAbs,
+  Rule.Let,
   Rule.Ascribe,
   Rule.BinOp,
   Rule.Fix,
@@ -174,6 +176,7 @@ export function rulesForTheories(theories: TypeTheoryConfig, features: StlcFeatu
   const usesConstraints = theories.letPolymorphism || theories.typeInference;
   return BUILDER_RULES.filter((rule) => {
     if (isCtRule(rule) && !usesConstraints) return false;
+    if (rule === Rule.Let && theories.letPolymorphism) return false;
     const feature = RULE_FEATURE[rule];
     if (feature && !features[feature]) return false;
     if (isBinOpRule(rule) && !features.arithmetic && !features.booleans) return false;

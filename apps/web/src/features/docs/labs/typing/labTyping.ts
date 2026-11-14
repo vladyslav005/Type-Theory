@@ -1,12 +1,17 @@
 import {AntlrParserAdapter, elaborateNbl, ParseSyntaxError, type Program, type Term, type Type} from "@vladyslav005/tt-core";
 import type {SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 
-// Typed NBL + STLC checked against a stated type, so a failure sits where no rule applies (core unification blames the outer λ).
+// Typed NBL + STLC (with let and products) checked against a stated type, so a failure sits where no rule applies (core unification blames the outer λ).
 
-export type Ty = {kind: "base"; name: string} | {kind: "arrow"; from: Ty; to: Ty};
+export type Ty =
+  | {kind: "base"; name: string}
+  | {kind: "arrow"; from: Ty; to: Ty}
+  | {kind: "tuple"; elements: Ty[]}
+  | {kind: "record"; fields: {label: string; type: Ty}[]};
 
 export const NBL_TYPING_RULES = ["T-True", "T-False", "T-Zero", "T-Succ", "T-Pred", "T-IsZero", "T-If"] as const;
 export const STLC_TYPING_RULES = ["T-Var", "T-Abs", "T-App", ...NBL_TYPING_RULES] as const;
+export const PRODUCT_TYPING_RULES = [...STLC_TYPING_RULES, "T-Nat", "T-Let", "T-Tuple", "T-Proj", "T-Record", "T-RecordProj"] as const;
 
 const BOOL: Ty = {kind: "base", name: "Bool"};
 const NAT: Ty = {kind: "base", name: "Nat"};
@@ -15,30 +20,59 @@ const UNKNOWN: Ty = {kind: "base", name: "?"};
 type Context = [string, Ty][];
 
 export interface TypingProblem {
-  code: "unbound" | "notFunction" | "argument" | "condition" | "branches" | "needsNat" | "unsupported" | "declaration";
+  code: "unbound" | "notFunction" | "argument" | "condition" | "branches" | "needsNat" | "unsupported" | "declaration"
+    | "notTuple" | "tupleIndex" | "notRecord" | "noField";
   params?: Record<string, string>;
 }
 
 type Synth = {ok: true; type: Ty} | {ok: false; problem: TypingProblem};
 
-export const sameType = (a: Ty, b: Ty): boolean =>
-  a.kind === "base" ? b.kind === "base" && a.name === b.name : b.kind === "arrow" && sameType(a.from, b.from) && sameType(a.to, b.to);
+export function sameType(a: Ty, b: Ty): boolean {
+  switch (a.kind) {
+    case "base": return b.kind === "base" && a.name === b.name;
+    case "arrow": return b.kind === "arrow" && sameType(a.from, b.from) && sameType(a.to, b.to);
+    case "tuple": return b.kind === "tuple" && a.elements.length === b.elements.length && a.elements.every((t, i) => sameType(t, b.elements[i]));
+    case "record":
+      return b.kind === "record" && a.fields.length === b.fields.length
+        && a.fields.every((f, i) => f.label === b.fields[i].label && sameType(f.type, b.fields[i].type));
+  }
+}
 
 export function printType(type: Ty): string {
-  if (type.kind === "base") return type.name;
-  const from = type.from.kind === "arrow" ? `(${printType(type.from)})` : printType(type.from);
-  return `${from}→${printType(type.to)}`;
+  switch (type.kind) {
+    case "base": return type.name;
+    case "tuple": return `<${type.elements.map(printType).join(" * ")}>`;
+    case "record": return `<${type.fields.map((f) => `${f.label} : ${printType(f.type)}`).join(", ")}>`;
+    case "arrow": {
+      const from = type.from.kind === "arrow" ? `(${printType(type.from)})` : printType(type.from);
+      return `${from}→${printType(type.to)}`;
+    }
+  }
 }
+
+const allDefined = <T>(items: (T | undefined)[]): T[] | undefined => (items.every((item) => item !== undefined) ? items as T[] : undefined);
 
 export function fromCoreType(type: Type | undefined): Ty | undefined {
-  if (type?.kind === "TyIdentifier") return {kind: "base", name: type.name};
-  if (type?.kind !== "TyArrow") return undefined;
-  const from = fromCoreType(type.from);
-  const to = fromCoreType(type.to);
-  return from && to ? {kind: "arrow", from, to} : undefined;
+  switch (type?.kind) {
+    case "TyIdentifier": return {kind: "base", name: type.name};
+    case "TyArrow": {
+      const from = fromCoreType(type.from);
+      const to = fromCoreType(type.to);
+      return from && to ? {kind: "arrow", from, to} : undefined;
+    }
+    case "TupleType": {
+      const elements = allDefined(type.elements.map(fromCoreType));
+      return elements && {kind: "tuple", elements};
+    }
+    case "RecordType": {
+      const types = allDefined(type.fields.map((f) => fromCoreType(f.type)));
+      return types && {kind: "record", fields: type.fields.map((f, i) => ({label: f.label, type: types[i]}))};
+    }
+    default: return undefined;
+  }
 }
 
-const atomic = (term: Term) => term.kind === "Var" || term.kind === "Lit";
+const atomic = (term: Term) => ["Var", "Lit", "Tuple", "Record", "TupleProjection", "RecordProjection"].includes(term.kind);
 
 export function printTerm(term: Term): string {
   const wrap = (inner: Term) => (atomic(inner) ? printTerm(inner) : `(${printTerm(inner)})`);
@@ -51,6 +85,11 @@ export function printTerm(term: Term): string {
     case "Pred": return `pred ${wrap(term.term)}`;
     case "IsZero": return `iszero ${wrap(term.term)}`;
     case "IfCondition": return `if ${printTerm(term.condition)} then ${printTerm(term.then)} else ${term.else ? printTerm(term.else) : "?"}`;
+    case "Let": return `let ${term.name} = ${printTerm(term.value)} in ${printTerm(term.body)}`;
+    case "Tuple": return `<${term.elements.map(printTerm).join(", ")}>`;
+    case "Record": return `<${term.fields.map((f) => `${f.label} = ${printTerm(f.term)}`).join(", ")}>`;
+    case "TupleProjection": return `${wrap(term.tuple)}.${term.index}`;
+    case "RecordProjection": return `${wrap(term.term)}.${term.label}`;
     default: return term.kind;
   }
 }
@@ -72,7 +111,7 @@ export function synthesize(term: Term, context: Context): Synth {
     }
     case "Lit":
       if (term.value === "true" || term.value === "false") return {ok: true, type: BOOL};
-      if (term.value === "0") return {ok: true, type: NAT};
+      if (/^\d+$/.test(term.value)) return {ok: true, type: NAT};
       return fail("unsupported", {construct: term.value});
     case "Succ":
     case "Pred":
@@ -101,6 +140,42 @@ export function synthesize(term: Term, context: Context): Synth {
       if (func.type.kind !== "arrow") return fail("notFunction", {term: printTerm(term.func), type: printType(func.type)});
       const {from, to} = func.type;
       return expect(term.arg, from, (actual) => fail("argument", {term: printTerm(term.arg), expected: printType(from), actual: printType(actual)})) ?? {ok: true, type: to};
+    }
+    case "Let": {
+      const value = synthesize(term.value, context);
+      return value.ok ? synthesize(term.body, extend(context, term.name, value.type)) : value;
+    }
+    case "Tuple": {
+      const elements: Ty[] = [];
+      for (const element of term.elements) {
+        const typed = synthesize(element, context);
+        if (!typed.ok) return typed;
+        elements.push(typed.type);
+      }
+      return {ok: true, type: {kind: "tuple", elements}};
+    }
+    case "Record": {
+      const fields: {label: string; type: Ty}[] = [];
+      for (const field of term.fields) {
+        const typed = synthesize(field.term, context);
+        if (!typed.ok) return typed;
+        fields.push({label: field.label, type: typed.type});
+      }
+      return {ok: true, type: {kind: "record", fields}};
+    }
+    case "TupleProjection": {
+      const tuple = synthesize(term.tuple, context);
+      if (!tuple.ok) return tuple;
+      if (tuple.type.kind !== "tuple") return fail("notTuple", {term: printTerm(term.tuple), type: printType(tuple.type)});
+      const element = tuple.type.elements[term.index - 1];
+      return element ? {ok: true, type: element} : fail("tupleIndex", {index: String(term.index), type: printType(tuple.type)});
+    }
+    case "RecordProjection": {
+      const record = synthesize(term.term, context);
+      if (!record.ok) return record;
+      if (record.type.kind !== "record") return fail("notRecord", {term: printTerm(term.term), type: printType(record.type)});
+      const field = record.type.fields.find((f) => f.label === term.label);
+      return field ? {ok: true, type: field.type} : fail("noField", {label: term.label, type: printType(record.type)});
     }
     default:
       return fail("unsupported", {construct: term.kind});
@@ -134,7 +209,8 @@ export function typingGoal(judgement: TypingJudgement, showContext: boolean, key
     case "Lit":
       if (term.value === "true") return when(sameType(type, BOOL), "T-True");
       if (term.value === "false") return when(sameType(type, BOOL), "T-False");
-      return when(term.value === "0" && sameType(type, NAT), "T-Zero");
+      if (term.value === "0") return when(sameType(type, NAT), "T-Zero");
+      return when(/^\d+$/.test(term.value) && sameType(type, NAT), "T-Nat");
     case "Succ": return when(sameType(type, NAT), "T-Succ", [premise(term.term, NAT)]);
     case "Pred": return when(sameType(type, NAT), "T-Pred", [premise(term.term, NAT)]);
     case "IsZero": return when(sameType(type, BOOL), "T-IsZero", [premise(term.term, NAT)]);
@@ -160,6 +236,32 @@ export function typingGoal(judgement: TypingJudgement, showContext: boolean, key
       const arg = synthesize(term.arg, context);
       const from = arg.ok ? arg.type : UNKNOWN;
       return node("T-App", [premise(term.func, {kind: "arrow", from, to: type}), premise(term.arg, from)]);
+    }
+    case "Let": {
+      const value = synthesize(term.value, context);
+      const bound = value.ok ? value.type : UNKNOWN;
+      return node("T-Let", [premise(term.value, bound), premise(term.body, type, extend(context, term.name, bound))]);
+    }
+    case "Tuple": {
+      const fits = type.kind === "tuple" && type.elements.length === term.elements.length;
+      return when(fits, "T-Tuple", fits ? term.elements.map((element, i) => premise(element, type.elements[i])) : []);
+    }
+    case "Record": {
+      const fits = type.kind === "record" && type.fields.length === term.fields.length && type.fields.every((f, i) => f.label === term.fields[i].label);
+      return when(fits, "T-Record", fits ? term.fields.map((field, i) => premise(field.term, type.fields[i].type)) : []);
+    }
+    case "TupleProjection": {
+      // As with T-App, the tuple's type comes from its own derivation.
+      const tuple = synthesize(term.tuple, context);
+      if (!tuple.ok) return node("T-Proj", [premise(term.tuple, UNKNOWN)]);
+      const fits = tuple.type.kind === "tuple" && !!tuple.type.elements[term.index - 1] && sameType(tuple.type.elements[term.index - 1], type);
+      return when(fits, "T-Proj", [premise(term.tuple, tuple.type)]);
+    }
+    case "RecordProjection": {
+      const record = synthesize(term.term, context);
+      if (!record.ok) return node("T-RecordProj", [premise(term.term, UNKNOWN)]);
+      const field = record.type.kind === "record" ? record.type.fields.find((f) => f.label === term.label) : undefined;
+      return when(!!field && sameType(field.type, type), "T-RecordProj", [premise(term.term, record.type)]);
     }
     default:
       return node(undefined);

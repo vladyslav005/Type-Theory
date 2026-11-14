@@ -3,6 +3,7 @@ import {trackWidgetUse} from "@/shared/activity/taskTracking.ts";
 import {MathJax} from "better-react-mathjax";
 import {Button} from "@/shared/components/ui/button.tsx";
 import {useMiniWorkspace} from "@/features/docs/workspace/useMiniWorkspace.ts";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import type {TypeTheoryConfig} from "@vladyslav005/tt-core";
 
 interface MiniWorkspaceProps {
@@ -24,12 +25,11 @@ export function MiniWorkspace({initialTerm, label, hint, theories}: MiniWorkspac
         {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
       </div>
 
-      <textarea
+      <LabEditor
         value={termText}
-        onChange={(e) => setTermText(e.target.value)}
-        spellCheck={false}
-        rows={3}
-        className="w-full font-mono text-sm rounded-md border bg-background p-3 resize-y outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring"
+        onChange={setTermText}
+        onSubmit={() => { trackWidgetUse("miniWorkspace"); check(); }}
+        className="w-full"
       />
 
       <div className="flex items-center gap-2">

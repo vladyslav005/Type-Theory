@@ -1,0 +1,160 @@
+## Ciele
+
+1. Odvodené tvary termov: väzba *let*.
+2. Binárny súčinový typ: *dvojica*.
+3. Súčinový typ <Math>{"n"}</Math> typov: *n-tica*.
+4. Súčinový typ s pomenovanými návestiami: *záznam*.
+
+Pomôcka: pravidlá a riešené príklady nájdete vo štvrtej prednáške — [Jednotkový typ, odvodené tvary
+termov, súčinové typy](/docs/typed-unit-products). Typové pravidlá sú zhrnuté aj v
+[prehľade pravidiel](/docs/rules).
+
+<Callout title="Zápis v aplikácii">
+
+Dvojicu <Math>{"\\langle t_1, t_2 \\rangle"}</Math> píšte `<t1, t2>`, súčinový typ
+<Math>{"T_1 \\times T_2"}</Math> ako `<T1 * T2>`, záznam `<autor = t1, cena = t2>` a jeho typ
+`<autor : String, cena : Nat>`. Projekcie sú `t.1` a `t.cena`. V odvodzovacom strome sa pravidlá pre
+n-tice volajú T-Tuple a T-Proj; pre dvojice môžete použiť aj mená z prednášky T-Pair, T-Proj1 a
+T-Proj2. Číslo ako `3` je skratka za `succ (succ (succ 0))` a typuje sa pravidlom T-Nat.
+
+</Callout>
+
+## Krok 1: Odvodené tvary termov — väzba let
+
+### Úloha 1.1
+
+Majme daný term
+
+<MathBlock>{"\\mathtt{let}\\ x = t_1\\ \\mathtt{in}\\ t_2 : Nat"}</MathBlock>
+
+kde
+
+<MathBlock>{"\\begin{array}{l} t_1 = and\\ true\\ false \\\\ t_2 = if\\ x\\ then\\ succ\\ 0\\ else\\ succ\\ (succ\\ 0) \\end{array}"}</MathBlock>
+
+a typový kontext <Math>{"\\Gamma = \\{and: Bool \\to Bool \\to Bool\\}"}</Math>.
+
+Overte, či je správne typovaný v kontexte <Math>{"\\Gamma"}</Math>.
+
+<TypingTask
+  id="let-typing"
+  type="derivation"
+  calculus="products"
+  context="and : Bool -> Bool -> Bool"
+  term="let x = and true false in if x then succ 0 else succ (succ 0) : Nat"
+/>
+
+Ak je správne typovaný, vyhodnoťte ho. Aby sa dal vyhodnotiť, nahraďte deklaráciu `and` z kontextu
+jej definíciou, napr. `and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;`.
+
+<TypingTask
+  id="let-evaluate"
+  type="evaluate"
+  context="and : Bool -> Bool -> Bool"
+  term="let x = and true false in if x then succ 0 else succ (succ 0) : Nat"
+  example={"and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;\nlet x = and true false in if x then succ 0 else succ (succ 0)"}
+/>
+
+## Krok 2: Dvojica
+
+### Úloha 2.1
+
+<MathBlock>{"\\langle pred\\ 3,\\ if\\ iszero\\ 0\\ then\\ succ\\ 0\\ else\\ succ\\ (succ\\ 0) \\rangle.1"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte. Typ termu tu nie je zadaný — doplňte ho
+do záveru stromu sami.
+
+<TypingTask
+  id="pair-1-typing"
+  type="derivation"
+  calculus="products"
+  askType
+  term="<pred 3, if iszero 0 then succ 0 else succ (succ 0)>.1 : Nat"
+/>
+
+Ak je správne typovaný, vyhodnoťte ho.
+
+<TypingTask
+  id="pair-1-evaluate"
+  type="evaluate"
+  term="<pred 3, if iszero 0 then succ 0 else succ (succ 0)>.1 : Nat"
+  example={"<pred 3, if iszero 0 then succ 0 else succ (succ 0)>.1"}
+/>
+
+### Úloha 2.2
+
+<MathBlock>{"(\\lambda x: Nat \\times Nat.\\ x.2)\\ \\ \\langle pred\\ 3,\\ if\\ iszero\\ 0\\ then\\ succ\\ 0\\ else\\ succ\\ (succ\\ 0) \\rangle : Nat"}</MathBlock>
+
+Overte, či je správne typovaný v prázdnom typovom kontexte.
+
+<TypingTask
+  id="pair-2-typing"
+  type="derivation"
+  calculus="products"
+  term="(λ x : <Nat * Nat> . x.2) <pred 3, if iszero 0 then succ 0 else succ (succ 0)> : Nat"
+/>
+
+Ak je správne typovaný, vyhodnoťte ho.
+
+<TypingTask
+  id="pair-2-evaluate"
+  type="evaluate"
+  term="(λ x : <Nat * Nat> . x.2) <pred 3, if iszero 0 then succ 0 else succ (succ 0)> : Nat"
+  example={"(λ x : <Nat * Nat> . x.2) <pred 3, if iszero 0 then succ 0 else succ (succ 0)>"}
+/>
+
+## Krok 3: N-tica
+
+### Úloha 3.1 (*)
+
+1. Definujte typ `Suradnica`, ktorý pozostáva z bodov <Math>{"x"}</Math> a <Math>{"y"}</Math>.
+2. Definujte typ `Obdlznik`, ktorý je definovaný svojou uhlopriečkou.
+3. Napíšte funkciu `obsah`, ktorá vráti obsah obdĺžnika (podľa potreby si definujte pomocné funkcie).
+4. Definujte term `obdlznik` typu `Obdlznik`.
+5. Aplikujte funkciu `obsah` na term `obdlznik`, overte, či je tento term správne typovaný, a ak áno,
+   vyhodnoťte ho.
+
+Typy definujte typovými aliasmi (`typedef Suradnica = …;`), súradnice sú prirodzené čísla a obdĺžnik
+je dvojica bodov uhlopriečky — v ľubovoľnom poradí. Môžete použiť `+`, `-` a `*`; pozor, odčítanie na
+`Nat` sa zastaví na nule (`2 - 5` je `0`). Posledný riadok programu je aplikácia z bodu 5; testy
+navyše zavolajú vašu funkciu `obsah` na niekoľko ďalších obdĺžnikov.
+
+<ProgramTask
+  id="rectangle-area"
+  tests={[
+    ["obsah <<1, 1>, <4, 3>>", "6"],
+    ["obsah <<4, 3>, <1, 1>>", "6"],
+    ["obsah <<0, 5>, <2, 0>>", "10"],
+    ["obsah <<2, 2>, <2, 7>>", "0"],
+  ]}
+  solution={"typedef Suradnica = <Nat * Nat>;\ntypedef Obdlznik = <Suradnica * Suradnica>;\nrozdiel = λ a : Nat . λ b : Nat . (a - b) + (b - a) : Nat -> Nat -> Nat;\nobsah = λ o : Obdlznik . rozdiel (o.1).1 (o.2).1 * rozdiel (o.1).2 (o.2).2 : Obdlznik -> Nat;\nobdlznik = <<1, 1>, <4, 3>> : Obdlznik;\nobsah obdlznik"}
+/>
+
+## Krok 4: Záznam
+
+### Úloha 4.1
+
+1. Definujte typ záznamu `Kniha` s položkami `autor`, `titul` a `cena` (v tomto poradí).
+2. Napíšte funkcie `autor`, `titul` a `cena`, ktoré vrátia autora, titul a cenu knihy.
+3. Definujte 3 termy typu `Kniha`.
+4. Aplikujte funkcie z bodu 2 na termy z bodu 3.
+5. Definujte typ záznamu pre zoznam troch kníh s návestiami `prva`, `druha` a `tretia`.
+6. Definujte term `zoznam` typu zoznam troch kníh pomocou termov z bodu 3.
+7. Napíšte funkciu `najlacnejsia`, ktorá vráti najlacnejšiu knihu zo zoznamu.
+8. Aplikujte funkciu z bodu 7 na term z bodu 6.
+
+Autor a titul sú reťazce (`String`, napr. `"Pierce"`), cena je `Nat`; čísla porovnáte operátorom `<`.
+Aplikácie z bodu 4 si môžete vyskúšať ako posledný riadok programu; na konci tam nechajte aplikáciu z
+bodu 8. Testy zavolajú vaše funkcie na vlastné knihy a zoznamy.
+
+<ProgramTask
+  id="books"
+  tests={[
+    ["autor <autor = \"Pierce\", titul = \"TAPL\", cena = 60>", "\"Pierce\""],
+    ["titul <autor = \"Pierce\", titul = \"TAPL\", cena = 60>", "\"TAPL\""],
+    ["cena <autor = \"Pierce\", titul = \"TAPL\", cena = 60>", "60"],
+    ["najlacnejsia <prva = <autor = \"A\", titul = \"X\", cena = 10>, druha = <autor = \"B\", titul = \"Y\", cena = 20>, tretia = <autor = \"C\", titul = \"Z\", cena = 30>>", "<autor = \"A\", titul = \"X\", cena = 10>"],
+    ["najlacnejsia <prva = <autor = \"A\", titul = \"X\", cena = 20>, druha = <autor = \"B\", titul = \"Y\", cena = 10>, tretia = <autor = \"C\", titul = \"Z\", cena = 30>>", "<autor = \"B\", titul = \"Y\", cena = 10>"],
+    ["najlacnejsia <prva = <autor = \"A\", titul = \"X\", cena = 30>, druha = <autor = \"B\", titul = \"Y\", cena = 20>, tretia = <autor = \"C\", titul = \"Z\", cena = 10>>", "<autor = \"C\", titul = \"Z\", cena = 10>"],
+  ]}
+  solution={"typedef Kniha = <autor : String, titul : String, cena : Nat>;\ntypedef Zoznam = <prva : Kniha, druha : Kniha, tretia : Kniha>;\nautor = λ k : Kniha . k.autor : Kniha -> String;\ntitul = λ k : Kniha . k.titul : Kniha -> String;\ncena = λ k : Kniha . k.cena : Kniha -> Nat;\nk1 = <autor = \"Pierce\", titul = \"Types and Programming Languages\", cena = 60> : Kniha;\nk2 = <autor = \"Hutton\", titul = \"Programming in Haskell\", cena = 35> : Kniha;\nk3 = <autor = \"Okasaki\", titul = \"Purely Functional Data Structures\", cena = 45> : Kniha;\nzoznam = <prva = k1, druha = k2, tretia = k3> : Zoznam;\nlacnejsia = λ a : Kniha . λ b : Kniha . if cena b < cena a then b else a : Kniha -> Kniha -> Kniha;\nnajlacnejsia = λ z : Zoznam . lacnejsia (lacnejsia z.prva z.druha) z.tretia : Zoznam -> Kniha;\nnajlacnejsia zoznam"}
+/>

@@ -7,6 +7,7 @@ import {Button} from "@/shared/components/ui/button.tsx";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/shared/components/ui/select.tsx";
 import {useDependencies} from "@/app/providers/di/DependencyProvider.tsx";
 import {TexMapper} from "@vladyslav005/tt-core";
+import {LabEditor} from "@/features/docs/labs/components/LabEditor.tsx";
 import {
   DEFAULT_TYPE_THEORY_CONFIG,
   elaborateProgram,
@@ -62,7 +63,7 @@ export function ReductionStrategyExplorer({term, hint, untyped = false}: Reducti
       <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("lectureWidgets.tryStrategies")}</p>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
 
-      <pre className="font-mono text-sm rounded-md border bg-background p-3 overflow-x-auto">{term}</pre>
+      <LabEditor value={term} onChange={() => {}} readOnly compact className="w-full bg-background"/>
 
       <div className="flex flex-wrap items-center gap-2">
         <Select value={strategy} onValueChange={(v) => setStrategy(v as EvaluationStrategy)}>

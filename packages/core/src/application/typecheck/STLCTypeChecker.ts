@@ -1258,16 +1258,19 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     const errors: string[] = [];
     let resultType: Type | undefined;
 
+    const seen = new Set<string>();
     for (const c of node.cases) {
       const field = scrutineeType.variants.find((v) => v.label === c.label);
 
       if (!field) {
         errors.push(`Label "${c.label}" is not a member of variant type ${typeToString(scrutineeType)}`);
-        const branchProof = this.visit(c.body);
-        premises.push(branchProof);
-        constraints.push(...branchProof.constraints);
         continue;
       }
+      if (seen.has(c.label)) {
+        errors.push(`"case" has more than one branch for label "${c.label}"`);
+        continue;
+      }
+      seen.add(c.label);
 
       const branchProof = this.withBinding(
         c.variable,
@@ -1283,6 +1286,11 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
       } else {
         constraints.push({left: resultType, right: branchProof.type});
       }
+    }
+
+    const missing = scrutineeType.variants.filter((v) => !seen.has(v.label)).map((v) => `"${v.label}"`);
+    if (missing.length > 0) {
+      errors.push(`"case" must have a branch for every label of ${typeToString(scrutineeType)}; missing ${missing.join(", ")}`);
     }
 
     const proof: InferProofTree = {
@@ -1820,9 +1828,7 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
   }
 
   protected visitLet(node: Let): InferProofTree {
-    if (!this.theories.letPolymorphism) {
-      return this.reject(node, Rule.Let, `"let" is not part of plain STLC — enable the Let-polymorphism theory to use it`);
-    }
+    if (!this.theories.letPolymorphism) return this.checkMonomorphicLet(node);
 
     this.polymorphicScope++;
     try {
@@ -1830,6 +1836,32 @@ export class SLTLCTypeChecker extends AstVisitor<InferProofTree> {
     } finally {
       this.polymorphicScope--;
     }
+  }
+
+  // T-Let as a derived form: x gets exactly the bound term's type, no generalization.
+  private checkMonomorphicLet(node: Let): InferProofTree {
+    const gamma = this.schemeContext.serializeGamma();
+    let valueProof = this.visit(node.value);
+    // Solved first, or the body's Γ would bind x to a metavariable the final substitution never reaches.
+    try {
+      valueProof = this.engine.applySubstitutionToProof(valueProof, this.engine.solve(valueProof.constraints).substitution);
+    } catch {
+      // Left unsolved: check() reports the conflict.
+    }
+    const bodyProof = this.withBinding(
+      node.name,
+      {kind: "TypeScheme", vars: [], type: valueProof.type},
+      Rule.CtVar,
+      () => this.visit(node.body),
+    );
+    return {
+      rule: Rule.Let,
+      term: node,
+      type: bodyProof.type,
+      gamma,
+      premises: [valueProof, bodyProof],
+      constraints: [...valueProof.constraints, ...bodyProof.constraints],
+    };
   }
 
   private checkLet(node: Let): InferProofTree {

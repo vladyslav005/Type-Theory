@@ -3,12 +3,10 @@ import {useTranslation} from "react-i18next";
 import {
   nblConstants,
   nblDepth,
-  nblEvaluate,
   nblSize,
   nblSyntaxDerivation,
   NBL_SYNTAX_RULES,
   parseNbl,
-  printNbl,
   type NblTerm,
 } from "@vladyslav005/tt-core";
 import {AntlrParserAdapter, elaborateNbl, EvaluationStrategy, Evaluator, type Program, type Term} from "@vladyslav005/tt-core";
@@ -27,6 +25,8 @@ import {goalFromNbl, syntaxProgress, withChoice, type SyntaxChoices, type Syntax
 import {useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
+import {SolutionSteps} from "@/features/docs/labs/components/SolutionSteps.tsx";
+import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 
 export type NblTaskType = "derivation" | "tree" | "size" | "depth" | "constants" | "evaluate";
 
@@ -81,7 +81,10 @@ function DerivationRow({id, index, source}: {id?: string; index: number; source:
         <FullscreenArea title={source}>
           {({full, button}) => (
             <>
-              <div className="flex shrink-0 justify-end">{button}</div>
+              <div className="flex shrink-0 justify-end">
+                <GuideDialog i18nPrefix="labGuides.syntax" steps={["choose", "repeat", "noRule", "check"]}/>
+                {button}
+              </div>
               <PanZoomCanvas className={full ? "min-h-0 flex-1" : "h-64"} compact>
                 <SyntaxDerivationTree goal={goal} choices={choices} rules={NBL_SYNTAX_RULES} onChoose={choose} showVerdicts={verdict !== undefined} compact/>
               </PanZoomCanvas>
@@ -227,25 +230,13 @@ function EvaluateRow({id, index, source}: {id?: string; index: number; source: s
     const program = elaborateNbl(nblParser.parseExpression(`${source};`));
     return new Evaluator(DEFAULT_EVALUATION_LIMITS.maxSteps, {maximumTermSize: DEFAULT_EVALUATION_LIMITS.maxTermSize}).evaluate(program, EvaluationStrategy.CALL_BY_VALUE);
   }, [parsed, source]);
-  const full = parsed.ok ? nblEvaluate(parsed.term) : undefined;
-  const {t} = useTranslation();
 
   return (
     <Row
       taskId={taskId}
       index={index}
       source={source}
-      solution={full && parsed.ok ? (
-        <ol className="space-y-0.5 font-mono">
-          <li>{printNbl(parsed.term)}</li>
-          {full.steps.map((step, i) => (
-            <li key={i} className="flex gap-3">→ {printNbl(step.term)} <span className="ml-auto italic text-muted-foreground">{step.rule}</span></li>
-          ))}
-          <li className="pt-1 font-sans text-muted-foreground">
-            {full.status === "value" ? t("labWidgets.endedValue", {value: printNbl(full.result)}) : t("labWidgets.endedStuck", {term: printNbl(full.result)})}
-          </li>
-        </ol>
-      ) : invalid}
+      solution={evaluation ? <SolutionSteps evaluation={evaluation} numerals="nbl"/> : invalid}
     >
       {evaluation && (
         <SolveArea taskId={taskId}>

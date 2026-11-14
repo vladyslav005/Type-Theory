@@ -140,24 +140,6 @@ Všimnite si typ parametra: `Unit`. Pri volaní hodnotou sa najprv vyhodnotí ar
   prompt="Kontrolný bod: toto je rozpísané zoradenie unit; true. Aký má typ? Rozmyslite si najprv typ abstrakcie (T-Abs) a potom aplikácie (T-App)."
 />
 
-<ConceptSection id="sequencing-ocaml" title="Príklad: zoradenie v OCaml">
-
-OCaml je funkcionálny jazyk, no nie čistý — vedľajšie účinky sú v ňom funkcie, ktoré účinok vykonajú
-a vrátia hodnotu typu `unit` (zapisovanú `()`):
-
-```ocaml
-utop # print_string;;
-- : string -> unit = <fun>
-utop # print_string "Hello, "; print_string "world!"; print_newline (); succ 4;;
-Hello, world!
-- : int = 5
-```
-
-Haskell je naopak čistý funkcionálny jazyk a vedľajšie účinky priamo nepodporuje — rovnaký efekt
-dosahuje pomocou monád.
-
-</ConceptSection>
-
 <ConceptSection id="internal-external" title="Interný a externý jazyk">
 
 Ktorý z dvoch spôsobov je „ten správny"? Oba — a dá sa to dokázať. Označme:
@@ -209,7 +191,7 @@ Typ parametra treba uviesť aj tu — typová kontrola ho potrebuje, aby vedela,
 
 <MiniWorkspace
   initialTerm={"(λ _ : Nat . true) 5;"}
-  hint="V OCaml to isté zapíšete ako let kons _ = 4. Skúste odstrániť typ parametra — bez neho term nie je syntakticky správny."
+  hint="Skúste odstrániť typ parametra — bez neho term nie je syntakticky správny."
 />
 
 <ConceptSection id="ascription" title="Pripísanie t as T">
@@ -280,23 +262,21 @@ nahradí stromom v internom jazyku, kde už <Math>{"T_1"}</Math> pozná:
 
 <MathBlock>{"\\dfrac{\\dfrac{\\dfrac{\\vdots}{\\Gamma, x{:}T_1 \\vdash t_2 : T_2}}{\\Gamma \\vdash \\lambda x{:}T_1.\\, t_2 : T_1 \\to T_2}\\ (\\text{T-abs}) \\qquad \\dfrac{\\vdots}{\\Gamma \\vdash t_1 : T_1}}{\\Gamma \\vdash (\\lambda x{:}T_1.\\, t_2)\\ t_1 : T_2}\\ (\\text{T-app})"}</MathBlock>
 
-Let zohráva kľúčovú úlohu v jazyku OCaml a v typovom systéme **let polymorfizmu**, ku ktorému sa
+Let zohráva kľúčovú úlohu v typovom systéme **let polymorfizmu**, ku ktorému sa
 dostaneme na konci semestra.
 
 </ConceptSection>
 
 <Callout title="Let v aplikácii" screenOnly>
 
-V hlavnom editore aplikácie sa `let` typuje až so zapnutým rozšírením **Let polymorfizmus** (ponuka
-**Rozšírenia**) — práve kvôli tomu, že let je v aplikácii rovno jeho polymorfnou verziou. Pre
-jednoduché príklady z tejto prednášky dáva rovnaký typ ako pravidlo T-let vyššie; okno nižšie ho má
-zapnuté.
+V aplikácii sa `let` typuje pravidlom T-Let vyššie: premenná dostane presne typ viazaného termu. So
+zapnutým rozšírením **Let polymorfizmus** (ponuka **Rozšírenia**) sa namiesto neho typuje polymorfne
+(CT-Let), ku ktorému sa dostaneme na konci semestra.
 
 </Callout>
 
 <MiniWorkspace
   initialTerm={"let x = 3 + 1 in x * x;"}
-  theories={{letPolymorphism: true}}
   hint="Viazaný term 3 + 1 sa vyhodnotí raz a jeho hodnota 4 sa dosadí na obe miesta. Skúste let x = true in x + 1; — telo sa kontroluje s x : Bool, a to so sčítaním nesedí."
 />
 
@@ -399,22 +379,6 @@ E-betapair1/2, pozri n-tice nižšie) a β-krok značí **β**.
   prompt="Kontrolný bod: aký typ má táto funkcia? Pri p.1 a p.2 použite T-proj₁ a T-proj₂."
 />
 
-<ConceptSection id="pairs-ocaml" title="Príklad: dvojice v OCaml">
-
-V OCaml sa dvojica píše v zátvorkách so zložkami oddelenými čiarkou a súčinový typ hviezdičkou;
-projekcie sú funkcie `fst` a `snd`:
-
-```ocaml
-utop # (1, true);;
-- : int * bool = (1, true)
-utop # fst (1, true);;
-- : int = 1
-utop # snd;;
-- : 'a * 'b -> 'b = <fun>
-```
-
-</ConceptSection>
-
 <ConceptSection id="tuples" title="N-tica">
 
 Binárny súčin sa prirodzene zovšeobecní na súčin <Math>{"n"}</Math> typov
@@ -475,25 +439,9 @@ Zostavte strom termu, v ktorom si projekcia vyberá z dvojice:
   instructions="Zostavte <1, true>.2: projekcia .2, ktorej potomkom je dvojica s literálmi 1 a true."
 />
 
-<ConceptSection id="tuples-ocaml" title="Príklad: n-tice v OCaml">
-
-V OCaml je n-tica zovšeobecnením dvojice `(t1, t2, ..., tn)`, ale <Math>{"i"}</Math>-te projekcie
-nie sú vstavané funkcie — používa sa prehľadávanie podľa vzorov:
-
-```ocaml
-utop # let third x = match x with (_, _, z) -> z;;
-val third : 'a * 'b * 'c -> 'c = <fun>
-utop # third (1, true, 4.2);;
-- : float = 4.2
-```
-
-V reálnych jazykoch sa zovšeobecnený súčin najčastejšie objavuje ako **polia** a **záznamy**.
-
-</ConceptSection>
-
 <ConceptSection id="records" title="Záznam">
 
-**Záznam** (*record*) poznáte z jazykov C, Java, Python, Rust či OCaml. Získame ho z n-tice tak, že
+**Záznam** (*record*) poznáte z jazykov C, Java, Python či Rust. Získame ho z n-tice tak, že
 každú zložku označíme **návestím**: položka má tvar `návestie = t`, jej typ `návestie : T` a k položke
 pristupujeme projekciou **cez návestie** <Math>{"t.\\mathit{lab}"}</Math> namiesto poradového čísla.
 Implicitne predpokladáme spočítateľnú množinu návestí <Math>{"\\mathcal{L}"}</Math>.
@@ -533,21 +481,6 @@ používame **druhý prístup — poradie položiek je dôležité**.
   term={"λ s : <meno : String, vek : Nat> . s.vek + 1;"}
   prompt="Kontrolný bod: aký typ má táto funkcia? Typ záznamu v aplikácii zapíšete ako <meno : String, vek : Nat>."
 />
-
-<ConceptSection id="records-ocaml" title="Príklad: záznamy v OCaml">
-
-V OCaml treba typ záznamu najprv deklarovať; projekcia cez návestie potom funguje rovnako ako v našom
-kalkule:
-
-```ocaml
-utop # type student = {meno : string; vek : int};;
-utop # let ab123bc = {meno = "Budislav"; vek = 19};;
-val ab123bc : student = {meno = "Budislav"; vek = 19}
-utop # ab123bc.vek;;
-- : int = 19
-```
-
-</ConceptSection>
 
 <GrammarBox
   title="Čo táto prednáška pridala do gramatiky aplikácie"

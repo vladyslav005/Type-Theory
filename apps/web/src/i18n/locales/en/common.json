@@ -1351,6 +1351,7 @@
     "notWellTypedCorrect": "Correct — the term is not well typed, so there is nothing to evaluate.",
     "applyHint": "Apply the term to arguments of the right types, then evaluate it step by step (call-by-value). For a type like A, declare a variable first, e.g. a : A; — the last line is the application.",
     "apply": "Apply",
+    "evaluate": "Evaluate",
     "notApplied_one": "The last line must apply the given term to {{count}} argument: ({{term}}) …",
     "notApplied_other": "The last line must apply the given term to {{count}} arguments: ({{term}}) …",
     "illTyped": "This application is not well typed: {{detail}}",
@@ -1363,8 +1364,23 @@
       "branches": "the branches of if have different types, {{then}} and {{else}}.",
       "needsNat": "{{term}} has type {{type}}, but Nat is expected.",
       "unsupported": "{{construct}} can't be used in this task.",
-      "declaration": "{{name}} is declared as {{expected}}, but its value has type {{actual}}."
-    }
+      "declaration": "{{name}} is declared as {{expected}}, but its value has type {{actual}}.",
+      "notTuple": "{{term}} has type {{type}}, which is not a tuple.",
+      "tupleIndex": "a tuple of type {{type}} has no component {{index}}.",
+      "notRecord": "{{term}} has type {{type}}, which is not a record.",
+      "noField": "a record of type {{type}} has no field {{label}}."
+    },
+    "evaluateHint": "The term is closed, so there is nothing to apply it to — the last line is the term itself. If it uses a variable from the context (such as and), replace its declaration with a definition so it can be evaluated step by step (call by value).",
+    "notTheTerm": "The last line must be the given term: {{term}}"
+  },
+  "programTask": {
+    "placeholder": "typedef T = …;  f = λ x : T . … : T -> …;  f t",
+    "hint": "One declaration per line: type aliases (typedef T = <Nat * Nat>;), functions and terms with their types (f = λ x : T . … : T -> Nat;). The last line is the term that gets type-checked and evaluated. Ctrl+Enter runs the tests.",
+    "finalTerm": "last term",
+    "diverges": "evaluation did not finish (step limit reached or an error).",
+    "got": "result: {{value}}",
+    "noTerm": "The last line has no term — after the declarations, write the application you want to evaluate.",
+    "illTyped": "The program is not well-typed: {{detail}}"
   },
   "activity": {
     "indicator": {
@@ -2005,6 +2021,112 @@
         "finish": {
           "title": "That's untyped λ-calculus",
           "body": "Closing the tutorial switches the language and strategy back and restores your code."
+        }
+      }
+    }
+  },
+  "labGuides": {
+    "typing": {
+      "open": "How does it work?",
+      "title": "Typing derivation tree",
+      "intro": "Build the tree bottom-up. The check tells you the result only when you press “Check”.",
+      "steps": {
+        "root": {
+          "title": "Start at the bottom",
+          "body": "The bottom judgement already holds the term (and for some tasks the type). Fill in Γ, the type and the rule name, e.g. `T-App`."
+        },
+        "premises": {
+          "title": "Add premises",
+          "body": "“Premise” adds a judgement `Γ ⊢ term : type` above it. Add as many as the rule has."
+        },
+        "variable": {
+          "title": "Variables have a side condition",
+          "body": "`T-Var` has no premise but a side condition, e.g. `x : Bool ∈ Γ_1`. Add it with “side condition”."
+        },
+        "context": {
+          "title": "Contexts",
+          "body": "The given context is in Definitions as `Γ_1 = {…}`. Write an extended context directly, e.g. `Γ_1, x : Bool`, or name it `Γ_2 = Γ_1, x : Bool` and then write just `Γ_2`."
+        },
+        "notation": {
+          "title": "Typing symbols quickly",
+          "body": "`\\lambda` `\\Gamma` `\\in` `->` turn into λ Γ ∈ →. `Gamma_1` works for `Γ_1` too."
+        },
+        "check": {
+          "title": "Check",
+          "body": "“Check” marks every field green or red and explains what is wrong under the node. If no rule applies somewhere, press “It's not well typed”."
+        }
+      }
+    },
+    "syntax": {
+      "open": "How does it work?",
+      "title": "Deriving that a term is in Term",
+      "intro": "For each node, pick the syntax rule that built the term.",
+      "steps": {
+        "choose": {
+          "title": "Pick a rule",
+          "body": "Click a node and pick a rule. The subterms the rule needs appear above the node."
+        },
+        "repeat": {
+          "title": "Keep going up",
+          "body": "Do the same for every subterm until you reach the constants (`true`, `false`, `0`)."
+        },
+        "noRule": {
+          "title": "When no rule fits",
+          "body": "If no rule can build a subterm, pick “No rule applies” — the term is then not in Term."
+        },
+        "check": {
+          "title": "Check",
+          "body": "“Check” shows wrong and missing choices. The top-right button opens the tree full screen."
+        }
+      }
+    },
+    "evaluate": {
+      "open": "How does it work?",
+      "title": "Step-by-step evaluation",
+      "intro": "First prepare the program, then evaluate it one step at a time.",
+      "steps": {
+        "program": {
+          "title": "Prepare the program",
+          "body": "The editor's last line is the term to evaluate. The lines above it are declarations."
+        },
+        "define": {
+          "title": "Replace declarations with definitions",
+          "body": "Replace a context variable (e.g. `and : Bool -> Bool -> Bool;`) with a definition, e.g. `and = λ p : Bool . λ q : Bool . if p then q else false : Bool -> Bool -> Bool;` — otherwise the term can't be evaluated."
+        },
+        "apply": {
+          "title": "Apply functions",
+          "body": "If the term is a function, apply it to arguments of the right types (“Apply”). A closed term is just evaluated (“Evaluate”)."
+        },
+        "steps": {
+          "title": "Step through",
+          "body": "Then you write the term after each step (call by value). The question mark by the steps opens the stepping guide."
+        }
+      }
+    },
+    "program": {
+      "open": "How does it work?",
+      "title": "Writing a program",
+      "intro": "Write a program; the tests call your functions and compare the results.",
+      "steps": {
+        "declarations": {
+          "title": "One declaration per line",
+          "body": "A function or value is `name = term : type;`, e.g. `f = λ x : Nat . x + 1 : Nat -> Nat;`. Note the type comes after the term."
+        },
+        "aliases": {
+          "title": "Type aliases",
+          "body": "Name a long type: `typedef Point = <Nat * Nat>;` or `typedef Book = <author : String, price : Nat>;`."
+        },
+        "products": {
+          "title": "Tuples and records",
+          "body": "A tuple `<1, true>` with projection `t.1`, a record `<author = \"Pierce\", price = 60>` with projection `t.price`."
+        },
+        "last": {
+          "title": "The last line is a term",
+          "body": "The program ends with a term that is type-checked and evaluated; the result appears under the editor."
+        },
+        "tests": {
+          "title": "Run the tests",
+          "body": "“Run tests” (or Ctrl+Enter) calls the functions named in the task. A failed test shows what your function returned."
         }
       }
     }

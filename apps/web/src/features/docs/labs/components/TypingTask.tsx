@@ -24,6 +24,7 @@ import {
   parseProgram,
   parseTerm,
   printTerm,
+  PRODUCT_TYPING_RULES,
   readTypingTerm,
   STLC_TYPING_RULES,
   synthesize,
@@ -34,9 +35,17 @@ import {trackTask, useTaskId, useTrackedVerdict} from "@/shared/activity/taskTra
 import {clearSavedWork, useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
+import {SolutionSteps} from "@/features/docs/labs/components/SolutionSteps.tsx";
+import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 
 export type TypingTaskType = "derivation" | "evaluate";
-type Calculus = "nbl" | "stlc";
+// "products" is STLC with let, tuples and records.
+type Calculus = "nbl" | "stlc" | "products";
+
+const RULE_SUGGESTIONS: Record<Calculus, readonly string[]> = {nbl: NBL_TYPING_RULES, stlc: STLC_TYPING_RULES, products: PRODUCT_TYPING_RULES};
+
+const TYPING_GUIDE = ["root", "premises", "variable", "context", "notation", "check"];
+const EVALUATE_GUIDE = ["program", "define", "apply", "steps"];
 
 const evaluator = new Evaluator(DEFAULT_EVALUATION_LIMITS.maxSteps, {maximumTermSize: DEFAULT_EVALUATION_LIMITS.maxTermSize});
 const solutionMapper = new TexMapper();
@@ -55,10 +64,10 @@ function useProblemText() {
 function useTypingGoal(source: string, context: string | undefined, calculus: Calculus) {
   return useMemo(() => {
     const parsed = readTypingTerm(source, context);
-    if (parsed.ok) return {goal: typingGoal(parsed.value, calculus === "stlc"), parsed: parsed.value, invalid: undefined};
+    if (parsed.ok) return {goal: typingGoal(parsed.value, calculus !== "nbl"), parsed: parsed.value, invalid: undefined};
     // Not even a term: shown as a judgement no rule can derive.
     const {term, type} = splitStated(source);
-    const goal: SyntaxGoal = {key: "r", judgement: `${calculus === "stlc" ? "∅ " : ""}⊢ ${term} : ${type}`, children: []};
+    const goal: SyntaxGoal = {key: "r", judgement: `${calculus !== "nbl" ? "∅ " : ""}⊢ ${term} : ${type}`, children: []};
     return {goal, parsed: undefined, invalid: parsed.message};
   }, [source, context, calculus]);
 }
@@ -82,7 +91,7 @@ function editTree(work: ManualWork, edit: (tree: ManualNode) => void): ManualWor
   return {...work, tree};
 }
 
-function DerivationRow({id, index, source, context, calculus, listed}: {id?: string; index: number; source: string; context?: string; calculus: Calculus; listed: boolean}) {
+function DerivationRow({id, index, source, context, calculus, listed, askType}: {id?: string; index: number; source: string; context?: string; calculus: Calculus; listed: boolean; askType: boolean}) {
   const {t} = useTranslation();
   const taskId = useTaskId(id, ...(listed ? [source] : []));
   const {goal, parsed, invalid} = useTypingGoal(source, context, calculus);
@@ -92,7 +101,7 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
     tree: {
       ...createManualNode("judgement", answer ? termKey(answer.term) : splitStated(source).term),
       gamma: context ? "Γ_1" : "∅",
-      type: splitStated(source).type,
+      type: askType ? "" : splitStated(source).type,
     },
     definitions: context && answer ? `Γ_1 = ${contextToText(answer.gamma, true)}` : "",
   });
@@ -123,7 +132,7 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
   }, [setVerdict]);
 
   const actions = useMemo<ManualActions>(() => ({
-    ruleSuggestions: [...(calculus === "stlc" ? STLC_TYPING_RULES : NBL_TYPING_RULES)],
+    ruleSuggestions: [...RULE_SUGGESTIONS[calculus]],
     setField: (nodeId, field, value) => {
       setWork((current) => editTree(current, (tree) => {
         const node = findManualNode(tree, nodeId);
@@ -201,6 +210,7 @@ function DerivationRow({id, index, source, context, calculus, listed}: {id?: str
             <>
             <div className="flex shrink-0 items-start gap-2">
               <p className="flex-1 text-xs text-muted-foreground">{t("typingLab.manualHint")}</p>
+              <GuideDialog i18nPrefix="labGuides.typing" steps={TYPING_GUIDE}/>
               {button}
             </div>
             {context && (
@@ -273,6 +283,7 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
   const {goal, parsed} = useTypingGoal(source, context, "stlc");
   const problem = parsed ? firstProblem(goal) : goal;
   const {term: termText} = splitStated(source);
+  const closed = !!parsed && arity(parsed.term) === 0;
   const starter = `${context ? `${context.replace(/;?\s*$/, ";")}\n` : ""}(${termText}) `;
   const [value, setValue] = useSavedState(taskId && `${taskId}#value`, starter);
   const [applied, setApplied] = useSavedState<string | undefined>(taskId && `${taskId}#applied`, undefined);
@@ -296,10 +307,11 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
     const read = parseProgram(value);
     if (!read.ok) return fail("cannotRead", t("labWidgets.cannotRead", {detail: read.message}));
     const {program} = read;
-    const call = program.term ? spine(program.term) : undefined;
     const count = arity(parsed.term);
+    // A closed term may itself be an application, so it is compared whole rather than by its spine.
+    const call = program.term ? (count === 0 ? {head: program.term, args: []} : spine(program.term)) : undefined;
     if (!call || !termsAlphaEqual(call.head, parsed.term) || call.args.length !== count) {
-      return fail("notApplied", t("typingLab.notApplied", {count, term: printTerm(parsed.term)}));
+      return fail("notApplied", count === 0 ? t("typingLab.notTheTerm", {term: printTerm(parsed.term)}) : t("typingLab.notApplied", {count, term: printTerm(parsed.term)}));
     }
     const context = contextOf(program);
     if (!context.ok) return fail("illTypedApplied", t("typingLab.illTyped", {detail: problemText(context.problem)}));
@@ -328,9 +340,9 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
     const read = parseProgram(example);
     const result = read.ok ? evaluate(read.program) : undefined;
     return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <pre className="font-mono overflow-x-auto">{example}</pre>
-        {result && <p className="font-mono">→* {printTerm(result.result)}</p>}
+        {result && <SolutionSteps evaluation={result} numerals="nbl" showGamma/>}
       </div>
     );
   })() : undefined;
@@ -338,12 +350,13 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
   return (
     <Row taskId={taskId} index={0} solution={solution}>
       <SolveArea taskId={taskId}>
-        <p className="text-xs text-muted-foreground">{t("typingLab.applyHint")}</p>
+        <p className="text-xs text-muted-foreground">{t(closed ? "typingLab.evaluateHint" : "typingLab.applyHint")}</p>
         <LabEditor value={value} onChange={(next) => { setValue(next); setError(undefined); }} onSubmit={apply}/>
         <TaskActions>
+          <GuideDialog i18nPrefix="labGuides.evaluate" steps={EVALUATE_GUIDE}/>
           <Button size="sm" variant="outline" onClick={claimIllTyped}>{t("typingLab.notWellTyped")}</Button>
           <Button size="sm" variant="ghost" onClick={reset}>{t("lectureWidgets.reset")}</Button>
-          <Button size="sm" disabled={!value.trim()} onClick={apply}>{t("typingLab.apply")}</Button>
+          <Button size="sm" disabled={!value.trim()} onClick={apply}>{t(closed ? "typingLab.evaluate" : "typingLab.apply")}</Button>
         </TaskActions>
         {error && <p className="text-xs text-destructive">{error}</p>}
         {evaluation && applied && (
@@ -358,7 +371,8 @@ function EvaluateRow({id, source, context, example}: {id?: string; source: strin
 }
 
 // `terms` lists `term : Type` strings (one item each); `term` is a single task, optionally typed in `context`.
-export function TypingTask({id, type, terms, term, context, calculus = "nbl", example}: {
+// `askType` leaves the conclusion's type for the student to find.
+export function TypingTask({id, type, terms, term, context, calculus = "nbl", example, askType = false}: {
   id?: string;
   type: TypingTaskType;
   terms?: string[];
@@ -366,6 +380,7 @@ export function TypingTask({id, type, terms, term, context, calculus = "nbl", ex
   context?: string;
   calculus?: Calculus;
   example?: string;
+  askType?: boolean;
 }) {
   if (type === "evaluate" && term) {
     return <ul className="list-none print:hidden"><EvaluateRow id={id} source={term} context={context} example={example}/></ul>;
@@ -374,7 +389,7 @@ export function TypingTask({id, type, terms, term, context, calculus = "nbl", ex
   return (
     <ol className="space-y-3 list-none print:hidden">
       {sources.map((source, index) => (
-        <DerivationRow key={index} id={id} index={index} source={source} context={context} calculus={calculus} listed={!!terms}/>
+        <DerivationRow key={index} id={id} index={index} source={source} context={context} calculus={calculus} listed={!!terms} askType={askType}/>
       ))}
     </ol>
   );

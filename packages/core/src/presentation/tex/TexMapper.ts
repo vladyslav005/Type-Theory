@@ -436,7 +436,7 @@ export class TexMapper extends ProofTreeVisitor<TexTree> {
     }
   }
 
-  // Only reached when Let-polymorphism is disabled (checker rejects the term instead of using CtLet).
+  // Monomorphic T-Let, used when Let-polymorphism is disabled.
   protected visitLet(node: ProofTree): TexTree {
     return {
       ...this.judgements(node),
