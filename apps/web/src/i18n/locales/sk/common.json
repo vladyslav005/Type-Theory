@@ -1372,7 +1372,9 @@
     "startSolving": "Začať riešiť",
     "hideEditor": "Skryť editor",
     "showSolution": "Zobraziť riešenie",
-    "hideSolution": "Skryť riešenie"
+    "hideSolution": "Skryť riešenie",
+    "resizeEditor": "Zmeniť veľkosť editora",
+    "resizeEditorTip": "Ťahaním zmeníte veľkosť, dvojklikom ju vrátite"
   },
   "typingLab": {
     "manualHint": "Odvodzovací strom zostavte sami: pre každý sekvent vyplňte Γ, typ a názov pravidla a pridajte toľko predpokladov, koľko má pravidlo (T-Var potrebuje aj bočnú podmienku x : T ∈ Γ). Ak sa niekde nedá použiť žiadne pravidlo, term nie je správne typovaný.",
@@ -1427,7 +1429,8 @@
     "diverges": "vyhodnotenie sa nedokončilo (prekročený limit krokov alebo chyba).",
     "got": "výsledok: {{value}}",
     "noTerm": "Na poslednom riadku chýba term — napíšte za deklarácie aplikáciu, ktorú chcete vyhodnotiť.",
-    "illTyped": "Program nie je správne typovaný: {{detail}}"
+    "illTyped": "Program nie je správne typovaný: {{detail}}",
+    "evaluateCall": "Vyhodnoťte krok po kroku s vašimi definíciami:"
   },
   "activity": {
     "indicator": {
@@ -2184,6 +2187,14 @@
         "tests": {
           "title": "Spustite testy",
           "body": "„Spustiť testy“ (alebo Ctrl+Enter) zavolá funkcie s menami zo zadania. Pri neúspešnom teste vidíte, čo vaša funkcia vrátila."
+        },
+        "sums": {
+          "title": "Súčty a varianty",
+          "body": "Injekcia potrebuje anotáciu: `inl 5 as Nat + Bool`; binárny `case` sa píše bez `of`: `case x || inl n => … || inr b => …`. Variant: `typedef Farba = [cervena : Unit, zelena : Unit];`, hodnota `[zelena = unit] as Farba` a rozbor `case f of [cervena = x] => … || [zelena = x] => …`."
+        },
+        "practice": {
+          "title": "Vyhodnoťte krok po kroku",
+          "body": "Keď prejdú všetky testy, pod výsledkom sa objaví každý term zo zadania, vyhodnocovaný s vašimi definíciami. Píšte term po každom kroku (volanie hodnotou), „Pridať krok“ ho uloží a na konci stlačte „Dokončiť: je to hodnota“."
         }
       }
     }

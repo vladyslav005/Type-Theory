@@ -58,11 +58,11 @@
     {
       "slug": "sum-types",
       "visible": true,
-      "openable": false,
+      "openable": true,
       "translations": {
         "sk": {
           "title": "Súčtové typy",
-          "summary": "Súčtové typy."
+          "summary": "Binárny súčtový typ a selektor case, varianty a enumeračné typy."
         }
       }
     },

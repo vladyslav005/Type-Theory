@@ -1,0 +1,150 @@
+## Ciele
+
+1. Binárny súčtový typ.
+2. Typ *variant*.
+3. Enumeračný typ.
+4. Typ voliteľných hodnôt (*Options*).
+
+Pomôcka: pravidlá a riešené príklady nájdete v piatej prednáške — [Súčtové typy](/docs/sum-types). Typové
+pravidlá sú zhrnuté aj v [prehľade pravidiel](/docs/rules).
+
+<Callout title="Zápis v aplikácii">
+
+Súčtový typ <Math>{"T_1 + T_2"}</Math> píšte `Nat + Bool`. Injekcie potrebujú anotáciu typu:
+`inl 5 as Nat + Bool`, `inr true as Nat + Bool`. Binárny selektor `case` sa píše **bez `of`**:
+`case x || inl n => t1 || inr b => t2`.
+
+Variantový typ píšte `[kart : Kart, pol : Pol]`, hodnotu variantu `[kart = k] as SurSystem` a variantový
+`case` **s `of`**: `case s of [kart = c] => t1 || [pol = p] => t2`. Položky enumeračného typu majú typ
+`Unit` a jedinú hodnotu `unit`, napr. `[zelena = unit] as FarbySemafora`.
+
+Typy pomenujte typovými aliasmi (`typedef Kart = <Nat * Nat>;`), funkcie a termy deklarujte ako
+`meno = term : typ;`. Posledný riadok programu je term, ktorý sa typovo skontroluje a vyhodnotí — ak
+program nie je správne typovaný, aplikácia to oznámi chybou.
+
+</Callout>
+
+## Krok 1: Binárny súčtový typ
+
+### Úloha 1.1
+
+1. Napíšte funkciu `getnat : Nat + Bool → Nat`, ktorá
+   - vráti dané prirodzené číslo, ak je jej argument vytvorený ľavou injekciou;
+   - ak je argument vytvorený pravou injekciou, vráti `1` pre `true` a `0` pre `false`.
+2. Overte, či je funkcia správne typovaná.
+3. Ak je správne typovaná, vyhodnoťte ju na termoch
+   - `inl succ 5`
+   - `inr iszero 0`
+
+V aplikácii majú injekcie anotáciu, argumenty sú teda `inl succ 5 as Nat + Bool` a
+`inr iszero 0 as Nat + Bool`. Testy zavolajú funkciu `getnat` na niekoľko argumentov. Keď prejdú všetky
+testy, objavia sa pod výsledkom oba termy z bodu 3 — vyhodnoťte ich krok po kroku. Úloha je splnená,
+keď prejdú testy a obe vyhodnotenia dokončíte bez chybného kroku.
+
+<ProgramTask
+  id="getnat"
+  topic="sums"
+  tests={[
+    ["getnat (inl 3 as Nat + Bool)", "3"],
+    ["getnat (inl 0 as Nat + Bool)", "0"],
+    ["getnat (inr true as Nat + Bool)", "1"],
+    ["getnat (inr false as Nat + Bool)", "0"],
+  ]}
+  evaluate={["getnat (inl succ 5 as Nat + Bool)", "getnat (inr iszero 0 as Nat + Bool)"]}
+  solution={"getnat = λ x : Nat + Bool . case x || inl n => n || inr b => if b then 1 else 0 : Nat + Bool -> Nat;\ngetnat (inl succ 5 as Nat + Bool)"}
+/>
+
+## Krok 2: Typ variant
+
+### Úloha 2.1
+
+1. Definujte typ `SurSystem` ako variant pre súradnicové systémy:
+   - karteziánsky systém s dvojicou súradníc typu `Kart`,
+   - polárny systém s dvojicou súradníc typu `Pol`.
+2. Definujte jeden term karteziánskeho a jeden term polárneho systému.
+3. Pomocou termov z bodu 2 vytvorte termy typu `SurSystem`.
+4. Napíšte funkciu `vrat_kart : SurSystem → Kart`, ktorá pre ľubovoľný vstup vráti súradnice v
+   karteziánskom systéme.
+5. Overte, či je funkcia `vrat_kart` správne typovaná.
+6. Aplikujte ju na termy z bodu 3.
+
+Polárne súradnice <Math>{"(r, \\alpha)"}</Math> prevediete na karteziánske podľa vzťahov
+
+<MathBlock>{"x = r \\cdot \\cos \\alpha \\qquad y = r \\cdot \\sin \\alpha"}</MathBlock>
+
+Aplikácia nemá reálne čísla, preto súradnice počítame v `Nat`: `Kart` je dvojica <Math>{"\\langle x, y \\rangle"}</Math>
+a `Pol` dvojica <Math>{"\\langle r, \\alpha \\rangle"}</Math> s uhlom v stupňoch. Návestia variantu nazvite
+`kart` a `pol`. Funkcie `rcos r a` a `rsin r a` sú už v editore — počítajú
+<Math>{"r \\cdot \\cos \\alpha"}</Math> a <Math>{"r \\cdot \\sin \\alpha"}</Math> zaokrúhlené nadol pre uhly
+0, 30, 45, 60 a 90 stupňov. Ponechajte ich v programe; posledný riadok je aplikácia z bodu 6 (ďalšiu si
+môžete vyskúšať zmenou posledného riadku). Testy zavolajú `vrat_kart` na ďalšie termy typu `SurSystem`.
+
+<ProgramTask
+  id="sur-system"
+  topic="sums"
+  starter={"rcos = λ r : Nat . λ a : Nat . if a == 0 then r else if a == 30 then r * 866 / 1000 else if a == 45 then r * 707 / 1000 else if a == 60 then r / 2 else 0 : Nat -> Nat -> Nat;\nrsin = λ r : Nat . λ a : Nat . rcos r (90 - a) : Nat -> Nat -> Nat;\n\n"}
+  tests={[
+    ["vrat_kart ([kart = <3, 4>] as SurSystem)", "<3, 4>"],
+    ["vrat_kart ([pol = <10, 0>] as SurSystem)", "<10, 0>"],
+    ["vrat_kart ([pol = <10, 90>] as SurSystem)", "<0, 10>"],
+    ["vrat_kart ([pol = <10, 30>] as SurSystem)", "<8, 5>"],
+    ["vrat_kart ([pol = <100, 45>] as SurSystem)", "<70, 70>"],
+  ]}
+  solution={"rcos = λ r : Nat . λ a : Nat . if a == 0 then r else if a == 30 then r * 866 / 1000 else if a == 45 then r * 707 / 1000 else if a == 60 then r / 2 else 0 : Nat -> Nat -> Nat;\nrsin = λ r : Nat . λ a : Nat . rcos r (90 - a) : Nat -> Nat -> Nat;\n\ntypedef Kart = <Nat * Nat>;\ntypedef Pol = <Nat * Nat>;\ntypedef SurSystem = [kart : Kart, pol : Pol];\nk = <3, 4> : Kart;\np = <10, 30> : Pol;\ns1 = [kart = k] as SurSystem : SurSystem;\ns2 = [pol = p] as SurSystem : SurSystem;\nvrat_kart = λ s : SurSystem . case s of [kart = c] => c || [pol = q] => <rcos q.1 q.2, rsin q.1 q.2> : SurSystem -> Kart;\nvrat_kart s2"}
+/>
+
+## Krok 3: Enumeračný typ
+
+### Úloha 3.1
+
+1. Definujte enumeračný typ `FarbySemafora` s troma položkami, ktoré reprezentujú farby semafora.
+2. Napíšte funkciu `mozem_ist : FarbySemafora → Bool`.
+   - Overte, či je správne typovaná.
+   - Aplikujte ju na ľubovoľný term typu `FarbySemafora`.
+
+Položky nazvite `cervena`, `oranzova` a `zelena`; ísť sa dá len na zelenú. Posledný riadok je aplikácia
+funkcie `mozem_ist`.
+
+<ProgramTask
+  id="semafor"
+  topic="sums"
+  tests={[
+    ["mozem_ist ([cervena = unit] as FarbySemafora)", "false"],
+    ["mozem_ist ([oranzova = unit] as FarbySemafora)", "false"],
+    ["mozem_ist ([zelena = unit] as FarbySemafora)", "true"],
+  ]}
+  solution={"typedef FarbySemafora = [cervena : Unit, oranzova : Unit, zelena : Unit];\nmozem_ist = λ f : FarbySemafora . case f of [cervena = x] => false || [oranzova = x] => false || [zelena = x] => true : FarbySemafora -> Bool;\nmozem_ist ([zelena = unit] as FarbySemafora)"}
+/>
+
+### Úloha 3.2
+
+1. Definujte enumeračný typ `Tyzden`, ktorý reprezentuje dni v týždni.
+2. Napíšte funkciu `dalsiPracovnyDen : Tyzden → Tyzden`, ktorá pre ľubovoľný term typu `Tyzden` vráti
+   nasledujúci pracovný deň.
+   - Overte, či je správne typovaná.
+   - Aplikujte ju na ľubovoľný term typu `Tyzden`.
+3. Napíšte funkciu `jeVikend : Tyzden → Bool`, ktorá pre ľubovoľný term typu `Tyzden` vráti
+   zodpovedajúcu booleovskú hodnotu.
+   - Overte, či je správne typovaná.
+   - Aplikujte ju na ľubovoľný term typu `Tyzden`.
+
+Položky nazvite `pondelok`, `utorok`, `streda`, `stvrtok`, `piatok`, `sobota` a `nedela`. Obe funkcie
+napíšte do jedného programu; aplikácie si vyskúšajte zmenou posledného riadku. Testy zavolajú obe
+funkcie na rôzne dni.
+
+<ProgramTask
+  id="tyzden"
+  topic="sums"
+  tests={[
+    ["dalsiPracovnyDen ([pondelok = unit] as Tyzden)", "[utorok = unit] as Tyzden"],
+    ["dalsiPracovnyDen ([stvrtok = unit] as Tyzden)", "[piatok = unit] as Tyzden"],
+    ["dalsiPracovnyDen ([piatok = unit] as Tyzden)", "[pondelok = unit] as Tyzden"],
+    ["dalsiPracovnyDen ([sobota = unit] as Tyzden)", "[pondelok = unit] as Tyzden"],
+    ["dalsiPracovnyDen ([nedela = unit] as Tyzden)", "[pondelok = unit] as Tyzden"],
+    ["jeVikend ([streda = unit] as Tyzden)", "false"],
+    ["jeVikend ([piatok = unit] as Tyzden)", "false"],
+    ["jeVikend ([sobota = unit] as Tyzden)", "true"],
+    ["jeVikend ([nedela = unit] as Tyzden)", "true"],
+  ]}
+  solution={"typedef Tyzden = [pondelok : Unit, utorok : Unit, streda : Unit, stvrtok : Unit, piatok : Unit, sobota : Unit, nedela : Unit];\ndalsiPracovnyDen = λ d : Tyzden . case d of\n    [pondelok = x] => [utorok = unit] as Tyzden\n || [utorok = x] => [streda = unit] as Tyzden\n || [streda = x] => [stvrtok = unit] as Tyzden\n || [stvrtok = x] => [piatok = unit] as Tyzden\n || [piatok = x] => [pondelok = unit] as Tyzden\n || [sobota = x] => [pondelok = unit] as Tyzden\n || [nedela = x] => [pondelok = unit] as Tyzden\n  : Tyzden -> Tyzden;\njeVikend = λ d : Tyzden . case d of\n    [pondelok = x] => false || [utorok = x] => false || [streda = x] => false\n || [stvrtok = x] => false || [piatok = x] => false\n || [sobota = x] => true || [nedela = x] => true\n  : Tyzden -> Bool;\ndalsiPracovnyDen ([piatok = unit] as Tyzden)"}
+/>

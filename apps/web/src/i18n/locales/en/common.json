@@ -1331,7 +1331,9 @@
     "startSolving": "Start solving",
     "hideEditor": "Hide editor",
     "showSolution": "Show solution",
-    "hideSolution": "Hide solution"
+    "hideSolution": "Hide solution",
+    "resizeEditor": "Resize editor",
+    "resizeEditorTip": "Drag to resize, double-click to reset"
   },
   "typingLab": {
     "manualHint": "Build the derivation tree yourself: for each sequent fill in Γ, the type and the rule name, and add as many premises as the rule has (a T-Var also needs its side condition x : T ∈ Γ). If no rule applies somewhere, the term is not well typed.",
@@ -1380,7 +1382,8 @@
     "diverges": "evaluation did not finish (step limit reached or an error).",
     "got": "result: {{value}}",
     "noTerm": "The last line has no term — after the declarations, write the application you want to evaluate.",
-    "illTyped": "The program is not well-typed: {{detail}}"
+    "illTyped": "The program is not well-typed: {{detail}}",
+    "evaluateCall": "Evaluate step by step with your definitions:"
   },
   "activity": {
     "indicator": {
@@ -2127,6 +2130,14 @@
         "tests": {
           "title": "Run the tests",
           "body": "“Run tests” (or Ctrl+Enter) calls the functions named in the task. A failed test shows what your function returned."
+        },
+        "sums": {
+          "title": "Sums and variants",
+          "body": "An injection needs an annotation: `inl 5 as Nat + Bool`; the binary `case` has no `of`: `case x || inl n => … || inr b => …`. A variant: `typedef Color = [red : Unit, green : Unit];`, a value `[green = unit] as Color` and the analysis `case c of [red = x] => … || [green = x] => …`."
+        },
+        "practice": {
+          "title": "Evaluate step by step",
+          "body": "Once all tests pass, each term from the task appears below the result, evaluated with your definitions. Write the term after each step (call by value); “Add step” saves it, and at the end press “Finish: it's a value”."
         }
       }
     }

@@ -1,6 +1,7 @@
 import Editor, {type BeforeMount, type OnMount} from "@monaco-editor/react";
-import {useEffect, useImperativeHandle, useRef, useState, type Ref} from "react";
+import {useEffect, useImperativeHandle, useRef, useState, type PointerEvent as ReactPointerEvent, type Ref} from "react";
 import {useTheme} from "next-themes";
+import {useTranslation} from "react-i18next";
 import {useSetUpEditor} from "@/features/editor/hooks/setUpEditor.ts";
 import {applyShortcuts} from "@/features/proof-tree/manual/notation.ts";
 import {cn} from "@/shared/lib/utils.ts";
@@ -61,9 +62,32 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
   const lineHeight = dense ? 16 : LINE_HEIGHT;
   const padding = dense ? 5 : PADDING;
   const minHeight = (compact ? 1 : 3) * lineHeight + 2 * padding;
+  const {t} = useTranslation();
   const {resolvedTheme} = useTheme();
   const {setUpMonacoLanguage} = useSetUpEditor();
   const [height, setHeight] = useState(minHeight);
+  // Set once the student drags the corner; auto-growing stops until a double-click resets it.
+  const [manualSize, setManualSize] = useState<{width: number; height: number} | undefined>();
+  const resizable = !compact && !dense;
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const box = boxRef.current;
+    if (!box) return;
+    event.preventDefault();
+    const start = {x: event.clientX, y: event.clientY, width: box.offsetWidth, height: manualSize?.height ?? height};
+    const maxWidth = box.parentElement?.clientWidth ?? Infinity;
+    const move = (e: PointerEvent) => setManualSize({
+      width: Math.min(maxWidth, Math.max(160, start.width + e.clientX - start.x)),
+      height: Math.max(minHeight, start.height + e.clientY - start.y),
+    });
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+  };
   const submitRef = useRef(onSubmit);
   useEffect(() => { submitRef.current = onSubmit; }, [onSubmit]);
   const blurRef = useRef(onBlur);
@@ -163,12 +187,13 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
 
   return (
     <div
-      className={cn("overflow-hidden rounded border border-input focus-within:ring-1 focus-within:ring-ring", dense && "font-mono text-xs", className)}
+      ref={boxRef}
+      className={cn("relative overflow-hidden rounded border border-input focus-within:ring-1 focus-within:ring-ring", dense && "font-mono text-xs", className)}
       // A dense field stays one line and widens with its text (monospace, so ch tracks it) instead of wrapping.
-      style={dense ? {width: `max(${minWidth}, calc(${value.length + 2}ch + 12px))`} : undefined}
+      style={dense ? {width: `max(${minWidth}, calc(${value.length + 2}ch + 12px))`} : manualSize ? {width: manualSize.width, maxWidth: "100%"} : undefined}
     >
       <Editor
-        height={height}
+        height={manualSize?.height ?? height}
         language={language}
         theme={resolvedTheme === "dark" ? "lambda-theme-dark" : "lambda-theme"}
         value={value}
@@ -205,6 +230,20 @@ export function LabEditor({value, onChange, onSubmit, placeholder, language = "l
           domReadOnly: readOnly,
         }}
       />
+      {resizable && (
+        <div
+          role="separator"
+          aria-label={t("labWidgets.resizeEditor")}
+          title={t("labWidgets.resizeEditorTip")}
+          onPointerDown={startResize}
+          onDoubleClick={() => setManualSize(undefined)}
+          className="absolute bottom-0 right-0 z-10 h-3.5 w-3.5 cursor-nwse-resize touch-none text-muted-foreground/60 hover:text-foreground"
+        >
+          <svg viewBox="0 0 10 10" className="h-full w-full" aria-hidden>
+            <path d="M9 3 3 9M9 6 6 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+          </svg>
+        </div>
+      )}
     </div>
   );
 }

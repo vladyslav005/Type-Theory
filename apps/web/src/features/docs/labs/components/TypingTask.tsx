@@ -36,6 +36,7 @@ import {clearSavedWork, useSavedState} from "@/shared/activity/savedWork.ts";
 import {FullscreenArea} from "@/shared/components/FullscreenArea.tsx";
 import {DEFAULT_EVALUATION_LIMITS} from "@/shared/ui-state/termSlice.ts";
 import {SolutionSteps} from "@/features/docs/labs/components/SolutionSteps.tsx";
+import {hashOf} from "@/features/docs/labs/components/programCheck.ts";
 import {GuideDialog} from "@/shared/components/GuideDialog.tsx";
 
 export type TypingTaskType = "derivation" | "evaluate";
@@ -267,12 +268,6 @@ const spine = (term: Term): {head: Term; args: Term[]} => {
   return {head, args};
 };
 
-// Keeps the practice's saved steps apart for each set of arguments without storing the student's text in the task id.
-const hashOf = (text: string) => {
-  let hash = 5381;
-  for (const char of text.replace(/\s+/g, " ").trim()) hash = ((hash * 33) ^ char.charCodeAt(0)) >>> 0;
-  return hash.toString(36);
-};
 
 const evaluate = (program: Program) => evaluator.evaluate(program, EvaluationStrategy.CALL_BY_VALUE);
 

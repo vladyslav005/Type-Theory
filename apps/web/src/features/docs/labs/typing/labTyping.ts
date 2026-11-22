@@ -1,4 +1,4 @@
-import {AntlrParserAdapter, elaborateNbl, ParseSyntaxError, type Program, type Term, type Type} from "@vladyslav005/tt-core";
+import {AntlrParserAdapter, elaborateNbl, ParseSyntaxError, typeToString, type Program, type Term, type Type} from "@vladyslav005/tt-core";
 import type {SyntaxGoal} from "@/features/proof-tree/components/syntax-builder/syntaxGoal.ts";
 
 // Typed NBL + STLC (with let and products) checked against a stated type, so a failure sits where no rule applies (core unification blames the outer λ).
@@ -74,12 +74,17 @@ export function fromCoreType(type: Type | undefined): Ty | undefined {
 
 const atomic = (term: Term) => ["Var", "Lit", "Tuple", "Record", "TupleProjection", "RecordProjection"].includes(term.kind);
 
+const printAnyType = (type: Type) => {
+  const known = fromCoreType(type);
+  return known ? printType(known) : typeToString(type);
+};
+
 export function printTerm(term: Term): string {
   const wrap = (inner: Term) => (atomic(inner) ? printTerm(inner) : `(${printTerm(inner)})`);
   switch (term.kind) {
     case "Var": return term.name;
     case "Lit": return term.value;
-    case "Abs": return `λ${term.param}:${term.paramType ? printType(fromCoreType(term.paramType) ?? UNKNOWN) : "?"}. ${printTerm(term.body)}`;
+    case "Abs": return `λ${term.param}:${term.paramType ? printAnyType(term.paramType) : "?"}. ${printTerm(term.body)}`;
     case "App": return `${term.func.kind === "App" ? printTerm(term.func) : wrap(term.func)} ${wrap(term.arg)}`;
     case "Succ": return `succ ${wrap(term.term)}`;
     case "Pred": return `pred ${wrap(term.term)}`;
@@ -90,6 +95,12 @@ export function printTerm(term: Term): string {
     case "Record": return `<${term.fields.map((f) => `${f.label} = ${printTerm(f.term)}`).join(", ")}>`;
     case "TupleProjection": return `${wrap(term.tuple)}.${term.index}`;
     case "RecordProjection": return `${wrap(term.term)}.${term.label}`;
+    case "Inl": return `inl ${wrap(term.term)} as ${printAnyType(term.type)}`;
+    case "Inr": return `inr ${wrap(term.term)} as ${printAnyType(term.type)}`;
+    case "Variant": return `${term.variants.map((v) => `[${v.label} = ${printTerm(v.term)}]`).join(" ")} as ${printAnyType(term.type)}`;
+    case "Ascribe": return `${wrap(term.term)} as ${printAnyType(term.type)}`;
+    case "Case": return `case ${printTerm(term.variable)} || inl ${term.inl.variable} => ${printTerm(term.inl.term)} || inr ${term.inr.variable} => ${printTerm(term.inr.term)}`;
+    case "VariantCase": return `case ${printTerm(term.variable)} of ${term.cases.map((c) => `[${c.label} = ${c.variable}] => ${printTerm(c.body)}`).join(" || ")}`;
     default: return term.kind;
   }
 }
