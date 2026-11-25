@@ -21,6 +21,9 @@ export interface LabStatus {
   lastAt?: string;
 }
 
+// A program's evaluation is one item however often it is redone: `…/eval-0/<program hash>` counts as `…/eval-0`.
+const itemKey = (task: string) => task.replace(/(\/eval-\d+)\/[^/]+$/, "$1");
+
 const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
 
 export function labStatus(slug: string, attempts: Attempt[], taskSeconds: Record<string, number> = {}): LabStatus {
@@ -28,7 +31,7 @@ export function labStatus(slug: string, attempts: Attempt[], taskSeconds: Record
   const ofLab = attempts.filter((attempt) => attempt.task.startsWith(prefix));
   const tasks = labTasks(slug).map((info): TaskStatus => {
     const own = ofLab.filter((attempt) => attempt.task.slice(prefix.length).split("/")[0] === info.id);
-    const solved = new Set(own.filter((a) => a.ok && isAnswer(a)).map((a) => a.task));
+    const solved = new Set(own.filter((a) => a.ok && isAnswer(a)).map((a) => itemKey(a.task)));
     const solvedItems = Math.min(solved.size, info.items);
     const taskPrefix = `${prefix}${info.id}`;
     const seconds = Object.entries(taskSeconds)

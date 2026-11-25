@@ -7,7 +7,7 @@ export interface LabTaskInfo {
   id: string;
   // The heading the task sits under, e.g. "Úloha 1.3".
   heading: string;
-  // How many items the task has: one per term for list tasks, otherwise one.
+  // How many items the task has: one per term for list tasks, a program task's tests plus each listed evaluation, otherwise one.
   items: number;
 }
 
@@ -31,7 +31,8 @@ function parseLab(source: string): LabTaskInfo[] {
     if (!id) continue;
     const termsName = attrs.match(/\bterms=\{(\w+)\}/)?.[1];
     const heading = headings.filter((h) => h.at < (match.index ?? 0)).at(-1)?.text ?? id;
-    tasks.push({id, heading, items: termsName ? lengths[termsName] ?? 1 : 1});
+    const evaluations = attrs.match(/\bevaluate=\{\[([\s\S]*?)\]\}/)?.[1].match(/"(?:\\.|[^"\\])*"/g)?.length ?? 0;
+    tasks.push({id, heading, items: termsName ? lengths[termsName] ?? 1 : 1 + evaluations});
   }
   return tasks;
 }
